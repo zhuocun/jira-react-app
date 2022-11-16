@@ -1,8 +1,8 @@
 import "./App.css";
-import ProjectList from "components/projectList";
+import Login from "./components/login";
 
 function App() {
-    return <ProjectList />;
+    return <Login />;
 }
 
 export default App;
