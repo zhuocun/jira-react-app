@@ -6,7 +6,6 @@ import useDebounce from "@/utils/useDebounce";
 import environment from "@/constants/env";
 import filterRequest from "@/utils/filterRequest";
 
-
 const ProjectList: React.FC = () => {
     const apiBaseUrl = environment.apiBaseUrl;
     const [param, setParam] = useState<{ name: string; personId: string }>({
