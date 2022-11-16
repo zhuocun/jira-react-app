@@ -1,3 +1,57 @@
 {
-  "users": []
+    "users": [
+        {
+            "id": 1,
+            "name": "Tim"
+        },
+        {
+            "id": 2,
+            "name": "Jack"
+        },
+        {
+            "id": 3,
+            "name": "Michael"
+        },
+        {
+            "id": 4,
+            "name": "Bill"
+        }
+    ],
+    "projects": [
+        {
+            "id": 1,
+            "name": "Employee Management APP",
+            "personId": 1,
+            "organization": "Dev team 0",
+            "created": 1604989757139
+        },
+        {
+            "id": 2,
+            "name": "Shopping APP",
+            "personId": 2,
+            "organization": "Dev team 1",
+            "created": 1604989757139
+        },
+        {
+            "id": 3,
+            "name": "Resource Management APP",
+            "personId": 2,
+            "organization": "Dev team 2",
+            "created": 1546300800000
+        },
+        {
+            "id": 4,
+            "name": "Headquarter Management APP",
+            "personId": 3,
+            "organization": "Dev Team 3",
+            "created": 1604980000011
+        },
+        {
+            "id": 5,
+            "name": "Delivering Route Planner",
+            "personId": 4,
+            "organization": "Dev team 4",
+            "created": 1546900800000
+        }
+    ]
 }
