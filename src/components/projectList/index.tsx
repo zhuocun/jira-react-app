@@ -4,6 +4,7 @@ import List from "./list";
 import qs from "qs";
 import filterRequest from "../../utils/filterRequest";
 import environment from "../../constants/env";
+import useDebounce from "../../utils/useDebounce";
 
 const ProjectList: React.FC = () => {
     const apiBaseUrl = environment.apiBaseUrl;
@@ -13,6 +14,8 @@ const ProjectList: React.FC = () => {
     });
     const [users, setUsers] = useState<IUser[]>([]);
     const [list, setList] = useState<IProject[]>([]);
+
+    const debounceParam = useDebounce(param, 2000);
 
     useEffect(() => {
         fetch(`${apiBaseUrl}/users`).then(async (res) => {
@@ -24,13 +27,13 @@ const ProjectList: React.FC = () => {
 
     useEffect(() => {
         fetch(
-            `${apiBaseUrl}/projects?${qs.stringify(filterRequest(param))}`
+            `${apiBaseUrl}/projects?${qs.stringify(filterRequest(debounceParam))}`
         ).then(async (res) => {
             if (res.ok) {
                 setList(await res.json());
             }
         });
-    }, [apiBaseUrl, param]);
+    }, [apiBaseUrl, debounceParam]);
 
     return (
         <>
