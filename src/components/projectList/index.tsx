@@ -3,9 +3,10 @@ import SearchPanel from "./searchPanel";
 import List from "./list";
 import qs from "qs";
 import filterRequest from "../../utils/filterRequest";
+import environment from "../../constants/env";
 
-const apiUrl = process.env.REACT_APP_API_URL;
 const ProjectList: React.FC = () => {
+    const apiBaseUrl = environment.apiBaseUrl;
     const [param, setParam] = useState<{ name: string; personId: string }>({
         name: "",
         personId: ""
@@ -14,22 +15,22 @@ const ProjectList: React.FC = () => {
     const [list, setList] = useState<IProject[]>([]);
 
     useEffect(() => {
-        fetch(`${apiUrl}/users`).then(async (res) => {
+        fetch(`${apiBaseUrl}/users`).then(async (res) => {
             if (res.ok) {
                 setUsers(await res.json());
             }
         });
-    }, []);
+    }, [apiBaseUrl]);
 
     useEffect(() => {
-        fetch(
-            `${apiUrl}/projects?${qs.stringify(filterRequest(param))}`
-        ).then(async (res) => {
-            if (res.ok) {
-                setList(await res.json());
+        fetch(`${apiBaseUrl}/projects?${qs.stringify(filterRequest(param))}`).then(
+            async (res) => {
+                if (res.ok) {
+                    setList(await res.json());
+                }
             }
-        });
-    }, [param]);
+        );
+    }, [apiBaseUrl, param]);
 
     return (
         <>
