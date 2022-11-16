@@ -2,9 +2,10 @@ import { FormEvent } from "react";
 import environment from "../../constants/env";
 
 const Login: React.FC = () => {
-    const login = (param: { username: string, password: string }) => {
+    const login = (param: { username: string; password: string }) => {
         fetch(`${environment.apiBaseUrl}/login`, {
-            method: "POST", headers: {
+            method: "POST",
+            headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(param)
@@ -12,9 +13,11 @@ const Login: React.FC = () => {
     };
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const username = (e.currentTarget.elements[0] as HTMLInputElement).value;
-        const password = (e.currentTarget.elements[1] as HTMLInputElement).value;
-        login({username, password});
+        const username = (e.currentTarget.elements[0] as HTMLInputElement)
+            .value;
+        const password = (e.currentTarget.elements[1] as HTMLInputElement)
+            .value;
+        login({ username, password });
     };
     return (
         <form onSubmit={handleSubmit}>
