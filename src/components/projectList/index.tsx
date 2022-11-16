@@ -23,13 +23,13 @@ const ProjectList: React.FC = () => {
     }, [apiBaseUrl]);
 
     useEffect(() => {
-        fetch(`${apiBaseUrl}/projects?${qs.stringify(filterRequest(param))}`).then(
-            async (res) => {
-                if (res.ok) {
-                    setList(await res.json());
-                }
+        fetch(
+            `${apiBaseUrl}/projects?${qs.stringify(filterRequest(param))}`
+        ).then(async (res) => {
+            if (res.ok) {
+                setList(await res.json());
             }
-        );
+        });
     }, [apiBaseUrl, param]);
 
     return (
