@@ -26,8 +26,12 @@ const ProjectList: React.FC = () => {
     }, [apiBaseUrl]);
 
     useEffect(() => {
+        console.log(debounceParam);
+        console.log(filterRequest(debounceParam));
         fetch(
-            `${apiBaseUrl}/projects?${qs.stringify(filterRequest(debounceParam))}`
+            `${apiBaseUrl}/projects?${qs.stringify(
+                filterRequest(debounceParam)
+            )}`
         ).then(async (res) => {
             if (res.ok) {
                 setList(await res.json());

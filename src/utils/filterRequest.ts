@@ -1,5 +1,5 @@
-const filterRequest = (object: any) => {
-    const result = { ...object };
+const filterRequest = (object: object) => {
+    const result: { [key: string]: unknown } = { ...object };
     Object.keys(result).forEach((key) => {
         const value = result[key];
         if (isFalsy(value)) {
@@ -9,7 +9,7 @@ const filterRequest = (object: any) => {
     return result;
 };
 
-const isFalsy = (value: number | string) => {
+const isFalsy = (value: unknown) => {
     return value === 0 ? false : !value;
 };
 
