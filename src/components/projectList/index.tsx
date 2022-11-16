@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import SearchPanel from "./searchPanel";
 import List from "./list";
+import qs from "qs";
+import filterRequest from "../../utils/filterRequest";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 const ProjectList: React.FC = () => {
@@ -21,7 +23,7 @@ const ProjectList: React.FC = () => {
 
     useEffect(() => {
         fetch(
-            `${apiUrl}/projects?name=${param.name}&personId=${param.personId}`
+            `${apiUrl}/projects?${qs.stringify(filterRequest(param))}`
         ).then(async (res) => {
             if (res.ok) {
                 setList(await res.json());
