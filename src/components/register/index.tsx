@@ -16,10 +16,13 @@ const RegisterForm: React.FC<{
         <Form onFinish={handleSubmit}>
             <Form.Item
                 name={"email"}
-                rules={[{ required: true, message: "Enter your email" }, {
-                    type: "email",
-                    message: "Invalid email"
-                }]}
+                rules={[
+                    { required: true, message: "Enter your email" },
+                    {
+                        type: "email",
+                        message: "Invalid email"
+                    }
+                ]}
             >
                 <Input placeholder={"Email"} type={"text"} id={"email"} />
             </Form.Item>

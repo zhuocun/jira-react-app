@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 
 const useMount = (callback: () => void, dependency?: any) => {

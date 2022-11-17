@@ -11,26 +11,29 @@ const MainLayout = () => {
     const items: MenuProps["items"] = [
         {
             key: "logout",
-            label: (<Link onClick={logout}>Logout</Link>)
+            label: <Link onClick={logout}>Logout</Link>
         }
-    ]
+    ];
     return (
         <Container>
-            <div >
-            <Header between={true} style={{boxShadow: "0 0 5px 0 rgba(0, 0, 0, 0.1)"}}>
-                <LeftHeader gap={true}>
-                    <Logo width="180px" color={"rgb(38, 132, 255)"} />
-                    <h2>Projects</h2>
-                    <h2>Users</h2>
-                </LeftHeader>
-                <RightHeader>
-                    <Dropdown menu={{ items }}>
-                        <Link onClick={e => e.preventDefault()}>
-                            Hi, {user?.email}
-                        </Link>
-                    </Dropdown>
-                </RightHeader>
-            </Header>
+            <div>
+                <Header
+                    between={true}
+                    style={{ boxShadow: "0 0 5px 0 rgba(0, 0, 0, 0.1)" }}
+                >
+                    <LeftHeader gap={true}>
+                        <Logo width="180px" color={"rgb(38, 132, 255)"} />
+                        <h2>Projects</h2>
+                        <h2>Users</h2>
+                    </LeftHeader>
+                    <RightHeader>
+                        <Dropdown menu={{ items }}>
+                            <Link onClick={(e) => e.preventDefault()}>
+                                Hi, {user?.email}
+                            </Link>
+                        </Dropdown>
+                    </RightHeader>
+                </Header>
             </div>
             <Main>
                 <ProjectList />
@@ -42,13 +45,13 @@ const MainLayout = () => {
 export default MainLayout;
 
 const Container = styled.div`
-  display: grid;
-  grid-template-rows: 6rem 1fr;
-  height: 100vh;
+    display: grid;
+    grid-template-rows: 6rem 1fr;
+    height: 100vh;
 `;
 
 const Header = styled(Row)`
-  padding: 2rem 3.2rem;
+    padding: 2rem 3.2rem;
 `;
 const LeftHeader = styled(Row)``;
 const RightHeader = styled.div``;

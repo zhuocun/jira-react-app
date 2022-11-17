@@ -11,10 +11,12 @@ interface Props extends TableProps<ProjectIntro> {
 }
 
 const List: React.FC<Props> = ({ users, ...props }) => {
-    const dataSource: ProjectIntro[] | undefined = props.dataSource?.map((p, index) => ({
-        ...p,
-        key: index
-    }));
+    const dataSource: ProjectIntro[] | undefined = props.dataSource?.map(
+        (p, index) => ({
+            ...p,
+            key: index
+        })
+    );
 
     const columns: ColumnsType<ProjectIntro> = [
         {
@@ -46,7 +48,9 @@ const List: React.FC<Props> = ({ users, ...props }) => {
             render(index, data) {
                 return (
                     <span>
-                        {data.createdAt ? dayjs(data.createdAt).format("YYYY-MM-DD") : "Null"}
+                        {data.createdAt
+                            ? dayjs(data.createdAt).format("YYYY-MM-DD")
+                            : "Null"}
                     </span>
                 );
             }

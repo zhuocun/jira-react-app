@@ -32,7 +32,7 @@ const ProjectList: React.FC = () => {
         setError(null);
         api("projects", { data: filterRequest(debounceParam) })
             .then(setList)
-            .catch(err => {
+            .catch((err) => {
                 setList([]);
                 setError(err);
             })
@@ -43,8 +43,11 @@ const ProjectList: React.FC = () => {
         <Container>
             <h1>Project List</h1>
             <SearchPanel param={param} setParam={setParam} users={users} />
-            {error ?
-                <Typography.Text type={"danger"}>{"Operation failed, please try again later."}</Typography.Text> : null}
+            {error ? (
+                <Typography.Text type={"danger"}>
+                    {"Operation failed, please try again later."}
+                </Typography.Text>
+            ) : null}
             <List dataSource={list} users={users} loading={loading} />
         </Container>
     );
@@ -53,5 +56,5 @@ const ProjectList: React.FC = () => {
 export default ProjectList;
 
 const Container = styled.div`
-  padding: 3.2rem;
+    padding: 3.2rem;
 `;

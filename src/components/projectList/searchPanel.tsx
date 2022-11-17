@@ -2,7 +2,9 @@ import { Form, Input, Select } from "antd";
 
 interface Props {
     param: { name: string; personId: string };
-    setParam: React.Dispatch<React.SetStateAction<{ name: string; personId: string }>>;
+    setParam: React.Dispatch<
+        React.SetStateAction<{ name: string; personId: string }>
+    >;
     users: IUser[];
 }
 
