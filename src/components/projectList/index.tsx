@@ -17,9 +17,9 @@ const ProjectList: React.FC = () => {
 
     const debounceParam = useDebounce(param, 1000);
 
-    useMount(()=>{
+    useMount(() => {
         api("users").then(setUsers);
-    })
+    });
 
     useMount(() => {
         api("projects", { data: filterRequest(debounceParam) }).then(setList);
