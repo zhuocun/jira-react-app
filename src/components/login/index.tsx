@@ -1,16 +1,8 @@
 import { FormEvent } from "react";
-import environment from "../../constants/env";
+import { useAuth } from "context/authContext";
 
 const Login: React.FC = () => {
-    const login = (param: { username: string; password: string }) => {
-        fetch(`${environment.apiBaseUrl}/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(param)
-        });
-    };
+    const { login, user } = useAuth();
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const username = (e.currentTarget.elements[0] as HTMLInputElement)
@@ -21,6 +13,7 @@ const Login: React.FC = () => {
     };
     return (
         <form onSubmit={handleSubmit}>
+            {user?.name}
             <div>
                 <label htmlFor={"username"}>username</label>
                 <input type={"text"} id={"username"} />
