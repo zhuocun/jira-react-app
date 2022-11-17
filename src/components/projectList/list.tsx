@@ -1,3 +1,5 @@
+import { Table } from "antd";
+
 interface Props {
     list: IProject[];
     users: IUser[];
@@ -5,25 +7,22 @@ interface Props {
 
 const List: React.FC<Props> = ({ list, users }) => {
     return (
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Manager</th>
-                </tr>
-            </thead>
-            <tbody>
-                {list.map((project, index) => (
-                    <tr key={index}>
-                        <td>{project.name}</td>
-                        <td>
-                            {users.find((user) => user.id === project.personId)
-                                ?.name || "unknown"}
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
+        <Table pagination={false} columns={[{
+            title: "Name",
+            dataIndex: "name",
+            sorter: (a, b) => a.name.localeCompare(b.name)
+        }, {
+            title: "Manager",
+            dataIndex: "manager",
+            render(index, project) {
+                return (
+                    <span key={index}>
+                        {users.find((user) => user.id === project.personId)
+                            ?.name || "unknown"}
+                    </span>
+                )
+            }
+        }]} dataSource={list}></Table>
     );
 };
 

@@ -1,3 +1,5 @@
+import { Input, Select } from "antd";
+
 interface Props {
     param: { name: string; personId: string };
     setParam: React.Dispatch<
@@ -10,7 +12,7 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users }) => {
     return (
         <form>
             <div>
-                <input
+                <Input
                     type={"text"}
                     onChange={(e) =>
                         setParam({
@@ -19,21 +21,21 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users }) => {
                         })
                     }
                 />
-                <select
-                    onChange={(e) =>
+                <Select
+                    onChange={(value) =>
                         setParam({
                             ...param,
-                            personId: e.target.value
+                            personId: value
                         })
                     }
                 >
-                    <option value={""}>Manager</option>
+                    <Select.Option value={""}>Manager</Select.Option>
                     {users.map((user, index) => (
-                        <option value={user.id} key={index}>
+                        <Select.Option value={user.id} key={index}>
                             {user.name}
-                        </option>
+                        </Select.Option>
                     ))}
-                </select>
+                </Select>
             </div>
         </form>
     );

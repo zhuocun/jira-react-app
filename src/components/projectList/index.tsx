@@ -1,10 +1,10 @@
-/* eslint-disable */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SearchPanel from "./searchPanel";
 import List from "./list";
 import useDebounce from "../../utils/hooks/useDebounce";
 import filterRequest from "../../utils/filterRequest";
 import useApi from "../../utils/hooks/useApi";
+import useMount from "../../utils/hooks/useMount";
 
 const ProjectList: React.FC = () => {
     const api = useApi();
@@ -17,13 +17,13 @@ const ProjectList: React.FC = () => {
 
     const debounceParam = useDebounce(param, 1000);
 
-    useEffect(() => {
+    useMount(()=>{
         api("users").then(setUsers);
-    }, []);
+    })
 
-    useEffect(() => {
+    useMount(() => {
         api("projects", { data: filterRequest(debounceParam) }).then(setList);
-    }, [debounceParam]);
+    }, debounceParam);
 
     return (
         <>

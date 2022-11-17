@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
+import "antd/dist/antd.less";
 import App from "./pages/App";
 import reportWebVitals from "./reportWebVitals";
 import AppProviders from "./utils/context";
