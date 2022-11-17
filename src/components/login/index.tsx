@@ -1,7 +1,8 @@
 import { useAuth } from "../../utils/context/authContext";
-import { Button, Form, Input } from "antd";
+import { Form, Input } from "antd";
+import { AuthButton } from "../../layouts/authLayout";
 
-const Login: React.FC = () => {
+const LoginForm: React.FC = () => {
     const { login } = useAuth();
     const handleSubmit = (input: { username: string; password: string }) => {
         login(input);
@@ -10,13 +11,13 @@ const Login: React.FC = () => {
         <Form onFinish={handleSubmit}>
             <Form.Item
                 name={"username"}
-                rules={[{ required: true, message: "Please input username" }]}
+                rules={[{ required: true, message: "Enter your username" }]}
             >
                 <Input placeholder={"Username"} type={"text"} id={"username"} />
             </Form.Item>
             <Form.Item
                 name={"password"}
-                rules={[{ required: true, message: "Please input password" }]}
+                rules={[{ required: true, message: "Enter your password" }]}
             >
                 <Input
                     placeholder={"Password"}
@@ -25,12 +26,12 @@ const Login: React.FC = () => {
                 />
             </Form.Item>
             <Form.Item>
-                <Button htmlType={"submit"} type={"primary"}>
-                    Login
-                </Button>
+                <AuthButton htmlType={"submit"} type={"primary"}>
+                    Log in
+                </AuthButton>
             </Form.Item>
         </Form>
     );
 };
 
-export default Login;
+export default LoginForm;

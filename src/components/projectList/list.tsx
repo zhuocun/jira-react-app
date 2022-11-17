@@ -1,39 +1,50 @@
 import { Table } from "antd";
 import { ColumnsType } from "antd/lib/table";
 
+interface ProjectIntro {
+    key: number;
+    personId: number;
+    name: string;
+}
+
 interface Props {
     list: IProject[];
     users: IUser[];
 }
 
 const List: React.FC<Props> = ({ list, users }) => {
-    const columns: ColumnsType<IProject> = [
+    const dataSource: ProjectIntro[] = list.map((p, index) => ({
+        key: index,
+        personId: p.personId,
+        name: p.name
+    }));
+
+    const columns: ColumnsType<ProjectIntro> = [
         {
-            key: "Name",
-            title: "Name",
+            key: 0,
+            title: "Project",
             dataIndex: "name",
             sorter: (a, b) => a.name.localeCompare(b.name)
         },
         {
-            key: "Manager",
+            key: 1,
             title: "Manager",
-            dataIndex: "manager",
-            render(index, project) {
+            render(index, data) {
                 return (
                     <span key={index}>
-                        {users.find(
-                            (user) => user.id === project.personId
-                        )?.name || "unknown"}
+                        {users.find((user) => user.id === data.personId)
+                            ?.name || "unknown"}
                     </span>
                 );
             }
         }
     ];
+
     return (
-        <Table<IProject>
+        <Table<ProjectIntro>
             pagination={false}
             columns={columns}
-            dataSource={list}
+            dataSource={dataSource}
         />
     );
 };

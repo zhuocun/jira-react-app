@@ -1,7 +1,8 @@
 import { register } from "../../utils/authProvider";
-import { Button, Form, Input } from "antd";
+import { Form, Input } from "antd";
+import { AuthButton } from "../../layouts/authLayout";
 
-const Register: React.FC<{
+const RegisterForm: React.FC<{
     setIsRegistered: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({ setIsRegistered }) => {
     const handleSubmit = (input: { username: string; password: string }) => {
@@ -15,13 +16,13 @@ const Register: React.FC<{
         <Form onFinish={handleSubmit}>
             <Form.Item
                 name={"username"}
-                rules={[{ required: true, message: "Please input username" }]}
+                rules={[{ required: true, message: "Enter your username" }]}
             >
                 <Input placeholder={"Username"} type={"text"} id={"username"} />
             </Form.Item>
             <Form.Item
                 name={"password"}
-                rules={[{ required: true, message: "Please input password" }]}
+                rules={[{ required: true, message: "Enter your password" }]}
             >
                 <Input
                     placeholder={"Password"}
@@ -30,12 +31,12 @@ const Register: React.FC<{
                 />
             </Form.Item>
             <Form.Item>
-                <Button htmlType={"submit"} type={"primary"}>
+                <AuthButton htmlType={"submit"} type={"primary"}>
                     Register
-                </Button>
+                </AuthButton>
             </Form.Item>
         </Form>
     );
 };
 
-export default Register;
+export default RegisterForm;
