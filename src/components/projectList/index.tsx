@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import SearchPanel from "./searchPanel";
 import List from "./list";
 import qs from "qs";
-
-import environment from "@/constants/env";
-import filterRequest from "@/utils/filterRequest";
-import useDebounce from "@/utils/useDebounce";
+import environment from "../../constants/env";
+import useDebounce from "../../utils/useDebounce";
+import filterRequest from "../../utils/filterRequest";
 
 const ProjectList: React.FC = () => {
     const apiBaseUrl = environment.apiBaseUrl;

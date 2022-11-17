@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import * as auth from "utils/authProvider";
+import * as auth from "../../utils/authProvider";
 import React from "react";
 
 interface AuthForm {
@@ -7,11 +7,14 @@ interface AuthForm {
     password: string;
 }
 
-const AuthContext = React.createContext<{
-    user: IUser | null,
-    login: (form: AuthForm) => void,
-    logout: () => void
-} | undefined>(undefined);
+const AuthContext = React.createContext<
+    | {
+          user: IUser | null;
+          login: (form: AuthForm) => void;
+          logout: () => void;
+      }
+    | undefined
+>(undefined);
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -23,12 +26,18 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         auth.logout().then(() => setUser(null));
     };
 
-    return <AuthContext.Provider children={children} value={{ user, login, logout }} />;
+    return (
+        <AuthContext.Provider
+            children={children}
+            value={{ user, login, logout }}
+        />
+    );
 };
 
 const useAuth = () => {
     const context = React.useContext(AuthContext);
-    if (!context) throw new Error("useAuth mush be used within the AuthProvider");
+    if (!context)
+        throw new Error("useAuth mush be used within the AuthProvider");
     return context;
 };
 

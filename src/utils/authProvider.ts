@@ -1,4 +1,4 @@
-import environment from "constants/env";
+import environment from "../constants/env";
 
 const login = async (param: { username: string; password: string }) => {
     const res = await fetch(`${environment.apiBaseUrl}/login`, {
@@ -25,8 +25,6 @@ const register = (param: { username: string; password: string }) => {
     });
 };
 
-const logout = async () => {
-
-}
+const logout = async () => {};
 
 export { login, register, logout };

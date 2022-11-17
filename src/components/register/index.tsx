@@ -1,15 +1,14 @@
 import { FormEvent } from "react";
-import { useAuth } from "../../utils/context/authContext";
+import { register } from "../../utils/authProvider";
 
 const Login: React.FC = () => {
-    const { login } = useAuth();
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const username = (e.currentTarget.elements[0] as HTMLInputElement)
             .value;
         const password = (e.currentTarget.elements[1] as HTMLInputElement)
             .value;
-        login({ username, password });
+        register({ username, password });
     };
     return (
         <form onSubmit={handleSubmit}>
@@ -21,7 +20,7 @@ const Login: React.FC = () => {
                 <label htmlFor={"password"}>password</label>
                 <input type={"password"} id={"password"} />
             </div>
-            <button type={"submit"}>Login</button>
+            <button type={"submit"}>Register</button>
         </form>
     );
 };
