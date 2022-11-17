@@ -8,12 +8,14 @@ interface AuthForm {
     password: string;
 }
 
-const AuthContext = React.createContext<| {
-    user: IUser | null;
-    login: (form: AuthForm) => void;
-    logout: () => void;
-}
-    | undefined>(undefined);
+const AuthContext = React.createContext<
+    | {
+          user: IUser | null;
+          login: (form: AuthForm) => void;
+          logout: () => void;
+      }
+    | undefined
+>(undefined);
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {

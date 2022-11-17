@@ -17,8 +17,8 @@ const login = async (param: { username: string; password: string }) => {
     }
 };
 
-const register = (param: { username: string; password: string }) => {
-    fetch(`${environment.apiBaseUrl}/register`, {
+const register = async (param: { username: string; password: string }) => {
+    return await fetch(`${environment.apiBaseUrl}/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

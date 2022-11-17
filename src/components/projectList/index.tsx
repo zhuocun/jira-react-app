@@ -22,7 +22,7 @@ const ProjectList: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        api("projects", {data: filterRequest(debounceParam)}).then(setList);
+        api("projects", { data: filterRequest(debounceParam) }).then(setList);
     }, [debounceParam]);
 
     return (
