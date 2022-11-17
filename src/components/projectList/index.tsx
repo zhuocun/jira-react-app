@@ -1,13 +1,13 @@
+/* eslint-disable */
 import { useEffect, useState } from "react";
 import SearchPanel from "./searchPanel";
 import List from "./list";
-import qs from "qs";
-import environment from "../../constants/env";
-import useDebounce from "../../utils/useDebounce";
+import useDebounce from "../../utils/hooks/useDebounce";
 import filterRequest from "../../utils/filterRequest";
+import useApi from "../../utils/hooks/useApi";
 
 const ProjectList: React.FC = () => {
-    const apiBaseUrl = environment.apiBaseUrl;
+    const api = useApi();
     const [param, setParam] = useState<{ name: string; personId: string }>({
         name: "",
         personId: ""
@@ -18,24 +18,12 @@ const ProjectList: React.FC = () => {
     const debounceParam = useDebounce(param, 2000);
 
     useEffect(() => {
-        fetch(`${apiBaseUrl}/users`).then(async (res) => {
-            if (res.ok) {
-                setUsers(await res.json());
-            }
-        });
-    }, [apiBaseUrl]);
+        api("users").then(setUsers);
+    }, []);
 
     useEffect(() => {
-        fetch(
-            `${apiBaseUrl}/projects?${qs.stringify(
-                filterRequest(debounceParam)
-            )}`
-        ).then(async (res) => {
-            if (res.ok) {
-                setList(await res.json());
-            }
-        });
-    }, [apiBaseUrl, debounceParam]);
+        api("projects", {data: filterRequest(debounceParam)}).then(setList);
+    }, [debounceParam]);
 
     return (
         <>

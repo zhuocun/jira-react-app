@@ -5,11 +5,7 @@ import AuthLayout from "../layouts/authLayout";
 
 function App() {
     const { user } = useAuth();
-    return (
-        <>
-            {user ? <MainLayout /> : <AuthLayout />}
-        </>
-    );
+    return <>{user ? <MainLayout /> : <AuthLayout />}</>;
 }
 
 export default App;

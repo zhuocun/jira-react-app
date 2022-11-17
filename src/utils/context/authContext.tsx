@@ -1,24 +1,31 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import * as auth from "../../utils/authProvider";
 import React from "react";
+import { api } from "../hooks/useApi";
 
 interface AuthForm {
     username: string;
     password: string;
 }
 
-const AuthContext = React.createContext<
-    | {
-          user: IUser | null;
-          login: (form: AuthForm) => void;
-          logout: () => void;
-      }
-    | undefined
->(undefined);
+const AuthContext = React.createContext<| {
+    user: IUser | null;
+    login: (form: AuthForm) => void;
+    logout: () => void;
+}
+    | undefined>(undefined);
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<IUser | null>(null);
+
+    useEffect(() => {
+        const token = auth.getToken();
+        if (token) {
+            api("userInfo").then(setUser);
+        }
+    }, []);
+
     const login = (form: AuthForm) => {
         auth.login(form).then(setUser);
     };

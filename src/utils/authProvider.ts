@@ -9,7 +9,9 @@ const login = async (param: { username: string; password: string }) => {
         body: JSON.stringify(param)
     });
     if (res.ok) {
-        return await res.json();
+        const user: IUser = await res.json();
+        localStorage.setItem("Token", JSON.stringify(user.token));
+        return user;
     } else {
         return Promise.reject(param);
     }
@@ -25,6 +27,12 @@ const register = (param: { username: string; password: string }) => {
     });
 };
 
-const logout = async () => {};
+const logout = async () => {
+    localStorage.removeItem("Token");
+};
 
-export { login, register, logout };
+const getToken = () => {
+    return localStorage.getItem("Token");
+};
+
+export { login, register, logout, getToken };
