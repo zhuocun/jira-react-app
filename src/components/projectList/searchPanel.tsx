@@ -1,18 +1,17 @@
-import { Input, Select } from "antd";
+import { Form, Input, Select } from "antd";
 
 interface Props {
     param: { name: string; personId: string };
-    setParam: React.Dispatch<
-        React.SetStateAction<{ name: string; personId: string }>
-    >;
+    setParam: React.Dispatch<React.SetStateAction<{ name: string; personId: string }>>;
     users: IUser[];
 }
 
 const SearchPanel: React.FC<Props> = ({ param, setParam, users }) => {
     return (
-        <form>
-            <div>
+        <Form style={{ marginBottom: "2rem" }} layout={"inline"}>
+            <Form.Item>
                 <Input
+                    placeholder={"Project name"}
                     type={"text"}
                     onChange={(e) =>
                         setParam({
@@ -21,6 +20,8 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users }) => {
                         })
                     }
                 />
+            </Form.Item>
+            <Form.Item>
                 <Select
                     onChange={(value) =>
                         setParam({
@@ -36,8 +37,8 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users }) => {
                         </Select.Option>
                     ))}
                 </Select>
-            </div>
-        </form>
+            </Form.Item>
+        </Form>
     );
 };
 

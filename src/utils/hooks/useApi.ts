@@ -51,7 +51,7 @@ const useApi = () => {
     return (...[endpoint, config]: Parameters<typeof api>) =>
         api(endpoint, {
             ...config,
-            token: user ? user.token : localStorage.getItem("Token")
+            token: user?.token
         });
 };
 

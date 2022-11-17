@@ -1,22 +1,19 @@
-import { Table } from "antd";
+import { Table, TableProps } from "antd";
 import { ColumnsType } from "antd/lib/table";
+import dayjs from "dayjs";
 
-interface ProjectIntro {
-    key: number;
-    personId: number;
-    name: string;
+interface ProjectIntro extends IProject {
+    key?: number;
 }
 
-interface Props {
-    list: IProject[];
+interface Props extends TableProps<ProjectIntro> {
     users: IUser[];
 }
 
-const List: React.FC<Props> = ({ list, users }) => {
-    const dataSource: ProjectIntro[] = list.map((p, index) => ({
-        key: index,
-        personId: p.personId,
-        name: p.name
+const List: React.FC<Props> = ({ users, ...props }) => {
+    const dataSource: ProjectIntro[] | undefined = props.dataSource?.map((p, index) => ({
+        ...p,
+        key: index
     }));
 
     const columns: ColumnsType<ProjectIntro> = [
@@ -28,6 +25,11 @@ const List: React.FC<Props> = ({ list, users }) => {
         },
         {
             key: 1,
+            title: "Department",
+            dataIndex: "department"
+        },
+        {
+            key: 2,
             title: "Manager",
             render(index, data) {
                 return (
@@ -37,11 +39,23 @@ const List: React.FC<Props> = ({ list, users }) => {
                     </span>
                 );
             }
+        },
+        {
+            key: 3,
+            title: "Created At",
+            render(index, data) {
+                return (
+                    <span>
+                        {data.createdAt ? dayjs(data.createdAt).format("YYYY-MM-DD") : "Null"}
+                    </span>
+                );
+            }
         }
     ];
 
     return (
         <Table<ProjectIntro>
+            {...props}
             pagination={false}
             columns={columns}
             dataSource={dataSource}

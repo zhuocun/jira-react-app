@@ -1,16 +1,15 @@
-const filterRequest = (object: object) => {
-    const result: { [key: string]: unknown } = { ...object };
-    Object.keys(result).forEach((key) => {
-        const value = result[key];
-        if (isFalsy(value)) {
-            delete result[key];
+const filterRequest = (object: { [key: string]: unknown }) => {
+    Object.keys(object).forEach((key) => {
+        const value = object[key];
+        if (isVoid(value)) {
+            delete object[key];
         }
     });
-    return result;
+    return object;
 };
 
-const isFalsy = (value: unknown) => {
-    return value === 0 ? false : !value;
+const isVoid = (value: unknown) => {
+    return value === undefined || value === null || value === "";
 };
 
 export default filterRequest;

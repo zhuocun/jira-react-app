@@ -1,6 +1,6 @@
 import environment from "../constants/env";
 
-const login = async (param: { username: string; password: string }) => {
+const login = async (param: { email: string; password: string }) => {
     const res = await fetch(`${environment.apiBaseUrl}/login`, {
         method: "POST",
         headers: {
@@ -10,14 +10,14 @@ const login = async (param: { username: string; password: string }) => {
     });
     if (res.ok) {
         const user: IUser = await res.json();
-        localStorage.setItem("Token", JSON.stringify(user.token));
+        localStorage.setItem("Token", user.token);
         return user;
     } else {
         return Promise.reject(param);
     }
 };
 
-const register = async (param: { username: string; password: string }) => {
+const register = async (param: { email: string; password: string }) => {
     return await fetch(`${environment.apiBaseUrl}/register`, {
         method: "POST",
         headers: {

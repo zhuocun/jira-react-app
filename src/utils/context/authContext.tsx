@@ -4,7 +4,7 @@ import React from "react";
 import { api } from "../hooks/useApi";
 
 interface AuthForm {
-    username: string;
+    email: string;
     password: string;
 }
 
@@ -24,7 +24,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const token = auth.getToken();
         if (token) {
-            api("userInfo").then(setUser);
+            api("userInfo", { token }).then(setUser);
         }
     }, []);
 

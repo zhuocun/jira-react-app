@@ -4,16 +4,19 @@ import { AuthButton } from "../../layouts/authLayout";
 
 const LoginForm: React.FC = () => {
     const { login } = useAuth();
-    const handleSubmit = (input: { username: string; password: string }) => {
+    const handleSubmit = (input: { email: string; password: string }) => {
         login(input);
     };
     return (
         <Form onFinish={handleSubmit}>
             <Form.Item
-                name={"username"}
-                rules={[{ required: true, message: "Enter your username" }]}
+                name={"email"}
+                rules={[{ required: true, message: "Enter your email" }, {
+                    type: "email",
+                    message: "Invalid email"
+                }]}
             >
-                <Input placeholder={"Username"} type={"text"} id={"username"} />
+                <Input placeholder={"Email"} type={"text"} id={"email"} />
             </Form.Item>
             <Form.Item
                 name={"password"}

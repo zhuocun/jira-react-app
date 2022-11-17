@@ -5,7 +5,7 @@ import { AuthButton } from "../../layouts/authLayout";
 const RegisterForm: React.FC<{
     setIsRegistered: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({ setIsRegistered }) => {
-    const handleSubmit = (input: { username: string; password: string }) => {
+    const handleSubmit = (input: { email: string; password: string }) => {
         register(input).then((res) => {
             if (res.ok) {
                 setIsRegistered(true);
@@ -15,10 +15,13 @@ const RegisterForm: React.FC<{
     return (
         <Form onFinish={handleSubmit}>
             <Form.Item
-                name={"username"}
-                rules={[{ required: true, message: "Enter your username" }]}
+                name={"email"}
+                rules={[{ required: true, message: "Enter your email" }, {
+                    type: "email",
+                    message: "Invalid email"
+                }]}
             >
-                <Input placeholder={"Username"} type={"text"} id={"username"} />
+                <Input placeholder={"Email"} type={"text"} id={"email"} />
             </Form.Item>
             <Form.Item
                 name={"password"}
