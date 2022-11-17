@@ -31,6 +31,8 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users }) => {
                             personId: value
                         })
                     }
+                    defaultValue={"Manager"}
+                    style={{width: "11rem"}}
                 >
                     <Select.Option value={""}>Manager</Select.Option>
                     {users.map((user, index) => (
