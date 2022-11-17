@@ -27,7 +27,7 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users }) => {
                         })
                     }
                 >
-                    <option>Manager</option>
+                    <option value={""}>Manager</option>
                     {users.map((user, index) => (
                         <option value={user.id} key={index}>
                             {user.name}

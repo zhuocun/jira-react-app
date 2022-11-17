@@ -6,7 +6,11 @@ const AuthLayout = () => {
     const [isRegistered, setIsRegistered] = useState(false);
     return (
         <>
-            {isRegistered ? <Login /> : <Register setIsRegistered={setIsRegistered}/>}
+            {isRegistered ? (
+                <Login />
+            ) : (
+                <Register setIsRegistered={setIsRegistered} />
+            )}
             <button onClick={() => setIsRegistered(!isRegistered)}>
                 Switch to {isRegistered ? "Register" : "Login"}
             </button>

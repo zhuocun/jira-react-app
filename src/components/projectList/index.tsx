@@ -15,7 +15,7 @@ const ProjectList: React.FC = () => {
     const [users, setUsers] = useState<IUser[]>([]);
     const [list, setList] = useState<IProject[]>([]);
 
-    const debounceParam = useDebounce(param, 2000);
+    const debounceParam = useDebounce(param, 1000);
 
     useEffect(() => {
         api("users").then(setUsers);
