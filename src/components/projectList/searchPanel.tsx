@@ -1,10 +1,8 @@
 import { Form, Input, Select } from "antd";
 
 interface Props {
-    param: { name: string; personId: string };
-    setParam: React.Dispatch<
-        React.SetStateAction<{ name: string; personId: string }>
-    >;
+    param: Partial<IProject>;
+    setParam: React.Dispatch<React.SetStateAction<Partial<IProject>>>;
     users: IUser[];
 }
 
@@ -28,7 +26,7 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users }) => {
                     onChange={(value) =>
                         setParam({
                             ...param,
-                            personId: value
+                            personId: parseInt(value)
                         })
                     }
                     defaultValue={"Manager"}
