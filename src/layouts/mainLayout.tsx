@@ -43,12 +43,12 @@ const MainLayout = () => {
 export default MainLayout;
 
 const Container = styled.div`
-  display: grid;
-  grid-template-rows: 6rem 1fr;
-  height: 100vh;
+    display: grid;
+    grid-template-rows: 6rem 1fr;
+    height: 100vh;
 `;
 const Header = styled(Row)`
-  padding: 3.2rem;
+    padding: 3.2rem;
 `;
 const LeftHeader = styled(Row)``;
 const RightHeader = styled.div``;

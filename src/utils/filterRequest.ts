@@ -9,7 +9,12 @@ const filterRequest = (object: { [key: string]: unknown }) => {
 };
 
 const isVoid = (value: unknown) => {
-    return value === undefined || value === null || value === "" || (typeof value === "number" ? isNaN(value) : false);
+    return (
+        value === undefined ||
+        value === null ||
+        value === "" ||
+        (typeof value === "number" ? isNaN(value) : false)
+    );
 };
 
 export default filterRequest;

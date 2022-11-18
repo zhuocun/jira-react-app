@@ -18,17 +18,19 @@ const useAsync = <D>(initialState?: State<D>) => {
         ...initialState
     });
 
-    const setData = (data: D) => setState({
-        data,
-        status: "success",
-        error: null
-    });
+    const setData = (data: D) =>
+        setState({
+            data,
+            status: "success",
+            error: null
+        });
 
-    const setError = (error: Error) => setState({
-        error,
-        status: "error",
-        data: null
-    });
+    const setError = (error: Error) =>
+        setState({
+            error,
+            status: "error",
+            data: null
+        });
 
     const run = (promise: Promise<D>) => {
         if (!promise || !promise.then) {
@@ -39,7 +41,8 @@ const useAsync = <D>(initialState?: State<D>) => {
             .then((data) => {
                 setData(data);
                 return data;
-            }).catch(err => {
+            })
+            .catch((err) => {
                 setError(err);
                 return err;
             });
