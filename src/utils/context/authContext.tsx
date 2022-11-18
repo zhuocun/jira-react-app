@@ -11,16 +11,26 @@ interface AuthForm {
     password: string;
 }
 
-const AuthContext = React.createContext<| {
-    user: IUser | null;
-    login: (form: AuthForm) => Promise<void>;
-    logout: () => void;
-}
-    | undefined>(undefined);
+const AuthContext = React.createContext<
+    | {
+          user: IUser | null;
+          login: (form: AuthForm) => Promise<void>;
+          logout: () => void;
+      }
+    | undefined
+>(undefined);
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const { run, data: user, error, isLoading, isIdle, isError, setData: setUser } = useAsync<IUser | null>(undefined, {throwOnError: true});
+    const {
+        run,
+        data: user,
+        error,
+        isLoading,
+        isIdle,
+        isError,
+        setData: setUser
+    } = useAsync<IUser | null>(undefined, { throwOnError: true });
     useMount(() => {
         const token = auth.getToken();
         if (token) {
