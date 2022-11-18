@@ -12,7 +12,12 @@ const defaultState: State<null> = {
     error: null
 };
 
-const useAsync = <D>(initialState?: State<D>) => {
+const defaultConfig = {
+    throwOnError: false
+}
+
+const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defaultConfig) => {
+    const config = {...defaultConfig, ...initialConfig}
     const [state, setState] = useState<State<D>>({
         ...defaultState,
         ...initialState
@@ -44,6 +49,7 @@ const useAsync = <D>(initialState?: State<D>) => {
             })
             .catch((err) => {
                 setError(err);
+                if (config.throwOnError) return Promise.reject(err);
                 return err;
             });
     };

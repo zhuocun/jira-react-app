@@ -11,7 +11,7 @@ interface AuthForm {
 const AuthContext = React.createContext<
     | {
           user: IUser | null;
-          login: (form: AuthForm) => void;
+          login: (form: AuthForm) => Promise<void>;
           logout: () => void;
       }
     | undefined
@@ -28,9 +28,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     }, []);
 
-    const login = (form: AuthForm) => {
-        auth.login(form).then(setUser);
-    };
+    const login = (form: AuthForm) => auth.login(form).then(setUser);
     const logout = () => {
         auth.logout().then(() => setUser(null));
     };

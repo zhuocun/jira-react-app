@@ -13,18 +13,23 @@ const login = async (param: { email: string; password: string }) => {
         localStorage.setItem("Token", user.token);
         return user;
     } else {
-        return Promise.reject(param);
+        return Promise.reject(await res.json());
     }
 };
 
 const register = async (param: { email: string; password: string }) => {
-    return await fetch(`${environment.apiBaseUrl}/register`, {
+    const res = await fetch(`${environment.apiBaseUrl}/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify(param)
     });
+    if (res.ok) {
+        return await res.json();
+    } else {
+        return Promise.reject(await res.json());
+    }
 };
 
 const logout = async () => {
