@@ -14,10 +14,13 @@ const defaultState: State<null> = {
 
 const defaultConfig = {
     throwOnError: false
-}
+};
 
-const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defaultConfig) => {
-    const config = {...defaultConfig, ...initialConfig}
+const useAsync = <D>(
+    initialState?: State<D>,
+    initialConfig?: typeof defaultConfig
+) => {
+    const config = { ...defaultConfig, ...initialConfig };
     const [state, setState] = useState<State<D>>({
         ...defaultState,
         ...initialState

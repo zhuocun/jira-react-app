@@ -3,7 +3,9 @@ import { Form, Input } from "antd";
 import { AuthButton } from "../../layouts/authLayout";
 import useAsync from "../../utils/hooks/useAsync";
 
-const LoginForm: React.FC<{ onError: React.Dispatch<React.SetStateAction<Error | null>> }> = ({ onError }) => {
+const LoginForm: React.FC<{
+    onError: React.Dispatch<React.SetStateAction<Error | null>>;
+}> = ({ onError }) => {
     const { login } = useAuth();
     const { run, isLoading } = useAsync(undefined, { throwOnError: true });
     const handleSubmit = async (input: { email: string; password: string }) => {
@@ -21,11 +23,18 @@ const LoginForm: React.FC<{ onError: React.Dispatch<React.SetStateAction<Error |
                     }
                 ]}
             >
-                <Input onChange={() => onError(null)} placeholder={"Email"} type={"text"} id={"email"} />
+                <Input
+                    onChange={() => onError(null)}
+                    placeholder={"Email"}
+                    type={"text"}
+                    id={"email"}
+                />
             </Form.Item>
             <Form.Item
                 name={"password"}
-                rules={[{ required: true, message: "Please enter your password" }]}
+                rules={[
+                    { required: true, message: "Please enter your password" }
+                ]}
             >
                 <Input
                     onChange={() => onError(null)}
@@ -35,7 +44,11 @@ const LoginForm: React.FC<{ onError: React.Dispatch<React.SetStateAction<Error |
                 />
             </Form.Item>
             <Form.Item>
-                <AuthButton loading={isLoading} htmlType={"submit"} type={"primary"}>
+                <AuthButton
+                    loading={isLoading}
+                    htmlType={"submit"}
+                    type={"primary"}
+                >
                     Log in
                 </AuthButton>
             </Form.Item>

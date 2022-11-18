@@ -9,9 +9,11 @@ const RegisterForm: React.FC<{
 }> = ({ setIsRegistered, onError }) => {
     const { run, isLoading } = useAsync(undefined, { throwOnError: true });
     const handleSubmit = async (input: { email: string; password: string }) => {
-        await run(register(input)).then(() => {
-            setIsRegistered(true);
-        }).catch(onError);
+        await run(register(input))
+            .then(() => {
+                setIsRegistered(true);
+            })
+            .catch(onError);
     };
     return (
         <Form onFinish={handleSubmit}>
@@ -25,7 +27,12 @@ const RegisterForm: React.FC<{
                     }
                 ]}
             >
-                <Input onChange={() => onError(null)} placeholder={"Email"} type={"text"} id={"email"} />
+                <Input
+                    onChange={() => onError(null)}
+                    placeholder={"Email"}
+                    type={"text"}
+                    id={"email"}
+                />
             </Form.Item>
             <Form.Item
                 name={"password"}
@@ -39,7 +46,11 @@ const RegisterForm: React.FC<{
                 />
             </Form.Item>
             <Form.Item>
-                <AuthButton loading={isLoading} htmlType={"submit"} type={"primary"}>
+                <AuthButton
+                    loading={isLoading}
+                    htmlType={"submit"}
+                    type={"primary"}
+                >
                     Register
                 </AuthButton>
             </Form.Item>
