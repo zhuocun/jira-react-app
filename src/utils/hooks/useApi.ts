@@ -10,7 +10,7 @@ interface IConfig extends RequestInit {
 
 export const api = async (
     endpoint: string,
-    { data, token, headers, ...customConfig }: IConfig = {}
+    { data, token, ...customConfig }: IConfig = {}
 ) => {
     const config = {
         method: "GET",
