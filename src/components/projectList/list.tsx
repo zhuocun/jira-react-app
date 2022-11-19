@@ -1,6 +1,7 @@
 import { Table, TableProps } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import dayjs from "dayjs";
+import { Link } from "react-router-dom";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -22,8 +23,10 @@ const List: React.FC<Props> = ({ users, ...props }) => {
         {
             key: 0,
             title: "Project",
-            dataIndex: "name",
-            sorter: (a, b) => a.name.localeCompare(b.name)
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            render(index, data) {
+                return <Link to={`${data.id}`}>{data.name}</Link>;
+            }
         },
         {
             key: 1,

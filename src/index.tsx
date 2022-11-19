@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import "antd/dist/antd.less";
 import App from "./pages/App";
 import reportWebVitals from "./reportWebVitals";
-import AppProviders from "./utils/context";
+import AppProviders from "./utils/appProviders";
 
 const root = ReactDOM.createRoot(
     document.getElementById("root") as HTMLElement
