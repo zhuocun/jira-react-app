@@ -20,9 +20,9 @@ const Header = () => {
             style={{ boxShadow: "0 0 5px 0 rgba(0, 0, 0, 0.1)" }}
         >
             <LeftHeader gap={true}>
-                <Button type={"link"} onClick={resetRoute}>
-                    <Logo width="180px" color={"rgb(38, 132, 255)"} />
-                </Button>
+                <Logo width="180px" color={"rgb(38, 132, 255)"}>
+                    <Button onClick={resetRoute}></Button>
+                </Logo>
                 <h2>Projects</h2>
                 <h2>Users</h2>
             </LeftHeader>
