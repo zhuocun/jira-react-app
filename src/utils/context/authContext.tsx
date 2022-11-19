@@ -16,7 +16,7 @@ const AuthContext = React.createContext<
     | {
           user: IUser | null;
           login: (form: AuthForm) => Promise<void>;
-          logout: () => void;
+          logout: (path?: string) => void;
       }
     | undefined
 >(undefined);
@@ -43,10 +43,10 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const login = (form: AuthForm) => auth.login(form).then(setUser);
-    const logout = () => {
+    const logout = (path = "/") => {
         auth.logout().then(() => {
             setUser(null);
-            navigate("/login");
+            navigate(path);
         });
     };
 

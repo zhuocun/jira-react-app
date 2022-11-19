@@ -26,12 +26,13 @@ const useAsync = <D>(
         ...initialState
     });
 
-    const setData = (data: D) =>
+    const setData = (data: D) => {
         setState({
             data,
             status: "success",
             error: null
         });
+    };
 
     const setError = (error: Error) =>
         setState({

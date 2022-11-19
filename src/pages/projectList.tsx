@@ -6,9 +6,18 @@ import styled from "@emotion/styled";
 import { Typography } from "antd";
 import useFetch from "../utils/hooks/useFetch";
 import useTitle from "../utils/hooks/useTitle";
+import useUrl from "../utils/hooks/useUrl";
+
+export interface ISearchParam {
+    name: string;
+    personId: string;
+}
 
 const ProjectListPage = () => {
-    const [param, setParam] = useState<Partial<IProject>>({});
+    useTitle("Project List", false);
+    const [param, setParam] = useState<ISearchParam>(
+        useUrl(["name", "personId"])[0]
+    );
     const debouncedParam = useDebounce(param, 1000);
     const {
         isLoading: pLoading,
@@ -21,8 +30,6 @@ const ProjectListPage = () => {
         data: users
     } = useFetch("users");
 
-    useTitle("Project List", false);
-
     return (
         <Container>
             <h1>Project List</h1>
@@ -30,6 +37,7 @@ const ProjectListPage = () => {
                 param={param}
                 setParam={setParam}
                 users={users || []}
+                loading={uLoading}
             />
             {pError || uError ? (
                 <Typography.Text type={"danger"}>

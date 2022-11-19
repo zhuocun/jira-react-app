@@ -1,7 +1,7 @@
 interface IProject {
     id: number;
     name: string;
-    personId: number;
+    personId: number | string;
     department: string;
     createdAt: number;
 }
