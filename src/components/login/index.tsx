@@ -2,14 +2,18 @@ import { useAuth } from "../../utils/context/authContext";
 import { Form, Input } from "antd";
 import { AuthButton } from "../../layouts/authLayout";
 import useAsync from "../../utils/hooks/useAsync";
+import { useNavigate } from "react-router";
 
 const LoginForm: React.FC<{
     onError: React.Dispatch<React.SetStateAction<Error | null>>;
 }> = ({ onError }) => {
+    const navigate = useNavigate();
     const { login } = useAuth();
     const { run, isLoading } = useAsync(undefined, { throwOnError: true });
     const handleSubmit = async (input: { email: string; password: string }) => {
-        await run(login(input)).catch(onError);
+        await run(login(input))
+            .then(() => navigate("/projects"))
+            .catch(onError);
     };
     return (
         <Form onFinish={handleSubmit}>

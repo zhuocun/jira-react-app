@@ -5,6 +5,7 @@ import { api } from "../hooks/useApi";
 import useAsync from "../hooks/useAsync";
 import useMount from "../hooks/useMount";
 import { PageError, PageSpin } from "../../components/status";
+import { useNavigate } from "react-router";
 
 interface AuthForm {
     email: string;
@@ -22,6 +23,7 @@ const AuthContext = React.createContext<
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const navigate = useNavigate();
     const {
         run,
         data: user,
@@ -42,7 +44,10 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const login = (form: AuthForm) => auth.login(form).then(setUser);
     const logout = () => {
-        auth.logout().then(() => setUser(null));
+        auth.logout().then(() => {
+            setUser(null);
+            navigate("/login");
+        });
     };
 
     if (isIdle || isLoading) {

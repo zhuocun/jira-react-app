@@ -1,21 +1,13 @@
-import ProjectList from "../components/projectList";
 import styled from "@emotion/styled";
 import Header from "../components/header";
-import { Route, Routes } from "react-router";
-import Project from "../components/project";
+import { Outlet } from "react-router";
 
 const MainLayout = () => {
     return (
         <Container>
             <Header />
             <Main>
-                <Routes>
-                    <Route path={"/projects"} element={<ProjectList />} />
-                    <Route
-                        path={"/projects/:projectId/*"}
-                        element={<Project />}
-                    />
-                </Routes>
+                <Outlet />
             </Main>
         </Container>
     );

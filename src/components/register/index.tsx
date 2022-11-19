@@ -2,16 +2,17 @@ import { register } from "../../utils/authProvider";
 import { Form, Input } from "antd";
 import { AuthButton } from "../../layouts/authLayout";
 import useAsync from "../../utils/hooks/useAsync";
+import { useNavigate } from "react-router";
 
 const RegisterForm: React.FC<{
-    setIsRegistered: React.Dispatch<React.SetStateAction<boolean>>;
     onError: React.Dispatch<React.SetStateAction<Error | null>>;
-}> = ({ setIsRegistered, onError }) => {
+}> = ({ onError }) => {
+    const navigate = useNavigate();
     const { run, isLoading } = useAsync(undefined, { throwOnError: true });
     const handleSubmit = async (input: { email: string; password: string }) => {
         await run(register(input))
             .then(() => {
-                setIsRegistered(true);
+                navigate("/login");
             })
             .catch(onError);
     };

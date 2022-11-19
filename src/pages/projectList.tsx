@@ -1,13 +1,13 @@
 import { useState } from "react";
-import SearchPanel from "./searchPanel";
-import List from "./list";
-import useDebounce from "../../utils/hooks/useDebounce";
+import SearchPanel from "../components/projectList/searchPanel";
+import List from "../components/projectList/list";
+import useDebounce from "../utils/hooks/useDebounce";
 import styled from "@emotion/styled";
 import { Typography } from "antd";
-import useFetch from "../../utils/hooks/useFetch";
-import useTitle from "../../utils/hooks/useTitle";
+import useFetch from "../utils/hooks/useFetch";
+import useTitle from "../utils/hooks/useTitle";
 
-const ProjectList: React.FC = () => {
+const ProjectListPage = () => {
     const [param, setParam] = useState<Partial<IProject>>({});
     const debouncedParam = useDebounce(param, 1000);
     const {
@@ -45,7 +45,7 @@ const ProjectList: React.FC = () => {
     );
 };
 
-export default ProjectList;
+export default ProjectListPage;
 
 const Container = styled.div`
     padding: 3.2rem;
