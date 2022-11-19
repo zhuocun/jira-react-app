@@ -42,7 +42,7 @@ const useAsync = <D>(
 
     const run = (promise: Promise<D>) => {
         if (!promise || !promise.then) {
-            throw new Error("Please pass data of type Promise");
+            throw new Error("Please pass data of type 'Promise'");
         }
         setState({ ...state, status: "loading" });
         return promise
