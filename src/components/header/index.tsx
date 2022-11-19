@@ -1,9 +1,10 @@
 import styled from "@emotion/styled";
 import Row from "../row";
 import { ReactComponent as Logo } from "../../assets/logo-software.svg";
-import { Dropdown, MenuProps } from "antd";
+import { Button, Dropdown, MenuProps } from "antd";
 import Link from "antd/lib/typography/Link";
 import { useAuth } from "../../utils/context/authContext";
+import resetRoute from "../../utils/resetRoute";
 
 const Header = () => {
     const { user, logout } = useAuth();
@@ -19,7 +20,9 @@ const Header = () => {
             style={{ boxShadow: "0 0 5px 0 rgba(0, 0, 0, 0.1)" }}
         >
             <LeftHeader gap={true}>
-                <Logo width="180px" color={"rgb(38, 132, 255)"} />
+                <Button type={"link"} onClick={resetRoute}>
+                    <Logo width="180px" color={"rgb(38, 132, 255)"} />
+                </Button>
                 <h2>Projects</h2>
                 <h2>Users</h2>
             </LeftHeader>

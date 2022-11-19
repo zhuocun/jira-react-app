@@ -11,6 +11,8 @@ const HomePage = () => {
     useMount(() => {
         if (!user) {
             navigate("/login");
+        } else {
+            navigate("/projects");
         }
     }, user);
 
