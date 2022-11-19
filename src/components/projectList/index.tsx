@@ -5,6 +5,7 @@ import useDebounce from "../../utils/hooks/useDebounce";
 import styled from "@emotion/styled";
 import { Typography } from "antd";
 import useFetch from "../../utils/hooks/useFetch";
+import useTitle from "../../utils/hooks/useTitle";
 
 const ProjectList: React.FC = () => {
     const [param, setParam] = useState<Partial<IProject>>({});
@@ -19,6 +20,8 @@ const ProjectList: React.FC = () => {
         error: uError,
         data: users
     } = useFetch("users");
+
+    useTitle("Project List", false);
 
     return (
         <Container>

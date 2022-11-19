@@ -35,6 +35,8 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         const token = auth.getToken();
         if (token) {
             run(api("userInfo", { token })).then(setUser);
+        } else {
+            setUser(null);
         }
     });
 
