@@ -1,9 +1,8 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import * as auth from "../../utils/authProvider";
 import React from "react";
 import { api } from "../hooks/useApi";
 import useAsync from "../hooks/useAsync";
-import useMount from "../hooks/useMount";
 import { PageError, PageSpin } from "../../components/status";
 import { useNavigate } from "react-router";
 
@@ -24,6 +23,7 @@ AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
     const navigate = useNavigate();
+    const token = auth.getToken();
     const {
         run,
         data: user,
@@ -33,14 +33,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         isError,
         setData: setUser
     } = useAsync<IUser | null>(undefined, { throwOnError: true });
-    useMount(() => {
-        const token = auth.getToken();
-        if (token) {
-            run(api("userInfo", { token })).then(setUser);
-        } else {
-            setUser(null);
-        }
-    });
+    useEffect(() => {
+        token ? run(api("userInfo", { token })).then(setUser) : setUser(null);
+    }, []);
 
     const login = (form: AuthForm) => auth.login(form).then(setUser);
     const logout = (path = "/") => {

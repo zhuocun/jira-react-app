@@ -1,4 +1,3 @@
-import { useState } from "react";
 import SearchPanel from "../components/projectList/searchPanel";
 import List from "../components/projectList/list";
 import useDebounce from "../utils/hooks/useDebounce";
@@ -8,16 +7,9 @@ import useFetch from "../utils/hooks/useFetch";
 import useTitle from "../utils/hooks/useTitle";
 import useUrl from "../utils/hooks/useUrl";
 
-export interface ISearchParam {
-    name: string;
-    personId: string;
-}
-
 const ProjectListPage = () => {
     useTitle("Project List", false);
-    const [param, setParam] = useState<ISearchParam>(
-        useUrl(["name", "personId"])[0]
-    );
+    const [param, setParam] = useUrl(["name", "personId"]);
     const debouncedParam = useDebounce(param, 1000);
     const {
         isLoading: pLoading,

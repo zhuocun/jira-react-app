@@ -1,9 +1,11 @@
 import { Form, Input, Select } from "antd";
-import { ISearchParam } from "../../pages/projectList";
 
 interface Props {
-    param: ISearchParam;
-    setParam: React.Dispatch<React.SetStateAction<ISearchParam>>;
+    param: {
+        name: string;
+        personId: string;
+    };
+    setParam: (params: Partial<{ name: unknown; personId: unknown }>) => void;
     users: IUser[];
     loading: boolean;
 }
@@ -31,7 +33,7 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users, loading }) => {
                 <Select
                     loading={loading}
                     value={
-                        loading ? "loading..." : defaultUser?.name || "Manager"
+                        loading ? "loading..." : defaultUser?.name || "Managers"
                     }
                     onChange={(value) =>
                         setParam({
@@ -39,9 +41,9 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users, loading }) => {
                             personId: value
                         })
                     }
-                    style={{ width: "11rem" }}
+                    style={{ width: "12rem" }}
                 >
-                    <Select.Option value={""}>Manager</Select.Option>
+                    <Select.Option value={""}>Managers</Select.Option>
                     {users.map((user, index) => (
                         <Select.Option value={user.id} key={index}>
                             {user.name}

@@ -1,8 +1,8 @@
 import { useAuth } from "../utils/context/authContext";
 import MainLayout from "../layouts/mainLayout";
 import AuthLayout from "../layouts/authLayout";
-import useMount from "../utils/hooks/useMount";
 import { useLocation, useNavigate } from "react-router";
+import { useEffect } from "react";
 
 const HomePage = () => {
     const navigate = useNavigate();
@@ -10,14 +10,14 @@ const HomePage = () => {
     const { user, logout } = useAuth();
     const path = location.pathname;
 
-    useMount(() => {
+    useEffect(() => {
         if (path === "/login" || path === "/register") {
             logout(path);
         }
         if (!user) {
             navigate("/login");
         }
-    }, user);
+    }, [user, path]);
 
     return <>{user ? <MainLayout /> : <AuthLayout />}</>;
 };
