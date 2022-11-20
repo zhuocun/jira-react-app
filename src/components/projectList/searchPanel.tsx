@@ -10,7 +10,12 @@ interface Props {
     loading: boolean;
 }
 
-const SearchPanel: React.FC<Props> = ({ param, setParam, members, loading }) => {
+const SearchPanel: React.FC<Props> = ({
+    param,
+    setParam,
+    members,
+    loading
+}) => {
     const defaultUser = members.filter(
         (u) => u.id === parseInt(param.personId)
     )[0];

@@ -9,7 +9,11 @@ const RegisterForm: React.FC<{
 }> = ({ onError }) => {
     const navigate = useNavigate();
     const { run, isLoading } = useAsync(undefined, { throwOnError: true });
-    const handleSubmit = async (input: { username: string, email: string; password: string }) => {
+    const handleSubmit = async (input: {
+        username: string;
+        email: string;
+        password: string;
+    }) => {
         await run(register(input))
             .then(() => {
                 navigate("/login");
