@@ -19,8 +19,8 @@ const ProjectListPage = () => {
     const {
         isLoading: uLoading,
         error: uError,
-        data: users
-    } = useFetch("users");
+        data: members
+    } = useFetch("members");
 
     return (
         <Container>
@@ -28,17 +28,17 @@ const ProjectListPage = () => {
             <SearchPanel
                 param={param}
                 setParam={setParam}
-                users={users || []}
+                members={members || []}
                 loading={uLoading}
             />
             {pError || uError ? (
                 <Typography.Text type={"danger"}>
-                    {"Operation failed, please try again later."}
+                    {"Data fetching failed, please try again later."}
                 </Typography.Text>
             ) : null}
             <List
                 dataSource={list || []}
-                users={users || []}
+                members={members || []}
                 loading={pLoading || uLoading}
             />
         </Container>

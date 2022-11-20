@@ -1,7 +1,7 @@
 import environment from "../constants/env";
 
 const login = async (param: { email: string; password: string }) => {
-    const res = await fetch(`${environment.apiBaseUrl}/login`, {
+    const res = await fetch(`${environment.apiBaseUrl}/auth/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -9,16 +9,17 @@ const login = async (param: { email: string; password: string }) => {
         body: JSON.stringify(param)
     });
     if (res.ok) {
-        const user: IUser = await res.json();
-        localStorage.setItem("Token", user.token);
+        const user = await res.json();
+        localStorage.setItem("Token", user.jwt);
         return user;
     } else {
-        return Promise.reject(await res.json());
+        const [err] = (await res.json()).error;
+        return Promise.reject(new Error(err.msg));
     }
 };
 
-const register = async (param: { email: string; password: string }) => {
-    const res = await fetch(`${environment.apiBaseUrl}/register`, {
+const register = async (param: { username: string, email: string, password: string }) => {
+    const res = await fetch(`${environment.apiBaseUrl}/auth/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -28,7 +29,8 @@ const register = async (param: { email: string; password: string }) => {
     if (res.ok) {
         return await res.json();
     } else {
-        return Promise.reject(await res.json());
+        const [err] = (await res.json()).error;
+        return Promise.reject(new Error(err.msg));
     }
 };
 

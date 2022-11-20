@@ -11,14 +11,12 @@ interface AuthForm {
     password: string;
 }
 
-const AuthContext = React.createContext<
-    | {
-          user: IUser | null;
-          login: (form: AuthForm) => Promise<void>;
-          logout: (path?: string) => void;
-      }
-    | undefined
->(undefined);
+const AuthContext = React.createContext<| {
+    user: IUser | null;
+    login: (form: AuthForm) => Promise<void>;
+    logout: (path?: string) => void;
+}
+    | undefined>(undefined);
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -34,7 +32,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         setData: setUser
     } = useAsync<IUser | null>(undefined, { throwOnError: true });
     useEffect(() => {
-        token ? run(api("userInfo", { token })).then(setUser) : setUser(null);
+        token ? run(api("users", { token })).then((res) => {
+            setUser({ username: res?.username, jwt: token });
+        }) : setUser(null);
     }, []);
 
     const login = (form: AuthForm) => auth.login(form).then(setUser);

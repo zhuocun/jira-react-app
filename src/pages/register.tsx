@@ -13,7 +13,6 @@ const RegisterPage = () => {
     const handleSwitch = () => {
         navigate("/login");
     };
-
     if (user) {
         return null;
     } else {

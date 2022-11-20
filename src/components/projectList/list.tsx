@@ -8,10 +8,10 @@ interface ProjectIntro extends IProject {
 }
 
 interface Props extends TableProps<ProjectIntro> {
-    users: IUser[];
+    members: IMember[];
 }
 
-const List: React.FC<Props> = ({ users, ...props }) => {
+const List: React.FC<Props> = ({ members, ...props }) => {
     const dataSource: ProjectIntro[] | undefined = props.dataSource?.map(
         (p, index) => ({
             ...p,
@@ -39,7 +39,7 @@ const List: React.FC<Props> = ({ users, ...props }) => {
             render(index, data) {
                 return (
                     <span key={index}>
-                        {users.find((user) => user.id === data.personId)
+                        {members.find((user) => user.id === data.personId)
                             ?.name || "unknown"}
                     </span>
                 );

@@ -6,12 +6,12 @@ interface Props {
         personId: string;
     };
     setParam: (params: Partial<{ name: unknown; personId: unknown }>) => void;
-    users: IUser[];
+    members: IMember[];
     loading: boolean;
 }
 
-const SearchPanel: React.FC<Props> = ({ param, setParam, users, loading }) => {
-    const defaultUser = users.filter(
+const SearchPanel: React.FC<Props> = ({ param, setParam, members, loading }) => {
+    const defaultUser = members.filter(
         (u) => u.id === parseInt(param.personId)
     )[0];
     return (
@@ -44,7 +44,7 @@ const SearchPanel: React.FC<Props> = ({ param, setParam, users, loading }) => {
                     style={{ width: "12rem" }}
                 >
                     <Select.Option value={""}>Managers</Select.Option>
-                    {users.map((user, index) => (
+                    {members.map((user, index) => (
                         <Select.Option value={user.id} key={index}>
                             {user.name}
                         </Select.Option>

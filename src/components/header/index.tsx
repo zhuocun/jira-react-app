@@ -29,7 +29,7 @@ const Header = () => {
             <RightHeader>
                 <Dropdown menu={{ items }}>
                     <Link onClick={(e) => e.preventDefault()}>
-                        Hi, {user?.email}
+                        Hi, {user?.username}
                     </Link>
                 </Dropdown>
             </RightHeader>

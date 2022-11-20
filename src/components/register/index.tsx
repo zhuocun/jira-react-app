@@ -9,7 +9,7 @@ const RegisterForm: React.FC<{
 }> = ({ onError }) => {
     const navigate = useNavigate();
     const { run, isLoading } = useAsync(undefined, { throwOnError: true });
-    const handleSubmit = async (input: { email: string; password: string }) => {
+    const handleSubmit = async (input: { username: string, email: string; password: string }) => {
         await run(register(input))
             .then(() => {
                 navigate("/login");
@@ -33,6 +33,17 @@ const RegisterForm: React.FC<{
                     placeholder={"Email"}
                     type={"text"}
                     id={"email"}
+                />
+            </Form.Item>
+            <Form.Item
+                name={"username"}
+                rules={[{ required: true, message: "Enter your username" }]}
+            >
+                <Input
+                    onChange={() => onError(null)}
+                    placeholder={"Username"}
+                    type={"text"}
+                    id={"username"}
                 />
             </Form.Item>
             <Form.Item
