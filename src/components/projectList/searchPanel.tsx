@@ -5,7 +5,9 @@ interface Props {
         projectName: string;
         managerId: string;
     };
-    setParam: (params: Partial<{ projectName: unknown; managerId: unknown }>) => void;
+    setParam: (
+        params: Partial<{ projectName: unknown; managerId: unknown }>
+    ) => void;
     members: IMember[];
     loading: boolean;
 }
