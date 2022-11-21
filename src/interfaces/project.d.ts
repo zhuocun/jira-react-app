@@ -1,7 +1,7 @@
 interface IProject {
-    id: number;
-    name: string;
-    personId: number;
-    department: string;
+    _id: number;
+    projectName: string;
+    managerId: string;
+    organization: string;
     createdAt: number;
 }

@@ -23,15 +23,15 @@ const List: React.FC<Props> = ({ members, ...props }) => {
         {
             key: 0,
             title: "Project",
-            sorter: (a, b) => a.name.localeCompare(b.name),
+            sorter: (a, b) => a.projectName.localeCompare(b.projectName),
             render(index, data) {
-                return <Link to={`${data.id}`}>{data.name}</Link>;
+                return <Link to={`${data._id}`}>{data.projectName}</Link>;
             }
         },
         {
             key: 1,
-            title: "Department",
-            dataIndex: "department"
+            title: "Organization",
+            dataIndex: "organization"
         },
         {
             key: 2,
@@ -39,8 +39,8 @@ const List: React.FC<Props> = ({ members, ...props }) => {
             render(index, data) {
                 return (
                     <span key={index}>
-                        {members.find((user) => user.id === data.personId)
-                            ?.name || "unknown"}
+                        {members.find((user) => user._id === data.managerId)
+                            ?.username || "unknown"}
                     </span>
                 );
             }

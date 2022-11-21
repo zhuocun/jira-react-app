@@ -17,7 +17,7 @@ const SearchPanel: React.FC<Props> = ({
     loading
 }) => {
     const defaultUser = members.filter(
-        (u) => u.id === parseInt(param.personId)
+        (u) => u._id === param.personId
     )[0];
     return (
         <Form style={{ marginBottom: "2rem" }} layout={"inline"}>
@@ -38,7 +38,7 @@ const SearchPanel: React.FC<Props> = ({
                 <Select
                     loading={loading}
                     value={
-                        loading ? "loading..." : defaultUser?.name || "Managers"
+                        loading ? "loading..." : defaultUser?.username || "Managers"
                     }
                     onChange={(value) =>
                         setParam({
@@ -50,8 +50,8 @@ const SearchPanel: React.FC<Props> = ({
                 >
                     <Select.Option value={""}>Managers</Select.Option>
                     {members.map((user, index) => (
-                        <Select.Option value={user.id} key={index}>
-                            {user.name}
+                        <Select.Option value={user._id} key={index}>
+                            {user.username}
                         </Select.Option>
                     ))}
                 </Select>

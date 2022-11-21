@@ -20,7 +20,7 @@ const ProjectListPage = () => {
         isLoading: uLoading,
         error: uError,
         data: members
-    } = useFetch("members");
+    } = useFetch("users/members");
 
     return (
         <Container>
