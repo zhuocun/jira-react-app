@@ -13,7 +13,10 @@ const useUrl = <K extends string>(keys: K[]) => {
             [searchParams]
         ),
         (params: Partial<{ [key in K]: unknown }>) => {
-            const obj = filterRequest({ ...searchParams, ...params }) as URLSearchParamsInit;
+            const obj = filterRequest({
+                ...searchParams,
+                ...params
+            }) as URLSearchParamsInit;
             setSearchParams(obj);
         }
     ] as const;
