@@ -9,7 +9,7 @@ import useUrl from "../utils/hooks/useUrl";
 
 const ProjectListPage = () => {
     useTitle("Project List", false);
-    const [param, setParam] = useUrl(["name", "personId"]);
+    const [param, setParam] = useUrl(["projectName", "managerId"]);
     const debouncedParam = useDebounce(param, 1000);
     const {
         isLoading: pLoading,

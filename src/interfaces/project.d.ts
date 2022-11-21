@@ -1,5 +1,5 @@
 interface IProject {
-    _id: number;
+    _id: string;
     projectName: string;
     managerId: string;
     organization: string;
