@@ -13,11 +13,11 @@ interface Props {
 }
 
 const SearchPanel: React.FC<Props> = ({
-    param,
-    setParam,
-    members,
-    loading
-}) => {
+                                          param,
+                                          setParam,
+                                          members,
+                                          loading
+                                      }) => {
     const defaultUser = members.filter((u) => u._id === param.managerId)[0];
     return (
         <Form style={{ marginBottom: "2rem" }} layout={"inline"}>

@@ -1,5 +1,6 @@
 import { URLSearchParamsInit, useSearchParams } from "react-router-dom";
 import { useMemo } from "react";
+import filterRequest from "../filterRequest";
 
 const useUrl = <K extends string>(keys: K[]) => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -12,7 +13,7 @@ const useUrl = <K extends string>(keys: K[]) => {
             [searchParams]
         ),
         (params: Partial<{ [key in K]: unknown }>) => {
-            const obj = { ...searchParams, ...params } as URLSearchParamsInit;
+            const obj = filterRequest({ ...searchParams, ...params }) as URLSearchParamsInit;
             setSearchParams(obj);
         }
     ] as const;
