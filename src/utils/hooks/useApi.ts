@@ -21,7 +21,7 @@ export const api = async (
         ...customConfig
     };
 
-    if (config.method.toUpperCase() === "GET") {
+    if (config.method.toUpperCase() === "GET" || config.method.toUpperCase() === "DELETE") {
         endpoint += `?${qs.stringify(data)}`;
     } else {
         config.body = JSON.stringify(data);

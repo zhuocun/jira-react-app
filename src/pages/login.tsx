@@ -22,7 +22,7 @@ const LoginPage = () => {
                 <AuthTitle>Log in to your account</AuthTitle>
                 {error ? (
                     <Typography.Text type={"danger"}>
-                        {error.message}
+                        {error.message || "Failed to fetch"}
                     </Typography.Text>
                 ) : null}
                 <LoginForm onError={setError} />

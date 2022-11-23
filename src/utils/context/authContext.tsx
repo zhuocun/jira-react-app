@@ -11,14 +11,13 @@ interface AuthForm {
     password: string;
 }
 
-const AuthContext = React.createContext<
-    | {
-          user: IUser | null;
-          login: (form: AuthForm) => Promise<void>;
-          logout: (path?: string) => void;
-      }
-    | undefined
->(undefined);
+const AuthContext = React.createContext<| {
+    user: IUser | null;
+    refreshUser: (user: IUser) => void;
+    login: (form: AuthForm) => Promise<void>;
+    logout: (path?: string) => void;
+}
+    | undefined>(undefined);
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -36,8 +35,8 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         token
             ? run(api("users", { token })).then((res) => {
-                  setUser({ username: res?.username, jwt: token });
-              })
+                setUser({ username: res?.username, likedProjects: res?.likedProjects, jwt: token });
+            })
             : setUser(null);
     }, []);
 
@@ -47,6 +46,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(null);
             navigate(path);
         });
+    };
+    const refreshUser = (user: IUser) => {
+        setUser({ ...user, jwt: auth.getToken() || "" });
     };
 
     if (isIdle || isLoading) {
@@ -58,7 +60,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, refreshUser, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

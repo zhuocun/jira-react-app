@@ -1,7 +1,9 @@
-import { Table, TableProps } from "antd";
+import { Rate, Table, TableProps } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../utils/context/authContext";
+import useApi from "../../utils/hooks/useApi";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -19,9 +21,24 @@ const List: React.FC<Props> = ({ members, ...props }) => {
         })
     );
 
+    const api = useApi();
+    const { refreshUser } = useAuth();
+    const onLike = (projectId: string) => {
+        api("users/likes", { data: { projectId }, method: "PUT" }).then(refreshUser);
+    };
+
+    const { user } = useAuth();
     const columns: ColumnsType<ProjectIntro> = [
         {
-            key: 0,
+            key: "Liked",
+            title: <Rate value={1} count={1} disabled={true}/>,
+            render(index, data) {
+                return <Rate value={user?.likedProjects.includes(data._id) ? 1 : 0}
+                             count={1} onChange={() => onLike(data._id)} />;
+            }
+        },
+        {
+            key: "Project",
             title: "Project",
             sorter: (a, b) => a.projectName.localeCompare(b.projectName),
             render(index, data) {
@@ -29,12 +46,12 @@ const List: React.FC<Props> = ({ members, ...props }) => {
             }
         },
         {
-            key: 1,
+            key: "Organization",
             title: "Organization",
             dataIndex: "organization"
         },
         {
-            key: 2,
+            key: "Manager",
             title: "Manager",
             render(index, data) {
                 return (
@@ -46,7 +63,7 @@ const List: React.FC<Props> = ({ members, ...props }) => {
             }
         },
         {
-            key: 3,
+            key: "Created At",
             title: "Created At",
             render(index, data) {
                 return (
