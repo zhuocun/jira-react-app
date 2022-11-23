@@ -9,7 +9,9 @@ const useFetch = <D>(endPoint: string, param?: Partial<D>, method = "GET") => {
         throwOnError: true
     });
     useEffect(() => {
-        run(api(endPoint, { data: filterRequest(param || {}), method: method }));
+        run(
+            api(endPoint, { data: filterRequest(param || {}), method: method })
+        );
     }, [param]);
 
     return result;

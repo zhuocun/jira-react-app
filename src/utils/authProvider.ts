@@ -13,8 +13,8 @@ const login = async (param: { email: string; password: string }) => {
         localStorage.setItem("Token", user.jwt);
         return user;
     } else {
-        const errMsg = res.status === 404 ?
-            "Failed to connect" : await res.json();
+        const errMsg =
+            res.status === 404 ? "Failed to connect" : await res.json();
         return Promise.reject(new Error(errMsg));
     }
 };
@@ -34,9 +34,12 @@ const register = async (param: {
     if (res.ok) {
         return await res.json();
     } else {
-        const errMsg = res.status === 404 ?
-            "Failed to connect" :
-            res.status === 400 ? (await res.json()).error[0].msg : await res.json();
+        const errMsg =
+            res.status === 404
+                ? "Failed to connect"
+                : res.status === 400
+                ? (await res.json()).error[0].msg
+                : await res.json();
         return Promise.reject(new Error(errMsg));
     }
 };

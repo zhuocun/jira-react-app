@@ -24,17 +24,24 @@ const List: React.FC<Props> = ({ members, ...props }) => {
     const api = useApi();
     const { refreshUser } = useAuth();
     const onLike = (projectId: string) => {
-        api("users/likes", { data: { projectId }, method: "PUT" }).then(refreshUser);
+        api("users/likes", { data: { projectId }, method: "PUT" }).then(
+            refreshUser
+        );
     };
 
     const { user } = useAuth();
     const columns: ColumnsType<ProjectIntro> = [
         {
             key: "Liked",
-            title: <Rate value={1} count={1} disabled={true}/>,
+            title: <Rate value={1} count={1} disabled={true} />,
             render(index, data) {
-                return <Rate value={user?.likedProjects.includes(data._id) ? 1 : 0}
-                             count={1} onChange={() => onLike(data._id)} />;
+                return (
+                    <Rate
+                        value={user?.likedProjects.includes(data._id) ? 1 : 0}
+                        count={1}
+                        onChange={() => onLike(data._id)}
+                    />
+                );
             }
         },
         {
