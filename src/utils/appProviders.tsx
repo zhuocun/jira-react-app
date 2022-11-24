@@ -1,12 +1,16 @@
 import { ReactNode } from "react";
 import { AuthProvider } from "./context/authContext";
 import { BrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+import { store } from "../store";
 
 const AppProviders = ({ children }: { children: ReactNode }) => {
     return (
-        <BrowserRouter>
-            <AuthProvider>{children}</AuthProvider>
-        </BrowserRouter>
+        <Provider store={store}>
+            <BrowserRouter>
+                <AuthProvider>{children}</AuthProvider>
+            </BrowserRouter>
+        </Provider>
     );
 };
 

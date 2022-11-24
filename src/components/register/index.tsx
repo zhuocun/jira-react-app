@@ -1,4 +1,4 @@
-import { register } from "../../utils/authProvider";
+import { register } from "../../utils/authApis";
 import { Form, Input } from "antd";
 import { AuthButton } from "../../layouts/authLayout";
 import useAsync from "../../utils/hooks/useAsync";

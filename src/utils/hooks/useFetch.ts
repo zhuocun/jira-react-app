@@ -12,7 +12,7 @@ const useFetch = <D>(endPoint: string, param?: Partial<D>, method = "GET") => {
         run(
             api(endPoint, { data: filterRequest(param || {}), method: method })
         );
-    }, [param]);
+    }, [api, endPoint, method, param, run]);
 
     return result;
 };

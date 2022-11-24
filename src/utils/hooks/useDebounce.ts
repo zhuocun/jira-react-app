@@ -7,7 +7,7 @@ const useDebounce = <P>(param: P, delay: number): P => {
         const timeout = setTimeout(() => setDebouncedParam(param), delay);
         // execute after the execution of the previous useEffect
         return () => clearTimeout(timeout);
-    }, [param]);
+    }, [param, delay]);
 
     return debouncedParam;
 };

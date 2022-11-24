@@ -15,11 +15,12 @@ module.exports = {
         ecmaVersion: "latest",
         sourceType: "module"
     },
-    plugins: ["react", "@typescript-eslint"],
+    plugins: ["react", "react-hooks", "@typescript-eslint"],
     rules: {
         "react/react-in-jsx-scope": "off",
         "react/prop-types": "off",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "react-hooks/exhaustive-deps": "warn"
     },
     settings: {
         react: {

@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../utils/context/authContext";
 import useApi from "../../utils/hooks/useApi";
+import { refreshUser } from "../../store/reducers/authSlice";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -13,7 +14,7 @@ interface Props extends TableProps<ProjectIntro> {
     members: IMember[];
 }
 
-const List: React.FC<Props> = ({ members, ...props }) => {
+const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const dataSource: ProjectIntro[] | undefined = props.dataSource?.map(
         (p, index) => ({
             ...p,
@@ -22,7 +23,6 @@ const List: React.FC<Props> = ({ members, ...props }) => {
     );
 
     const api = useApi();
-    const { refreshUser } = useAuth();
     const onLike = (projectId: string) => {
         api("users/likes", { data: { projectId }, method: "PUT" }).then(
             refreshUser
@@ -94,4 +94,4 @@ const List: React.FC<Props> = ({ members, ...props }) => {
     );
 };
 
-export default List;
+export default ProjectList;

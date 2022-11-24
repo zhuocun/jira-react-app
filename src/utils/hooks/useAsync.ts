@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 interface State<D> {
     error: Error | null;
@@ -26,26 +26,26 @@ const useAsync = <D>(
         ...initialState
     });
 
-    const setData = (data: D) => {
+    const setData = useCallback((data: D) => {
         setState({
             data,
             status: "success",
             error: null
         });
-    };
+    }, []);
 
-    const setError = (error: Error) =>
+    const setError = useCallback((error: Error) =>
         setState({
             error,
             status: "error",
             data: null
-        });
+        }), []);
 
-    const run = (promise: Promise<D>) => {
+    const run = useCallback((promise: Promise<D>) => {
         if (!promise || !promise.then) {
             throw new Error("Please pass data of type 'Promise'");
         }
-        setState({ ...state, status: "loading" });
+        setState((prevState)=>({ ...prevState, status: "loading" }));
         return promise
             .then((data) => {
                 setData(data);
@@ -56,7 +56,7 @@ const useAsync = <D>(
                 if (config.throwOnError) return Promise.reject(err);
                 return err;
             });
-    };
+    }, [config.throwOnError, setData, setError]);
 
     return {
         isIdle: state.status === "idle",

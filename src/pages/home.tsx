@@ -17,7 +17,7 @@ const HomePage = () => {
         if (!user) {
             navigate("/login");
         }
-    }, [user, path]);
+    }, [user, path, logout, navigate]);
 
     return <>{user ? <MainLayout /> : <AuthLayout />}</>;
 };

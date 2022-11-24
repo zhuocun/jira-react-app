@@ -1,7 +1,8 @@
 import qs from "qs";
 import environment from "../../constants/env";
-import * as auth from "../authProvider";
+import * as auth from "../authApis";
 import { useAuth } from "../context/authContext";
+import { useCallback } from "react";
 
 interface IConfig extends RequestInit {
     data?: object;
@@ -51,11 +52,11 @@ export const api = async (
 
 const useApi = () => {
     const { user } = useAuth();
-    return (...[endpoint, config]: Parameters<typeof api>) =>
+    return useCallback((...[endpoint, config]: Parameters<typeof api>) =>
         api(endpoint, {
             ...config,
             token: user?.jwt
-        });
+        }), [user?.jwt]);
 };
 
 export default useApi;

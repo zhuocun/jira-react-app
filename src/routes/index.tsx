@@ -1,6 +1,6 @@
 import HomePage from "../pages/home";
-import ProjectListPage from "../pages/projectList";
 import ProjectPage from "../pages/project";
+import ProjectDetailPage from "../pages/projectDetail";
 import KanbanPage from "../pages/kanban";
 import EpicPage from "../pages/epic";
 import LoginPage from "../pages/login";
@@ -26,11 +26,11 @@ const routes = [
             },
             {
                 path: "/projects",
-                element: <ProjectListPage />
+                element: <ProjectPage />
             },
             {
                 path: "/projects/:projectId/*",
-                element: <ProjectPage />
+                element: <ProjectDetailPage />
             },
             {
                 path: "/projects/:projectId/kanban",

@@ -1,61 +1,48 @@
-import { ReactNode, useEffect } from "react";
-import * as auth from "../../utils/authProvider";
+import { ReactNode, useCallback, useEffect } from "react";
+import * as auth from "../authApis";
 import React from "react";
 import { api } from "../hooks/useApi";
 import useAsync from "../hooks/useAsync";
 import { PageError, PageSpin } from "../../components/status";
-import { useNavigate } from "react-router";
+import { useReduxDispatch, useReduxSelector } from "../hooks/useRedux";
+import { reduxLogin, reduxLogout, setUser } from "../../store/reducers/authSlice";
 
-interface AuthForm {
+export interface AuthForm {
     email: string;
     password: string;
 }
 
-const AuthContext = React.createContext<
-    | {
-          user: IUser | null;
-          refreshUser: (user: IUser) => void;
-          login: (form: AuthForm) => Promise<void>;
-          logout: (path?: string) => void;
-      }
-    | undefined
->(undefined);
+const AuthContext = React.createContext<| {
+    user: IUser | null;
+    refreshUser: (user: IUser) => void;
+    login: (form: AuthForm) => Promise<void>;
+    logout: (path?: string) => void;
+}
+    | undefined>(undefined);
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const navigate = useNavigate();
-    const token = auth.getToken();
+    const dispatch = useReduxDispatch();
     const {
         run,
-        data: user,
         error,
         isLoading,
         isIdle,
-        isError,
-        setData: setUser
+        isError
     } = useAsync<IUser | null>(undefined, { throwOnError: true });
     useEffect(() => {
+        const token = auth.getToken();
         token
             ? run(api("users", { token })).then((res) => {
-                  setUser({
-                      username: res?.username,
-                      likedProjects: res?.likedProjects,
-                      jwt: token
-                  });
-              })
-            : setUser(null);
-    }, []);
+                dispatch(setUser({
+                    username: res?.username,
+                    likedProjects: res?.likedProjects,
+                    jwt: token
+                }));
+            })
+            : dispatch(setUser(null));
+    }, [dispatch, run]);
 
-    const login = (form: AuthForm) => auth.login(form).then(setUser);
-    const logout = (path = "/") => {
-        auth.logout().then(() => {
-            setUser(null);
-            navigate(path);
-        });
-    };
-    const refreshUser = (user: IUser) => {
-        setUser({ ...user, jwt: auth.getToken() || "" });
-    };
 
     if (isIdle || isLoading) {
         return <PageSpin />;
@@ -65,18 +52,17 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         return <PageError error={error} />;
     }
 
-    return (
-        <AuthContext.Provider value={{ user, refreshUser, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+    return <>{children}</>;
 };
 
 const useAuth = () => {
-    const context = React.useContext(AuthContext);
-    if (!context)
-        throw new Error("useAuth mush be used within the AuthProvider");
-    return context;
+    const dispatch = useReduxDispatch();
+    const user = useReduxSelector(s => s.auth.user);
+    const login = useCallback((form: AuthForm) => dispatch(reduxLogin(form)), [dispatch]);
+    const logout = useCallback((path?: string) => dispatch(reduxLogout(path)), [dispatch]);
+    return {
+        user, login, logout
+    };
 };
 
 export { AuthProvider, useAuth };
