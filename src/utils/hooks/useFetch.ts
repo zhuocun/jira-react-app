@@ -14,6 +14,7 @@ const useFetch = <D>(endPoint: string, param?: Partial<D>, method = "GET") => {
         );
     }, [api, endPoint, method, param, run]);
 
+
     return result;
 };
 

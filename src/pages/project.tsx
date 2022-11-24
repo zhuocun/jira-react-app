@@ -6,21 +6,29 @@ import { Typography } from "antd";
 import useFetch from "../utils/hooks/useFetch";
 import useTitle from "../utils/hooks/useTitle";
 import useUrl from "../utils/hooks/useUrl";
+import { useEffect } from "react";
+import { useReduxDispatch } from "../utils/hooks/useRedux";
+import { projectActions } from "../store/reducers/projectSlice";
 
 const ProjectPage = () => {
     useTitle("Project List", false);
+    const dispatch = useReduxDispatch();
     const [param, setParam] = useUrl(["projectName", "managerId"]);
     const debouncedParam = useDebounce(param, 1000);
     const {
         isLoading: pLoading,
         error: pError,
-        data: list
+        data: projects
     } = useFetch("projects", debouncedParam);
     const {
-        isLoading: uLoading,
-        error: uError,
+        isLoading: mLoading,
+        error: mError,
         data: members
     } = useFetch("users/members");
+
+    useEffect(() => {
+        dispatch(projectActions.setProjects(projects || []));
+    }, [dispatch, projects]);
 
     return (
         <Container>
@@ -29,17 +37,17 @@ const ProjectPage = () => {
                 param={param}
                 setParam={setParam}
                 members={members || []}
-                loading={uLoading}
+                loading={mLoading}
             />
-            {pError || uError ? (
+            {pError || mError ? (
                 <Typography.Text type={"danger"}>
                     {"Data fetching failed, please try again later."}
                 </Typography.Text>
             ) : null}
             <ProjectList
-                dataSource={list || []}
+                dataSource={projects || []}
                 members={members || []}
-                loading={pLoading || uLoading}
+                loading={pLoading || mLoading}
             />
         </Container>
     );
@@ -48,5 +56,5 @@ const ProjectPage = () => {
 export default ProjectPage;
 
 const Container = styled.div`
-    padding: 3.2rem;
+  padding: 3.2rem;
 `;

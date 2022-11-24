@@ -15,6 +15,7 @@ const LoginForm: React.FC<{
             .then(() => navigate("/projects"))
             .catch(onError);
     };
+
     return (
         <Form onFinish={handleSubmit}>
             <Form.Item

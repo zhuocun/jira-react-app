@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../utils/context/authContext";
 import useApi from "../../utils/hooks/useApi";
 import { refreshUser } from "../../store/reducers/authSlice";
+import { useReduxDispatch } from "../../utils/hooks/useRedux";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -15,6 +16,10 @@ interface Props extends TableProps<ProjectIntro> {
 }
 
 const ProjectList: React.FC<Props> = ({ members, ...props }) => {
+    const dispatch = useReduxDispatch();
+    const api = useApi();
+    const { user } = useAuth();
+
     const dataSource: ProjectIntro[] | undefined = props.dataSource?.map(
         (p, index) => ({
             ...p,
@@ -22,14 +27,11 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         })
     );
 
-    const api = useApi();
     const onLike = (projectId: string) => {
-        api("users/likes", { data: { projectId }, method: "PUT" }).then(
-            refreshUser
-        );
+        api("users/likes", { data: { projectId }, method: "PUT" })
+            .then((user) => dispatch(refreshUser(user)));
     };
 
-    const { user } = useAuth();
     const columns: ColumnsType<ProjectIntro> = [
         {
             key: "Liked",

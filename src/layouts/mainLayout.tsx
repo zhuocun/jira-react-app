@@ -10,7 +10,7 @@ const MainLayout = () => {
             <Main>
                 <Outlet />
             </Main>
-            <ProjectModal isOpened={false} onClose={() => []} />
+            <ProjectModal />
         </Container>
     );
 };
@@ -18,8 +18,8 @@ const MainLayout = () => {
 export default MainLayout;
 
 const Container = styled.div`
-    display: grid;
-    grid-template-rows: 6rem 1fr;
-    height: 100vh;
+  display: grid;
+  grid-template-rows: 6rem 1fr;
+  height: 100vh;
 `;
 const Main = styled.main``;

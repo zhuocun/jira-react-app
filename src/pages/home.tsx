@@ -3,6 +3,7 @@ import MainLayout from "../layouts/mainLayout";
 import AuthLayout from "../layouts/authLayout";
 import { useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
+import resetRoute from "../utils/resetRoute";
 
 const HomePage = () => {
     const navigate = useNavigate();
@@ -11,13 +12,13 @@ const HomePage = () => {
     const path = location.pathname;
 
     useEffect(() => {
-        if (path === "/login" || path === "/register") {
-            logout(path);
+        if (user && (path === "/login" || path === "/register")) {
+            resetRoute();
         }
-        if (!user) {
+        if (!user && path !== "/login" && path !== "/register") {
             navigate("/login");
         }
-    }, [user, path, logout, navigate]);
+    }, [logout, navigate, path, user]);
 
     return <>{user ? <MainLayout /> : <AuthLayout />}</>;
 };

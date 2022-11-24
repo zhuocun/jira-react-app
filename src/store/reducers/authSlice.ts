@@ -2,7 +2,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AuthForm } from "../../utils/context/authContext";
 import { ReduxDispatch } from "../index";
 import * as auth from "../../utils/authApis";
-import { useNavigate } from "react-router";
 
 interface State {
     user: IUser | null;
@@ -27,13 +26,10 @@ export const { setUser } = authSlice.actions;
 export const reduxLogin = (form: AuthForm) => (dispatch: ReduxDispatch) =>
     auth.login(form).then((user) => dispatch(setUser(user)));
 
-export const reduxLogout =
-    (path = "/") =>
+export const reduxLogout = () =>
     (dispatch: ReduxDispatch) => {
-        const navigate = useNavigate();
         auth.logout().then(() => {
             dispatch(setUser(null));
-            navigate(path);
         });
     };
 

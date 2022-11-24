@@ -2,13 +2,13 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ReduxDispatch } from "../index";
 
 interface State {
-    isModalOpen: boolean;
+    isModalOpened: boolean;
     projects: IProject[];
     user: IUser | null;
 }
 
 const initialState: State = {
-    isModalOpen: false,
+    isModalOpened: false,
     projects: [],
     user: null
 };
@@ -18,10 +18,10 @@ export const projectSlice = createSlice({
     initialState,
     reducers: {
         openModal(state) {
-            state.isModalOpen = true;
+            state.isModalOpened = true;
         },
         closeModal(state) {
-            state.isModalOpen = false;
+            state.isModalOpened = false;
         },
         setProjects(state, action: PayloadAction<IProject[]>) {
             state.projects = action.payload;

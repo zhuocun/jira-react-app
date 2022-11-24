@@ -1,15 +1,20 @@
 import { Button, Drawer } from "antd";
+import { useReduxDispatch, useReduxSelector } from "../../utils/hooks/useRedux";
+import { projectActions } from "../../store/reducers/projectSlice";
 
-interface Props {
-    isOpened: boolean;
-    onClose: () => void;
-}
-
-const ProjectModal: React.FC<Props> = ({ isOpened, onClose }) => {
+const ProjectModal: React.FC = () => {
+    const dispatch = useReduxDispatch();
+    const isModalOpened = useReduxSelector((s) => s.project.isModalOpened);
     return (
-        <Drawer visible={isOpened} width={"100%"}>
+        <Drawer
+            open={isModalOpened}
+            onClose={() => dispatch(projectActions.closeModal())}
+            width={"100%"}
+        >
             <h1>Project Modal</h1>
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={() => dispatch(projectActions.closeModal())}>
+                Close
+            </Button>
         </Drawer>
     );
 };
