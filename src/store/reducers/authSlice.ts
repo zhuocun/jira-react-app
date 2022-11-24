@@ -27,14 +27,15 @@ export const { setUser } = authSlice.actions;
 export const reduxLogin = (form: AuthForm) => (dispatch: ReduxDispatch) =>
     auth.login(form).then((user) => dispatch(setUser(user)));
 
-
-export const reduxLogout = (path = "/") => (dispatch: ReduxDispatch) => {
-    const navigate = useNavigate();
-    auth.logout().then(() => {
-        dispatch(setUser(null));
-        navigate(path);
-    });
-};
+export const reduxLogout =
+    (path = "/") =>
+    (dispatch: ReduxDispatch) => {
+        const navigate = useNavigate();
+        auth.logout().then(() => {
+            dispatch(setUser(null));
+            navigate(path);
+        });
+    };
 
 export const refreshUser = (user: IUser) => (dispatch: ReduxDispatch) => {
     dispatch(setUser({ ...user, jwt: auth.getToken() || "" }));

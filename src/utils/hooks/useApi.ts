@@ -52,11 +52,14 @@ export const api = async (
 
 const useApi = () => {
     const { user } = useAuth();
-    return useCallback((...[endpoint, config]: Parameters<typeof api>) =>
-        api(endpoint, {
-            ...config,
-            token: user?.jwt
-        }), [user?.jwt]);
+    return useCallback(
+        (...[endpoint, config]: Parameters<typeof api>) =>
+            api(endpoint, {
+                ...config,
+                token: user?.jwt
+            }),
+        [user?.jwt]
+    );
 };
 
 export default useApi;

@@ -34,6 +34,9 @@ export const projectSlice = createSlice({
 
 export const projectActions = projectSlice.actions;
 
-export const refreshProjects = (promise: Promise<IProject[]>) => (dispatch: ReduxDispatch) => {
-    promise.then((projects) => dispatch(projectActions.setProjects(projects)));
-};
+export const refreshProjects =
+    (promise: Promise<IProject[]>) => (dispatch: ReduxDispatch) => {
+        promise.then((projects) =>
+            dispatch(projectActions.setProjects(projects))
+        );
+    };

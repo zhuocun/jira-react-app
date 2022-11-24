@@ -34,29 +34,35 @@ const useAsync = <D>(
         });
     }, []);
 
-    const setError = useCallback((error: Error) =>
-        setState({
-            error,
-            status: "error",
-            data: null
-        }), []);
+    const setError = useCallback(
+        (error: Error) =>
+            setState({
+                error,
+                status: "error",
+                data: null
+            }),
+        []
+    );
 
-    const run = useCallback((promise: Promise<D>) => {
-        if (!promise || !promise.then) {
-            throw new Error("Please pass data of type 'Promise'");
-        }
-        setState((prevState)=>({ ...prevState, status: "loading" }));
-        return promise
-            .then((data) => {
-                setData(data);
-                return data;
-            })
-            .catch((err) => {
-                setError(err);
-                if (config.throwOnError) return Promise.reject(err);
-                return err;
-            });
-    }, [config.throwOnError, setData, setError]);
+    const run = useCallback(
+        (promise: Promise<D>) => {
+            if (!promise || !promise.then) {
+                throw new Error("Please pass data of type 'Promise'");
+            }
+            setState((prevState) => ({ ...prevState, status: "loading" }));
+            return promise
+                .then((data) => {
+                    setData(data);
+                    return data;
+                })
+                .catch((err) => {
+                    setError(err);
+                    if (config.throwOnError) return Promise.reject(err);
+                    return err;
+                });
+        },
+        [config.throwOnError, setData, setError]
+    );
 
     return {
         isIdle: state.status === "idle",
