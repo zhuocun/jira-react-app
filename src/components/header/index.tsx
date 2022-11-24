@@ -14,9 +14,15 @@ const Header = () => {
     const items: MenuProps["items"] = [
         {
             key: "logout",
-            label: <Link onClick={() => {
-                logout().then(() => navigate("/login"));
-            }}>Logout</Link>
+            label: (
+                <Link
+                    onClick={() => {
+                        logout().then(() => navigate("/login"));
+                    }}
+                >
+                    Logout
+                </Link>
+            )
         }
     ];
     return (
@@ -47,7 +53,7 @@ const Header = () => {
 };
 
 const PageHeader = styled(Row)`
-  padding: 3.2rem;
+    padding: 3.2rem;
 `;
 const LeftHeader = styled(Row)``;
 const RightHeader = styled.div``;

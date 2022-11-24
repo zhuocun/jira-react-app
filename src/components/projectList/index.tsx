@@ -28,8 +28,9 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     );
 
     const onLike = (projectId: string) => {
-        api("users/likes", { data: { projectId }, method: "PUT" })
-            .then((user) => dispatch(refreshUser(user)));
+        api("users/likes", { data: { projectId }, method: "PUT" }).then(
+            (user) => dispatch(refreshUser(user))
+        );
     };
 
     const columns: ColumnsType<ProjectIntro> = [

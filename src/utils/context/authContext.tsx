@@ -16,48 +16,48 @@ export interface AuthForm {
     password: string;
 }
 
-const AuthContext = React.createContext<| {
-    user: IUser | null;
-    refreshUser: (user: IUser) => void;
-    login: (form: AuthForm) => Promise<void>;
-    logout: (path?: string) => void;
-}
-    | undefined>(undefined);
+const AuthContext = React.createContext<
+    | {
+          user: IUser | null;
+          refreshUser: (user: IUser) => void;
+          login: (form: AuthForm) => Promise<void>;
+          logout: (path?: string) => void;
+      }
+    | undefined
+>(undefined);
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
-        const dispatch = useReduxDispatch();
-        const token = auth.getToken();
-        const { run, error, isLoading, isIdle, isError } = useAsync<IUser | null>(
-            undefined,
-            { throwOnError: true }
-        );
-        useEffect(() => {
-            token ?
-                run(api("users", { token })).then((res) => {
-                    dispatch(
-                        setUser({
-                            username: res?.username,
-                            likedProjects: res?.likedProjects,
-                            jwt: token
-                        })
-                    );
-                }) : dispatch(setUser(null));
-        }, [dispatch, run, token]);
+    const dispatch = useReduxDispatch();
+    const token = auth.getToken();
+    const { run, error, isLoading, isIdle, isError } = useAsync<IUser | null>(
+        undefined,
+        { throwOnError: true }
+    );
+    useEffect(() => {
+        token
+            ? run(api("users", { token })).then((res) => {
+                  dispatch(
+                      setUser({
+                          username: res?.username,
+                          likedProjects: res?.likedProjects,
+                          jwt: token
+                      })
+                  );
+              })
+            : dispatch(setUser(null));
+    }, [dispatch, run, token]);
 
-
-        if ((isIdle || isLoading) && token) {
-            return <PageSpin />;
-        }
-
-        if (isError) {
-            return <PageError error={error} />;
-        }
-
-        return <>{children}</>;
+    if ((isIdle || isLoading) && token) {
+        return <PageSpin />;
     }
-;
 
+    if (isError) {
+        return <PageError error={error} />;
+    }
+
+    return <>{children}</>;
+};
 const useAuth = () => {
     const dispatch = useReduxDispatch();
     const user = useReduxSelector((s) => s.auth.user);
@@ -65,10 +65,7 @@ const useAuth = () => {
         (form: AuthForm) => dispatch(reduxLogin(form)),
         [dispatch]
     );
-    const logout = useCallback(
-        async () => dispatch(reduxLogout()),
-        [dispatch]
-    );
+    const logout = useCallback(async () => dispatch(reduxLogout()), [dispatch]);
     return {
         user,
         login,
