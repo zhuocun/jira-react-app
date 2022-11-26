@@ -7,14 +7,20 @@ const LoginForm: React.FC<{
     onError: React.Dispatch<React.SetStateAction<Error | null>>;
 }> = ({ onError }) => {
     const navigate = useNavigate();
-    const {
-        mutateAsync,
-        isLoading
-    } = useReactMutation<IUser>("auth/login", "users", "POST", undefined, onError, true);
-    const handleSubmit = async (input: { email: string; password: string; }) => {
-        await mutateAsync(input).then((res) => {
-            localStorage.setItem("Token", res.jwt);
-        }).then(() => navigate("/projects"));
+    const { mutateAsync, isLoading } = useReactMutation<IUser>(
+        "auth/login",
+        "users",
+        "POST",
+        undefined,
+        onError,
+        true
+    );
+    const handleSubmit = async (input: { email: string; password: string }) => {
+        await mutateAsync(input)
+            .then((res) => {
+                localStorage.setItem("Token", res.jwt);
+            })
+            .then(() => navigate("/projects"));
     };
 
     return (

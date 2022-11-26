@@ -22,4 +22,3 @@ export const projectModalSlice = createSlice({
 });
 
 export const projectActions = projectModalSlice.actions;
-

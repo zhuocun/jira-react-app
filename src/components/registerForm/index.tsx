@@ -7,16 +7,22 @@ const RegisterForm: React.FC<{
     onError: React.Dispatch<React.SetStateAction<Error | null>>;
 }> = ({ onError }) => {
     const navigate = useNavigate();
-    const {
-        mutateAsync,
-        isLoading
-    } = useReactMutation("auth/register", "", "POST", undefined, onError, false);
+    const { mutateAsync, isLoading } = useReactMutation(
+        "auth/register",
+        "",
+        "POST",
+        undefined,
+        onError,
+        false
+    );
     const handleSubmit = async (input: {
         username: string;
         email: string;
         password: string;
     }) => {
-        await mutateAsync(input).then(() => navigate("/login")).catch(onError);
+        await mutateAsync(input)
+            .then(() => navigate("/login"))
+            .catch(onError);
     };
     return (
         <Form onFinish={handleSubmit}>
