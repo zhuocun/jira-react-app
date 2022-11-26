@@ -3,7 +3,7 @@ import { useReduxSelector } from "../../utils/hooks/useRedux";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 
 const ProjectPopover = () => {
-    const {openModal} = useProjectModal();
+    const { openModal } = useProjectModal();
     const projects = useReduxSelector((s) => s.project.projects);
     const user = useReduxSelector((s) => s.auth.user);
     const likedProjects = projects.filter((project) =>
@@ -19,10 +19,7 @@ const ProjectPopover = () => {
                 ))}
             </List>
             <Divider />
-            <Button
-                onClick={openModal}
-                type={"link"}
-            >
+            <Button onClick={openModal} type={"link"}>
                 Create Project
             </Button>
         </>

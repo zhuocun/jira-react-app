@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 const useProjectModal = () => {
     const [modal, setModal] = useUrl(["modal"]);
-    const isModalOpened = useReduxSelector(s => s.project.isModalOpened);
+    const isModalOpened = useReduxSelector((s) => s.project.isModalOpened);
     const dispatch = useReduxDispatch();
     const openModal = () => {
         setModal({ modal: "on" });
@@ -15,9 +15,9 @@ const useProjectModal = () => {
     };
 
     useEffect(() => {
-        modal.modal === "on" ?
-            dispatch(projectActions.openModal()) :
-            dispatch(projectActions.closeModal());
+        modal.modal === "on"
+            ? dispatch(projectActions.openModal())
+            : dispatch(projectActions.closeModal());
     }, [dispatch, modal]);
 
     return {
@@ -25,7 +25,6 @@ const useProjectModal = () => {
         openModal,
         closeModal
     };
-
 };
 
 export default useProjectModal;

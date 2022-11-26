@@ -1,9 +1,6 @@
 import { useCallback } from "react";
 import { useReduxDispatch, useReduxSelector } from "./useRedux";
-import {
-    reduxLogin,
-    reduxLogout
-} from "../../store/reducers/authSlice";
+import { reduxLogin, reduxLogout } from "../../store/reducers/authSlice";
 
 export interface AuthForm {
     email: string;

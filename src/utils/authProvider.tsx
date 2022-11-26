@@ -16,14 +16,14 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         token
             ? run(api("users", { token })).then((res) => {
-                dispatch(
-                    setUser({
-                        username: res?.username,
-                        likedProjects: res?.likedProjects,
-                        jwt: token
-                    })
-                );
-            })
+                  dispatch(
+                      setUser({
+                          username: res?.username,
+                          likedProjects: res?.likedProjects,
+                          jwt: token
+                      })
+                  );
+              })
             : dispatch(setUser(null));
     }, [dispatch, run, token]);
 
