@@ -11,7 +11,7 @@ const useProjectModal = () => {
         setModal({ modal: "on" });
     };
     const closeModal = () => {
-        setModal({ modal: "off" });
+        setModal({ modal: undefined });
     };
 
     useEffect(() => {
