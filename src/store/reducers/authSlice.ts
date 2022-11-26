@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AuthForm } from "../../utils/context/authContext";
+import { AuthForm } from "../../utils/hooks/useAuth";
 import { ReduxDispatch } from "../index";
 import * as auth from "../../utils/authApis";
 

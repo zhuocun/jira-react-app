@@ -1,7 +1,7 @@
 import qs from "qs";
 import environment from "../../constants/env";
 import * as auth from "../authApis";
-import { useAuth } from "../context/authContext";
+import useAuth from "./useAuth";
 import { useCallback } from "react";
 
 interface IConfig extends RequestInit {

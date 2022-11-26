@@ -2,7 +2,7 @@ import { Rate, Table, TableProps } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../utils/context/authContext";
+import useAuth from "../../utils/hooks/useAuth";
 import useApi from "../../utils/hooks/useApi";
 import { refreshUser } from "../../store/reducers/authSlice";
 import { useReduxDispatch } from "../../utils/hooks/useRedux";

@@ -3,7 +3,7 @@ import Row from "../row";
 import { ReactComponent as Logo } from "../../assets/logo-software.svg";
 import { Button, Dropdown, MenuProps } from "antd";
 import Link from "antd/lib/typography/Link";
-import { useAuth } from "../../utils/context/authContext";
+import useAuth from "../../utils/hooks/useAuth";
 import resetRoute from "../../utils/resetRoute";
 import ProjectPopover from "../projectPopover";
 import { useNavigate } from "react-router";

@@ -1,9 +1,9 @@
 import { Button, Divider, List, Popover, Typography } from "antd";
-import { useReduxDispatch, useReduxSelector } from "../../utils/hooks/useRedux";
-import { projectActions } from "../../store/reducers/projectSlice";
+import { useReduxSelector } from "../../utils/hooks/useRedux";
+import useProjectModal from "../../utils/hooks/useProjectModal";
 
 const ProjectPopover = () => {
-    const dispatch = useReduxDispatch();
+    const {openModal} = useProjectModal();
     const projects = useReduxSelector((s) => s.project.projects);
     const user = useReduxSelector((s) => s.auth.user);
     const likedProjects = projects.filter((project) =>
@@ -20,7 +20,7 @@ const ProjectPopover = () => {
             </List>
             <Divider />
             <Button
-                onClick={() => dispatch(projectActions.openModal())}
+                onClick={openModal}
                 type={"link"}
             >
                 Create Project

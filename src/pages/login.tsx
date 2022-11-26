@@ -4,7 +4,7 @@ import Link from "antd/lib/typography/Link";
 import { AuthTitle } from "../layouts/authLayout";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useAuth } from "../utils/context/authContext";
+import useAuth from "../utils/hooks/useAuth";
 
 const LoginPage = () => {
     const navigate = useNavigate();

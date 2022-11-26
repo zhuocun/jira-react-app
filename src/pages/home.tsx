@@ -1,4 +1,4 @@
-import { useAuth } from "../utils/context/authContext";
+import useAuth from "../utils/hooks/useAuth";
 import MainLayout from "../layouts/mainLayout";
 import AuthLayout from "../layouts/authLayout";
 import { useLocation, useNavigate } from "react-router";
