@@ -38,8 +38,8 @@ const register = async (param: {
             res.status === 404
                 ? "Failed to connect"
                 : res.status === 400
-                    ? (await res.json()).error[0].msg
-                    : await res.json();
+                ? (await res.json()).error[0].msg
+                : await res.json();
         return Promise.reject(new Error(errMsg));
     }
 };

@@ -8,20 +8,20 @@ import useAuth from "./hooks/useAuth";
 const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { token } = useAuth();
     const queryClient = useQueryClient();
-    const {
-        error,
-        isLoading,
-        isIdle,
-        isError
-    } = token ? useReactQuery<IUser>("users", undefined) : {
-        error: null,
-        isLoading: false,
-        isError: false,
-        isIdle: false
-    };
+    const { error, isLoading, isIdle, isError } = token
+        ? useReactQuery<IUser>("users", undefined)
+        : {
+              error: null,
+              isLoading: false,
+              isError: false,
+              isIdle: false
+          };
     useEffect(() => {
         queryClient.refetchQueries<IUser>("users").then(() => {
-            queryClient.setQueryData("users", { ...queryClient.getQueryData<IUser>("users"), jwt: token });
+            queryClient.setQueryData("users", {
+                ...queryClient.getQueryData<IUser>("users"),
+                jwt: token
+            });
         });
     }, [queryClient, token]);
 
