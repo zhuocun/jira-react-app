@@ -1,11 +1,11 @@
 import useUrl from "./useUrl";
 import { useReduxDispatch, useReduxSelector } from "./useRedux";
-import { projectActions } from "../../store/reducers/projectSlice";
+import { projectActions } from "../../store/reducers/projectModalSlice";
 import { useEffect } from "react";
 
 const useProjectModal = () => {
     const [modal, setModal] = useUrl(["modal"]);
-    const isModalOpened = useReduxSelector((s) => s.project.isModalOpened);
+    const isModalOpened = useReduxSelector((s) => s.projectModal.isModalOpened);
     const dispatch = useReduxDispatch();
     const openModal = () => {
         setModal({ modal: "on" });

@@ -1,24 +1,17 @@
-import { useCallback } from "react";
-import { useReduxDispatch, useReduxSelector } from "./useRedux";
-import { reduxLogin, reduxLogout } from "../../store/reducers/authSlice";
-
-export interface AuthForm {
-    email: string;
-    password: string;
-}
+import { useQueryClient } from "react-query";
 
 const useAuth = () => {
-    const dispatch = useReduxDispatch();
-    const user = useReduxSelector((s) => s.auth.user);
-    const login = useCallback(
-        (form: AuthForm) => dispatch(reduxLogin(form)),
-        [dispatch]
-    );
-    const logout = useCallback(async () => dispatch(reduxLogout()), [dispatch]);
+    const queryClient = useQueryClient();
+    const user = queryClient.getQueryData<IUser>("users");
+    const token = localStorage.getItem("Token");
+    const logout = async () => {
+        queryClient.clear();
+        localStorage.removeItem("Token");
+    };
     return {
         user,
-        login,
-        logout
+        logout,
+        token
     };
 };
 

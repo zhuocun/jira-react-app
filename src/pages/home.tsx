@@ -8,7 +8,7 @@ import resetRoute from "../utils/resetRoute";
 const HomePage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout } = useAuth();
+    const { user, token, logout } = useAuth();
     const path = location.pathname;
 
     useEffect(() => {
@@ -20,7 +20,7 @@ const HomePage = () => {
         }
     }, [logout, navigate, path, user]);
 
-    return <>{user ? <MainLayout /> : <AuthLayout />}</>;
+    return <>{user && token ? <MainLayout /> : <AuthLayout />}</>;
 };
 
 export default HomePage;

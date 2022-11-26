@@ -1,6 +1,5 @@
 import qs from "qs";
 import environment from "../../constants/env";
-import * as auth from "../authApis";
 import useAuth from "./useAuth";
 import { useCallback } from "react";
 
@@ -34,7 +33,8 @@ export const api = async (
     return fetch(`${environment.apiBaseUrl}/${endpoint}`, config).then(
         async (res) => {
             if (res.status === 401) {
-                await auth.logout();
+                const { logout } = useAuth();
+                await logout();
                 window.location.reload();
                 return Promise.reject({
                     message: "Login expired, please login again"
@@ -51,14 +51,14 @@ export const api = async (
 };
 
 const useApi = () => {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     return useCallback(
         (...[endpoint, config]: Parameters<typeof api>) =>
             api(endpoint, {
                 ...config,
-                token: user?.jwt
+                token: user?.jwt || token
             }),
-        [user?.jwt]
+        [token, user?.jwt]
     );
 };
 

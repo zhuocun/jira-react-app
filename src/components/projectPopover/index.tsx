@@ -1,12 +1,13 @@
 import { Button, Divider, List, Popover, Typography } from "antd";
-import { useReduxSelector } from "../../utils/hooks/useRedux";
 import useProjectModal from "../../utils/hooks/useProjectModal";
+import { useQueryClient } from "react-query";
 
 const ProjectPopover = () => {
     const { openModal } = useProjectModal();
-    const projects = useReduxSelector((s) => s.project.projects);
-    const user = useReduxSelector((s) => s.auth.user);
-    const likedProjects = projects.filter((project) =>
+    const queryClient = useQueryClient();
+    const projects = queryClient.getQueryData<IProject[]>(["projects", {}]);
+    const user = queryClient.getQueryData<IUser>("users");
+    const likedProjects = projects?.filter((project) =>
         user?.likedProjects.includes(project._id)
     );
 
@@ -14,7 +15,7 @@ const ProjectPopover = () => {
         <>
             <Typography.Text type={"secondary"}>Liked Projects</Typography.Text>
             <List>
-                {likedProjects.map((p, index) => (
+                {likedProjects?.map((p, index) => (
                     <List.Item.Meta key={index} title={p.projectName} />
                 ))}
             </List>

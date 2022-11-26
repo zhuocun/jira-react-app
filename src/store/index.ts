@@ -1,10 +1,8 @@
-import { projectSlice } from "./reducers/projectSlice";
+import { projectModalSlice } from "./reducers/projectModalSlice";
 import { configureStore } from "@reduxjs/toolkit";
-import { authSlice } from "./reducers/authSlice";
 
 export const rootReducer = {
-    project: projectSlice.reducer,
-    auth: authSlice.reducer
+    projectModal: projectModalSlice.reducer
 };
 
 export const store = configureStore({

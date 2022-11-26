@@ -3,9 +3,7 @@ import { ColumnsType } from "antd/lib/table";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import useAuth from "../../utils/hooks/useAuth";
-import useApi from "../../utils/hooks/useApi";
-import { refreshUser } from "../../store/reducers/authSlice";
-import { useReduxDispatch } from "../../utils/hooks/useRedux";
+import useReactMutation from "../../utils/hooks/useReactMutation";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -16,9 +14,8 @@ interface Props extends TableProps<ProjectIntro> {
 }
 
 const ProjectList: React.FC<Props> = ({ members, ...props }) => {
-    const dispatch = useReduxDispatch();
-    const api = useApi();
     const { user } = useAuth();
+    const { mutate } = useReactMutation("users/likes", "users", "PUT");
 
     const dataSource: ProjectIntro[] | undefined = props.dataSource?.map(
         (p, index) => ({
@@ -28,9 +25,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     );
 
     const onLike = (projectId: string) => {
-        api("users/likes", { data: { projectId }, method: "PUT" }).then(
-            (user) => dispatch(refreshUser(user))
-        );
+        mutate({ projectId });
     };
 
     const columns: ColumnsType<ProjectIntro> = [

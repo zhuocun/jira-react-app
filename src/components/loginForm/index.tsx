@@ -1,25 +1,22 @@
-import { register } from "../../utils/authApis";
 import { Form, Input } from "antd";
 import { AuthButton } from "../../layouts/authLayout";
-import useAsync from "../../utils/hooks/useAsync";
 import { useNavigate } from "react-router";
+import useReactMutation from "../../utils/hooks/useReactMutation";
 
-const RegisterForm: React.FC<{
+const LoginForm: React.FC<{
     onError: React.Dispatch<React.SetStateAction<Error | null>>;
 }> = ({ onError }) => {
     const navigate = useNavigate();
-    const { run, isLoading } = useAsync(undefined, { throwOnError: true });
-    const handleSubmit = async (input: {
-        username: string;
-        email: string;
-        password: string;
-    }) => {
-        await run(register(input))
-            .then(() => {
-                navigate("/login");
-            })
-            .catch(onError);
+    const {
+        mutateAsync,
+        isLoading
+    } = useReactMutation<IUser>("auth/login", "users", "POST", undefined, onError, true);
+    const handleSubmit = async (input: { email: string; password: string; }) => {
+        await mutateAsync(input).then((res) => {
+            localStorage.setItem("Token", res.jwt);
+        }).then(() => navigate("/projects"));
     };
+
     return (
         <Form onFinish={handleSubmit}>
             <Form.Item
@@ -40,19 +37,10 @@ const RegisterForm: React.FC<{
                 />
             </Form.Item>
             <Form.Item
-                name={"username"}
-                rules={[{ required: true, message: "Enter your username" }]}
-            >
-                <Input
-                    onChange={() => onError(null)}
-                    placeholder={"Username"}
-                    type={"text"}
-                    id={"username"}
-                />
-            </Form.Item>
-            <Form.Item
                 name={"password"}
-                rules={[{ required: true, message: "Enter your password" }]}
+                rules={[
+                    { required: true, message: "Please enter your password" }
+                ]}
             >
                 <Input
                     onChange={() => onError(null)}
@@ -67,11 +55,11 @@ const RegisterForm: React.FC<{
                     htmlType={"submit"}
                     type={"primary"}
                 >
-                    Register
+                    Log in
                 </AuthButton>
             </Form.Item>
         </Form>
     );
 };
 
-export default RegisterForm;
+export default LoginForm;

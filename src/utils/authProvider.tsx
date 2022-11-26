@@ -1,38 +1,36 @@
 import React, { ReactNode, useEffect } from "react";
-import { useReduxDispatch } from "./hooks/useRedux";
-import * as auth from "./authApis";
-import useAsync from "./hooks/useAsync";
-import { api } from "./hooks/useApi";
-import { setUser } from "../store/reducers/authSlice";
 import { PageError, PageSpin } from "../components/status";
+import useReactQuery from "./hooks/useReactQuery";
+import getError from "./getError";
+import { useQueryClient } from "react-query";
+import useAuth from "./hooks/useAuth";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const dispatch = useReduxDispatch();
-    const token = auth.getToken();
-    const { run, error, isLoading, isIdle, isError } = useAsync<IUser | null>(
-        undefined,
-        { throwOnError: true }
-    );
+    const { token } = useAuth();
+    const queryClient = useQueryClient();
+    const {
+        error,
+        isLoading,
+        isIdle,
+        isError
+    } = token ? useReactQuery<IUser>("users", undefined) : {
+        error: null,
+        isLoading: false,
+        isError: false,
+        isIdle: false
+    };
     useEffect(() => {
-        token
-            ? run(api("users", { token })).then((res) => {
-                  dispatch(
-                      setUser({
-                          username: res?.username,
-                          likedProjects: res?.likedProjects,
-                          jwt: token
-                      })
-                  );
-              })
-            : dispatch(setUser(null));
-    }, [dispatch, run, token]);
+        queryClient.refetchQueries<IUser>("users").then(() => {
+            queryClient.setQueryData("users", { ...queryClient.getQueryData<IUser>("users"), jwt: token });
+        });
+    }, [queryClient, token]);
 
     if ((isIdle || isLoading) && token) {
         return <PageSpin />;
     }
 
     if (isError) {
-        return <PageError error={error} />;
+        return <PageError error={getError(error)} />;
     }
 
     return <>{children}</>;

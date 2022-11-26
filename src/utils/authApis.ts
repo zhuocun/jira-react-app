@@ -38,18 +38,10 @@ const register = async (param: {
             res.status === 404
                 ? "Failed to connect"
                 : res.status === 400
-                ? (await res.json()).error[0].msg
-                : await res.json();
+                    ? (await res.json()).error[0].msg
+                    : await res.json();
         return Promise.reject(new Error(errMsg));
     }
 };
 
-const logout = async () => {
-    localStorage.removeItem("Token");
-};
-
-const getToken = () => {
-    return localStorage.getItem("Token");
-};
-
-export { login, register, logout, getToken };
+export { login, register };
