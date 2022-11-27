@@ -29,7 +29,13 @@ const ProjectPage = () => {
         <Container>
             <Row marginBottom={2} between={true}>
                 <h1>Project List</h1>
-                <Button type={"link"} style={{float: "right"}} onClick={openModal}>Create Project</Button>
+                <Button
+                    type={"link"}
+                    style={{ float: "right" }}
+                    onClick={openModal}
+                >
+                    Create Project
+                </Button>
             </Row>
             <SearchPanel
                 param={param}
@@ -54,5 +60,5 @@ const ProjectPage = () => {
 export default ProjectPage;
 
 const Container = styled.div`
-  padding: 3.2rem;
+    padding: 3.2rem;
 `;
