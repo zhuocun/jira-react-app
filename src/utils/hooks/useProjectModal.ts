@@ -13,7 +13,7 @@ const useProjectModal = () => {
         "projects",
         { projectId: editingProjectId },
         Boolean(editingProjectId),
-        "project"
+        "editingProject"
     );
     const isModalOpened = useReduxSelector((s) => s.projectModal.isModalOpened);
     const dispatch = useReduxDispatch();
