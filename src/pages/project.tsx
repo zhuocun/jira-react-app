@@ -31,7 +31,6 @@ const ProjectPage = () => {
                 <h1>Project List</h1>
                 <Button
                     type={"link"}
-                    style={{ float: "right" }}
                     onClick={openModal}
                 >
                     Create Project
