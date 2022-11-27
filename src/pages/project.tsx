@@ -2,13 +2,16 @@ import SearchPanel from "../components/searchPanel";
 import ProjectList from "../components/projectList";
 import useDebounce from "../utils/hooks/useDebounce";
 import styled from "@emotion/styled";
-import { Typography } from "antd";
+import { Button, Typography } from "antd";
 import useReactQuery from "../utils/hooks/useReactQuery";
 import useTitle from "../utils/hooks/useTitle";
 import useUrl from "../utils/hooks/useUrl";
+import useProjectModal from "../utils/hooks/useProjectModal";
+import Row from "../components/row";
 
 const ProjectPage = () => {
     useTitle("Project List", false);
+    const { openModal } = useProjectModal();
     const [param, setParam] = useUrl(["projectName", "managerId"]);
     const debouncedParam = useDebounce(param, 1000);
     const {
@@ -24,7 +27,10 @@ const ProjectPage = () => {
 
     return (
         <Container>
-            <h1>Project List</h1>
+            <Row marginBottom={2} between={true}>
+                <h1>Project List</h1>
+                <Button type={"link"} style={{float: "right"}} onClick={openModal}>Create Project</Button>
+            </Row>
             <SearchPanel
                 param={param}
                 setParam={setParam}
@@ -48,5 +54,5 @@ const ProjectPage = () => {
 export default ProjectPage;
 
 const Container = styled.div`
-    padding: 3.2rem;
+  padding: 3.2rem;
 `;
