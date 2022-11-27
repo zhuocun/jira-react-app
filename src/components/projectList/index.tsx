@@ -91,19 +91,21 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                     {
                         key: "Edit",
                         label: (
-                            <a key={"Edit"} onClick={() => onEdit(data._id)}>Edit</a>
+                            <a key={"Edit"} onClick={() => onEdit(data._id)}>
+                                Edit
+                            </a>
                         )
                     },
                     {
                         key: "Delete",
-                        label: (
-                            <a key={"Delete"}>Delete</a>
-                        )
+                        label: <a key={"Delete"}>Delete</a>
                     }
                 ];
                 return (
                     <Dropdown menu={{ items }}>
-                        <Button style={{ padding: 0 }} type={"link"}>...</Button>
+                        <Button style={{ padding: 0 }} type={"link"}>
+                            ...
+                        </Button>
                     </Dropdown>
                 );
             }

@@ -23,18 +23,18 @@ const useReactMutation = <D>(
             onSuccess: onSuccess
                 ? setCache
                     ? (data: D) => {
-                        queryClient.setQueryData(queryKey, data);
-                        onSuccess(data);
-                    }
+                          queryClient.setQueryData(queryKey, data);
+                          onSuccess(data);
+                      }
                     : onSuccess
                 : setCache
-                    ? async (data: D) =>
-                        await queryClient.setQueryData(queryKey, data)
-                    : () => queryClient.invalidateQueries(queryKey),
+                ? async (data: D) =>
+                      await queryClient.setQueryData(queryKey, data)
+                : () => queryClient.invalidateQueries(queryKey),
             onError: onError
                 ? (err: unknown) => {
-                    onError(getError(err));
-                }
+                      onError(getError(err));
+                  }
                 : undefined
         }
     );

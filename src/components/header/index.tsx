@@ -15,9 +15,10 @@ const Header = () => {
         {
             key: "logout",
             label: (
-                <Link onClick={() => {
-                    logout().then(() => navigate("/login"));
-                }}
+                <Link
+                    onClick={() => {
+                        logout().then(() => navigate("/login"));
+                    }}
                 >
                     Logout
                 </Link>
@@ -52,7 +53,7 @@ const Header = () => {
 };
 
 const PageHeader = styled(Row)`
-  padding: 3.2rem;
+    padding: 3.2rem;
 `;
 const LeftHeader = styled(Row)``;
 const RightHeader = styled.div``;

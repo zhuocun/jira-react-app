@@ -6,11 +6,15 @@ import useReactQuery from "./useReactQuery";
 
 const useProjectModal = () => {
     const [{ modal }, setModal] = useUrl(["modal"]);
-    const [{ editingProjectId }, setEditingProjectId] = useUrl(["editingProjectId"]);
-    const {
-        data: editingProject,
-        isLoading
-    } = useReactQuery<IProject>("projects", { projectId: editingProjectId }, Boolean(editingProjectId), "project");
+    const [{ editingProjectId }, setEditingProjectId] = useUrl([
+        "editingProjectId"
+    ]);
+    const { data: editingProject, isLoading } = useReactQuery<IProject>(
+        "projects",
+        { projectId: editingProjectId },
+        Boolean(editingProjectId),
+        "project"
+    );
     const isModalOpened = useReduxSelector((s) => s.projectModal.isModalOpened);
     const dispatch = useReduxDispatch();
     const openModal = () => {
