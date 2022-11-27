@@ -9,8 +9,8 @@ const RegisterForm: React.FC<{
     const navigate = useNavigate();
     const { mutateAsync, isLoading } = useReactMutation(
         "auth/register",
-        "",
         "POST",
+        undefined,
         undefined,
         onError,
         false

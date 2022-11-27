@@ -6,12 +6,9 @@ import { Typography } from "antd";
 import useReactQuery from "../utils/hooks/useReactQuery";
 import useTitle from "../utils/hooks/useTitle";
 import useUrl from "../utils/hooks/useUrl";
-import { useEffect } from "react";
-import { useQueryClient } from "react-query";
 
 const ProjectPage = () => {
     useTitle("Project List", false);
-    const queryClient = useQueryClient();
     const [param, setParam] = useUrl(["projectName", "managerId"]);
     const debouncedParam = useDebounce(param, 1000);
     const {
@@ -24,10 +21,6 @@ const ProjectPage = () => {
         error: mError,
         data: members
     } = useReactQuery<IMember[]>("users/members");
-
-    useEffect(() => {
-        queryClient.invalidateQueries("projects");
-    }, [queryClient]);
 
     return (
         <Container>

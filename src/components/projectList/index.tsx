@@ -1,9 +1,10 @@
-import { Rate, Table, TableProps } from "antd";
+import { Button, Dropdown, MenuProps, Rate, Table, TableProps } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
+import useProjectModal from "../../utils/hooks/useProjectModal";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -15,7 +16,11 @@ interface Props extends TableProps<ProjectIntro> {
 
 const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const { user } = useAuth();
-    const { mutate } = useReactMutation("users/likes", "users", "PUT");
+    const { mutate } = useReactMutation("users/likes", "PUT", "users");
+    const { startEditing } = useProjectModal();
+    const onEdit = (id: string) => {
+        startEditing(id);
+    };
 
     const dataSource: ProjectIntro[] | undefined = props.dataSource?.map(
         (p, index) => ({
@@ -32,7 +37,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         {
             key: "Liked",
             title: <Rate value={1} count={1} disabled={true} />,
-            render(index, data) {
+            render(value, data) {
                 return (
                     <Rate
                         value={user?.likedProjects.includes(data._id) ? 1 : 0}
@@ -46,7 +51,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             key: "Project",
             title: "Project",
             sorter: (a, b) => a.projectName.localeCompare(b.projectName),
-            render(index, data) {
+            render(value, data) {
                 return <Link to={`${data._id}`}>{data.projectName}</Link>;
             }
         },
@@ -58,7 +63,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         {
             key: "Manager",
             title: "Manager",
-            render(index, data) {
+            render(value, data, index) {
                 return (
                     <span key={index}>
                         {members.find((user) => user._id === data.managerId)
@@ -77,6 +82,29 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                             ? dayjs(data.createdAt).format("YYYY-MM-DD")
                             : "Null"}
                     </span>
+                );
+            }
+        },
+        {
+            render(value, data) {
+                const items: MenuProps["items"] = [
+                    {
+                        key: "Edit",
+                        label: (
+                            <a key={"Edit"} onClick={() => onEdit(data._id)}>Edit</a>
+                        )
+                    },
+                    {
+                        key: "Delete",
+                        label: (
+                            <a key={"Delete"}>Delete</a>
+                        )
+                    }
+                ];
+                return (
+                    <Dropdown menu={{ items }}>
+                        <Button style={{ padding: 0 }} type={"link"}>...</Button>
+                    </Dropdown>
                 );
             }
         }

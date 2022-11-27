@@ -9,8 +9,8 @@ const LoginForm: React.FC<{
     const navigate = useNavigate();
     const { mutateAsync, isLoading } = useReactMutation<IUser>(
         "auth/login",
-        "users",
         "POST",
+        "users",
         undefined,
         onError,
         true

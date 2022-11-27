@@ -1,12 +1,13 @@
 import { Button, Divider, List, Popover, Typography } from "antd";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import { useQueryClient } from "react-query";
+import useReactQuery from "../../utils/hooks/useReactQuery";
 
 const ProjectPopover = () => {
     const { openModal } = useProjectModal();
     const queryClient = useQueryClient();
     const projects = queryClient.getQueryData<IProject[]>(["projects", {}]);
-    const user = queryClient.getQueryData<IUser>("users");
+    const { data: user } = useReactQuery<IUser>("users")
     const likedProjects = projects?.filter((project) =>
         user?.likedProjects.includes(project._id)
     );

@@ -1,10 +1,11 @@
-import { Divider, Typography } from "antd";
+import { Divider } from "antd";
 import LoginForm from "../components/loginForm";
 import Link from "antd/lib/typography/Link";
 import { AuthTitle } from "../layouts/authLayout";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import useAuth from "../utils/hooks/useAuth";
+import ErrorBox from "../components/errorBox";
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -20,11 +21,7 @@ const LoginPage = () => {
         return (
             <>
                 <AuthTitle>Log in to your account</AuthTitle>
-                {error ? (
-                    <Typography.Text type={"danger"}>
-                        {error.message || "Failed to login"}
-                    </Typography.Text>
-                ) : null}
+                <ErrorBox error={error} />
                 <LoginForm onError={setError} />
                 <Divider />
                 <Link onClick={handleSwitch}>Register for an account</Link>
