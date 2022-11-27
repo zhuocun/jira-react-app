@@ -30,9 +30,7 @@ const ProjectModal: React.FC = () => {
             closeModal();
         });
     };
-    const modalTitle = editingProject
-        ? "Edit a Project"
-        : "Create a new Project";
+    const modalTitle = editingProject ? "Edit Project" : "Create Project";
 
     useEffect(() => {
         editingProject
