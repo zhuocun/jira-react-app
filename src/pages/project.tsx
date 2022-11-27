@@ -29,10 +29,7 @@ const ProjectPage = () => {
         <Container>
             <Row marginBottom={2} between={true}>
                 <h1>Project List</h1>
-                <Button
-                    type={"link"}
-                    onClick={openModal}
-                >
+                <Button type={"link"} onClick={openModal}>
                     Create Project
                 </Button>
             </Row>
