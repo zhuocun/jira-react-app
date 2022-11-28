@@ -26,20 +26,20 @@ const KanbanColumn: React.FC<{ kanban: IKanban }> = ({ kanban }) => {
 export default KanbanColumn;
 
 const Container = styled.div`
-  min-width: 27rem;
-  border-radius: 6px;
-  background-color: rgb(244, 245, 247);
-  display: flex;
-  flex-direction: column;
-  padding: 0.7rem;
-  margin-right: 1.5rem
+    min-width: 27rem;
+    border-radius: 6px;
+    background-color: rgb(244, 245, 247);
+    display: flex;
+    flex-direction: column;
+    padding: 0.7rem;
+    margin-right: 1.5rem;
 `;
 
 const TaskContainer = styled.div`
-  overflow: scroll;
-  flex: 1;
+    overflow: scroll;
+    flex: 1;
 
-  ::-webkit-scrollbar {
-    display: none;
-  }
+    ::-webkit-scrollbar {
+        display: none;
+    }
 `;
