@@ -7,8 +7,12 @@ import styled from "@emotion/styled";
 const KanbanPage = () => {
     useTitle("Kanban List");
     const { projectId } = useParams<{ projectId: string }>();
-    const { data: currentProject } = useReactQuery<IProject>("projects", { projectId });
-    const { data: kanbans } = useReactQuery<IKanban[]>("kanbans", { projectId });
+    const { data: currentProject } = useReactQuery<IProject>("projects", {
+        projectId
+    });
+    const { data: kanbans } = useReactQuery<IKanban[]>("kanbans", {
+        projectId
+    });
     return (
         <div>
             <h1>{currentProject?.projectName} Kanban</h1>
@@ -24,7 +28,7 @@ const KanbanPage = () => {
 export default KanbanPage;
 
 const ColumnContainer = styled.div`
-  display: flex;
-  overflow: hidden;
-  margin-right: 2rem;
+    display: flex;
+    overflow: hidden;
+    margin-right: 2rem;
 `;
