@@ -20,35 +20,31 @@ const ProjectModal: React.FC = () => {
         : useReactMutation("projects", "POST");
 
     const [form] = useForm();
+    const onClose = () => {
+        closeModal();
+        form.resetFields();
+    };
     const onFinish = (input: {
         projectName: string;
         organization: string;
         managerId: string;
     }) => {
-        mutateAsync({ ...editingProject, ...input }).then(() => {
-            form.resetFields();
-            closeModal();
-        });
+        mutateAsync({ ...editingProject, ...input }).then(onClose);
     };
     const modalTitle = editingProject ? "Edit Project" : "Create Project";
 
     useEffect(() => {
-        editingProject
-            ? form.setFieldsValue(editingProject)
-            : form.resetFields();
+        form.setFieldsValue(editingProject);
     }, [editingProject, form]);
 
     const queryClient = useQueryClient();
     const members = queryClient.getQueryData<IMember[]>("users/members");
-    const defaultUser = members?.filter(
-        (m) => m._id === editingProject?.managerId
-    )[0];
 
     return (
         <Drawer
             forceRender={true}
             open={isModalOpened}
-            onClose={closeModal}
+            onClose={onClose}
             width={"100%"}
         >
             <Container>
@@ -91,9 +87,6 @@ const ProjectModal: React.FC = () => {
                             <Form.Item
                                 label={"Manager"}
                                 name={"managerId"}
-                                initialValue={
-                                    defaultUser?.username || "Managers"
-                                }
                                 rules={[
                                     {
                                         required: true,
@@ -101,10 +94,7 @@ const ProjectModal: React.FC = () => {
                                     }
                                 ]}
                             >
-                                <Select>
-                                    <Select.Option value={""}>
-                                        Managers
-                                    </Select.Option>
+                                <Select placeholder={"Managers"}>
                                     {members?.map((member, index) => (
                                         <Select.Option
                                             value={member._id}
@@ -135,9 +125,9 @@ const ProjectModal: React.FC = () => {
 export default ProjectModal;
 
 const Container = styled.div`
-    height: 80vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 `;

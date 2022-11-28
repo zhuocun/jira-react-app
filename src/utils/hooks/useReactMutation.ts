@@ -5,7 +5,7 @@ import getError from "../getError";
 
 const useReactMutation = <D>(
     endPoint: string,
-    method = "POST",
+    method: string,
     queryKey = endPoint,
     onSuccess?: (data: D) => void,
     onError?: (err: Error) => void,
