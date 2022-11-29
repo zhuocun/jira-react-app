@@ -1,39 +1,56 @@
 import taskIcon from "../../assets/task.svg";
 import bugIcon from "../../assets/bug.svg";
 import styled from "@emotion/styled";
-import { Card } from "antd";
+import { Card, Spin } from "antd";
 import { TaskSearchParam } from "../taskSearchPanel";
+import TaskCreator from "../taskCreator";
 
 const KanbanColumn: React.FC<{
+    loading: boolean;
     tasks: ITask[];
     kanban: IKanban;
     param: TaskSearchParam;
-}> = ({ kanban, param, tasks }) => {
-    return (
-        <Container>
-            <h3>{kanban.kanbanName}</h3>
-            <TaskContainer>
-                {tasks?.map((task, index) =>
-                    (!param.type || task.type === param.type) &&
-                    (!param.coordinatorId ||
-                        task.coordinatorId === param.coordinatorId) &&
-                    (!param.taskName || task.taskName === param.taskName) ? (
-                        <Card key={index} style={{ marginBottom: "0.5rem" }}>
-                            <div>{task.taskName}</div>
-                            <img
-                                src={task.type === "Task" ? taskIcon : bugIcon}
-                            />
-                        </Card>
-                    ) : null
-                )}
-            </TaskContainer>
-        </Container>
-    );
+}> = ({ kanban, param, tasks, loading }) => {
+    if (loading) {
+        return <Spin size={"large"} />;
+    } else {
+        return (
+            <KanbanContainer>
+                <h3 style={{ textTransform: "uppercase" }}>
+                    {kanban.kanbanName}
+                </h3>
+                <TaskContainer>
+                    {tasks?.map((task, index) =>
+                        (!param.type || task.type === param.type) &&
+                        (!param.coordinatorId ||
+                            task.coordinatorId === param.coordinatorId) &&
+                        (!param.taskName ||
+                            task.taskName === param.taskName) ? (
+                            <Card
+                                key={index}
+                                style={{ marginBottom: "0.5rem" }}
+                            >
+                                <div>{task.taskName}</div>
+                                <img
+                                    src={
+                                        task.type === "Task"
+                                            ? taskIcon
+                                            : bugIcon
+                                    }
+                                />
+                            </Card>
+                        ) : null
+                    )}
+                    <TaskCreator kanbanId={kanban._id} />
+                </TaskContainer>
+            </KanbanContainer>
+        );
+    }
 };
 
 export default KanbanColumn;
 
-const Container = styled.div`
+export const KanbanContainer = styled.div`
     min-width: 27rem;
     border-radius: 6px;
     background-color: rgb(244, 245, 247);

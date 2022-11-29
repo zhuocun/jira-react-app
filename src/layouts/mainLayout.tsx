@@ -22,4 +22,8 @@ const Container = styled.div`
     grid-template-rows: 6rem 1fr;
     height: 100vh;
 `;
-const Main = styled.main``;
+
+const Main = styled.main`
+    display: flex;
+    overflow: scroll;
+`;
