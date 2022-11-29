@@ -58,7 +58,7 @@ const KanbanPage = () => {
 export default KanbanPage;
 
 const ColumnContainer = styled.div`
-  display: flex;
-  overflow: hidden;
-  margin-right: 2rem;
+    display: flex;
+    overflow: hidden;
+    margin-right: 2rem;
 `;

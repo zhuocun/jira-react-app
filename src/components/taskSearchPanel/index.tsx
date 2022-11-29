@@ -18,12 +18,12 @@ interface Props {
 }
 
 const TaskSearchPanel: React.FC<Props> = ({
-                                              tasks,
-                                              param,
-                                              setParam,
-                                              members,
-                                              loading
-                                          }) => {
+    tasks,
+    param,
+    setParam,
+    members,
+    loading
+}) => {
     const types: string[] = [];
     const coordinators: IMember[] = [];
     tasks?.map((t) => {
@@ -73,9 +73,13 @@ const TaskSearchPanel: React.FC<Props> = ({
                     }
                 />
             </Form.Item>
-            <Form.Item name={"coordinators"} initialValue={coordinators.filter(
-                (c) => c._id === param.coordinatorId
-            )[0]?.username || "Coordinators"}>
+            <Form.Item
+                name={"coordinators"}
+                initialValue={
+                    coordinators.filter((c) => c._id === param.coordinatorId)[0]
+                        ?.username || "Coordinators"
+                }
+            >
                 <Select
                     loading={loading}
                     onChange={(value) =>

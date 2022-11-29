@@ -8,9 +8,7 @@ const ProjectDetailPage = () => {
     const items: MenuProps["items"] = [
         {
             key: "kanban",
-            label: (
-                <Link to={"kanban"}>Kanban</Link>
-            )
+            label: <Link to={"kanban"}>Kanban</Link>
         },
         {
             key: "epic",
@@ -20,7 +18,11 @@ const ProjectDetailPage = () => {
     return (
         <Container>
             <Aside>
-                <Menu mode={"inline"} selectedKeys={[route[route.length - 1]]} items={items} />
+                <Menu
+                    mode={"inline"}
+                    selectedKeys={[route[route.length - 1]]}
+                    items={items}
+                />
             </Aside>
             <Main>
                 <Outlet />
@@ -32,15 +34,15 @@ const ProjectDetailPage = () => {
 export default ProjectDetailPage;
 
 const Aside = styled.aside`
-  background-color: rgb(244, 245, 247);
-  display: flex;
+    background-color: rgb(244, 245, 247);
+    display: flex;
 `;
 
 const Main = styled.div`
-  box-shadow: -5px 0 5 px -5px rgba(0, 0, 0, 0.1);
+    box-shadow: -5px 0 5 px -5px rgba(0, 0, 0, 0.1);
 `;
 
 const Container = styled.div`
-  display: grid;
-  grid-template-columns: 16rem 1fr;
+    display: grid;
+    grid-template-columns: 16rem 1fr;
 `;
