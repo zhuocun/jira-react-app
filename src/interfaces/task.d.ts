@@ -6,5 +6,6 @@ interface ITask {
     kanbanId: string;
     type: string;
     note: string;
+    projectId: string;
     storyPoints: number;
 }

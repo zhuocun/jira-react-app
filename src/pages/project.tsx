@@ -1,13 +1,13 @@
 import ProjectSearchPanel from "../components/projectSearchPanel";
 import ProjectList from "../components/projectList";
 import useDebounce from "../utils/hooks/useDebounce";
-import styled from "@emotion/styled";
 import { Button, Typography } from "antd";
 import useReactQuery from "../utils/hooks/useReactQuery";
 import useTitle from "../utils/hooks/useTitle";
 import useUrl from "../utils/hooks/useUrl";
 import useProjectModal from "../utils/hooks/useProjectModal";
 import Row from "../components/row";
+import PageContainer from "../components/pageContainer";
 
 const ProjectPage = () => {
     useTitle("Project List", false);
@@ -26,7 +26,7 @@ const ProjectPage = () => {
     } = useReactQuery<IMember[]>("users/members");
 
     return (
-        <Container>
+        <PageContainer>
             <Row marginBottom={2} between={true}>
                 <h1>Project List</h1>
                 <Button type={"link"} onClick={openModal}>
@@ -49,12 +49,8 @@ const ProjectPage = () => {
                 members={members || []}
                 loading={pLoading || mLoading}
             />
-        </Container>
+        </PageContainer>
     );
 };
 
 export default ProjectPage;
-
-const Container = styled.div`
-    padding: 3.2rem;
-`;

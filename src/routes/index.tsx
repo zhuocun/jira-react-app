@@ -29,16 +29,18 @@ const routes = [
                 element: <ProjectPage />
             },
             {
-                path: "/projects/:projectId/*",
-                element: <ProjectDetailPage />
-            },
-            {
-                path: "/projects/:projectId/kanban",
-                element: <KanbanPage />
-            },
-            {
-                path: "/projects/:projectId/epic",
-                element: <EpicPage />
+                path: "/projects/:projectId",
+                element: <ProjectDetailPage />,
+                children: [
+                    {
+                        path: "/projects/:projectId/kanban",
+                        element: <KanbanPage />
+                    },
+                    {
+                        path: "/projects/:projectId/epic",
+                        element: <EpicPage />
+                    }
+                ]
             }
         ]
     }

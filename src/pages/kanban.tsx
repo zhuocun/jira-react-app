@@ -7,6 +7,7 @@ import useUrl from "../utils/hooks/useUrl";
 import useDebounce from "../utils/hooks/useDebounce";
 import TaskSearchPanel from "../components/taskSearchPanel";
 import { useQueryClient } from "react-query";
+import PageContainer from "../components/pageContainer";
 
 const KanbanPage = () => {
     useTitle("Kanban List");
@@ -26,33 +27,38 @@ const KanbanPage = () => {
     );
     const members = queryClient.getQueryData<IMember[]>("users/members");
 
+    const tasks = useReactQuery<ITask[]>("tasks", {
+        projectId
+    }).data;
+
     return (
-        <div>
+        <PageContainer>
             <h1>{currentProject?.projectName} Kanban</h1>
             <TaskSearchPanel
-                kanbans={kanbans}
+                tasks={tasks || []}
                 param={param}
                 setParam={setParam}
                 members={members}
                 loading={pLoading || kLoading}
             />
             <ColumnContainer>
-                {kanbans?.map((kanban, index) => (
+                {kanbans?.map((k, index) => (
                     <KanbanColumn
+                        tasks={tasks?.filter((t) => t.kanbanId === k._id) || []}
                         key={index}
-                        kanban={kanban}
+                        kanban={k}
                         param={debouncedParam}
                     />
                 ))}
             </ColumnContainer>
-        </div>
+        </PageContainer>
     );
 };
 
 export default KanbanPage;
 
 const ColumnContainer = styled.div`
-    display: flex;
-    overflow: hidden;
-    margin-right: 2rem;
+  display: flex;
+  overflow: hidden;
+  margin-right: 2rem;
 `;
