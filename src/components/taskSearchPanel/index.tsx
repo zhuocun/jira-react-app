@@ -128,7 +128,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                     )}
                 </Select>
             </Form.Item>
-            <Button onClick={resetParams}>Reset Filter</Button>
+            <Button onClick={resetParams}>Reset filter</Button>
         </Form>
     );
 };
