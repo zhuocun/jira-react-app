@@ -1,9 +1,9 @@
 interface ITask {
     _id: string;
-    taskName: string;
+    kanbanId: string;
     coordinatorId: string;
     epic: string;
-    kanbanId: string;
+    taskName: string;
     type: string;
     note: string;
     projectId: string;

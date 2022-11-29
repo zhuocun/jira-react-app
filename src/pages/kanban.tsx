@@ -6,13 +6,12 @@ import styled from "@emotion/styled";
 import useUrl from "../utils/hooks/useUrl";
 import useDebounce from "../utils/hooks/useDebounce";
 import TaskSearchPanel from "../components/taskSearchPanel";
-import { useQueryClient } from "react-query";
 import PageContainer from "../components/pageContainer";
 import KanbanCreator from "../components/kanbanCreator";
+import TaskModal from "../components/taskModal";
 
 const KanbanPage = () => {
     useTitle("Kanban List");
-    const queryClient = useQueryClient();
     const { projectId } = useParams<{ projectId: string }>();
     const [param, setParam] = useUrl(["taskName", "coordinatorId", "type"]);
     const debouncedParam = useDebounce(param, 1000);
@@ -26,7 +25,8 @@ const KanbanPage = () => {
             projectId
         }
     );
-    const members = queryClient.getQueryData<IMember[]>("users/members");
+    const { isLoading: mLoading, data: members } =
+        useReactQuery<IMember[]>("users/members");
 
     const { data: tasks, isLoading: tLoading } = useReactQuery<ITask[]>(
         "tasks",
@@ -43,7 +43,7 @@ const KanbanPage = () => {
                 param={param}
                 setParam={setParam}
                 members={members}
-                loading={pLoading || kLoading || tLoading}
+                loading={pLoading || kLoading || tLoading || mLoading}
             />
             <ColumnContainer>
                 {kanbans?.map((k, index) => (
@@ -57,6 +57,7 @@ const KanbanPage = () => {
                 ))}
                 <KanbanCreator />
             </ColumnContainer>
+            <TaskModal tasks={tasks || []} />
         </PageContainer>
     );
 };

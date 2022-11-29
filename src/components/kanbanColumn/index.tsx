@@ -4,13 +4,15 @@ import styled from "@emotion/styled";
 import { Card, Spin } from "antd";
 import { TaskSearchParam } from "../taskSearchPanel";
 import TaskCreator from "../taskCreator";
+import useTaskModal from "../../utils/hooks/useTaskModal";
 
 const KanbanColumn: React.FC<{
     loading: boolean;
-    tasks: ITask[];
+    tasks: any[];
     kanban: IKanban;
     param: TaskSearchParam;
 }> = ({ kanban, param, tasks, loading }) => {
+    const { startEditing } = useTaskModal();
     if (loading) {
         return <Spin size={"large"} />;
     } else {
@@ -27,6 +29,7 @@ const KanbanColumn: React.FC<{
                         (!param.taskName ||
                             task.taskName === param.taskName) ? (
                             <Card
+                                onClick={() => startEditing(task._id)}
                                 key={index}
                                 style={{ marginBottom: "0.5rem" }}
                             >
@@ -37,6 +40,7 @@ const KanbanColumn: React.FC<{
                                             ? taskIcon
                                             : bugIcon
                                     }
+                                    alt={"Type icon"}
                                 />
                             </Card>
                         ) : null
