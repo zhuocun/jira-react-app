@@ -33,7 +33,13 @@ const KanbanColumn: React.FC<{
                                 key={index}
                                 style={{ marginBottom: "0.5rem" }}
                             >
-                                <div>{task.taskName}</div>
+                                <div>
+                                    {task.taskName.length > 26
+                                        ? task.taskName
+                                              .slice(0, 23)
+                                              .concat("...")
+                                        : task.taskName}
+                                </div>
                                 <img
                                     src={
                                         task.type === "Task"

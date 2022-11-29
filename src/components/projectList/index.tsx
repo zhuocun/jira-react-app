@@ -1,4 +1,12 @@
-import { Button, Dropdown, MenuProps, Rate, Table, TableProps } from "antd";
+import {
+    Button,
+    Dropdown,
+    MenuProps,
+    Modal,
+    Rate,
+    Table,
+    TableProps
+} from "antd";
 import { ColumnsType } from "antd/lib/table";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
@@ -16,7 +24,8 @@ interface Props extends TableProps<ProjectIntro> {
 
 const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const { user } = useAuth();
-    const { mutate } = useReactMutation("users/likes", "PUT", "users");
+    const { mutate: update } = useReactMutation("users/likes", "PUT", "users");
+    const { mutate: remove } = useReactMutation("projects", "DELETE");
     const { startEditing } = useProjectModal();
     const onEdit = (id: string) => {
         startEditing(id);
@@ -30,7 +39,20 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     );
 
     const onLike = (projectId: string) => {
-        mutate({ projectId });
+        update({ projectId });
+    };
+
+    const onDelete = (projectId: string) => {
+        Modal.confirm({
+            centered: true,
+            okText: "Confirm",
+            cancelText: "Cancel",
+            title: "Are you sure to delete this project?",
+            content: "This action cannot be withdraw",
+            onOk() {
+                return remove({ projectId });
+            }
+        });
     };
 
     const columns: ColumnsType<ProjectIntro> = [
@@ -98,7 +120,14 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                     },
                     {
                         key: "Delete",
-                        label: <a key={"Delete"}>Delete</a>
+                        label: (
+                            <a
+                                key={"Delete"}
+                                onClick={() => onDelete(data._id)}
+                            >
+                                Delete
+                            </a>
+                        )
                     }
                 ];
                 return (

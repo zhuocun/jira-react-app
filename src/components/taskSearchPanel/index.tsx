@@ -31,17 +31,15 @@ const TaskSearchPanel: React.FC<Props> = ({
         const coordinator = members?.filter(
             (m) => m._id === t.coordinatorId
         )[0];
-        if (coordinator && !coordinators.includes(coordinator))
+        if (coordinator && !coordinators.includes(coordinator)) {
             coordinators.push(coordinator);
+        }
     });
-    const queryClient = useQueryClient();
-    const user = queryClient.getQueryData<IUser>("users");
+    const user = useQueryClient().getQueryData<IUser>("users");
     if (user) {
-        coordinators.push({
-            username: user.username,
-            email: user.email,
-            _id: user._id
-        });
+        if (!coordinators.length) {
+            coordinators.push(user);
+        }
     }
     const formRef = React.createRef<FormInstance>();
     const resetParams = () => {
@@ -110,11 +108,22 @@ const TaskSearchPanel: React.FC<Props> = ({
                     style={{ width: "12rem" }}
                 >
                     <Select.Option value={""}>Types</Select.Option>
-                    {types.map((t, index) => (
-                        <Select.Option value={t} key={index}>
-                            {t}
-                        </Select.Option>
-                    ))}
+                    {types.length > 1 ? (
+                        types.map((t, index) => (
+                            <Select.Option value={t} key={index}>
+                                {t}
+                            </Select.Option>
+                        ))
+                    ) : (
+                        <>
+                            <Select.Option value={"Task"} key={"task"}>
+                                Task
+                            </Select.Option>
+                            <Select.Option value={"Bug"} key={"bug"}>
+                                Bug
+                            </Select.Option>
+                        </>
+                    )}
                 </Select>
             </Form.Item>
             <Button onClick={resetParams}>Reset Filter</Button>
