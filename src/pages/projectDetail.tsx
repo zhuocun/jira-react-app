@@ -27,8 +27,9 @@ const ProjectDetailPage = () => {
     ];
 
     useEffect(() => {
-        if (!(route.includes("board") || route.includes("epic")))
+        if (!(route.includes("board") || route.includes("epic"))) {
             navigate("board");
+        }
     }, [navigate, route]);
 
     return (
