@@ -126,7 +126,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                     </Select>
                 </TaskFormItem>
             </Form>
-            <div style={{ textAlign: "right", marginRight: "2rem" }}>
+            <div style={{ textAlign: "right", marginRight: "3.6rem" }}>
                 <Button
                     danger={true}
                     onClick={onDelete}
@@ -143,5 +143,5 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
 export default TaskModal;
 
 const TaskFormItem = styled(Form.Item)`
-    margin-right: 2rem;
+    margin-right: 3.6rem;
 `;
