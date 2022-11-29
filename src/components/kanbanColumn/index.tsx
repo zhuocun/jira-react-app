@@ -1,7 +1,6 @@
 import taskIcon from "../../assets/task.svg";
 import bugIcon from "../../assets/bug.svg";
 import styled from "@emotion/styled";
-import { Spin } from "antd";
 import { TaskSearchParam } from "../taskSearchPanel";
 import TaskCreator from "../taskCreator";
 import useTaskModal from "../../utils/hooks/useTaskModal";
@@ -19,7 +18,7 @@ const KanbanColumn = React.forwardRef<
 >(({ kanban, param, tasks, loading, ...props }, ref) => {
     const { startEditing } = useTaskModal();
     if (loading) {
-        return <Spin size={"large"} />;
+        return null;
     } else {
         return (
             <KanbanContainer {...props} ref={ref}>
