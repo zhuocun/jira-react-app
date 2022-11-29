@@ -2,6 +2,7 @@ import { Button, Form, Input, Select } from "antd";
 import { useQueryClient } from "react-query";
 import { FormInstance } from "antd/lib/form/Form";
 import React from "react";
+import { SearchOutlined } from "@ant-design/icons";
 
 export interface TaskSearchParam {
     taskName: string;
@@ -61,7 +62,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                 <Input
                     style={{ width: "20rem" }}
                     value={param.taskName}
-                    placeholder={"Task name"}
+                    placeholder={"Search this board"}
                     type={"text"}
                     onChange={(e) =>
                         setParam({
@@ -69,6 +70,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                             taskName: e.target.value
                         })
                     }
+                    suffix={<SearchOutlined />}
                 />
             </Form.Item>
             <Form.Item

@@ -4,6 +4,7 @@ import useReactMutation from "../../utils/hooks/useReactMutation";
 import React, { useEffect } from "react";
 import { Button, Form, Input, Modal, Select } from "antd";
 import { useQueryClient } from "react-query";
+import styled from "@emotion/styled";
 
 const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
     const [form] = useForm();
@@ -65,7 +66,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                 form={form}
                 initialValues={editingTask}
             >
-                <Form.Item
+                <TaskFormItem
                     label={"Task name"}
                     name={"taskName"}
                     rules={[
@@ -76,8 +77,8 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                     ]}
                 >
                     <Input />
-                </Form.Item>
-                <Form.Item
+                </TaskFormItem>
+                <TaskFormItem
                     label={"Coordinator"}
                     name={"coordinatorId"}
                     rules={[
@@ -94,8 +95,8 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                             </Select.Option>
                         ))}
                     </Select>
-                </Form.Item>
-                <Form.Item
+                </TaskFormItem>
+                <TaskFormItem
                     label={"Type"}
                     name={"type"}
                     rules={[
@@ -123,10 +124,11 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                             </>
                         )}
                     </Select>
-                </Form.Item>
+                </TaskFormItem>
             </Form>
-            <div style={{ textAlign: "right" }}>
+            <div style={{ textAlign: "right", marginRight: "2rem" }}>
                 <Button
+                    danger={true}
                     onClick={onDelete}
                     size={"small"}
                     style={{ fontSize: "1.4rem" }}
@@ -139,3 +141,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
 };
 
 export default TaskModal;
+
+const TaskFormItem = styled(Form.Item)`
+    margin-right: 2rem;
+`;

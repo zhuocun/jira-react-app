@@ -35,7 +35,7 @@ const TaskCreator: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
     }, [inputMode]);
 
     if (!inputMode) {
-        return <div onClick={toggle}>+Create Task</div>;
+        return <div onClick={toggle}>+ Create Task</div>;
     } else {
         return (
             <Input

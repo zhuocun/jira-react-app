@@ -1,7 +1,7 @@
 import HomePage from "../pages/home";
 import ProjectPage from "../pages/project";
 import ProjectDetailPage from "../pages/projectDetail";
-import KanbanPage from "../pages/kanban";
+import BoardPage from "../pages/board";
 import EpicPage from "../pages/epic";
 import LoginPage from "../pages/login";
 import RegisterPage from "../pages/register";
@@ -33,8 +33,8 @@ const routes = [
                 element: <ProjectDetailPage />,
                 children: [
                     {
-                        path: "/projects/:projectId/kanban",
-                        element: <KanbanPage />
+                        path: "/projects/:projectId/board",
+                        element: <BoardPage />
                     },
                     {
                         path: "/projects/:projectId/epic",

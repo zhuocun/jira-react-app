@@ -7,12 +7,20 @@ const ProjectDetailPage = () => {
     const route = useLocation().pathname.split("/");
     const items: MenuProps["items"] = [
         {
-            key: "kanban",
-            label: <Link to={"kanban"}>Kanban</Link>
+            key: "board",
+            label: (
+                <Link to={"board"} style={{ padding: "1rem" }}>
+                    Board
+                </Link>
+            )
         },
         {
             key: "epic",
-            label: <Link to={"epic"}>Epic</Link>
+            label: (
+                <Link to={"epic"} style={{ padding: "1rem" }}>
+                    Epic
+                </Link>
+            )
         }
     ];
     return (

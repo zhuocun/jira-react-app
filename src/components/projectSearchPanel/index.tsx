@@ -1,4 +1,6 @@
 import { Form, Input, Select } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
+import React from "react";
 
 interface SearchParam {
     projectName: string;
@@ -24,7 +26,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
             <Form.Item>
                 <Input
                     value={param.projectName}
-                    placeholder={"Project name"}
+                    placeholder={"Search this list"}
                     type={"text"}
                     onChange={(e) =>
                         setParam({
@@ -32,6 +34,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                             projectName: e.target.value
                         })
                     }
+                    suffix={<SearchOutlined />}
                 />
             </Form.Item>
             <Form.Item>
