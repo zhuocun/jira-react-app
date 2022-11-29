@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import styled from "@emotion/styled";
-import { Outlet, useLocation } from "react-router";
+import { Outlet, useLocation, useNavigate } from "react-router";
 import { Menu, MenuProps } from "antd";
+import { useEffect } from "react";
 
 const ProjectDetailPage = () => {
     const route = useLocation().pathname.split("/");
+    const navigate = useNavigate();
     const items: MenuProps["items"] = [
         {
             key: "board",
@@ -23,6 +25,11 @@ const ProjectDetailPage = () => {
             )
         }
     ];
+
+    useEffect(() => {
+        navigate("board");
+    }, [navigate]);
+
     return (
         <Container>
             <Aside>
