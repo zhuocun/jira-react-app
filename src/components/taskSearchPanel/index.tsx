@@ -1,6 +1,8 @@
-import { Form, Input, Select } from "antd";
+import { Button, Form, Input, Select } from "antd";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 import { useQueryClient } from "react-query";
+import { FormInstance } from "antd/lib/form/Form";
+import React from "react";
 
 export interface TaskSearchParam {
     taskName: string;
@@ -17,12 +19,12 @@ interface Props {
 }
 
 const ProjectSearchPanel: React.FC<Props> = ({
-    kanbans,
-    param,
-    setParam,
-    members,
-    loading
-}) => {
+                                                 kanbans,
+                                                 param,
+                                                 setParam,
+                                                 members,
+                                                 loading
+                                             }) => {
     const allTasks: ITask[] = [];
     if (kanbans) {
         for (const k of kanbans) {
@@ -54,11 +56,25 @@ const ProjectSearchPanel: React.FC<Props> = ({
             email: user.email,
             _id: user._id
         });
+    const formRef = React.createRef<FormInstance>();
+    const resetParams = () => {
+        setParam({
+            taskName: undefined,
+            coordinatorId: undefined,
+            type: undefined
+        });
+        formRef.current?.setFieldsValue({
+            taskName: null,
+            coordinators: "Coordinators",
+            types: "Types"
+        });
+    };
 
     return (
-        <Form style={{ marginBottom: "2rem" }} layout={"inline"}>
-            <Form.Item>
+        <Form ref={formRef} style={{ marginBottom: "2rem" }} layout={"inline"}>
+            <Form.Item name={"taskName"}>
                 <Input
+                    style={{ width: "20rem" }}
                     value={param.taskName}
                     placeholder={"Task name"}
                     type={"text"}
@@ -70,7 +86,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                     }
                 />
             </Form.Item>
-            <Form.Item>
+            <Form.Item name={"coordinators"}>
                 <Select
                     loading={loading}
                     onChange={(value) =>
@@ -94,7 +110,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                     ))}
                 </Select>
             </Form.Item>
-            <Form.Item>
+            <Form.Item name={"types"}>
                 <Select
                     loading={loading}
                     onChange={(value) =>
@@ -114,6 +130,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                     ))}
                 </Select>
             </Form.Item>
+            <Button onClick={resetParams}>Reset Filter</Button>
         </Form>
     );
 };

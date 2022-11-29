@@ -29,19 +29,19 @@ const KanbanPage = () => {
     return (
         <div>
             <h1>{currentProject?.projectName} Kanban</h1>
+            <TaskSearchPanel
+                kanbans={kanbans}
+                param={param}
+                setParam={setParam}
+                members={members}
+                loading={pLoading || kLoading}
+            />
             <ColumnContainer>
-                <TaskSearchPanel
-                    kanbans={kanbans}
-                    param={param}
-                    setParam={setParam}
-                    members={members}
-                    loading={pLoading || kLoading}
-                />
                 {kanbans?.map((kanban, index) => (
                     <KanbanColumn
                         key={index}
                         kanban={kanban}
-                        params={debouncedParam}
+                        param={debouncedParam}
                     />
                 ))}
             </ColumnContainer>

@@ -7,8 +7,8 @@ import { TaskSearchParam } from "../taskSearchPanel";
 
 const KanbanColumn: React.FC<{
     kanban: IKanban;
-    params: TaskSearchParam;
-}> = ({ kanban, params }) => {
+    param: TaskSearchParam;
+}> = ({ kanban, param }) => {
     const { data: tasks } = useReactQuery<ITask[]>("tasks", {
         kanbanId: kanban._id
     });
@@ -18,10 +18,10 @@ const KanbanColumn: React.FC<{
             <h3>{kanban.kanbanName}</h3>
             <TaskContainer>
                 {tasks?.map((task, index) =>
-                    (!params.type || task.type === params.type) &&
-                    (!params.coordinatorId ||
-                        task.coordinatorId === params.coordinatorId) &&
-                    (!params.taskName || task.taskName === params.taskName) ? (
+                    (!param.type || task.type === param.type) &&
+                    (!param.coordinatorId ||
+                        task.coordinatorId === param.coordinatorId) &&
+                    (!param.taskName || task.taskName === param.taskName) ? (
                         <Card key={index} style={{ marginBottom: "0.5rem" }}>
                             <div>{task.taskName}</div>
                             <img
