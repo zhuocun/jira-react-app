@@ -19,12 +19,12 @@ interface Props {
 }
 
 const ProjectSearchPanel: React.FC<Props> = ({
-                                                 kanbans,
-                                                 param,
-                                                 setParam,
-                                                 members,
-                                                 loading
-                                             }) => {
+    kanbans,
+    param,
+    setParam,
+    members,
+    loading
+}) => {
     const allTasks: ITask[] = [];
     if (kanbans) {
         for (const k of kanbans) {
