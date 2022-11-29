@@ -1,4 +1,4 @@
-import SearchPanel from "../components/searchPanel";
+import ProjectSearchPanel from "../components/projectSearchPanel";
 import ProjectList from "../components/projectList";
 import useDebounce from "../utils/hooks/useDebounce";
 import styled from "@emotion/styled";
@@ -33,7 +33,7 @@ const ProjectPage = () => {
                     Create Project
                 </Button>
             </Row>
-            <SearchPanel
+            <ProjectSearchPanel
                 param={param}
                 setParam={setParam}
                 members={members || []}

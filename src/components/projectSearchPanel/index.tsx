@@ -1,18 +1,18 @@
 import { Form, Input, Select } from "antd";
 
+interface SearchParam {
+    projectName: string;
+    managerId: string;
+}
+
 interface Props {
-    param: {
-        projectName: string;
-        managerId: string;
-    };
-    setParam: (
-        params: Partial<{ projectName: unknown; managerId: unknown }>
-    ) => void;
+    param: SearchParam;
+    setParam: (params: Partial<SearchParam>) => void;
     members: IMember[];
     loading: boolean;
 }
 
-const SearchPanel: React.FC<Props> = ({
+const ProjectSearchPanel: React.FC<Props> = ({
     param,
     setParam,
     members,
@@ -62,4 +62,4 @@ const SearchPanel: React.FC<Props> = ({
     );
 };
 
-export default SearchPanel;
+export default ProjectSearchPanel;

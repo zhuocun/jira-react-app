@@ -1,5 +1,4 @@
-interface IUser {
-    username: string;
+interface IUser extends IMember {
     likedProjects: string[];
     jwt: string;
 }
