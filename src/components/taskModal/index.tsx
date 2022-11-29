@@ -67,7 +67,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                 initialValues={editingTask}
             >
                 <TaskFormItem
-                    label={"Task name"}
+                    label={"Task Name"}
                     name={"taskName"}
                     rules={[
                         {

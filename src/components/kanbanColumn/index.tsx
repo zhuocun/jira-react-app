@@ -23,9 +23,14 @@ const KanbanColumn = React.forwardRef<
     } else {
         return (
             <KanbanContainer {...props} ref={ref}>
-                <h3 style={{ textTransform: "uppercase" }}>
+                <h4
+                    style={{
+                        textTransform: "uppercase",
+                        paddingLeft: "1rem"
+                    }}
+                >
                     {kanban.kanbanName}
-                </h3>
+                </h4>
                 <TaskContainer>
                     <Drop
                         type={"ROW"}
