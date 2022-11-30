@@ -8,4 +8,5 @@ interface ITask {
     note: string;
     projectId: string;
     storyPoints: number;
+    index: number;
 }

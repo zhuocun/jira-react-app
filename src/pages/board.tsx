@@ -9,10 +9,9 @@ import TaskSearchPanel from "../components/taskSearchPanel";
 import PageContainer from "../components/pageContainer";
 import KanbanCreator from "../components/kanbanCreator";
 import TaskModal from "../components/taskModal";
-import { DragDropContext, DropResult } from "react-beautiful-dnd";
+import { DragDropContext } from "react-beautiful-dnd";
 import { Drag, Drop, DropChild } from "../components/dragAndDrop";
-import useReactMutation from "../utils/hooks/useReactMutation";
-import { useCallback } from "react";
+import useDragEnd from "../utils/hooks/useDragEnd";
 
 const BoardPage = () => {
     useTitle("Board");
@@ -39,67 +38,6 @@ const BoardPage = () => {
         }
     );
 
-    const useDragEnd = () => {
-        const { projectId } = useParams<{ projectId: string }>();
-        const { data: kanbans } = useReactQuery<IKanban[]>("kanbans", {
-            projectId
-        });
-        const { data: tasks } = useReactQuery<ITask[]>("tasks", {
-            projectId
-        });
-        const { mutate: reorderKanban } = useReactMutation(
-            "kanbans/orders",
-            "PUT",
-            "kanbans"
-        );
-        const { mutate: reorderTask } = useReactMutation(
-            "tasks/orders",
-            "PUT",
-            "tasks"
-        );
-        return useCallback(
-            ({ source, destination, type }: DropResult) => {
-                if (!destination) {
-                    return;
-                }
-                if (type === "COLUMN") {
-                    const fromId = kanbans?.[source.index]._id;
-                    const referenceId = kanbans?.[destination.index]._id;
-                    if (!fromId || !referenceId || fromId === referenceId) {
-                        return;
-                    }
-                    const type =
-                        destination.index > source.index ? "after" : "before";
-                    reorderKanban({ fromId, referenceId, type });
-                }
-                if (type === "ROW") {
-                    const fromKanbanId = source.droppableId;
-                    const referenceKanbanId = destination.droppableId;
-                    const fromTask = tasks?.filter(
-                        (t) => t.kanbanId === fromKanbanId
-                    )[source.index];
-                    const referenceTask = tasks?.filter(
-                        (t) => t.kanbanId === referenceKanbanId
-                    )[destination.index];
-                    if (fromTask?._id === referenceTask?._id) {
-                        return;
-                    }
-                    reorderTask({
-                        fromId: fromTask?._id,
-                        referenceId: referenceTask?._id,
-                        fromKanbanId,
-                        referenceKanbanId,
-                        type:
-                            fromKanbanId === referenceKanbanId &&
-                            destination.index > source.index
-                                ? "after"
-                                : "before"
-                    });
-                }
-            },
-            [kanbans, reorderKanban, reorderTask, tasks]
-        );
-    };
     const isLoading = pLoading || kLoading || tLoading || mLoading;
     const onDragEnd = useDragEnd();
 
