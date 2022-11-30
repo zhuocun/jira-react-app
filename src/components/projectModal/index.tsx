@@ -61,7 +61,7 @@ const ProjectModal: React.FC = () => {
                             onFinish={onFinish}
                         >
                             <Form.Item
-                                label={"Project name"}
+                                label={"Project Name"}
                                 name={"projectName"}
                                 rules={[
                                     {
@@ -70,7 +70,7 @@ const ProjectModal: React.FC = () => {
                                     }
                                 ]}
                             >
-                                <Input placeholder={"Project name"} />
+                                <Input placeholder={"Project Name"} />
                             </Form.Item>
                             <Form.Item
                                 label={"Organization"}
