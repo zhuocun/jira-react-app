@@ -25,7 +25,7 @@ const KanbanColumn = React.forwardRef<
     } else {
         return (
             <KanbanContainer {...props} ref={ref}>
-                <Row between={true}>
+                <Row between={true} marginBottom={1.5}>
                     <h4
                         style={{
                             textTransform: "uppercase",

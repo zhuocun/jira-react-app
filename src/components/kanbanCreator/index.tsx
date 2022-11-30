@@ -15,8 +15,9 @@ const KanbanCreator: React.FC = () => {
     return (
         <KanbanContainer>
             <Input
+                style={{ height: "3.6rem", marginTop: "0.4rem" }}
                 size={"large"}
-                placeholder={"New Kanban Name"}
+                placeholder={" + Create kanban"}
                 onPressEnter={submit}
                 value={kanbanName}
                 onChange={(e) => setKanbanName(e.target.value)}
