@@ -111,23 +111,12 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             render(value, data) {
                 const items: MenuProps["items"] = [
                     {
-                        key: "Edit",
-                        label: (
-                            <a key={"Edit"} onClick={() => onEdit(data._id)}>
-                                Edit
-                            </a>
-                        )
+                        key: "edit",
+                        label: <a onClick={() => onEdit(data._id)}>Edit</a>
                     },
                     {
-                        key: "Delete",
-                        label: (
-                            <a
-                                key={"Delete"}
-                                onClick={() => onDelete(data._id)}
-                            >
-                                Delete
-                            </a>
-                        )
+                        key: "delete",
+                        label: <a onClick={() => onDelete(data._id)}>Delete</a>
                     }
                 ];
                 return (

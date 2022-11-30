@@ -1,33 +1,41 @@
 import { Button, Divider, List, Popover, Typography } from "antd";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
+import { useNavigate } from "react-router";
+import React from "react";
 
 const ProjectPopover = () => {
     const { openModal } = useProjectModal();
     const { data: projects } = useReactQuery<IProject[]>("projects");
-    const { data: user } = useReactQuery<IUser>("users");
-    const likedProjects = projects?.filter((project) =>
-        user?.likedProjects.includes(project._id)
-    );
+    const navigate = useNavigate();
 
     const content = (
-        <>
-            <Typography.Text type={"secondary"}>Liked Projects</Typography.Text>
+        <div style={{ minWidth: "30rem" }}>
+            <Typography.Text type={"secondary"}>Projects</Typography.Text>
             <List>
-                {likedProjects?.map((p, index) => (
-                    <List.Item.Meta key={index} title={p.projectName} />
+                {projects?.map((p, index) => (
+                    <div key={index} style={{ marginTop: "1rem" }}>
+                        <Button
+                            type={"text"}
+                            style={{ padding: 0 }}
+                            key={index}
+                            onClick={() => navigate(`/projects/${p._id}`)}
+                        >
+                            {p.projectName}
+                        </Button>
+                    </div>
                 ))}
             </List>
             <Divider />
-            <Button onClick={openModal} type={"link"}>
+            <Button onClick={openModal} type={"link"} style={{ padding: 0 }}>
                 Create Project
             </Button>
-        </>
+        </div>
     );
 
     return (
-        <Popover placement={"bottom"} content={content}>
-            <span>Projects</span>
+        <Popover placement={"right"} content={content}>
+            <span style={{ padding: "1rem" }}>Projects</span>
         </Popover>
     );
 };

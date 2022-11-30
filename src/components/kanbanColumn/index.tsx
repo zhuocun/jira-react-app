@@ -6,6 +6,9 @@ import TaskCreator from "../taskCreator";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import React from "react";
 import { Drag, Drop, DropChild } from "../dragAndDrop";
+import { Button, Dropdown, MenuProps, Modal } from "antd";
+import useReactMutation from "../../utils/hooks/useReactMutation";
+import Row from "../row";
 
 const KanbanColumn = React.forwardRef<
     HTMLDivElement,
@@ -22,14 +25,17 @@ const KanbanColumn = React.forwardRef<
     } else {
         return (
             <KanbanContainer {...props} ref={ref}>
-                <h4
-                    style={{
-                        textTransform: "uppercase",
-                        paddingLeft: "1rem"
-                    }}
-                >
-                    {kanban.kanbanName}
-                </h4>
+                <Row between={true}>
+                    <h4
+                        style={{
+                            textTransform: "uppercase",
+                            paddingLeft: "1rem"
+                        }}
+                    >
+                        {kanban.kanbanName}
+                    </h4>
+                    <DeleteDropDown kanbanId={kanban._id} />
+                </Row>
                 <TaskContainer>
                     <Drop
                         type={"ROW"}
@@ -85,6 +91,35 @@ const KanbanColumn = React.forwardRef<
     }
 });
 
+const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
+    const { mutate: remove } = useReactMutation("kanbans", "DELETE");
+    const onDelete = (kanbanId: string) => {
+        Modal.confirm({
+            centered: true,
+            okText: "Confirm",
+            cancelText: "Cancel",
+            title: "Are you sure to delete this kanban?",
+            content: "This action cannot be withdraw",
+            onOk() {
+                return remove({ kanbanId });
+            }
+        });
+    };
+    const items: MenuProps["items"] = [
+        {
+            key: "delete",
+            label: <a onClick={() => onDelete(kanbanId)}>Delete</a>
+        }
+    ];
+    return (
+        <Dropdown menu={{ items }}>
+            <Button style={{ padding: 0 }} type={"link"}>
+                ...
+            </Button>
+        </Dropdown>
+    );
+};
+
 KanbanColumn.displayName = "Kanban Column";
 
 export default KanbanColumn;
@@ -113,6 +148,7 @@ const TaskCardContainer = styled.div`
 `;
 
 const TaskCard = styled.div`
+    width: 28rem;
     background-color: white;
     padding: 1.8rem 1.6rem;
 `;

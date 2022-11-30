@@ -2,7 +2,6 @@ import HomePage from "../pages/home";
 import ProjectPage from "../pages/project";
 import ProjectDetailPage from "../pages/projectDetail";
 import BoardPage from "../pages/board";
-import EpicPage from "../pages/epic";
 import LoginPage from "../pages/login";
 import RegisterPage from "../pages/register";
 import { Navigate } from "react-router";
@@ -35,10 +34,6 @@ const routes = [
                     {
                         path: "/projects/:projectId/board",
                         element: <BoardPage />
-                    },
-                    {
-                        path: "/projects/:projectId/epic",
-                        element: <EpicPage />
                     }
                 ]
             }

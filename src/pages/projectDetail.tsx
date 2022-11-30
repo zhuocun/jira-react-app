@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { Menu, MenuProps } from "antd";
 import { useEffect } from "react";
+import ProjectPopover from "../components/projectPopover";
 
 const ProjectDetailPage = () => {
     const route = useLocation().pathname.split("/");
@@ -11,23 +12,19 @@ const ProjectDetailPage = () => {
         {
             key: "board",
             label: (
-                <Link to={"board"} style={{ padding: "1rem" }}>
+                <Link to={"board"} style={{ paddingLeft: "1rem" }}>
                     Board
                 </Link>
             )
         },
         {
-            key: "epic",
-            label: (
-                <Link to={"epic"} style={{ padding: "1rem" }}>
-                    Epic
-                </Link>
-            )
+            key: "projects",
+            label: <ProjectPopover />
         }
     ];
 
     useEffect(() => {
-        if (!(route.includes("board") || route.includes("epic"))) {
+        if (!route.includes("board")) {
             navigate("board");
         }
     }, [navigate, route]);

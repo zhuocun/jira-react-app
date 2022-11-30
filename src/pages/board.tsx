@@ -95,5 +95,5 @@ export default BoardPage;
 export const ColumnContainer = styled.div`
     display: flex;
     overflow-x: scroll;
-    height: 85%;
+    height: 88%;
 `;

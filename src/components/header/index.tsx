@@ -5,8 +5,8 @@ import { Button, Dropdown, MenuProps } from "antd";
 import Link from "antd/lib/typography/Link";
 import useAuth from "../../utils/hooks/useAuth";
 import resetRoute from "../../utils/resetRoute";
-import ProjectPopover from "../projectPopover";
 import { useNavigate } from "react-router";
+import MemberPopover from "../memberPopover";
 
 const Header = () => {
     const { user, logout } = useAuth();
@@ -38,8 +38,7 @@ const Header = () => {
                 >
                     <Logo width="180px" color={"rgb(38, 132, 255)"} />
                 </Button>
-                <ProjectPopover />
-                <span>Users</span>
+                <MemberPopover />
             </LeftHeader>
             <RightHeader>
                 <Dropdown menu={{ items }}>

@@ -18,6 +18,8 @@ const MainLayout = () => {
 export default MainLayout;
 
 const Container = styled.div`
+    min-width: 1024px;
+    max-height: 1440px;
     display: grid;
     grid-template-rows: 6rem 1fr;
     height: 100vh;
