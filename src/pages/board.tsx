@@ -40,13 +40,22 @@ const BoardPage = () => {
     );
 
     const useDragEnd = () => {
+        const { projectId } = useParams<{ projectId: string }>();
         const { data: kanbans } = useReactQuery<IKanban[]>("kanbans", {
+            projectId
+        });
+        const { data: tasks } = useReactQuery<ITask[]>("tasks", {
             projectId
         });
         const { mutate: reorderKanban } = useReactMutation(
             "kanbans/orders",
             "PUT",
             "kanbans"
+        );
+        const { mutate: reorderTask } = useReactMutation(
+            "tasks/orders",
+            "PUT",
+            "tasks"
         );
         return useCallback(
             ({ source, destination, type }: DropResult) => {
@@ -63,8 +72,32 @@ const BoardPage = () => {
                         destination.index > source.index ? "after" : "before";
                     reorderKanban({ fromId, referenceId, type });
                 }
+                if (type === "ROW") {
+                    const fromKanbanId = source.droppableId;
+                    const referenceKanbanId = destination.droppableId;
+                    const fromTask = tasks?.filter(
+                        (t) => t.kanbanId === fromKanbanId
+                    )[source.index];
+                    const referenceTask = tasks?.filter(
+                        (t) => t.kanbanId === referenceKanbanId
+                    )[destination.index];
+                    if (fromTask?._id === referenceTask?._id) {
+                        return;
+                    }
+                    reorderTask({
+                        fromId: fromTask?._id,
+                        referenceId: referenceTask?._id,
+                        fromKanbanId,
+                        referenceKanbanId,
+                        type:
+                            fromKanbanId === referenceKanbanId &&
+                            destination.index > source.index
+                                ? "after"
+                                : "before"
+                    });
+                }
             },
-            [kanbans, reorderKanban]
+            [kanbans, reorderKanban, reorderTask, tasks]
         );
     };
     const isLoading = pLoading || kLoading || tLoading || mLoading;
