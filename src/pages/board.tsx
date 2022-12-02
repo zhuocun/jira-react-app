@@ -67,7 +67,6 @@ const BoardPage = () => {
                                         index={index}
                                     >
                                         <KanbanColumn
-                                            loading={tLoading}
                                             tasks={
                                                 tasks?.filter(
                                                     (t) => t.kanbanId === k._id

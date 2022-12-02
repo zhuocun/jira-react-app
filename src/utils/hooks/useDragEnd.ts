@@ -3,7 +3,7 @@ import useReactQuery from "./useReactQuery";
 import useReactMutation from "./useReactMutation";
 import { useCallback } from "react";
 import { DropResult } from "react-beautiful-dnd";
-import { kanbanCallback, taskCallback } from "../reorder";
+import { kanbanCallback, taskCallback } from "../optimisticUpdate/reorder";
 
 const useDragEnd = () => {
     const { projectId } = useParams<{ projectId: string }>();

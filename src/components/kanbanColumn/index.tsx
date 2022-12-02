@@ -13,82 +13,74 @@ import Row from "../row";
 const KanbanColumn = React.forwardRef<
     HTMLDivElement,
     {
-        loading: boolean;
         tasks: ITask[];
         kanban: IKanban;
         param: TaskSearchParam;
     }
->(({ kanban, param, tasks, loading, ...props }, ref) => {
+>(({ kanban, param, tasks, ...props }, ref) => {
     const { startEditing } = useTaskModal();
-    if (loading) {
-        return null;
-    } else {
-        return (
-            <KanbanContainer {...props} ref={ref}>
-                <Row between={true} marginBottom={1.5}>
-                    <h4
-                        style={{
-                            textTransform: "uppercase",
-                            paddingLeft: "1rem"
-                        }}
-                    >
-                        {kanban.kanbanName}
-                    </h4>
-                    <DeleteDropDown kanbanId={kanban._id} />
-                </Row>
-                <TaskContainer>
-                    <Drop
-                        type={"ROW"}
-                        direction={"vertical"}
-                        droppableId={String(kanban._id)}
-                    >
-                        <DropChild>
-                            {tasks?.map((task, index) =>
-                                (!param.type || task.type === param.type) &&
-                                (!param.coordinatorId ||
-                                    task.coordinatorId ===
-                                        param.coordinatorId) &&
-                                (!param.taskName ||
-                                    task.taskName.includes(param.taskName)) ? (
-                                    <Drag
-                                        key={task._id}
-                                        index={index}
-                                        draggableId={"task" + task._id}
+    return (
+        <KanbanContainer {...props} ref={ref}>
+            <Row between={true} marginBottom={1.5}>
+                <h4
+                    style={{
+                        textTransform: "uppercase",
+                        paddingLeft: "1rem"
+                    }}
+                >
+                    {kanban.kanbanName}
+                </h4>
+                <DeleteDropDown kanbanId={kanban._id} />
+            </Row>
+            <TaskContainer>
+                <Drop
+                    type={"ROW"}
+                    direction={"vertical"}
+                    droppableId={String(kanban._id)}
+                >
+                    <DropChild>
+                        {tasks?.map((task, index) =>
+                            (!param.type || task.type === param.type) &&
+                            (!param.coordinatorId ||
+                                task.coordinatorId === param.coordinatorId) &&
+                            (!param.taskName ||
+                                task.taskName.includes(param.taskName)) ? (
+                                <Drag
+                                    key={task._id}
+                                    index={index}
+                                    draggableId={"task" + task._id}
+                                >
+                                    <TaskCardContainer
+                                        onClick={() => startEditing(task._id)}
+                                        key={index}
                                     >
-                                        <TaskCardContainer
-                                            onClick={() =>
-                                                startEditing(task._id)
-                                            }
-                                            key={index}
-                                        >
-                                            <TaskCard>
-                                                <div
-                                                    style={{
-                                                        marginBottom: "2rem"
-                                                    }}
-                                                >
-                                                    {task.taskName}
-                                                </div>
-                                                <img
-                                                    src={
-                                                        task.type === "Task"
-                                                            ? taskIcon
-                                                            : bugIcon
-                                                    }
-                                                    alt={"Type icon"}
-                                                />
-                                            </TaskCard>
-                                        </TaskCardContainer>
-                                    </Drag>
-                                ) : null
-                            )}
-                            <TaskCreator kanbanId={kanban._id} />
-                        </DropChild>
-                    </Drop>
-                </TaskContainer>
-            </KanbanContainer>
-        );
-    }
+                                        <TaskCard>
+                                            <div
+                                                style={{
+                                                    marginBottom: "2rem"
+                                                }}
+                                            >
+                                                {task.taskName}
+                                            </div>
+                                            <img
+                                                src={
+                                                    task.type === "Task"
+                                                        ? taskIcon
+                                                        : bugIcon
+                                                }
+                                                alt={"Type icon"}
+                                            />
+                                        </TaskCard>
+                                    </TaskCardContainer>
+                                </Drag>
+                            ) : null
+                        )}
+                        <TaskCreator kanbanId={kanban._id} />
+                    </DropChild>
+                </Drop>
+            </TaskContainer>
+        </KanbanContainer>
+    );
 });
 
 const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {

@@ -15,7 +15,11 @@ const KanbanCreator: React.FC = () => {
     return (
         <KanbanContainer>
             <Input
-                style={{ height: "3.6rem", marginTop: "0.4rem" }}
+                style={{
+                    height: "3.6rem",
+                    marginTop: "0.4rem",
+                    width: "28rem"
+                }}
                 size={"large"}
                 placeholder={" + Create kanban"}
                 onPressEnter={submit}

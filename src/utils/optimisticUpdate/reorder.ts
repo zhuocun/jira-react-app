@@ -1,4 +1,4 @@
-interface ITaskOrderStatus {
+interface ITaskOrderParams {
     fromId: string;
     referenceId: string;
     fromKanbanId: string;
@@ -6,7 +6,7 @@ interface ITaskOrderStatus {
     type: "after" | "before";
 }
 
-interface IKanbanOrderStatus {
+interface IKanbanOrderParams {
     fromId: string;
     referenceId: string;
     type: "after" | "before";
@@ -53,7 +53,11 @@ const insertBefore = (
     return objArray;
 };
 
-const insertAfter = (objArray: unknown[], from: number, to: number) => {
+const insertAfter = (
+    objArray: (ITask | IKanban)[],
+    from: number,
+    to: number
+) => {
     const toItem = objArray[to];
     const removedItem = objArray.splice(from, 1)[0];
     const toIndex = objArray.indexOf(toItem);
@@ -61,7 +65,7 @@ const insertAfter = (objArray: unknown[], from: number, to: number) => {
     return objArray;
 };
 
-export const taskCallback = (target: ITaskOrderStatus, old: ITask[]) => {
+export const taskCallback = (target: ITaskOrderParams, old: ITask[]) => {
     const orderedList = reorder({ objArray: old, ...target }) as ITask[];
     const result: ITask[] = orderedList.map((item) =>
         item._id === target.fromId
@@ -71,5 +75,5 @@ export const taskCallback = (target: ITaskOrderStatus, old: ITask[]) => {
     return result;
 };
 
-export const kanbanCallback = (target: IKanbanOrderStatus, old: IKanban[]) =>
+export const kanbanCallback = (target: IKanbanOrderParams, old: IKanban[]) =>
     reorder({ objArray: old, ...target });

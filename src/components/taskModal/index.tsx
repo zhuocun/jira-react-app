@@ -5,12 +5,19 @@ import React, { useEffect } from "react";
 import { Button, Form, Input, Modal, Select } from "antd";
 import { useQueryClient } from "react-query";
 import styled from "@emotion/styled";
+import _ from "lodash";
 
 const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
     const [form] = useForm();
     const { editingTaskId, closeModal } = useTaskModal();
-    const { mutateAsync: update } = useReactMutation("tasks", "PUT");
-    const { mutate: remove } = useReactMutation("tasks", "DELETE");
+    const { mutateAsync: update, isLoading: uLoading } = useReactMutation(
+        "tasks",
+        "PUT"
+    );
+    const { mutateAsync: remove, isLoading: dLoading } = useReactMutation(
+        "tasks",
+        "DELETE"
+    );
     const editingTask = tasks.filter((t) => t._id === editingTaskId)[0];
     const members = useQueryClient().getQueryData<IMember[]>("users/members");
     const types: string[] = [];
@@ -26,13 +33,14 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
     };
 
     const onOk = async () => {
-        await update({ ...editingTask, ...form.getFieldsValue() }).then(
-            closeModal
-        );
+        _.isEqual({ ...editingTask, ...form.getFieldsValue() }, editingTask)
+            ? closeModal()
+            : await update({ ...editingTask, ...form.getFieldsValue() }).then(
+                  closeModal
+              );
     };
 
     const onDelete = () => {
-        onClose();
         Modal.confirm({
             centered: true,
             okText: "Confirm",
@@ -40,7 +48,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
             title: "Are you sure to delete this task?",
             content: "This action cannot be withdraw",
             onOk() {
-                return remove({ taskId: editingTaskId });
+                remove({ taskId: editingTaskId }).then(closeModal);
             }
         });
     };
@@ -51,6 +59,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
 
     return (
         <Modal
+            confirmLoading={uLoading}
             centered={true}
             forceRender={true}
             okText={"Submit"}
@@ -132,6 +141,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                     onClick={onDelete}
                     size={"small"}
                     style={{ fontSize: "1.4rem" }}
+                    loading={dLoading}
                 >
                     Delete
                 </Button>

@@ -3,14 +3,24 @@ import useReactMutation from "../../utils/hooks/useReactMutation";
 import { useParams } from "react-router-dom";
 import { Input } from "antd";
 import { useQueryClient } from "react-query";
+import { newTaskCallback } from "../../utils/optimisticUpdate/createTask";
 
 const TaskCreator: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
     const [taskName, setTaskName] = useState("");
     const [inputMode, setInputMode] = useState(false);
     const { projectId } = useParams<{ projectId: string }>();
-    const { mutateAsync } = useReactMutation("tasks", "POST");
+    const { mutateAsync } = useReactMutation(
+        "tasks",
+        "POST",
+        ["tasks", { projectId }],
+        undefined,
+        undefined,
+        undefined,
+        newTaskCallback
+    );
     const user = useQueryClient().getQueryData<IUser>("users");
     const submit = async () => {
+        setInputMode(false);
         await mutateAsync({
             taskName,
             projectId,
@@ -21,8 +31,6 @@ const TaskCreator: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
             storyPoints: 1,
             note: "No note yet"
         });
-        setInputMode(false);
-        setTaskName("");
     };
     const toggle = () => {
         setInputMode(!inputMode);
