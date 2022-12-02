@@ -4,10 +4,12 @@ import useReactQuery from "./hooks/useReactQuery";
 import getError from "./getError";
 import { useQueryClient } from "react-query";
 import useAuth from "./hooks/useAuth";
+import { useNavigate } from "react-router";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const { token } = useAuth();
+    const { token, logout } = useAuth();
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
     const { error, isLoading, isIdle, isError } = token
         ? useReactQuery<IUser>("users")
         : {
@@ -17,8 +19,11 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
               isIdle: false
           };
     useEffect(() => {
-        queryClient.refetchQueries<IUser>("users");
-    }, [queryClient, token]);
+        queryClient.refetchQueries<IUser>("users").catch(() => {
+            logout();
+            navigate("/login");
+        });
+    }, [logout, navigate, queryClient, token]);
 
     if ((isIdle || isLoading) && token) {
         return <PageSpin />;
