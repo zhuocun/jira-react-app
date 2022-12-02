@@ -125,7 +125,7 @@ KanbanColumn.displayName = "Kanban Column";
 export default KanbanColumn;
 
 export const KanbanContainer = styled.div`
-    min-width: 27rem;
+    min-width: 29.5rem;
     border-radius: 6px;
     background-color: rgb(244, 245, 247);
     display: flex;
@@ -145,6 +145,8 @@ const TaskContainer = styled.div`
 
 const TaskCardContainer = styled.div`
     padding-bottom: 0.6rem;
+    display: flex;
+    justify-content: center;
 `;
 
 const TaskCard = styled.div`

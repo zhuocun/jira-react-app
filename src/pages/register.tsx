@@ -14,6 +14,7 @@ const RegisterPage = () => {
     const handleSwitch = () => {
         navigate("/login");
     };
+
     if (user && token) {
         return null;
     } else {

@@ -13,6 +13,8 @@ import { Link } from "react-router-dom";
 import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useProjectModal from "../../utils/hooks/useProjectModal";
+import useReactQuery from "../../utils/hooks/useReactQuery";
+import { useQueryClient } from "react-query";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -24,7 +26,13 @@ interface Props extends TableProps<ProjectIntro> {
 
 const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const { user } = useAuth();
-    const { mutate: update } = useReactMutation("users/likes", "PUT", "users");
+    useReactQuery<IUser>("users");
+    console.log(useQueryClient().getQueryData("users"));
+    const { mutateAsync: update } = useReactMutation(
+        "users/likes",
+        "PUT",
+        "users"
+    );
     const { mutate: remove } = useReactMutation("projects", "DELETE");
     const { startEditing } = useProjectModal();
     const onEdit = (id: string) => {
