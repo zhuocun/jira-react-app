@@ -9,6 +9,8 @@ import { Drag, Drop, DropChild } from "../dragAndDrop";
 import { Button, Dropdown, MenuProps, Modal } from "antd";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import Row from "../row";
+import { useParams } from "react-router-dom";
+import deleteKanbanCallback from "../../utils/optimisticUpdate/deleteKanban";
 
 const KanbanColumn = React.forwardRef<
     HTMLDivElement,
@@ -83,7 +85,13 @@ const KanbanColumn = React.forwardRef<
 });
 
 const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
-    const { mutate: remove } = useReactMutation("kanbans", "DELETE");
+    const { projectId } = useParams<{ projectId: string }>();
+    const { mutate: remove } = useReactMutation(
+        "kanbans",
+        "DELETE",
+        ["kanbans", { projectId }],
+        deleteKanbanCallback
+    );
     const onDelete = (kanbanId: string) => {
         Modal.confirm({
             centered: true,
@@ -92,7 +100,7 @@ const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
             title: "Are you sure to delete this kanban?",
             content: "This action cannot be withdraw",
             onOk() {
-                return remove({ kanbanId });
+                remove({ kanbanId });
             }
         });
     };

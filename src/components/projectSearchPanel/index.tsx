@@ -42,7 +42,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                     loading={loading}
                     value={
                         loading
-                            ? "loading..."
+                            ? "Managers"
                             : defaultUser?.username || "Managers"
                     }
                     onChange={(value) =>

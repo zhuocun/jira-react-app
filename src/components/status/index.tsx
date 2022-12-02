@@ -4,7 +4,7 @@ import { Spin, Typography } from "antd";
 const PageSpin = () => {
     return (
         <FullPage>
-            <Spin size={"large"} />
+            <Spin />
         </FullPage>
     );
 };
@@ -24,6 +24,7 @@ export { PageSpin, PageError };
 
 const FullPage = styled.div`
     height: 100vh;
+    width: 100vw;
     display: flex;
     justify-content: center;
     align-items: center;

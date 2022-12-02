@@ -5,7 +5,7 @@ import { Input } from "antd";
 import { useQueryClient } from "react-query";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
 
-const TaskCreator: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
+const TaskCreator: React.FC<{ kanbanId?: string }> = ({ kanbanId }) => {
     const [taskName, setTaskName] = useState("");
     const [inputMode, setInputMode] = useState(false);
     const { projectId } = useParams<{ projectId: string }>();
