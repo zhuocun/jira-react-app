@@ -9,7 +9,8 @@ interface INewTaskParams {
     note: "No note yet";
 }
 
-const newTaskCallback = (target: INewTaskParams, old: ITask[]) => {
+const newTaskCallback = (target: INewTaskParams, old: ITask[] | undefined) => {
+    if (!old) return undefined;
     return old.concat(target as ITask);
 };
 

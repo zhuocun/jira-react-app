@@ -1,4 +1,8 @@
-const deleteTaskCallback = (target: { projectId: string }, old: IProject[]) => {
+const deleteTaskCallback = (
+    target: { projectId: string },
+    old: IProject[] | undefined
+) => {
+    if (!old) return undefined;
     let index = 0;
     for (let i = 0; i < old.length; i++) {
         if (old[i]._id === target.projectId) {

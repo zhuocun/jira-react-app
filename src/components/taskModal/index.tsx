@@ -8,7 +8,7 @@ import _ from "lodash";
 import { useParams } from "react-router-dom";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteTask";
 
-const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
+const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
     const [form] = useForm();
     const { projectId } = useParams<{ projectId: string }>();
     const { editingTaskId, closeModal } = useTaskModal();
@@ -22,10 +22,10 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
         ["tasks", { projectId }],
         deleteTaskCallback
     );
-    const editingTask = tasks.filter((t) => t._id === editingTaskId)[0];
+    const editingTask = tasks?.filter((t) => t._id === editingTaskId)[0];
     const members = useQueryClient().getQueryData<IMember[]>("users/members");
     const types: string[] = [];
-    tasks.map((t) => {
+    tasks?.map((t) => {
         if (!types.includes(t.type)) {
             types.push(t.type);
         }
@@ -51,7 +51,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
             okText: "Confirm",
             cancelText: "Cancel",
             title: "Are you sure to delete this task?",
-            content: "This action cannot be withdraw",
+            content: "This action cannot be undone",
             onOk() {
                 remove({ taskId: editingTaskId });
             }
@@ -147,7 +147,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                     size={"small"}
                     style={{ fontSize: "1.4rem" }}
                     loading={dLoading}
-                    disabled={tasks.length < 2}
+                    disabled={tasks ? tasks.length < 2 : true}
                 >
                     Delete
                 </Button>

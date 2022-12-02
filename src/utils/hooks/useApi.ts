@@ -34,11 +34,13 @@ export const api = async (
         async (res) => {
             if (res.status === 401) {
                 const { logout } = useAuth();
-                await logout();
-                window.location.reload();
-                return Promise.reject({
-                    message: "Login expired, please login again"
-                });
+                await logout()
+                    .then(() => location.reload())
+                    .then(() => {
+                        return Promise.reject({
+                            message: "Login expired, please login again"
+                        });
+                    });
             }
             const data = await res.json();
             if (res.ok) {

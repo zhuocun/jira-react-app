@@ -1,4 +1,8 @@
-const deleteKanbanCallback = (target: { kanbanId: string }, old: IKanban[]) => {
+const deleteKanbanCallback = (
+    target: { kanbanId: string },
+    old: IKanban[] | undefined
+) => {
+    if (!old) return undefined;
     let index = 0;
     for (let i = 0; i < old.length; i++) {
         if (old[i]._id === target.kanbanId) {

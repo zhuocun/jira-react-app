@@ -98,7 +98,7 @@ const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
             okText: "Confirm",
             cancelText: "Cancel",
             title: "Are you sure to delete this kanban?",
-            content: "This action cannot be withdraw",
+            content: "This action cannot be undone",
             onOk() {
                 remove({ kanbanId });
             }

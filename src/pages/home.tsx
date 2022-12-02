@@ -15,10 +15,10 @@ const HomePage = () => {
         if (user && (path === "/login" || path === "/register")) {
             resetRoute();
         }
-        if (!user && path !== "/login" && path !== "/register") {
-            navigate("/login");
+        if (!user && !token && path !== "/login" && path !== "/register") {
+            logout().then(() => navigate("/login"));
         }
-    }, [logout, navigate, path, user]);
+    }, [logout, navigate, path, token, user]);
 
     return <>{user && token ? <MainLayout /> : <AuthLayout />}</>;
 };

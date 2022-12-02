@@ -13,7 +13,6 @@ import { Link } from "react-router-dom";
 import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useProjectModal from "../../utils/hooks/useProjectModal";
-import useReactQuery from "../../utils/hooks/useReactQuery";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteProject";
 import { useState } from "react";
 
@@ -26,8 +25,8 @@ interface Props extends TableProps<ProjectIntro> {
 }
 
 const ProjectList: React.FC<Props> = ({ members, ...props }) => {
-    const { user } = useAuth();
-    useReactQuery<IUser>("users");
+    const { user, refreshUser } = useAuth();
+    refreshUser();
     const [currentProjectId, setCurrentProjectId] = useState("");
     const { mutateAsync: update } = useReactMutation(
         "users/likes",
@@ -65,7 +64,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             okText: "Confirm",
             cancelText: "Cancel",
             title: "Are you sure to delete this project?",
-            content: "This action cannot be withdraw",
+            content: "This action cannot be undone",
             onOk() {
                 remove({ projectId });
             }
