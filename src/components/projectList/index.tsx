@@ -14,7 +14,8 @@ import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
-import { useQueryClient } from "react-query";
+import deleteTaskCallback from "../../utils/optimisticUpdate/deleteProject";
+import { useState } from "react";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -27,16 +28,21 @@ interface Props extends TableProps<ProjectIntro> {
 const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const { user } = useAuth();
     useReactQuery<IUser>("users");
-    console.log(useQueryClient().getQueryData("users"));
+    const [currentProjectId, setCurrentProjectId] = useState("");
     const { mutateAsync: update } = useReactMutation(
         "users/likes",
         "PUT",
         "users"
     );
-    const { mutate: remove } = useReactMutation("projects", "DELETE");
+    const { mutate: remove } = useReactMutation(
+        "projects",
+        "DELETE",
+        ["projects", {}],
+        deleteTaskCallback
+    );
     const { startEditing } = useProjectModal();
-    const onEdit = (id: string) => {
-        startEditing(id);
+    const onEdit = (projectId: string) => {
+        startEditing(projectId);
     };
 
     const dataSource: ProjectIntro[] | undefined = props.dataSource?.map(
@@ -47,7 +53,10 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     );
 
     const onLike = (projectId: string) => {
-        update({ projectId });
+        setCurrentProjectId(projectId);
+        update({ projectId }).then(() => {
+            setCurrentProjectId("");
+        });
     };
 
     const onDelete = (projectId: string) => {
@@ -58,7 +67,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             title: "Are you sure to delete this project?",
             content: "This action cannot be withdraw",
             onOk() {
-                return remove({ projectId });
+                remove({ projectId });
             }
         });
     };
@@ -70,7 +79,15 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             render(value, data) {
                 return (
                     <Rate
-                        value={user?.likedProjects.includes(data._id) ? 1 : 0}
+                        value={
+                            currentProjectId === data._id
+                                ? user?.likedProjects.includes(data._id)
+                                    ? 0
+                                    : 1
+                                : user?.likedProjects.includes(data._id)
+                                ? 1
+                                : 0
+                        }
                         count={1}
                         onChange={() => onLike(data._id)}
                     />

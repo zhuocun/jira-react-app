@@ -4,19 +4,23 @@ import useReactMutation from "../../utils/hooks/useReactMutation";
 import React, { useEffect } from "react";
 import { Button, Form, Input, Modal, Select } from "antd";
 import { useQueryClient } from "react-query";
-import styled from "@emotion/styled";
 import _ from "lodash";
+import { useParams } from "react-router-dom";
+import deleteTaskCallback from "../../utils/optimisticUpdate/deleteTask";
 
 const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
     const [form] = useForm();
+    const { projectId } = useParams<{ projectId: string }>();
     const { editingTaskId, closeModal } = useTaskModal();
     const { mutateAsync: update, isLoading: uLoading } = useReactMutation(
         "tasks",
         "PUT"
     );
-    const { mutateAsync: remove, isLoading: dLoading } = useReactMutation(
+    const { mutate: remove, isLoading: dLoading } = useReactMutation(
         "tasks",
-        "DELETE"
+        "DELETE",
+        ["tasks", { projectId }],
+        deleteTaskCallback
     );
     const editingTask = tasks.filter((t) => t._id === editingTaskId)[0];
     const members = useQueryClient().getQueryData<IMember[]>("users/members");
@@ -41,6 +45,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
     };
 
     const onDelete = () => {
+        onClose();
         Modal.confirm({
             centered: true,
             okText: "Confirm",
@@ -48,7 +53,7 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
             title: "Are you sure to delete this task?",
             content: "This action cannot be withdraw",
             onOk() {
-                remove({ taskId: editingTaskId }).then(closeModal);
+                remove({ taskId: editingTaskId });
             }
         });
     };
@@ -70,12 +75,11 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
             open={Boolean(editingTaskId)}
         >
             <Form
-                labelCol={{ span: 8 }}
-                wrapperCol={{ span: 16 }}
+                labelCol={{ span: 6 }}
                 form={form}
                 initialValues={editingTask}
             >
-                <TaskFormItem
+                <Form.Item
                     label={"Task Name"}
                     name={"taskName"}
                     rules={[
@@ -86,8 +90,8 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                     ]}
                 >
                     <Input />
-                </TaskFormItem>
-                <TaskFormItem
+                </Form.Item>
+                <Form.Item
                     label={"Coordinator"}
                     name={"coordinatorId"}
                     rules={[
@@ -104,8 +108,8 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                             </Select.Option>
                         ))}
                     </Select>
-                </TaskFormItem>
-                <TaskFormItem
+                </Form.Item>
+                <Form.Item
                     label={"Type"}
                     name={"type"}
                     rules={[
@@ -133,15 +137,17 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
                             </>
                         )}
                     </Select>
-                </TaskFormItem>
+                </Form.Item>
             </Form>
-            <div style={{ textAlign: "right", marginRight: "3.6rem" }}>
+            <div style={{ textAlign: "right" }}>
                 <Button
                     danger={true}
+                    type={"dashed"}
                     onClick={onDelete}
                     size={"small"}
                     style={{ fontSize: "1.4rem" }}
                     loading={dLoading}
+                    disabled={tasks.length < 2}
                 >
                     Delete
                 </Button>
@@ -151,7 +157,3 @@ const TaskModal: React.FC<{ tasks: ITask[] }> = ({ tasks }) => {
 };
 
 export default TaskModal;
-
-const TaskFormItem = styled(Form.Item)`
-    margin-right: 3.6rem;
-`;

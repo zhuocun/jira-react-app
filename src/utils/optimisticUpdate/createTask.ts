@@ -9,6 +9,8 @@ interface INewTaskParams {
     note: "No note yet";
 }
 
-export const newTaskCallback = (target: INewTaskParams, old: ITask[]) => {
+const newTaskCallback = (target: INewTaskParams, old: ITask[]) => {
     return old.concat(target as ITask);
 };
+
+export default newTaskCallback;

@@ -7,10 +7,9 @@ const useReactMutation = <D>(
     endPoint: string,
     method: string,
     queryKey?: QueryKey,
-    onSuccess?: (data: D) => void,
+    callback?: any,
     onError?: (err: Error) => void,
-    setCache?: boolean,
-    callback?: any
+    setCache?: boolean
 ) => {
     const api = useApi();
     const queryClient = useQueryClient();
@@ -21,14 +20,7 @@ const useReactMutation = <D>(
                 method: method
             }),
         {
-            onSuccess: onSuccess
-                ? setCache
-                    ? (data: D) => {
-                          queryClient.setQueryData(queryKey || endPoint, data);
-                          onSuccess(data);
-                      }
-                    : onSuccess
-                : setCache
+            onSuccess: setCache
                 ? async (data: D) =>
                       await queryClient.setQueryData(queryKey || endPoint, data)
                 : () => queryClient.invalidateQueries(queryKey),
@@ -39,10 +31,9 @@ const useReactMutation = <D>(
                 : undefined,
             onMutate: callback
                 ? async (target: any) => {
-                      const previousItems = queryClient.getQueryData([
-                          queryKey,
-                          {}
-                      ]);
+                      const previousItems = queryClient.getQueryData(
+                          queryKey || ""
+                      );
                       queryClient.setQueryData(
                           queryKey || endPoint,
                           (old?: any[]) => {

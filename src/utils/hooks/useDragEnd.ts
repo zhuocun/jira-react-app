@@ -18,18 +18,12 @@ const useDragEnd = () => {
         "kanbans/orders",
         "PUT",
         ["kanbans", { projectId }],
-        undefined,
-        undefined,
-        undefined,
         kanbanCallback
     );
     const { mutate: reorderTask } = useReactMutation(
         "tasks/orders",
         "PUT",
         ["tasks", { projectId }],
-        undefined,
-        undefined,
-        undefined,
         taskCallback
     );
     return useCallback(

@@ -12,7 +12,7 @@ const RegisterForm: React.FC<{
         "POST",
         undefined,
         undefined,
-        onError,
+        undefined,
         false
     );
     const handleSubmit = async (input: {

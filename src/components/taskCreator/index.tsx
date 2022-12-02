@@ -3,7 +3,7 @@ import useReactMutation from "../../utils/hooks/useReactMutation";
 import { useParams } from "react-router-dom";
 import { Input } from "antd";
 import { useQueryClient } from "react-query";
-import { newTaskCallback } from "../../utils/optimisticUpdate/createTask";
+import newTaskCallback from "../../utils/optimisticUpdate/createTask";
 
 const TaskCreator: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
     const [taskName, setTaskName] = useState("");
@@ -13,9 +13,6 @@ const TaskCreator: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
         "tasks",
         "POST",
         ["tasks", { projectId }],
-        undefined,
-        undefined,
-        undefined,
         newTaskCallback
     );
     const user = useQueryClient().getQueryData<IUser>("users");

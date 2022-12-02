@@ -46,13 +46,12 @@ const KanbanColumn = React.forwardRef<
                             (!param.taskName ||
                                 task.taskName.includes(param.taskName)) ? (
                                 <Drag
-                                    key={task._id}
+                                    key={task._id || task.taskName}
                                     index={index}
                                     draggableId={"task" + task._id}
                                 >
                                     <TaskCardContainer
                                         onClick={() => startEditing(task._id)}
-                                        key={index}
                                     >
                                         <TaskCard>
                                             <div
