@@ -154,7 +154,7 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                             : true
                     }
                 >
-                    Delete
+                    {!dLoading ? "Delete" : "Syncing..."}
                 </Button>
             </div>
         </Modal>
