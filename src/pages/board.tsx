@@ -104,6 +104,7 @@ export const ColumnContainer = styled.div`
 `;
 
 const BoardSpin = styled(Spin)`
-    margin-left: calc(0.5 * (100vw - 16rem - 18rem));
-    margin-top: calc(0.5 * (100vh - 6rem - 9rem));
+    margin-left: calc(0.5 * (100vw - 16rem - 20rem));
+    margin-top: calc(0.5 * (100vh - 6rem - 10.5rem));
+    padding: 1rem;
 `;
