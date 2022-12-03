@@ -14,19 +14,19 @@ const useDragEnd = () => {
         projectId
     });
 
-    const { mutate: reorderKanban } = useReactMutation(
+    const { mutate: reorderKanban, isLoading: kLoading } = useReactMutation(
         "kanbans/orders",
         "PUT",
         ["kanbans", { projectId }],
         kanbanCallback
     );
-    const { mutate: reorderTask } = useReactMutation(
+    const { mutate: reorderTask, isLoading: rLoading } = useReactMutation(
         "tasks/orders",
         "PUT",
         ["tasks", { projectId }],
         taskCallback
     );
-    return useCallback(
+    const onDragEnd = useCallback(
         ({ source, destination, type }: DropResult) => {
             if (!destination) {
                 return;
@@ -68,6 +68,11 @@ const useDragEnd = () => {
         },
         [kanbans, reorderKanban, reorderTask, tasks]
     );
+    return {
+        onDragEnd,
+        isKanbanDragDisabled: kLoading,
+        isTaskDragDisabled: rLoading
+    };
 };
 
 export default useDragEnd;

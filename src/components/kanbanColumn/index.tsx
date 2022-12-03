@@ -6,11 +6,12 @@ import TaskCreator from "../taskCreator";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import React from "react";
 import { Drag, Drop, DropChild } from "../dragAndDrop";
-import { Button, Dropdown, MenuProps, Modal } from "antd";
+import { Dropdown, MenuProps, Modal } from "antd";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import Row from "../row";
 import { useParams } from "react-router-dom";
 import deleteKanbanCallback from "../../utils/optimisticUpdate/deleteKanban";
+import { NoPaddingButton } from "../projectList";
 
 const KanbanColumn = React.forwardRef<
     HTMLDivElement,
@@ -18,8 +19,9 @@ const KanbanColumn = React.forwardRef<
         tasks: ITask[];
         kanban: IKanban;
         param: TaskSearchParam;
+        isDragDisabled: boolean;
     }
->(({ kanban, param, tasks, ...props }, ref) => {
+>(({ kanban, param, tasks, isDragDisabled, ...props }, ref) => {
     const { startEditing } = useTaskModal();
     return (
         <KanbanContainer {...props} ref={ref}>
@@ -41,19 +43,22 @@ const KanbanColumn = React.forwardRef<
                     droppableId={String(kanban._id)}
                 >
                     <DropChild>
-                        {tasks?.map((task, index) =>
-                            (!param.type || task.type === param.type) &&
+                        {tasks?.map((t, index) =>
+                            (!param.type || t.type === param.type) &&
                             (!param.coordinatorId ||
-                                task.coordinatorId === param.coordinatorId) &&
+                                t.coordinatorId === param.coordinatorId) &&
                             (!param.taskName ||
-                                task.taskName.includes(param.taskName)) ? (
+                                t.taskName.includes(param.taskName)) ? (
                                 <Drag
-                                    key={task._id || task.taskName}
+                                    key={t._id || t.taskName}
                                     index={index}
-                                    draggableId={"task" + task._id}
+                                    draggableId={"task" + t._id}
+                                    isDragDisabled={
+                                        isDragDisabled || t._id === "mock"
+                                    }
                                 >
                                     <TaskCardContainer
-                                        onClick={() => startEditing(task._id)}
+                                        onClick={() => startEditing(t._id)}
                                     >
                                         <TaskCard>
                                             <div
@@ -61,11 +66,11 @@ const KanbanColumn = React.forwardRef<
                                                     marginBottom: "2rem"
                                                 }}
                                             >
-                                                {task.taskName}
+                                                {t.taskName}
                                             </div>
                                             <img
                                                 src={
-                                                    task.type === "Task"
+                                                    t.type === "Task"
                                                         ? taskIcon
                                                         : bugIcon
                                                 }
@@ -107,14 +112,21 @@ const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
     const items: MenuProps["items"] = [
         {
             key: "delete",
-            label: <a onClick={() => onDelete(kanbanId)}>Delete</a>
+            label: (
+                <NoPaddingButton
+                    size={"small"}
+                    type={"text"}
+                    disabled={kanbanId === "mock"}
+                    onClick={() => onDelete(kanbanId)}
+                >
+                    Delete
+                </NoPaddingButton>
+            )
         }
     ];
     return (
         <Dropdown menu={{ items }}>
-            <Button style={{ padding: 0 }} type={"link"}>
-                ...
-            </Button>
+            <NoPaddingButton type={"link"}>...</NoPaddingButton>
         </Dropdown>
     );
 };

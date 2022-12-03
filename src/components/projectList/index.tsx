@@ -15,6 +15,7 @@ import useReactMutation from "../../utils/hooks/useReactMutation";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteProject";
 import { useState } from "react";
+import styled from "@emotion/styled";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -145,9 +146,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                 ];
                 return (
                     <Dropdown menu={{ items }}>
-                        <Button style={{ padding: 0 }} type={"link"}>
-                            ...
-                        </Button>
+                        <NoPaddingButton type={"link"}>...</NoPaddingButton>
                     </Dropdown>
                 );
             }
@@ -165,3 +164,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
 };
 
 export default ProjectList;
+
+export const NoPaddingButton = styled(Button)`
+    padding: 0;
+`;

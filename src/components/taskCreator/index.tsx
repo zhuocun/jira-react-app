@@ -9,7 +9,7 @@ const TaskCreator: React.FC<{ kanbanId?: string }> = ({ kanbanId }) => {
     const [taskName, setTaskName] = useState("");
     const [inputMode, setInputMode] = useState(false);
     const { projectId } = useParams<{ projectId: string }>();
-    const { mutateAsync } = useReactMutation(
+    const { mutateAsync, isLoading } = useReactMutation(
         "tasks",
         "POST",
         ["tasks", { projectId }],
@@ -48,6 +48,7 @@ const TaskCreator: React.FC<{ kanbanId?: string }> = ({ kanbanId }) => {
     } else {
         return (
             <Input
+                disabled={isLoading}
                 onBlur={toggle}
                 placeholder={"What needs to be done?"}
                 autoFocus={true}

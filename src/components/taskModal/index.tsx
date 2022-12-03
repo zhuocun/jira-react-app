@@ -146,8 +146,13 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                     onClick={onDelete}
                     size={"small"}
                     style={{ fontSize: "1.4rem" }}
-                    loading={dLoading}
-                    disabled={tasks ? tasks.length < 2 : true}
+                    disabled={
+                        tasks
+                            ? tasks.length < 2 ||
+                              dLoading ||
+                              editingTaskId === "mock"
+                            : true
+                    }
                 >
                     Delete
                 </Button>

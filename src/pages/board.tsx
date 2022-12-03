@@ -40,57 +40,61 @@ const BoardPage = () => {
     );
 
     const isLoading = pLoading || kLoading || tLoading || mLoading;
-    const onDragEnd = useDragEnd();
+    const { onDragEnd, isKanbanDragDisabled, isTaskDragDisabled } =
+        useDragEnd();
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            {isLoading ? (
-                <BoardSpin />
-            ) : (
-                <PageContainer>
-                    <h1>{currentProject?.projectName} Board</h1>
-                    <TaskSearchPanel
-                        tasks={tasks || []}
-                        param={param}
-                        setParam={setParam}
-                        members={members}
-                        loading={isLoading}
-                    />
-                    {!isLoading ? (
-                        <ColumnContainer>
-                            <Drop
-                                droppableId={"kanban"}
-                                type={"COLUMN"}
-                                direction={"horizontal"}
-                            >
-                                <DropChild style={{ display: "flex" }}>
-                                    {kanbans?.map((k, index) => (
-                                        <Drag
-                                            key={k._id}
-                                            draggableId={"kanban" + k._id}
-                                            index={index}
-                                        >
-                                            <KanbanColumn
-                                                tasks={
-                                                    tasks?.filter(
-                                                        (t) =>
-                                                            t.kanbanId === k._id
-                                                    ) || []
-                                                }
-                                                key={index}
-                                                kanban={k}
-                                                param={debouncedParam}
-                                            />
-                                        </Drag>
-                                    ))}
-                                </DropChild>
-                            </Drop>
-                            <KanbanCreator />
-                        </ColumnContainer>
-                    ) : null}
-                    <TaskModal tasks={tasks || []} />
-                </PageContainer>
-            )}
+            <PageContainer>
+                <h1>{currentProject?.projectName} Board</h1>
+                <TaskSearchPanel
+                    tasks={tasks || []}
+                    param={param}
+                    setParam={setParam}
+                    members={members}
+                    loading={isLoading}
+                />
+                {!isLoading ? (
+                    <ColumnContainer>
+                        <Drop
+                            droppableId={"kanban"}
+                            type={"COLUMN"}
+                            direction={"horizontal"}
+                        >
+                            <DropChild style={{ display: "flex" }}>
+                                {kanbans?.map((k, index) => (
+                                    <Drag
+                                        key={k._id}
+                                        draggableId={"kanban" + k._id}
+                                        index={index}
+                                        isDragDisabled={
+                                            isKanbanDragDisabled ||
+                                            isTaskDragDisabled ||
+                                            k._id === "mock"
+                                        }
+                                    >
+                                        <KanbanColumn
+                                            tasks={
+                                                tasks?.filter(
+                                                    (t) => t.kanbanId === k._id
+                                                ) || []
+                                            }
+                                            key={index}
+                                            kanban={k}
+                                            param={debouncedParam}
+                                            isDragDisabled={isTaskDragDisabled}
+                                        />
+                                    </Drag>
+                                ))}
+                            </DropChild>
+                        </Drop>
+                        <KanbanCreator />
+                    </ColumnContainer>
+                ) : (
+                    <BoardSpin />
+                )}
+                <TaskModal tasks={tasks || []} />
+            </PageContainer>
         </DragDropContext>
     );
 };
@@ -100,11 +104,11 @@ export default BoardPage;
 export const ColumnContainer = styled.div`
     display: flex;
     overflow-x: scroll;
-    height: 88%;
+    min-height: 60%;
 `;
 
 const BoardSpin = styled(Spin)`
-    margin-left: calc(0.5 * (100vw - 16rem - 20rem));
-    margin-top: calc(0.5 * (100vh - 6rem - 10.5rem));
+    margin-left: calc(0.5 * (100vw - 16rem - 26.5rem));
+    margin-top: calc(0.5 * (100vh - 6rem - 41rem));
     padding: 1rem;
 `;
