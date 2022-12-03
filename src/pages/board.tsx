@@ -46,7 +46,11 @@ const BoardPage = () => {
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <PageContainer>
-                <h1>{currentProject?.projectName} Board</h1>
+                <h1>
+                    {!isLoading
+                        ? currentProject?.projectName + " Board"
+                        : "..."}
+                </h1>
                 <TaskSearchPanel
                     tasks={tasks || []}
                     param={param}

@@ -104,7 +104,7 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                     <Select placeholder={"Coordinators"}>
                         {members?.map((member, index) => (
                             <Select.Option value={member._id} key={index}>
-                                {member.username}
+                                {member.username || "Null"}
                             </Select.Option>
                         ))}
                     </Select>
