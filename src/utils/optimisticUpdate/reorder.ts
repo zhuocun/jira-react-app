@@ -28,11 +28,13 @@ const reorder = ({
         (item) => item._id === fromId
     );
     if (!referenceId) {
-        return insertAfter(
-            [...copiedArray],
-            movingItemIndex,
-            copiedArray.length - 1
-        );
+        if (movingItemIndex < copiedArray.length - 1) {
+            return insertAfter(
+                [...copiedArray],
+                movingItemIndex,
+                copiedArray.length - 1
+            );
+        } else return copiedArray;
     }
     const targetIndex = copiedArray.findIndex(
         (item) => item._id === referenceId
