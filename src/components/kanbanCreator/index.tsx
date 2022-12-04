@@ -8,7 +8,7 @@ import newKanbanCallback from "../../utils/optimisticUpdate/createKanban";
 const KanbanCreator: React.FC = () => {
     const [kanbanName, setKanbanName] = useState("");
     const { projectId } = useParams<{ projectId: string }>();
-    const { mutateAsync } = useReactMutation(
+    const { mutateAsync, isLoading } = useReactMutation(
         "kanbans",
         "POST",
         ["kanbans", { projectId }],
@@ -21,6 +21,7 @@ const KanbanCreator: React.FC = () => {
     return (
         <KanbanContainer>
             <Input
+                disabled={isLoading}
                 style={{
                     height: "3.6rem",
                     marginTop: "0.4rem",
