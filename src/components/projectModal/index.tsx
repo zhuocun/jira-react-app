@@ -48,7 +48,7 @@ const ProjectModal: React.FC = () => {
         >
             <Container>
                 {isLoading ? (
-                    <Spin size={"large"} />
+                    <Spin />
                 ) : (
                     <>
                         <h1>{modalTitle}</h1>
