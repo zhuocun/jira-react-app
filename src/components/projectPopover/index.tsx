@@ -2,6 +2,7 @@ import { Button, Divider, List, Popover, Typography } from "antd";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 import { useNavigate } from "react-router";
+import { NoPaddingButton } from "../projectList";
 
 const ProjectPopover: React.FC = () => {
     const { openModal } = useProjectModal();
@@ -14,14 +15,13 @@ const ProjectPopover: React.FC = () => {
             <List>
                 {projects?.map((p, index) => (
                     <div key={index} style={{ marginTop: "1rem" }}>
-                        <Button
+                        <NoPaddingButton
                             type={"text"}
-                            style={{ padding: 0 }}
                             key={index}
                             onClick={() => navigate(`/projects/${p._id}`)}
                         >
                             {p.projectName}
-                        </Button>
+                        </NoPaddingButton>
                     </div>
                 ))}
             </List>

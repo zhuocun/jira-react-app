@@ -1,14 +1,17 @@
 import styled from "@emotion/styled";
 import Row from "../row";
 import { ReactComponent as Logo } from "../../assets/logo-software.svg";
-import { Button, Dropdown, MenuProps } from "antd";
+import { Dropdown, MenuProps } from "antd";
 import Link from "antd/lib/typography/Link";
 import useAuth from "../../utils/hooks/useAuth";
 import resetRoute from "../../utils/resetRoute";
 import MemberPopover from "../memberPopover";
+import { useLocation } from "react-router";
+import { NoPaddingButton } from "../projectList";
 
 const Header: React.FC = () => {
     const { user, logout } = useAuth();
+    const path = useLocation().pathname;
     const items: MenuProps["items"] = [
         {
             key: "logout",
@@ -29,13 +32,12 @@ const Header: React.FC = () => {
             style={{ boxShadow: "0 0 5px 0 rgba(0, 0, 0, 0.1)" }}
         >
             <LeftHeader gap={true}>
-                <Button
-                    style={{ padding: 0 }}
+                <NoPaddingButton
                     type={"link"}
-                    onClick={resetRoute}
+                    onClick={path !== "/projects" ? resetRoute : undefined}
                 >
                     <Logo width="180px" color={"rgb(38, 132, 255)"} />
-                </Button>
+                </NoPaddingButton>
                 <MemberPopover />
             </LeftHeader>
             <RightHeader>

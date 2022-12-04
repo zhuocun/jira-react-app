@@ -39,7 +39,6 @@ const BoardPage = () => {
         }
     );
 
-    const isLoading = pLoading || kLoading || tLoading || mLoading;
     const { onDragEnd, isKanbanDragDisabled, isTaskDragDisabled } =
         useDragEnd();
 
@@ -47,18 +46,16 @@ const BoardPage = () => {
         <DragDropContext onDragEnd={onDragEnd}>
             <PageContainer>
                 <h1>
-                    {!isLoading
-                        ? currentProject?.projectName + " Board"
-                        : "..."}
+                    {!pLoading ? currentProject?.projectName + " Board" : "..."}
                 </h1>
                 <TaskSearchPanel
                     tasks={tasks || []}
                     param={param}
                     setParam={setParam}
                     members={members}
-                    loading={isLoading}
+                    loading={tLoading || mLoading}
                 />
-                {!isLoading ? (
+                {!(kLoading || tLoading) ? (
                     <ColumnContainer>
                         <Drop
                             droppableId={"kanban"}

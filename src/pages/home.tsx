@@ -7,9 +7,8 @@ import resetRoute from "../utils/resetRoute";
 
 const HomePage = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const { user, token, logout } = useAuth();
-    const path = location.pathname;
+    const path = useLocation().pathname;
 
     useEffect(() => {
         if (user && (path === "/login" || path === "/register")) {
