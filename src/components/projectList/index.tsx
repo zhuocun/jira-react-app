@@ -72,7 +72,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         });
     };
 
-    const columns: ColumnsType<ProjectIntro> = [
+    const ListColumns: ColumnsType<ProjectIntro> = [
         {
             key: "Liked",
             title: <Rate value={1} count={1} disabled={true} />,
@@ -157,7 +157,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         <Table<ProjectIntro>
             {...props}
             pagination={false}
-            columns={columns}
+            columns={ListColumns}
             dataSource={dataSource}
         />
     );
