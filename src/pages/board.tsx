@@ -36,7 +36,8 @@ const BoardPage = () => {
         "tasks",
         {
             projectId
-        }
+        },
+        Boolean(kanbans)
     );
 
     const { onDragEnd, isKanbanDragDisabled, isTaskDragDisabled } =
