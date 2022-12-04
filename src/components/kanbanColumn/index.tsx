@@ -115,9 +115,9 @@ const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
             label: (
                 <NoPaddingButton
                     size={"small"}
-                    type={"text"}
                     disabled={kanbanId === "mock"}
                     onClick={() => onDelete(kanbanId)}
+                    style={{ fontSize: "1.4rem" }}
                 >
                     Delete
                 </NoPaddingButton>
