@@ -8,7 +8,7 @@ import resetRoute from "../../utils/resetRoute";
 import { useNavigate } from "react-router";
 import MemberPopover from "../memberPopover";
 
-const Header = () => {
+const Header: React.FC = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const items: MenuProps["items"] = [

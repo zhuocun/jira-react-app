@@ -2,9 +2,8 @@ import { Button, Divider, List, Popover, Typography } from "antd";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 import { useNavigate } from "react-router";
-import React from "react";
 
-const ProjectPopover = () => {
+const ProjectPopover: React.FC = () => {
     const { openModal } = useProjectModal();
     const { data: projects } = useReactQuery<IProject[]>("projects");
     const navigate = useNavigate();

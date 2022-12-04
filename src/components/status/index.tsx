@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { Spin, Typography } from "antd";
 
-const PageSpin = () => {
+const PageSpin: React.FC = () => {
     return (
         <FullPage>
             <Spin />

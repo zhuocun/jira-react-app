@@ -1,9 +1,8 @@
-import React from "react";
 import { Divider, List, Popover, Typography } from "antd";
 import styled from "@emotion/styled";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 
-const MemberPopover = () => {
+const MemberPopover: React.FC = () => {
     const { data: members, refetch } =
         useReactQuery<IMember[]>("users/members");
 

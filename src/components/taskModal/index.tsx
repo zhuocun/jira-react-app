@@ -1,7 +1,7 @@
 import { useForm } from "antd/lib/form/Form";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import useReactMutation from "../../utils/hooks/useReactMutation";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Button, Form, Input, Modal, Select } from "antd";
 import { useQueryClient } from "react-query";
 import _ from "lodash";
