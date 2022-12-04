@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import { useParams } from "react-router-dom";
 import { Input } from "antd";
-import { useQueryClient } from "react-query";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
+import useAuth from "../../utils/hooks/useAuth";
 
 const TaskCreator: React.FC<{ kanbanId?: string }> = ({ kanbanId }) => {
+    const { user } = useAuth();
     const [taskName, setTaskName] = useState("");
     const [inputMode, setInputMode] = useState(false);
     const { projectId } = useParams<{ projectId: string }>();
@@ -15,7 +16,6 @@ const TaskCreator: React.FC<{ kanbanId?: string }> = ({ kanbanId }) => {
         ["tasks", { projectId }],
         newTaskCallback
     );
-    const user = useQueryClient().getQueryData<IUser>("users");
     const submit = async () => {
         setInputMode(false);
         await mutateAsync({

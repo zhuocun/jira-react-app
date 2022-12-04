@@ -5,19 +5,17 @@ import { Button, Dropdown, MenuProps } from "antd";
 import Link from "antd/lib/typography/Link";
 import useAuth from "../../utils/hooks/useAuth";
 import resetRoute from "../../utils/resetRoute";
-import { useNavigate } from "react-router";
 import MemberPopover from "../memberPopover";
 
 const Header: React.FC = () => {
     const { user, logout } = useAuth();
-    const navigate = useNavigate();
     const items: MenuProps["items"] = [
         {
             key: "logout",
             label: (
                 <Link
                     onClick={() => {
-                        logout().then(() => navigate("/login"));
+                        logout();
                     }}
                 >
                     Logout

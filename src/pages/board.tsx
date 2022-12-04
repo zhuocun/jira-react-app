@@ -112,7 +112,7 @@ export const ColumnContainer = styled.div`
 `;
 
 const BoardSpin = styled(Spin)`
-    margin-left: calc(0.5 * (100vw - 16rem - 26.5rem));
-    margin-top: calc(0.5 * (100vh - 6rem - 41rem));
+    margin-left: calc(0.5 * (100vw - 16rem - 26.4rem));
+    margin-top: calc(0.5 * (100vh - 6rem - 40.6rem));
     padding: 1rem;
 `;

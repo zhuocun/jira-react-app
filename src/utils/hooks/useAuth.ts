@@ -6,9 +6,12 @@ const useAuth = () => {
     const queryClient = useQueryClient();
     const user = queryClient.getQueryData<IUser>("users");
     const token = localStorage.getItem("Token");
-    const logout = async () => {
+    const clear = async () => {
         queryClient.clear();
         localStorage.removeItem("Token");
+    };
+    const logout = () => {
+        clear().then(() => navigate("login"));
     };
     const refreshUser = () => {
         if (!user && token) {
@@ -16,7 +19,6 @@ const useAuth = () => {
                 .refetchQueries<IUser>("users")
                 .catch(() => {
                     logout();
-                    navigate("/login");
                 })
                 .then(() => {
                     queryClient.setQueryData("users", {

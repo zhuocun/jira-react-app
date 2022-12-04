@@ -37,8 +37,7 @@ const ProjectModal: React.FC = () => {
         form.setFieldsValue(editingProject);
     }, [editingProject, form]);
 
-    const queryClient = useQueryClient();
-    const members = queryClient.getQueryData<IMember[]>("users/members");
+    const members = useQueryClient().getQueryData<IMember[]>("users/members");
 
     return (
         <Drawer

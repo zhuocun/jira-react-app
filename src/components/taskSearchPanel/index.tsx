@@ -1,8 +1,8 @@
 import { Button, Form, Input, Select } from "antd";
-import { useQueryClient } from "react-query";
 import { FormInstance } from "antd/lib/form/Form";
 import React from "react";
 import { SearchOutlined } from "@ant-design/icons";
+import useAuth from "../../utils/hooks/useAuth";
 
 export interface TaskSearchParam {
     taskName: string;
@@ -25,6 +25,7 @@ const TaskSearchPanel: React.FC<Props> = ({
     members,
     loading
 }) => {
+    const { user } = useAuth();
     const types: string[] = [];
     const coordinators: IMember[] = [];
     tasks?.map((t) => {
@@ -36,7 +37,7 @@ const TaskSearchPanel: React.FC<Props> = ({
             coordinators.push(coordinator);
         }
     });
-    const user = useQueryClient().getQueryData<IUser>("users");
+
     if (user) {
         if (!coordinators.length) {
             coordinators.push(user);

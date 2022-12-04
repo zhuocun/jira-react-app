@@ -16,7 +16,7 @@ const HomePage = () => {
             resetRoute();
         }
         if (!user && !token && path !== "/login" && path !== "/register") {
-            logout().then(() => navigate("/login"));
+            logout();
         }
     }, [logout, navigate, path, token, user]);
 
