@@ -28,7 +28,7 @@ const ColumnCreator: React.FC = () => {
                     width: "28rem"
                 }}
                 size={"large"}
-                placeholder={" + New Column"}
+                placeholder={" + Create column"}
                 onPressEnter={() => submit(columnName)}
                 value={columnName}
                 onChange={(e) => setColumnName(e.target.value)}
