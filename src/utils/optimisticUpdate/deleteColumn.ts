@@ -1,11 +1,11 @@
-const deleteKanbanCallback = (
-    target: { kanbanId: string },
-    old: IKanban[] | undefined
+const deleteColumnCallback = (
+    target: { columnId: string },
+    old: IColumn[] | undefined
 ) => {
     if (!old) return undefined;
     let index = 0;
     for (let i = 0; i < old.length; i++) {
-        if (old[i]._id === target.kanbanId) {
+        if (old[i]._id === target.columnId) {
             index = i;
             break;
         }
@@ -19,4 +19,4 @@ const deleteKanbanCallback = (
     return old;
 };
 
-export default deleteKanbanCallback;
+export default deleteColumnCallback;

@@ -1,12 +1,12 @@
 interface ITaskOrderParams {
     fromId: string;
     referenceId: string;
-    fromKanbanId: string;
-    referenceKanbanId: string;
+    fromColumnId: string;
+    referenceColumnId: string;
     type: "after" | "before";
 }
 
-interface IKanbanOrderParams {
+interface IColumnOrderParams {
     fromId: string;
     referenceId: string;
     type: "after" | "before";
@@ -18,12 +18,12 @@ const reorder = ({
     referenceId,
     objArray
 }: {
-    objArray: ITask[] | IKanban[];
+    objArray: ITask[] | IColumn[];
     fromId: string;
     type: "after" | "before";
     referenceId: string;
 }) => {
-    const copiedArray: (IKanban | ITask)[] = [...objArray];
+    const copiedArray: (IColumn | ITask)[] = [...objArray];
     const movingItemIndex = copiedArray.findIndex(
         (item) => item._id === fromId
     );
@@ -44,7 +44,7 @@ const reorder = ({
 };
 
 const insertBefore = (
-    objArray: (ITask | IKanban)[],
+    objArray: (ITask | IColumn)[],
     from: number,
     to: number
 ) => {
@@ -56,7 +56,7 @@ const insertBefore = (
 };
 
 const insertAfter = (
-    objArray: (ITask | IKanban)[],
+    objArray: (ITask | IColumn)[],
     from: number,
     to: number
 ) => {
@@ -71,11 +71,11 @@ export const taskCallback = (target: ITaskOrderParams, old: ITask[]) => {
     const orderedList = reorder({ objArray: old, ...target }) as ITask[];
     const result: ITask[] = orderedList.map((item) =>
         item._id === target.fromId
-            ? { ...item, kanbanId: target.referenceKanbanId }
+            ? { ...item, columnId: target.referenceColumnId }
             : item
     );
     return result;
 };
 
-export const kanbanCallback = (target: IKanbanOrderParams, old: IKanban[]) =>
+export const columnCallback = (target: IColumnOrderParams, old: IColumn[]) =>
     reorder({ objArray: old, ...target });

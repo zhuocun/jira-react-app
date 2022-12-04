@@ -1,7 +1,7 @@
 interface INewTaskParams {
     taskName: string;
     projectId: string;
-    kanbanId: string;
+    columnId: string;
     coordinatorId: string;
     type: "Task";
     epic: "New Feature";

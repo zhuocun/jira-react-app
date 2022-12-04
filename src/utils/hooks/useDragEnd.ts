@@ -3,22 +3,22 @@ import useReactQuery from "./useReactQuery";
 import useReactMutation from "./useReactMutation";
 import { useCallback } from "react";
 import { DropResult } from "react-beautiful-dnd";
-import { kanbanCallback, taskCallback } from "../optimisticUpdate/reorder";
+import { columnCallback, taskCallback } from "../optimisticUpdate/reorder";
 
 const useDragEnd = () => {
     const { projectId } = useParams<{ projectId: string }>();
-    const { data: kanbans } = useReactQuery<IKanban[]>("kanbans", {
+    const { data: boards } = useReactQuery<IColumn[]>("boards", {
         projectId
     });
     const { data: tasks } = useReactQuery<ITask[]>("tasks", {
         projectId
     });
 
-    const { mutate: reorderKanban, isLoading: kLoading } = useReactMutation(
-        "kanbans/orders",
+    const { mutate: reorderColumn, isLoading: kLoading } = useReactMutation(
+        "boards/orders",
         "PUT",
-        ["kanbans", { projectId }],
-        kanbanCallback
+        ["boards", { projectId }],
+        columnCallback
     );
     const { mutate: reorderTask, isLoading: rLoading } = useReactMutation(
         "tasks/orders",
@@ -32,23 +32,23 @@ const useDragEnd = () => {
                 return;
             }
             if (type === "COLUMN") {
-                const fromId = kanbans?.[source.index]._id;
-                const referenceId = kanbans?.[destination.index]._id;
+                const fromId = boards?.[source.index]._id;
+                const referenceId = boards?.[destination.index]._id;
                 if (!fromId || !referenceId || fromId === referenceId) {
                     return;
                 }
                 const type =
                     destination.index > source.index ? "after" : "before";
-                reorderKanban({ fromId, referenceId, type });
+                reorderColumn({ fromId, referenceId, type });
             }
             if (type === "ROW") {
-                const fromKanbanId = source.droppableId;
-                const referenceKanbanId = destination.droppableId;
+                const fromColumnId = source.droppableId;
+                const referenceColumnId = destination.droppableId;
                 const fromTask = tasks?.filter(
-                    (t) => t.kanbanId === fromKanbanId
+                    (t) => t.columnId === fromColumnId
                 )[source.index];
                 const referenceTask = tasks?.filter(
-                    (t) => t.kanbanId === referenceKanbanId
+                    (t) => t.columnId === referenceColumnId
                 )[destination.index];
                 if (fromTask?._id === referenceTask?._id) {
                     return;
@@ -56,21 +56,21 @@ const useDragEnd = () => {
                 reorderTask({
                     fromId: fromTask?._id,
                     referenceId: referenceTask?._id,
-                    fromKanbanId,
-                    referenceKanbanId,
+                    fromColumnId,
+                    referenceColumnId,
                     type:
-                        fromKanbanId === referenceKanbanId &&
+                        fromColumnId === referenceColumnId &&
                         destination.index > source.index
                             ? "after"
                             : "before"
                 });
             }
         },
-        [kanbans, reorderKanban, reorderTask, tasks]
+        [boards, reorderColumn, reorderTask, tasks]
     );
     return {
         onDragEnd,
-        isKanbanDragDisabled: kLoading,
+        isColumnDragDisabled: kLoading,
         isTaskDragDisabled: rLoading
     };
 };

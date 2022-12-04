@@ -1,13 +1,13 @@
 import useTitle from "../utils/hooks/useTitle";
 import useReactQuery from "../utils/hooks/useReactQuery";
 import { useParams } from "react-router-dom";
-import KanbanColumn from "../components/kanbanColumn";
+import Column from "../components/column";
 import styled from "@emotion/styled";
 import useUrl from "../utils/hooks/useUrl";
 import useDebounce from "../utils/hooks/useDebounce";
 import TaskSearchPanel from "../components/taskSearchPanel";
 import PageContainer from "../components/pageContainer";
-import KanbanCreator from "../components/kanbanCreator";
+import ColumnCreator from "../components/columnCreator";
 import TaskModal from "../components/taskModal";
 import { DragDropContext } from "react-beautiful-dnd";
 import { Drag, Drop, DropChild } from "../components/dragAndDrop";
@@ -23,8 +23,8 @@ const BoardPage = () => {
         useReactQuery<IProject>("projects", {
             projectId
         });
-    const { data: kanbans, isLoading: kLoading } = useReactQuery<IKanban[]>(
-        "kanbans",
+    const { data: boards, isLoading: kLoading } = useReactQuery<IColumn[]>(
+        "boards",
         {
             projectId
         }
@@ -37,10 +37,10 @@ const BoardPage = () => {
         {
             projectId
         },
-        Boolean(kanbans)
+        Boolean(boards)
     );
 
-    const { onDragEnd, isKanbanDragDisabled, isTaskDragDisabled } =
+    const { onDragEnd, isColumnDragDisabled, isTaskDragDisabled } =
         useDragEnd();
 
     return (
@@ -59,30 +59,32 @@ const BoardPage = () => {
                 {!(kLoading || tLoading) ? (
                     <ColumnContainer>
                         <Drop
-                            droppableId={"kanban"}
+                            droppableId={"column"}
                             type={"COLUMN"}
                             direction={"horizontal"}
                         >
                             <DropChild style={{ display: "flex" }}>
-                                {kanbans?.map((k, index) => (
+                                {boards?.map((column, index) => (
                                     <Drag
-                                        key={k._id}
-                                        draggableId={"kanban" + k._id}
+                                        key={column._id}
+                                        draggableId={"column" + column._id}
                                         index={index}
                                         isDragDisabled={
-                                            isKanbanDragDisabled ||
+                                            isColumnDragDisabled ||
                                             isTaskDragDisabled ||
-                                            k._id === "mock"
+                                            column._id === "mock"
                                         }
                                     >
-                                        <KanbanColumn
+                                        <Column
                                             tasks={
                                                 tasks?.filter(
-                                                    (t) => t.kanbanId === k._id
+                                                    (t) =>
+                                                        t.columnId ===
+                                                        column._id
                                                 ) || []
                                             }
                                             key={index}
-                                            kanban={k}
+                                            column={column}
                                             param={debouncedParam}
                                             isDragDisabled={isTaskDragDisabled}
                                         />
@@ -90,7 +92,7 @@ const BoardPage = () => {
                                 ))}
                             </DropChild>
                         </Drop>
-                        <KanbanCreator />
+                        <ColumnCreator />
                     </ColumnContainer>
                 ) : (
                     <BoardSpin />

@@ -1,6 +1,6 @@
 interface ITask {
     _id: string;
-    kanbanId: string;
+    columnId: string;
     coordinatorId: string;
     epic: string;
     taskName: string;

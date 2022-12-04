@@ -5,8 +5,8 @@ import { Input } from "antd";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
 import useAuth from "../../utils/hooks/useAuth";
 
-const TaskCreator: React.FC<{ kanbanId?: string; disabled: boolean }> = ({
-    kanbanId,
+const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
+    columnId,
     disabled
 }) => {
     const { user } = useAuth();
@@ -24,7 +24,7 @@ const TaskCreator: React.FC<{ kanbanId?: string; disabled: boolean }> = ({
         await mutateAsync({
             taskName,
             projectId,
-            kanbanId,
+            columnId: columnId,
             coordinatorId: user?._id,
             type: "Task",
             epic: "New Feature",

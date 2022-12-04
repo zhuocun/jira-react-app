@@ -1,12 +1,12 @@
-const newKanbanCallback = (
+const newColumnCallback = (
     target: {
-        kanbanName: string;
+        columnName: string;
         projectId: string;
     },
-    old: IKanban[] | undefined
+    old: IColumn[] | undefined
 ) => {
     if (!old) return undefined;
     return old.concat({ ...target, index: old.length, _id: "mock" });
 };
 
-export default newKanbanCallback;
+export default newColumnCallback;

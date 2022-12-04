@@ -10,21 +10,21 @@ import { Dropdown, MenuProps, Modal } from "antd";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import Row from "../row";
 import { useParams } from "react-router-dom";
-import deleteKanbanCallback from "../../utils/optimisticUpdate/deleteKanban";
+import deleteColumnCallback from "../../utils/optimisticUpdate/deleteColumn";
 import { NoPaddingButton } from "../projectList";
 
-const KanbanColumn = React.forwardRef<
+const Column = React.forwardRef<
     HTMLDivElement,
     {
         tasks: ITask[];
-        kanban: IKanban;
+        column: IColumn;
         param: TaskSearchParam;
         isDragDisabled: boolean;
     }
->(({ kanban, param, tasks, isDragDisabled, ...props }, ref) => {
+>(({ column, param, tasks, isDragDisabled, ...props }, ref) => {
     const { startEditing } = useTaskModal();
     return (
-        <KanbanContainer {...props} ref={ref}>
+        <ColumnContainer {...props} ref={ref}>
             <Row between={true} marginBottom={1.5}>
                 <h4
                     style={{
@@ -32,15 +32,15 @@ const KanbanColumn = React.forwardRef<
                         paddingLeft: "1rem"
                     }}
                 >
-                    {kanban.kanbanName}
+                    {column.columnName}
                 </h4>
-                <DeleteDropDown kanbanId={kanban._id} />
+                <DeleteDropDown columnId={column._id} />
             </Row>
             <TaskContainer>
                 <Drop
                     type={"ROW"}
                     direction={"vertical"}
-                    droppableId={String(kanban._id)}
+                    droppableId={String(column._id)}
                 >
                     <DropChild>
                         {tasks?.map((t, index) =>
@@ -86,33 +86,33 @@ const KanbanColumn = React.forwardRef<
                             ) : null
                         )}
                         <TaskCreator
-                            kanbanId={kanban._id}
+                            columnId={column._id}
                             disabled={isDragDisabled}
                         />
                     </DropChild>
                 </Drop>
             </TaskContainer>
-        </KanbanContainer>
+        </ColumnContainer>
     );
 });
 
-const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
+const DeleteDropDown: React.FC<{ columnId: string }> = ({ columnId }) => {
     const { projectId } = useParams<{ projectId: string }>();
     const { mutate: remove } = useReactMutation(
-        "kanbans",
+        "boards",
         "DELETE",
-        ["kanbans", { projectId }],
-        deleteKanbanCallback
+        ["boards", { projectId }],
+        deleteColumnCallback
     );
-    const onDelete = (kanbanId: string) => {
+    const onDelete = (columnId: string) => {
         Modal.confirm({
             centered: true,
             okText: "Confirm",
             cancelText: "Cancel",
-            title: "Are you sure to delete this kanban?",
+            title: "Are you sure to delete this column?",
             content: "This action cannot be undone",
             onOk() {
-                remove({ kanbanId });
+                remove({ columnId: columnId });
             }
         });
     };
@@ -123,8 +123,8 @@ const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
                 <NoPaddingButton
                     size={"small"}
                     type={"text"}
-                    disabled={kanbanId === "mock"}
-                    onClick={() => onDelete(kanbanId)}
+                    disabled={columnId === "mock"}
+                    onClick={() => onDelete(columnId)}
                     style={{ fontSize: "1.4rem" }}
                 >
                     Delete
@@ -139,11 +139,11 @@ const DeleteDropDown: React.FC<{ kanbanId: string }> = ({ kanbanId }) => {
     );
 };
 
-KanbanColumn.displayName = "Kanban Column";
+Column.displayName = "Column";
 
-export default KanbanColumn;
+export default Column;
 
-export const KanbanContainer = styled.div`
+export const ColumnContainer = styled.div`
     min-width: 29.5rem;
     border-radius: 6px;
     background-color: rgb(244, 245, 247);

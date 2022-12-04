@@ -1,6 +1,6 @@
-interface IKanban {
+interface IColumn {
     _id: string;
-    kanbanName: string;
+    columnName: string;
     projectId: string;
     index: number;
 }
