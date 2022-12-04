@@ -5,7 +5,10 @@ import { Input } from "antd";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
 import useAuth from "../../utils/hooks/useAuth";
 
-const TaskCreator: React.FC<{ kanbanId?: string }> = ({ kanbanId }) => {
+const TaskCreator: React.FC<{ kanbanId?: string; disabled: boolean }> = ({
+    kanbanId,
+    disabled
+}) => {
     const { user } = useAuth();
     const [taskName, setTaskName] = useState("");
     const [inputMode, setInputMode] = useState(false);
@@ -48,7 +51,7 @@ const TaskCreator: React.FC<{ kanbanId?: string }> = ({ kanbanId }) => {
     } else {
         return (
             <Input
-                disabled={isLoading}
+                disabled={isLoading || disabled}
                 onBlur={toggle}
                 placeholder={"What needs to be done?"}
                 autoFocus={true}

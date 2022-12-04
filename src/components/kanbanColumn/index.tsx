@@ -58,7 +58,11 @@ const KanbanColumn = React.forwardRef<
                                     }
                                 >
                                     <TaskCardContainer
-                                        onClick={() => startEditing(t._id)}
+                                        onClick={
+                                            t._id !== "mock"
+                                                ? () => startEditing(t._id)
+                                                : undefined
+                                        }
                                     >
                                         <TaskCard>
                                             <div
@@ -81,7 +85,10 @@ const KanbanColumn = React.forwardRef<
                                 </Drag>
                             ) : null
                         )}
-                        <TaskCreator kanbanId={kanban._id} />
+                        <TaskCreator
+                            kanbanId={kanban._id}
+                            disabled={isDragDisabled}
+                        />
                     </DropChild>
                 </Drop>
             </TaskContainer>
