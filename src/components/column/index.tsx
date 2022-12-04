@@ -43,24 +43,24 @@ const Column = React.forwardRef<
                     droppableId={String(column._id)}
                 >
                     <DropChild>
-                        {tasks?.map((t, index) =>
-                            (!param.type || t.type === param.type) &&
+                        {tasks?.map((task, index) =>
+                            (!param.type || task.type === param.type) &&
                             (!param.coordinatorId ||
-                                t.coordinatorId === param.coordinatorId) &&
+                                task.coordinatorId === param.coordinatorId) &&
                             (!param.taskName ||
-                                t.taskName.includes(param.taskName)) ? (
+                                task.taskName.includes(param.taskName)) ? (
                                 <Drag
-                                    key={t._id || t.taskName}
+                                    key={task._id || task.taskName}
                                     index={index}
-                                    draggableId={"task" + t._id}
+                                    draggableId={"task" + task._id}
                                     isDragDisabled={
-                                        isDragDisabled || t._id === "mock"
+                                        isDragDisabled || task._id === "mock"
                                     }
                                 >
                                     <TaskCardContainer
                                         onClick={
-                                            t._id !== "mock"
-                                                ? () => startEditing(t._id)
+                                            task._id !== "mock"
+                                                ? () => startEditing(task._id)
                                                 : undefined
                                         }
                                     >
@@ -70,11 +70,11 @@ const Column = React.forwardRef<
                                                     marginBottom: "2rem"
                                                 }}
                                             >
-                                                {t.taskName}
+                                                {task.taskName}
                                             </div>
                                             <img
                                                 src={
-                                                    t.type === "Task"
+                                                    task.type === "Task"
                                                         ? taskIcon
                                                         : bugIcon
                                                 }

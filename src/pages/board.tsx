@@ -23,7 +23,7 @@ const BoardPage = () => {
         useReactQuery<IProject>("projects", {
             projectId
         });
-    const { data: boards, isLoading: kLoading } = useReactQuery<IColumn[]>(
+    const { data: board, isLoading: bLoading } = useReactQuery<IColumn[]>(
         "boards",
         {
             projectId
@@ -37,7 +37,7 @@ const BoardPage = () => {
         {
             projectId
         },
-        Boolean(boards)
+        Boolean(board)
     );
 
     const { onDragEnd, isColumnDragDisabled, isTaskDragDisabled } =
@@ -56,7 +56,7 @@ const BoardPage = () => {
                     members={members}
                     loading={tLoading || mLoading}
                 />
-                {!(kLoading || tLoading) ? (
+                {!(bLoading || tLoading) ? (
                     <ColumnContainer>
                         <Drop
                             droppableId={"column"}
@@ -64,7 +64,7 @@ const BoardPage = () => {
                             direction={"horizontal"}
                         >
                             <DropChild style={{ display: "flex" }}>
-                                {boards?.map((column, index) => (
+                                {board?.map((column, index) => (
                                     <Drag
                                         key={column._id}
                                         draggableId={"column" + column._id}
@@ -78,8 +78,8 @@ const BoardPage = () => {
                                         <Column
                                             tasks={
                                                 tasks?.filter(
-                                                    (t) =>
-                                                        t.columnId ===
+                                                    (task) =>
+                                                        task.columnId ===
                                                         column._id
                                                 ) || []
                                             }

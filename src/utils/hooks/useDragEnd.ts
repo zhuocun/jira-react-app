@@ -14,7 +14,7 @@ const useDragEnd = () => {
         projectId
     });
 
-    const { mutate: reorderColumn, isLoading: kLoading } = useReactMutation(
+    const { mutate: reorderColumn, isLoading: bLoading } = useReactMutation(
         "boards/orders",
         "PUT",
         ["boards", { projectId }],
@@ -70,7 +70,7 @@ const useDragEnd = () => {
     );
     return {
         onDragEnd,
-        isColumnDragDisabled: kLoading,
+        isColumnDragDisabled: bLoading,
         isTaskDragDisabled: rLoading
     };
 };

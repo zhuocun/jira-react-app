@@ -13,14 +13,14 @@ const ProjectPopover: React.FC = () => {
         <div style={{ minWidth: "30rem" }}>
             <Typography.Text type={"secondary"}>Projects</Typography.Text>
             <List>
-                {projects?.map((p, index) => (
+                {projects?.map((project, index) => (
                     <div key={index} style={{ marginTop: "1rem" }}>
                         <NoPaddingButton
                             type={"text"}
                             key={index}
-                            onClick={() => navigate(`/projects/${p._id}`)}
+                            onClick={() => navigate(`/projects/${project._id}`)}
                         >
-                            {p.projectName}
+                            {project.projectName}
                         </NoPaddingButton>
                     </div>
                 ))}

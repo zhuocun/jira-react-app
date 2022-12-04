@@ -22,12 +22,12 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
         ["tasks", { projectId }],
         deleteTaskCallback
     );
-    const editingTask = tasks?.filter((t) => t._id === editingTaskId)[0];
+    const editingTask = tasks?.filter((task) => task._id === editingTaskId)[0];
     const members = useQueryClient().getQueryData<IMember[]>("users/members");
     const types: string[] = [];
-    tasks?.map((t) => {
-        if (!types.includes(t.type)) {
-            types.push(t.type);
+    tasks?.map((task) => {
+        if (!types.includes(task.type)) {
+            types.push(task.type);
         }
     });
 

@@ -28,10 +28,10 @@ const TaskSearchPanel: React.FC<Props> = ({
     const { user } = useAuth();
     const types: string[] = [];
     const coordinators: IMember[] = [];
-    tasks?.map((t) => {
-        if (!types.includes(t.type)) types.push(t.type);
+    tasks?.map((task) => {
+        if (!types.includes(task.type)) types.push(task.type);
         const coordinator = members?.filter(
-            (m) => m._id === t.coordinatorId
+            (member) => member._id === task.coordinatorId
         )[0];
         if (coordinator && !coordinators.includes(coordinator)) {
             coordinators.push(coordinator);
