@@ -1,4 +1,4 @@
-import { Button, Divider, List, Popover, Typography } from "antd";
+import { Divider, List, Popover, Typography } from "antd";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 import { useNavigate } from "react-router";
@@ -26,9 +26,9 @@ const ProjectPopover: React.FC = () => {
                 ))}
             </List>
             <Divider />
-            <Button onClick={openModal} type={"link"} style={{ padding: 0 }}>
+            <NoPaddingButton onClick={openModal} type={"link"}>
                 Create Project
-            </Button>
+            </NoPaddingButton>
         </div>
     );
 
