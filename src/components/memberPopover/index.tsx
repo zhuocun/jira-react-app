@@ -10,8 +10,8 @@ const MemberPopover: React.FC = () => {
         <ContentContainer>
             <Typography.Text type={"secondary"}>Team Members</Typography.Text>
             <List>
-                {members?.map((member, index) => (
-                    <List.Item key={index}>
+                {members?.map((member) => (
+                    <List.Item key={member._id}>
                         <List.Item.Meta title={member.username} />
                     </List.Item>
                 ))}

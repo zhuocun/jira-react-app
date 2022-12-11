@@ -53,8 +53,8 @@ const ProjectSearchPanel: React.FC<Props> = ({
                     style={{ width: "12rem" }}
                 >
                     <Select.Option value={""}>Managers</Select.Option>
-                    {members.map((user, index) => (
-                        <Select.Option value={user._id} key={index}>
+                    {members.map((user) => (
+                        <Select.Option value={user._id} key={user._id}>
                             {user.username}
                         </Select.Option>
                     ))}

@@ -83,7 +83,7 @@ const BoardPage = () => {
                                                         column._id
                                                 ) || []
                                             }
-                                            key={index}
+                                            key={column._id}
                                             column={column}
                                             param={debouncedParam}
                                             isDragDisabled={isTaskDragDisabled}

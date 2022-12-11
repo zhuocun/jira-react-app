@@ -94,10 +94,10 @@ const ProjectModal: React.FC = () => {
                                 ]}
                             >
                                 <Select placeholder={"Managers"}>
-                                    {members?.map((member, index) => (
+                                    {members?.map((member) => (
                                         <Select.Option
                                             value={member._id}
-                                            key={index}
+                                            key={member._id}
                                         >
                                             {member.username}
                                         </Select.Option>

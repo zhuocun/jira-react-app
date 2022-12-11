@@ -102,8 +102,8 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                     ]}
                 >
                     <Select placeholder={"Coordinators"}>
-                        {members?.map((member, index) => (
-                            <Select.Option value={member._id} key={index}>
+                        {members?.map((member) => (
+                            <Select.Option value={member._id} key={member._id}>
                                 {member.username}
                             </Select.Option>
                         ))}
@@ -121,9 +121,9 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                 >
                     <Select placeholder={"Types"}>
                         {types.length > 1 ? (
-                            types.map((t, index) => (
-                                <Select.Option value={t} key={index}>
-                                    {t}
+                            types.map((type) => (
+                                <Select.Option value={type} key={type}>
+                                    {type}
                                 </Select.Option>
                             ))
                         ) : (

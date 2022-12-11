@@ -110,9 +110,9 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         {
             key: "Manager",
             title: "Manager",
-            render(value, data, index) {
+            render(value, data) {
                 return (
-                    <span key={index}>
+                    <span key={data._id}>
                         {members.find((user) => user._id === data.managerId)
                             ?.username || "unknown"}
                     </span>

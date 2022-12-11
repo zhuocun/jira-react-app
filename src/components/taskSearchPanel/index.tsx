@@ -92,9 +92,9 @@ const TaskSearchPanel: React.FC<Props> = ({
                     style={{ width: "14rem" }}
                 >
                     <Select.Option value={""}>Coordinators</Select.Option>
-                    {coordinators.map((c, index) => (
-                        <Select.Option value={c._id} key={index}>
-                            {c.username}
+                    {coordinators.map((member) => (
+                        <Select.Option value={member._id} key={member._id}>
+                            {member.username}
                         </Select.Option>
                     ))}
                 </Select>
@@ -112,9 +112,9 @@ const TaskSearchPanel: React.FC<Props> = ({
                 >
                     <Select.Option value={""}>Types</Select.Option>
                     {types.length > 1 ? (
-                        types.map((t, index) => (
-                            <Select.Option value={t} key={index}>
-                                {t}
+                        types.map((type) => (
+                            <Select.Option value={type} key={type}>
+                                {type}
                             </Select.Option>
                         ))
                     ) : (
