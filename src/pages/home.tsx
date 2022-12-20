@@ -1,8 +1,9 @@
-import useAuth from "../utils/hooks/useAuth";
-import MainLayout from "../layouts/mainLayout";
-import AuthLayout from "../layouts/authLayout";
-import { useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
+
+import AuthLayout from "../layouts/authLayout";
+import MainLayout from "../layouts/mainLayout";
+import useAuth from "../utils/hooks/useAuth";
 import resetRoute from "../utils/resetRoute";
 
 const HomePage = () => {

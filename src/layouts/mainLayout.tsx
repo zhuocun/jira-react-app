@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
-import Header from "../components/header";
 import { Outlet } from "react-router";
+
+import Header from "../components/header";
 import ProjectModal from "../components/projectModal";
 
 const MainLayout = () => {
@@ -18,11 +19,11 @@ const MainLayout = () => {
 export default MainLayout;
 
 const Container = styled.div`
-    min-width: 1024px;
-    max-height: 1440px;
     display: grid;
     grid-template-rows: 6rem 1fr;
     height: 100vh;
+    max-height: 1440px;
+    min-width: 1024px;
 `;
 
 const Main = styled.main`

@@ -1,11 +1,12 @@
-import { useForm } from "antd/lib/form/Form";
-import useTaskModal from "../../utils/hooks/useTaskModal";
-import useReactMutation from "../../utils/hooks/useReactMutation";
-import { useEffect } from "react";
 import { Button, Form, Input, Modal, Select } from "antd";
-import { useQueryClient } from "react-query";
+import { useForm } from "antd/lib/form/Form";
 import _ from "lodash";
+import { useEffect } from "react";
+import { useQueryClient } from "react-query";
 import { useParams } from "react-router-dom";
+
+import useReactMutation from "../../utils/hooks/useReactMutation";
+import useTaskModal from "../../utils/hooks/useTaskModal";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteTask";
 
 const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {

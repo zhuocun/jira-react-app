@@ -1,13 +1,14 @@
 import styled from "@emotion/styled";
-import Row from "../row";
-import { ReactComponent as Logo } from "../../assets/logo-software.svg";
 import { Dropdown, MenuProps } from "antd";
 import Link from "antd/lib/typography/Link";
+import { useLocation } from "react-router";
+
+import { ReactComponent as Logo } from "../../assets/logo-software.svg";
 import useAuth from "../../utils/hooks/useAuth";
 import resetRoute from "../../utils/resetRoute";
 import MemberPopover from "../memberPopover";
-import { useLocation } from "react-router";
 import { NoPaddingButton } from "../projectList";
+import Row from "../row";
 
 const Header: React.FC = () => {
     const { user, logout } = useAuth();

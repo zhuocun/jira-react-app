@@ -1,5 +1,6 @@
-import { projectModalSlice } from "./reducers/projectModalSlice";
 import { configureStore } from "@reduxjs/toolkit";
+
+import { projectModalSlice } from "./reducers/projectModalSlice";
 
 export const rootReducer = {
     projectModal: projectModalSlice.reducer

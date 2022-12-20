@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import {
     Button,
     Dropdown,
@@ -9,13 +10,13 @@ import {
 } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import dayjs from "dayjs";
-import { Link } from "react-router-dom";
-import useAuth from "../../utils/hooks/useAuth";
-import useReactMutation from "../../utils/hooks/useReactMutation";
-import useProjectModal from "../../utils/hooks/useProjectModal";
-import deleteTaskCallback from "../../utils/optimisticUpdate/deleteProject";
 import { useState } from "react";
-import styled from "@emotion/styled";
+import { Link } from "react-router-dom";
+
+import useAuth from "../../utils/hooks/useAuth";
+import useProjectModal from "../../utils/hooks/useProjectModal";
+import useReactMutation from "../../utils/hooks/useReactMutation";
+import deleteTaskCallback from "../../utils/optimisticUpdate/deleteProject";
 
 interface ProjectIntro extends IProject {
     key?: number;

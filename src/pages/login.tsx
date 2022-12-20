@@ -1,11 +1,12 @@
 import { Divider } from "antd";
-import LoginForm from "../components/loginForm";
 import Link from "antd/lib/typography/Link";
-import { AuthTitle } from "../layouts/authLayout";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import useAuth from "../utils/hooks/useAuth";
+
 import ErrorBox from "../components/errorBox";
+import LoginForm from "../components/loginForm";
+import { AuthTitle } from "../layouts/authLayout";
+import useAuth from "../utils/hooks/useAuth";
 
 const LoginPage = () => {
     const navigate = useNavigate();

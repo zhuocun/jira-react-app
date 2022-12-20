@@ -1,11 +1,12 @@
+import styled from "@emotion/styled";
 import { Button, Drawer, Form, Input, Select, Spin } from "antd";
-import useProjectModal from "../../utils/hooks/useProjectModal";
-import useReactMutation from "../../utils/hooks/useReactMutation";
 import { useForm } from "antd/lib/form/Form";
 import { useEffect } from "react";
-import ErrorBox from "../errorBox";
 import { useQueryClient } from "react-query";
-import styled from "@emotion/styled";
+
+import useProjectModal from "../../utils/hooks/useProjectModal";
+import useReactMutation from "../../utils/hooks/useReactMutation";
+import ErrorBox from "../errorBox";
 
 const ProjectModal: React.FC = () => {
     const { isModalOpened, closeModal, editingProject, isLoading } =
@@ -124,9 +125,9 @@ const ProjectModal: React.FC = () => {
 export default ProjectModal;
 
 const Container = styled.div`
-    height: 80vh;
+    align-items: center;
     display: flex;
     flex-direction: column;
+    height: 80vh;
     justify-content: center;
-    align-items: center;
 `;

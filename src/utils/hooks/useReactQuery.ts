@@ -1,7 +1,9 @@
-import filterRequest from "../filterRequest";
-import useApi from "./useApi";
 import { useQuery } from "react-query";
+
+import filterRequest from "../filterRequest";
 import getError from "../getError";
+
+import useApi from "./useApi";
 
 const useReactQuery = <D>(
     endPoint: string,

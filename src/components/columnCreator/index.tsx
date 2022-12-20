@@ -1,9 +1,10 @@
+import { Input } from "antd";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+
 import useReactMutation from "../../utils/hooks/useReactMutation";
-import { Input } from "antd";
-import { ColumnContainer } from "../column";
 import newColumnCallback from "../../utils/optimisticUpdate/createColumn";
+import { ColumnContainer } from "../column";
 
 const ColumnCreator: React.FC = () => {
     const [columnName, setColumnName] = useState("");

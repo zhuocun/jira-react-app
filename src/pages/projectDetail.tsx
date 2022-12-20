@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
 import styled from "@emotion/styled";
-import { Outlet, useLocation, useNavigate } from "react-router";
 import { Menu, MenuProps } from "antd";
 import { useEffect } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router";
+import { Link } from "react-router-dom";
+
 import ProjectPopover from "../components/projectPopover";
 
 const ProjectDetailPage = () => {
@@ -53,8 +54,8 @@ const Aside = styled.aside`
 `;
 
 const Main = styled.div`
-    display: flex;
     box-shadow: -5px 0 5 px -5px rgba(0, 0, 0, 0.1);
+    display: flex;
     overflow: hidden;
 `;
 

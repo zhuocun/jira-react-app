@@ -1,5 +1,6 @@
-import useUrl from "./useUrl";
 import { useCallback } from "react";
+
+import useUrl from "./useUrl";
 
 const useTaskModal = () => {
     const [{ editingTaskId }, setEditingTaskId] = useUrl(["editingTaskId"]);

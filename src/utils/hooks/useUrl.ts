@@ -1,5 +1,6 @@
-import { URLSearchParamsInit, useSearchParams } from "react-router-dom";
 import { useMemo, useState } from "react";
+import { URLSearchParamsInit, useSearchParams } from "react-router-dom";
+
 import filterRequest from "../filterRequest";
 
 const useUrl = <K extends string>(keys: K[]) => {

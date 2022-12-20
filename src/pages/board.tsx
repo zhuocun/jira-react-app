@@ -1,18 +1,19 @@
-import useTitle from "../utils/hooks/useTitle";
-import useReactQuery from "../utils/hooks/useReactQuery";
-import { useParams } from "react-router-dom";
-import Column from "../components/column";
 import styled from "@emotion/styled";
-import useUrl from "../utils/hooks/useUrl";
-import useDebounce from "../utils/hooks/useDebounce";
-import TaskSearchPanel from "../components/taskSearchPanel";
-import PageContainer from "../components/pageContainer";
-import ColumnCreator from "../components/columnCreator";
-import TaskModal from "../components/taskModal";
-import { DragDropContext } from "react-beautiful-dnd";
-import { Drag, Drop, DropChild } from "../components/dragAndDrop";
-import useDragEnd from "../utils/hooks/useDragEnd";
 import { Spin } from "antd";
+import { DragDropContext } from "react-beautiful-dnd";
+import { useParams } from "react-router-dom";
+
+import Column from "../components/column";
+import ColumnCreator from "../components/columnCreator";
+import { Drag, Drop, DropChild } from "../components/dragAndDrop";
+import PageContainer from "../components/pageContainer";
+import TaskModal from "../components/taskModal";
+import TaskSearchPanel from "../components/taskSearchPanel";
+import useDebounce from "../utils/hooks/useDebounce";
+import useDragEnd from "../utils/hooks/useDragEnd";
+import useReactQuery from "../utils/hooks/useReactQuery";
+import useTitle from "../utils/hooks/useTitle";
+import useUrl from "../utils/hooks/useUrl";
 
 const BoardPage = () => {
     useTitle("Board");
@@ -107,8 +108,8 @@ export default BoardPage;
 
 export const ColumnContainer = styled.div`
     display: flex;
-    overflow-x: scroll;
     min-height: 60%;
+    overflow-x: scroll;
 `;
 
 const BoardSpin = styled(Spin)`

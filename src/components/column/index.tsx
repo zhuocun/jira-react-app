@@ -1,17 +1,18 @@
-import taskIcon from "../../assets/task.svg";
-import bugIcon from "../../assets/bug.svg";
 import styled from "@emotion/styled";
-import { TaskSearchParam } from "../taskSearchPanel";
-import TaskCreator from "../taskCreator";
-import useTaskModal from "../../utils/hooks/useTaskModal";
-import React from "react";
-import { Drag, Drop, DropChild } from "../dragAndDrop";
 import { Dropdown, MenuProps, Modal } from "antd";
-import useReactMutation from "../../utils/hooks/useReactMutation";
-import Row from "../row";
+import React from "react";
 import { useParams } from "react-router-dom";
+
+import bugIcon from "../../assets/bug.svg";
+import taskIcon from "../../assets/task.svg";
+import useReactMutation from "../../utils/hooks/useReactMutation";
+import useTaskModal from "../../utils/hooks/useTaskModal";
 import deleteColumnCallback from "../../utils/optimisticUpdate/deleteColumn";
+import { Drag, Drop, DropChild } from "../dragAndDrop";
 import { NoPaddingButton } from "../projectList";
+import Row from "../row";
+import TaskCreator from "../taskCreator";
+import { TaskSearchParam } from "../taskSearchPanel";
 
 const Column = React.forwardRef<
     HTMLDivElement,
@@ -144,18 +145,18 @@ Column.displayName = "Column";
 export default Column;
 
 export const ColumnContainer = styled.div`
-    min-width: 29.5rem;
-    border-radius: 6px;
     background-color: rgb(244, 245, 247);
+    border-radius: 6px;
     display: flex;
     flex-direction: column;
-    padding: 0.7rem;
     margin-right: 1.5rem;
+    min-width: 29.5rem;
+    padding: 0.7rem;
 `;
 
 const TaskContainer = styled.div`
-    overflow: scroll;
     flex: 1;
+    overflow: scroll;
 
     ::-webkit-scrollbar {
         display: none;
@@ -163,13 +164,13 @@ const TaskContainer = styled.div`
 `;
 
 const TaskCardContainer = styled.div`
-    padding-bottom: 0.6rem;
     display: flex;
     justify-content: center;
+    padding-bottom: 0.6rem;
 `;
 
 const TaskCard = styled.div`
-    width: 28rem;
     background-color: white;
     padding: 1.8rem 1.6rem;
+    width: 28rem;
 `;

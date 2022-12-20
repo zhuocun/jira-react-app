@@ -1,8 +1,10 @@
-import useUrl from "./useUrl";
-import { useReduxDispatch, useReduxSelector } from "./useRedux";
-import { projectActions } from "../../store/reducers/projectModalSlice";
 import { useEffect } from "react";
+
+import { projectActions } from "../../store/reducers/projectModalSlice";
+
 import useReactQuery from "./useReactQuery";
+import { useReduxDispatch, useReduxSelector } from "./useRedux";
+import useUrl from "./useUrl";
 
 const useProjectModal = () => {
     const [{ modal }, setModal] = useUrl(["modal"]);

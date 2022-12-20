@@ -1,7 +1,9 @@
-import useApi from "./useApi";
 import { QueryKey, useMutation, useQueryClient } from "react-query";
+
 import filterRequest from "../filterRequest";
 import getError from "../getError";
+
+import useApi from "./useApi";
 
 const useReactMutation = <D>(
     endPoint: string,

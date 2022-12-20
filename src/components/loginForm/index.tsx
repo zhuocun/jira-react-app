@@ -1,6 +1,7 @@
 import { Form, Input } from "antd";
-import { AuthButton } from "../../layouts/authLayout";
 import { useNavigate } from "react-router";
+
+import { AuthButton } from "../../layouts/authLayout";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 
 const LoginForm: React.FC<{

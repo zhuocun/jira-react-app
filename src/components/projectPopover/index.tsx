@@ -1,7 +1,8 @@
 import { Divider, List, Popover, Typography } from "antd";
+import { useNavigate } from "react-router";
+
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
-import { useNavigate } from "react-router";
 import { NoPaddingButton } from "../projectList";
 
 const ProjectPopover: React.FC = () => {
