@@ -14,8 +14,10 @@ const useProjectModal = () => {
     const { data: editingProject, isLoading } = useReactQuery<IProject>(
         "projects",
         { projectId: editingProjectId },
-        Boolean(editingProjectId),
-        "editingProject"
+        "editingProject",
+        undefined,
+        undefined,
+        Boolean(editingProjectId)
     );
     const isModalOpened = useReduxSelector((s) => s.projectModal.isModalOpened);
     const dispatch = useReduxDispatch();
@@ -26,14 +28,16 @@ const useProjectModal = () => {
         setModal({ modal: undefined });
         setEditingProjectId({ editingProjectId: undefined });
     };
-    const startEditing = (editingProjectId: string) => {
-        setEditingProjectId({ editingProjectId });
+    const startEditing = (id: string) => {
+        setEditingProjectId({ editingProjectId: id });
     };
 
     useEffect(() => {
-        modal === "on" || Boolean(editingProjectId)
-            ? dispatch(projectActions.openModal())
-            : dispatch(projectActions.closeModal());
+        if (modal === "on" || Boolean(editingProjectId)) {
+            dispatch(projectActions.openModal());
+        } else {
+            dispatch(projectActions.closeModal());
+        }
     }, [dispatch, modal, editingProjectId]);
 
     return {

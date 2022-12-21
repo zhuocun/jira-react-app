@@ -19,12 +19,12 @@ const useReactMutation = <D>(
         (param: { [key: string]: unknown }) =>
             api(endPoint, {
                 data: filterRequest(param || {}),
-                method: method
+                method
             }),
         {
             onSuccess: setCache
                 ? async (data: D) =>
-                      await queryClient.setQueryData(queryKey || endPoint, data)
+                      queryClient.setQueryData(queryKey || endPoint, data)
                 : () => queryClient.invalidateQueries(queryKey),
             onError: onError
                 ? (err: unknown) => {

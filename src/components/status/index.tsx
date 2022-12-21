@@ -1,6 +1,14 @@
 import styled from "@emotion/styled";
 import { Spin, Typography } from "antd";
 
+const FullPage = styled.div`
+    align-items: center;
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    width: 100vw;
+`;
+
 const PageSpin: React.FC = () => {
     return (
         <FullPage>
@@ -12,7 +20,7 @@ const PageSpin: React.FC = () => {
 const PageError: React.FC<{ error: Error | null }> = ({ error }) => {
     return (
         <FullPage>
-            <Typography.Text type={"danger"}>
+            <Typography.Text type="danger">
                 {error?.message ||
                     "Page failed to load, please try again later."}
             </Typography.Text>
@@ -21,11 +29,3 @@ const PageError: React.FC<{ error: Error | null }> = ({ error }) => {
 };
 
 export { PageError, PageSpin };
-
-const FullPage = styled.div`
-    align-items: center;
-    display: flex;
-    height: 100vh;
-    justify-content: center;
-    width: 100vw;
-`;

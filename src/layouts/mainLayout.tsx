@@ -4,6 +4,19 @@ import { Outlet } from "react-router";
 import Header from "../components/header";
 import ProjectModal from "../components/projectModal";
 
+const Container = styled.div`
+    display: grid;
+    grid-template-rows: 6rem 1fr;
+    height: 100vh;
+    max-height: 1440px;
+    min-width: 1024px;
+`;
+
+const Main = styled.main`
+    display: flex;
+    overflow: scroll;
+`;
+
 const MainLayout = () => {
     return (
         <Container>
@@ -17,16 +30,3 @@ const MainLayout = () => {
 };
 
 export default MainLayout;
-
-const Container = styled.div`
-    display: grid;
-    grid-template-rows: 6rem 1fr;
-    height: 100vh;
-    max-height: 1440px;
-    min-width: 1024px;
-`;
-
-const Main = styled.main`
-    display: flex;
-    overflow: scroll;
-`;

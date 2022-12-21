@@ -15,6 +15,18 @@ import useReactQuery from "../utils/hooks/useReactQuery";
 import useTitle from "../utils/hooks/useTitle";
 import useUrl from "../utils/hooks/useUrl";
 
+export const ColumnContainer = styled.div`
+    display: flex;
+    min-height: 60%;
+    overflow-x: scroll;
+`;
+
+const BoardSpin = styled(Spin)`
+    margin-left: calc(0.5 * (100vw - 16rem - 26.4rem));
+    margin-top: calc(0.5 * (100vh - 6rem - 40.7rem));
+    padding: 1rem;
+`;
+
 const BoardPage = () => {
     useTitle("Board");
     const { projectId } = useParams<{ projectId: string }>();
@@ -38,6 +50,9 @@ const BoardPage = () => {
         {
             projectId
         },
+        undefined,
+        undefined,
+        undefined,
         Boolean(board)
     );
 
@@ -48,7 +63,7 @@ const BoardPage = () => {
         <DragDropContext onDragEnd={onDragEnd}>
             <PageContainer>
                 <h1>
-                    {!pLoading ? currentProject?.projectName + " Board" : "..."}
+                    {!pLoading ? `${currentProject?.projectName} Board` : "..."}
                 </h1>
                 <TaskSearchPanel
                     tasks={tasks || []}
@@ -60,15 +75,15 @@ const BoardPage = () => {
                 {!(bLoading || tLoading) ? (
                     <ColumnContainer>
                         <Drop
-                            droppableId={"column"}
-                            type={"COLUMN"}
-                            direction={"horizontal"}
+                            droppableId="column"
+                            type="COLUMN"
+                            direction="horizontal"
                         >
                             <DropChild style={{ display: "flex" }}>
                                 {board?.map((column, index) => (
                                     <Drag
                                         key={column._id}
-                                        draggableId={"column" + column._id}
+                                        draggableId={`column${column._id}`}
                                         index={index}
                                         isDragDisabled={
                                             isColumnDragDisabled ||
@@ -105,15 +120,3 @@ const BoardPage = () => {
 };
 
 export default BoardPage;
-
-export const ColumnContainer = styled.div`
-    display: flex;
-    min-height: 60%;
-    overflow-x: scroll;
-`;
-
-const BoardSpin = styled(Spin)`
-    margin-left: calc(0.5 * (100vw - 16rem - 26.4rem));
-    margin-top: calc(0.5 * (100vh - 6rem - 40.7rem));
-    padding: 1rem;
-`;

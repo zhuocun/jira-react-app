@@ -8,6 +8,14 @@ import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import ErrorBox from "../errorBox";
 
+const Container = styled.div`
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    justify-content: center;
+`;
+
 const ProjectModal: React.FC = () => {
     const { isModalOpened, closeModal, editingProject, isLoading } =
         useProjectModal();
@@ -41,12 +49,7 @@ const ProjectModal: React.FC = () => {
     const members = useQueryClient().getQueryData<IMember[]>("users/members");
 
     return (
-        <Drawer
-            forceRender={true}
-            open={isModalOpened}
-            onClose={onClose}
-            width={"100%"}
-        >
+        <Drawer forceRender open={isModalOpened} onClose={onClose} width="100%">
             <Container>
                 {isLoading ? (
                     <Spin />
@@ -56,13 +59,13 @@ const ProjectModal: React.FC = () => {
                         <ErrorBox error={error} />
                         <Form
                             form={form}
-                            layout={"vertical"}
+                            layout="vertical"
                             style={{ width: "40rem" }}
                             onFinish={onFinish}
                         >
                             <Form.Item
-                                label={"Project Name"}
-                                name={"projectName"}
+                                label="Project Name"
+                                name="projectName"
                                 rules={[
                                     {
                                         required: true,
@@ -70,11 +73,11 @@ const ProjectModal: React.FC = () => {
                                     }
                                 ]}
                             >
-                                <Input placeholder={"Project Name"} />
+                                <Input placeholder="Project Name" />
                             </Form.Item>
                             <Form.Item
-                                label={"Organization"}
-                                name={"organization"}
+                                label="Organization"
+                                name="organization"
                                 rules={[
                                     {
                                         required: true,
@@ -82,11 +85,11 @@ const ProjectModal: React.FC = () => {
                                     }
                                 ]}
                             >
-                                <Input placeholder={"Organization"} />
+                                <Input placeholder="Organization" />
                             </Form.Item>
                             <Form.Item
-                                label={"Manager"}
-                                name={"managerId"}
+                                label="Manager"
+                                name="managerId"
                                 rules={[
                                     {
                                         required: true,
@@ -94,7 +97,7 @@ const ProjectModal: React.FC = () => {
                                     }
                                 ]}
                             >
-                                <Select placeholder={"Managers"}>
+                                <Select placeholder="Managers">
                                     {members?.map((member) => (
                                         <Select.Option
                                             value={member._id}
@@ -107,8 +110,8 @@ const ProjectModal: React.FC = () => {
                             </Form.Item>
                             <Form.Item style={{ textAlign: "center" }}>
                                 <Button
-                                    type={"primary"}
-                                    htmlType={"submit"}
+                                    type="primary"
+                                    htmlType="submit"
                                     loading={mutateLoading}
                                 >
                                     Submit
@@ -123,11 +126,3 @@ const ProjectModal: React.FC = () => {
 };
 
 export default ProjectModal;
-
-const Container = styled.div`
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    height: 80vh;
-    justify-content: center;
-`;

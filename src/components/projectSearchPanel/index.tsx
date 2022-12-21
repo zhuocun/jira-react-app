@@ -21,12 +21,12 @@ const ProjectSearchPanel: React.FC<Props> = ({
 }) => {
     const defaultUser = members.filter((u) => u._id === param.managerId)[0];
     return (
-        <Form style={{ marginBottom: "2rem" }} layout={"inline"}>
+        <Form style={{ marginBottom: "2rem" }} layout="inline">
             <Form.Item>
                 <Input
                     value={param.projectName}
-                    placeholder={"Search this list"}
-                    type={"text"}
+                    placeholder="Search this list"
+                    type="text"
                     onChange={(e) =>
                         setParam({
                             ...param,
@@ -52,7 +52,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                     }
                     style={{ width: "12rem" }}
                 >
-                    <Select.Option value={""}>Managers</Select.Option>
+                    <Select.Option value="">Managers</Select.Option>
                     {members.map((user) => (
                         <Select.Option value={user._id} key={user._id}>
                             {user.username}

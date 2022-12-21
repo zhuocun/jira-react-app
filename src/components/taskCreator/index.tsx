@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
+import { NoPaddingButton } from "../projectList";
 
 const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
     columnId,
@@ -25,7 +26,7 @@ const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
         await mutateAsync({
             taskName,
             projectId,
-            columnId: columnId,
+            columnId,
             coordinatorId: user?._id,
             type: "Task",
             epic: "New Feature",
@@ -45,25 +46,28 @@ const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
 
     if (!inputMode) {
         return (
-            <div onClick={toggle} style={{ paddingLeft: "1rem" }}>
+            <NoPaddingButton
+                onClick={toggle}
+                style={{ paddingLeft: "1rem" }}
+                type="text"
+            >
                 + Create task
-            </div>
-        );
-    } else {
-        return (
-            <Input
-                disabled={isLoading || disabled}
-                onBlur={toggle}
-                placeholder={"What needs to be done?"}
-                autoFocus={true}
-                onPressEnter={submit}
-                value={taskName}
-                onChange={(e) => {
-                    setTaskName(e.target.value);
-                }}
-            />
+            </NoPaddingButton>
         );
     }
+    return (
+        <Input
+            disabled={isLoading || disabled}
+            onBlur={toggle}
+            placeholder="What needs to be done?"
+            autoFocus
+            onPressEnter={submit}
+            value={taskName}
+            onChange={(e) => {
+                setTaskName(e.target.value);
+            }}
+        />
+    );
 };
 
 export default TaskCreator;

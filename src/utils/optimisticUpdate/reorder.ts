@@ -12,37 +12,6 @@ interface IColumnOrderParams {
     type: "after" | "before";
 }
 
-const reorder = ({
-    fromId,
-    type,
-    referenceId,
-    objArray
-}: {
-    objArray: ITask[] | IColumn[];
-    fromId: string;
-    type: "after" | "before";
-    referenceId: string;
-}) => {
-    const copiedArray: (IColumn | ITask)[] = [...objArray];
-    const movingItemIndex = copiedArray.findIndex(
-        (item) => item._id === fromId
-    );
-    if (!referenceId) {
-        if (movingItemIndex < copiedArray.length - 1) {
-            return insertAfter(
-                [...copiedArray],
-                movingItemIndex,
-                copiedArray.length - 1
-            );
-        } else return copiedArray;
-    }
-    const targetIndex = copiedArray.findIndex(
-        (item) => item._id === referenceId
-    );
-    const insert = type === "after" ? insertAfter : insertBefore;
-    return insert([...copiedArray], movingItemIndex, targetIndex);
-};
-
 const insertBefore = (
     objArray: (ITask | IColumn)[],
     from: number,
@@ -65,6 +34,38 @@ const insertAfter = (
     const toIndex = objArray.indexOf(toItem);
     objArray.splice(toIndex + 1, 0, removedItem);
     return objArray;
+};
+
+const reorder = ({
+    fromId,
+    type,
+    referenceId,
+    objArray
+}: {
+    objArray: ITask[] | IColumn[];
+    fromId: string;
+    type: "after" | "before";
+    referenceId: string;
+}) => {
+    const copiedArray: (IColumn | ITask)[] = [...objArray];
+    const movingItemIndex = copiedArray.findIndex(
+        (item) => item._id === fromId
+    );
+    if (!referenceId) {
+        if (movingItemIndex < copiedArray.length - 1) {
+            return insertAfter(
+                [...copiedArray],
+                movingItemIndex,
+                copiedArray.length - 1
+            );
+        }
+        return copiedArray;
+    }
+    const targetIndex = copiedArray.findIndex(
+        (item) => item._id === referenceId
+    );
+    const insert = type === "after" ? insertAfter : insertBefore;
+    return insert([...copiedArray], movingItemIndex, targetIndex);
 };
 
 export const taskCallback = (target: ITaskOrderParams, old: ITask[]) => {

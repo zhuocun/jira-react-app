@@ -8,8 +8,8 @@ const useTaskModal = () => {
         setEditingTaskId({ editingTaskId: undefined });
     }, [setEditingTaskId]);
     const startEditing = useCallback(
-        (editingTaskId: string) => {
-            setEditingTaskId({ editingTaskId });
+        (id: string) => {
+            setEditingTaskId({ editingTaskId: id });
         },
         [setEditingTaskId]
     );

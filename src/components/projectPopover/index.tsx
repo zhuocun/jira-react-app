@@ -12,12 +12,12 @@ const ProjectPopover: React.FC = () => {
 
     const content = (
         <div style={{ minWidth: "30rem" }}>
-            <Typography.Text type={"secondary"}>Projects</Typography.Text>
+            <Typography.Text type="secondary">Projects</Typography.Text>
             <List>
                 {projects?.map((project) => (
                     <div key={project._id} style={{ marginTop: "1rem" }}>
                         <NoPaddingButton
-                            type={"text"}
+                            type="text"
                             key={project._id}
                             onClick={() => navigate(`/projects/${project._id}`)}
                         >
@@ -27,14 +27,14 @@ const ProjectPopover: React.FC = () => {
                 ))}
             </List>
             <Divider />
-            <NoPaddingButton onClick={openModal} type={"link"}>
+            <NoPaddingButton onClick={openModal} type="link">
                 Create Project
             </NoPaddingButton>
         </div>
     );
 
     return (
-        <Popover placement={"right"} content={content}>
+        <Popover placement="right" content={content}>
             <span style={{ padding: "1rem" }}>Projects</span>
         </Popover>
     );

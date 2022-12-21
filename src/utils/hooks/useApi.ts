@@ -14,6 +14,7 @@ export const api = async (
     endpoint: string,
     { data, token, ...customConfig }: IConfig = {}
 ) => {
+    let apiEndpoint = endpoint;
     const config = {
         method: "GET",
         headers: {
@@ -27,26 +28,25 @@ export const api = async (
         config.method.toUpperCase() === "GET" ||
         config.method.toUpperCase() === "DELETE"
     ) {
-        endpoint += `?${qs.stringify(data)}`;
+        apiEndpoint += `?${qs.stringify(data)}`;
     } else {
         config.body = JSON.stringify(data);
     }
 
-    return fetch(`${environment.apiBaseUrl}/${endpoint}`, config).then(
+    return fetch(`${environment.apiBaseUrl}/${apiEndpoint}`, config).then(
         async (res) => {
             if (res.status === 401) {
                 const { logout } = useAuth();
                 logout();
-                return Promise.reject({
-                    message: "Login expired, please login again"
-                });
+                return Promise.reject(
+                    new Error("Login expired, please login again")
+                );
             }
-            const data = await res.json();
+            const resData = await res.json();
             if (res.ok) {
-                return data;
-            } else {
-                return Promise.reject(data);
+                return resData;
             }
+            return Promise.reject(resData);
         }
     );
 };

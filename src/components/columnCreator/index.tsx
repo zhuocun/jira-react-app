@@ -15,9 +15,9 @@ const ColumnCreator: React.FC = () => {
         ["boards", { projectId }],
         newColumnCallback
     );
-    const submit = async (columnName: string) => {
+    const submit = async (name: string) => {
         setColumnName("");
-        await mutateAsync({ columnName: columnName, projectId });
+        await mutateAsync({ columnName: name, projectId });
     };
     return (
         <ColumnContainer>
@@ -28,8 +28,8 @@ const ColumnCreator: React.FC = () => {
                     marginTop: "0.4rem",
                     width: "28rem"
                 }}
-                size={"large"}
-                placeholder={" + Create column"}
+                size="large"
+                placeholder=" + Create column"
                 onPressEnter={() => submit(columnName)}
                 value={columnName}
                 onChange={(e) => setColumnName(e.target.value)}

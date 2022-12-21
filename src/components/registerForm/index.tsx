@@ -28,7 +28,7 @@ const RegisterForm: React.FC<{
     return (
         <Form onFinish={handleSubmit}>
             <Form.Item
-                name={"email"}
+                name="email"
                 rules={[
                     { required: true, message: "Please enter an email" },
                     {
@@ -39,38 +39,38 @@ const RegisterForm: React.FC<{
             >
                 <Input
                     onChange={() => onError(null)}
-                    placeholder={"Email"}
-                    type={"text"}
-                    id={"email"}
+                    placeholder="Email"
+                    type="text"
+                    id="email"
                 />
             </Form.Item>
             <Form.Item
-                name={"username"}
+                name="username"
                 rules={[{ required: true, message: "Enter your username" }]}
             >
                 <Input
                     onChange={() => onError(null)}
-                    placeholder={"Username"}
-                    type={"text"}
-                    id={"username"}
+                    placeholder="Username"
+                    type="text"
+                    id="username"
                 />
             </Form.Item>
             <Form.Item
-                name={"password"}
+                name="password"
                 rules={[{ required: true, message: "Enter your password" }]}
             >
                 <Input
                     onChange={() => onError(null)}
-                    placeholder={"Password"}
-                    type={"password"}
-                    id={"password"}
+                    placeholder="Password"
+                    type="password"
+                    id="password"
                 />
             </Form.Item>
             <Form.Item>
                 <AuthButton
                     loading={isLoading}
-                    htmlType={"submit"}
-                    type={"primary"}
+                    htmlType="submit"
+                    type="primary"
                 >
                     Register
                 </AuthButton>

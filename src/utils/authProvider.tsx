@@ -11,6 +11,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { error, isLoading, isIdle, isError } = useReactQuery<IUser>(
         "users",
         undefined,
+        undefined,
+        undefined,
+        undefined,
         Boolean(token)
     );
 
@@ -26,7 +29,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         return <PageError error={getError(error)} />;
     }
 
-    return <>{children}</>;
+    return <div>{children}</div>;
 };
 
 export default AuthProvider;

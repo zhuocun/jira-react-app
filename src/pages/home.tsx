@@ -20,7 +20,7 @@ const HomePage = () => {
         }
     }, [logout, navigate, path, token, user]);
 
-    return <>{user && token ? <MainLayout /> : <AuthLayout />}</>;
+    return <div>{user && token ? <MainLayout /> : <AuthLayout />}</div>;
 };
 
 export default HomePage;

@@ -3,13 +3,17 @@ import { Divider, List, Popover, Typography } from "antd";
 
 import useReactQuery from "../../utils/hooks/useReactQuery";
 
+const ContentContainer = styled.div`
+    min-width: 30rem;
+`;
+
 const MemberPopover: React.FC = () => {
     const { data: members, refetch } =
         useReactQuery<IMember[]>("users/members");
 
     const content = (
         <ContentContainer>
-            <Typography.Text type={"secondary"}>Team Members</Typography.Text>
+            <Typography.Text type="secondary">Team Members</Typography.Text>
             <List>
                 {members?.map((member) => (
                     <List.Item key={member._id}>
@@ -24,7 +28,7 @@ const MemberPopover: React.FC = () => {
     return (
         <Popover
             onOpenChange={() => refetch()}
-            placement={"bottom"}
+            placement="bottom"
             content={content}
         >
             <span>Members</span>
@@ -33,7 +37,3 @@ const MemberPopover: React.FC = () => {
 };
 
 export default MemberPopover;
-
-const ContentContainer = styled.div`
-    min-width: 30rem;
-`;

@@ -6,20 +6,6 @@ import left from "../assets/left.svg";
 import logo from "../assets/logo.svg";
 import right from "../assets/right.svg";
 
-const AuthLayout = () => {
-    return (
-        <Container>
-            <Header />
-            <Background />
-            <ShadowCard>
-                <Outlet />
-            </ShadowCard>
-        </Container>
-    );
-};
-
-export default AuthLayout;
-
 const Container = styled.div`
     align-items: center;
     display: flex;
@@ -64,3 +50,17 @@ const ShadowCard = styled(Card)`
 export const AuthButton = styled(Button)`
     width: 100%;
 `;
+
+const AuthLayout = () => {
+    return (
+        <Container>
+            <Header />
+            <Background />
+            <ShadowCard>
+                <Outlet />
+            </ShadowCard>
+        </Container>
+    );
+};
+
+export default AuthLayout;

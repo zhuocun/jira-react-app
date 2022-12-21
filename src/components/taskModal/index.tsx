@@ -30,6 +30,7 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
         if (!types.includes(task.type)) {
             types.push(task.type);
         }
+        return null;
     });
 
     const onClose = () => {
@@ -38,11 +39,15 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
     };
 
     const onOk = async () => {
-        _.isEqual({ ...editingTask, ...form.getFieldsValue() }, editingTask)
-            ? closeModal()
-            : await update({ ...editingTask, ...form.getFieldsValue() }).then(
-                  closeModal
-              );
+        if (
+            _.isEqual({ ...editingTask, ...form.getFieldsValue() }, editingTask)
+        ) {
+            closeModal();
+        } else {
+            await update({ ...editingTask, ...form.getFieldsValue() }).then(
+                closeModal
+            );
+        }
     };
 
     const onDelete = () => {
@@ -66,13 +71,13 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
     return (
         <Modal
             confirmLoading={uLoading}
-            centered={true}
-            forceRender={true}
-            okText={"Submit"}
+            centered
+            forceRender
+            okText="Submit"
             onOk={onOk}
-            cancelText={"Cancel"}
+            cancelText="Cancel"
             onCancel={onClose}
-            title={"Edit Task"}
+            title="Edit Task"
             open={Boolean(editingTaskId)}
         >
             <Form
@@ -81,8 +86,8 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                 initialValues={editingTask}
             >
                 <Form.Item
-                    label={"Task Name"}
-                    name={"taskName"}
+                    label="Task Name"
+                    name="taskName"
                     rules={[
                         {
                             required: true,
@@ -93,8 +98,8 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                     <Input />
                 </Form.Item>
                 <Form.Item
-                    label={"Coordinator"}
-                    name={"coordinatorId"}
+                    label="Coordinator"
+                    name="coordinatorId"
                     rules={[
                         {
                             required: true,
@@ -102,7 +107,7 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                         }
                     ]}
                 >
-                    <Select placeholder={"Coordinators"}>
+                    <Select placeholder="Coordinators">
                         {members?.map((member) => (
                             <Select.Option value={member._id} key={member._id}>
                                 {member.username}
@@ -111,8 +116,8 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                     </Select>
                 </Form.Item>
                 <Form.Item
-                    label={"Type"}
-                    name={"type"}
+                    label="Type"
+                    name="type"
                     rules={[
                         {
                             required: true,
@@ -120,7 +125,7 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                         }
                     ]}
                 >
-                    <Select placeholder={"Types"}>
+                    <Select placeholder="Types">
                         {types.length > 1 ? (
                             types.map((type) => (
                                 <Select.Option value={type} key={type}>
@@ -129,10 +134,10 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                             ))
                         ) : (
                             <>
-                                <Select.Option value={"Task"} key={"task"}>
+                                <Select.Option value="Task" key="task">
                                     Task
                                 </Select.Option>
-                                <Select.Option value={"Bug"} key={"bug"}>
+                                <Select.Option value="Bug" key="bug">
                                     Bug
                                 </Select.Option>
                             </>
@@ -142,10 +147,10 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
             </Form>
             <div style={{ textAlign: "right" }}>
                 <Button
-                    danger={true}
-                    type={"dashed"}
+                    danger
+                    type="dashed"
                     onClick={onDelete}
-                    size={"small"}
+                    size="small"
                     style={{ fontSize: "1.4rem" }}
                     disabled={
                         tasks

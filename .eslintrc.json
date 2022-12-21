@@ -1,0 +1,126 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "airbnb",
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "prettier",
+        "plugin:prettier/recommended",
+        "plugin:@next/next/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "settings": {
+        "import/resolver": {}
+    },
+    "plugins": [
+        "prettier",
+        "@typescript-eslint",
+        "better-styled-components",
+        "import",
+        "react",
+        "simple-import-sort"
+    ],
+    "rules": {
+        "@next/next/no-img-element": "off",
+        "no-nested-ternary": "off",
+        "no-plusplus": "off",
+        "react/require-default-props": "off",
+        "react/prop-types": "off",
+        "no-restricted-exports": "off",
+        "react/react-in-jsx-scope": "off",
+        "import/no-unresolved": "off",
+        "react/jsx-props-no-spreading": "off",
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ],
+        "no-console": "warn",
+        "no-use-before-define": ["error", "nofunc"],
+        "react/jsx-filename-extension": [
+            1,
+            {
+                "extensions": [".js", ".jsx", ".ts", ".tsx", ".d.ts"]
+            }
+        ],
+        "import/extensions": [
+            0,
+            {
+                "svg": "always"
+            }
+        ],
+        "react/function-component-definition": [
+            2,
+            {
+                "namedComponents": "arrow-function"
+            }
+        ],
+        "jsx-a11y/label-has-associated-control": [
+            2,
+            {
+                "labelComponents": ["Label"],
+                "labelAttributes": ["label"],
+                "controlComponents": ["Input"],
+                "depth": 3
+            }
+        ],
+        "no-underscore-dangle": [
+            "error",
+            {
+                "allow": ["_id"]
+            }
+        ],
+        "no-param-reassign": [
+            "error",
+            {
+                "props": false
+            }
+        ],
+        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": ["error"],
+        "jsx-a11y/anchor-is-valid": [
+            "error",
+            {
+                "components": ["Link"],
+                "specialLink": ["hrefLeft", "hrefRight"],
+                "aspects": ["invalidHref", "preferButton"]
+            }
+        ],
+        "better-styled-components/sort-declarations-alphabetically": 2,
+        "simple-import-sort/exports": "error",
+        "import/first": "error",
+        "import/newline-after-import": "error",
+        "import/no-duplicates": "error",
+        "sort-imports": [
+            "error",
+            {
+                "ignoreDeclarationSort": true
+            }
+        ],
+        "import/order": [
+            "error",
+            {
+                "groups": ["builtin", "external", "parent"],
+                "newlines-between": "always",
+                "alphabetize": {
+                    "order": "asc",
+                    "caseInsensitive": true
+                }
+            }
+        ],
+        "@typescript-eslint/no-var-requires": "off"
+    }
+}

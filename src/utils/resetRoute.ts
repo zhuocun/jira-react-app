@@ -1,5 +1,5 @@
 const resetRoute = () => {
-    location.href = location.origin + "/projects";
+    window.location.href = `${window.location.origin}/projects`;
 };
 
 export default resetRoute;

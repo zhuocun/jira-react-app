@@ -26,6 +26,10 @@ interface Props extends TableProps<ProjectIntro> {
     members: IMember[];
 }
 
+export const NoPaddingButton = styled(Button)`
+    padding: 0;
+`;
+
 const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const { user, refreshUser } = useAuth();
     refreshUser();
@@ -76,7 +80,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const ListColumns: ColumnsType<ProjectIntro> = [
         {
             key: "Liked",
-            title: <Rate value={1} count={1} disabled={true} />,
+            title: <Rate value={1} count={1} disabled />,
             render(value, data) {
                 return (
                     <Rate
@@ -114,7 +118,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             render(value, data) {
                 return (
                     <span key={data._id}>
-                        {members.find((user) => user._id === data.managerId)
+                        {members.find((member) => member._id === data.managerId)
                             ?.username || "unknown"}
                     </span>
                 );
@@ -138,16 +142,24 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                 const items: MenuProps["items"] = [
                     {
                         key: "edit",
-                        label: <a onClick={() => onEdit(data._id)}>Edit</a>
+                        label: (
+                            <NoPaddingButton onClick={() => onEdit(data._id)}>
+                                Edit
+                            </NoPaddingButton>
+                        )
                     },
                     {
                         key: "delete",
-                        label: <a onClick={() => onDelete(data._id)}>Delete</a>
+                        label: (
+                            <NoPaddingButton onClick={() => onDelete(data._id)}>
+                                Delete
+                            </NoPaddingButton>
+                        )
                     }
                 ];
                 return (
                     <Dropdown menu={{ items }}>
-                        <NoPaddingButton type={"link"}>...</NoPaddingButton>
+                        <NoPaddingButton type="link">...</NoPaddingButton>
                     </Dropdown>
                 );
             }
@@ -165,7 +177,3 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
 };
 
 export default ProjectList;
-
-export const NoPaddingButton = styled(Button)`
-    padding: 0;
-`;

@@ -37,6 +37,7 @@ const TaskSearchPanel: React.FC<Props> = ({
         if (coordinator && !coordinators.includes(coordinator)) {
             coordinators.push(coordinator);
         }
+        return null;
     });
 
     if (user) {
@@ -59,13 +60,13 @@ const TaskSearchPanel: React.FC<Props> = ({
     };
 
     return (
-        <Form ref={formRef} style={{ marginBottom: "2rem" }} layout={"inline"}>
-            <Form.Item name={"taskName"}>
+        <Form ref={formRef} style={{ marginBottom: "2rem" }} layout="inline">
+            <Form.Item name="taskName">
                 <Input
                     style={{ width: "20rem" }}
                     value={param.taskName}
-                    placeholder={"Search this board"}
-                    type={"text"}
+                    placeholder="Search this board"
+                    type="text"
                     onChange={(e) =>
                         setParam({
                             ...param,
@@ -76,7 +77,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                 />
             </Form.Item>
             <Form.Item
-                name={"coordinators"}
+                name="coordinators"
                 initialValue={
                     coordinators.filter((c) => c._id === param.coordinatorId)[0]
                         ?.username || "Coordinators"
@@ -92,7 +93,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                     }
                     style={{ width: "14rem" }}
                 >
-                    <Select.Option value={""}>Coordinators</Select.Option>
+                    <Select.Option value="">Coordinators</Select.Option>
                     {coordinators.map((member) => (
                         <Select.Option value={member._id} key={member._id}>
                             {member.username}
@@ -100,7 +101,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                     ))}
                 </Select>
             </Form.Item>
-            <Form.Item name={"types"} initialValue={param.type || "Types"}>
+            <Form.Item name="types" initialValue={param.type || "Types"}>
                 <Select
                     loading={loading}
                     onChange={(value) =>
@@ -111,7 +112,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                     }
                     style={{ width: "12rem" }}
                 >
-                    <Select.Option value={""}>Types</Select.Option>
+                    <Select.Option value="">Types</Select.Option>
                     {types.length > 1 ? (
                         types.map((type) => (
                             <Select.Option value={type} key={type}>
@@ -120,10 +121,10 @@ const TaskSearchPanel: React.FC<Props> = ({
                         ))
                     ) : (
                         <>
-                            <Select.Option value={"Task"} key={"task"}>
+                            <Select.Option value="Task" key="task">
                                 Task
                             </Select.Option>
-                            <Select.Option value={"Bug"} key={"bug"}>
+                            <Select.Option value="Bug" key="bug">
                                 Bug
                             </Select.Option>
                         </>

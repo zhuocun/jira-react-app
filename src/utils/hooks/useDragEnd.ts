@@ -39,9 +39,9 @@ const useDragEnd = () => {
                 if (!fromId || !referenceId || fromId === referenceId) {
                     return;
                 }
-                const type =
+                const reorderType =
                     destination.index > source.index ? "after" : "before";
-                reorderColumn({ fromId, referenceId, type });
+                reorderColumn({ fromId, referenceId, type: reorderType });
             }
             if (type === "ROW") {
                 const fromColumnId = source.droppableId;

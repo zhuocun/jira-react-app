@@ -28,9 +28,9 @@ const ProjectPage = () => {
 
     return (
         <PageContainer>
-            <Row marginBottom={2} between={true}>
+            <Row marginBottom={2} between>
                 <h1>Project List</h1>
-                <Button type={"link"} onClick={openModal}>
+                <Button type="link" onClick={openModal}>
                     Create Project
                 </Button>
             </Row>
@@ -41,8 +41,8 @@ const ProjectPage = () => {
                 loading={mLoading}
             />
             {pError || mError ? (
-                <Typography.Text type={"danger"}>
-                    {"Data fetching failed, please try again later."}
+                <Typography.Text type="danger">
+                    Data fetching failed, please try again later.
                 </Typography.Text>
             ) : null}
             <ProjectList

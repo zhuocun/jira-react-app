@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
 import { Dropdown, MenuProps } from "antd";
-import Link from "antd/lib/typography/Link";
 import { useLocation } from "react-router";
 
 import { ReactComponent as Logo } from "../../assets/logo-software.svg";
@@ -10,6 +9,12 @@ import MemberPopover from "../memberPopover";
 import { NoPaddingButton } from "../projectList";
 import Row from "../row";
 
+const PageHeader = styled(Row)`
+    padding: 3.2rem;
+`;
+const LeftHeader = styled(Row)``;
+const RightHeader = styled.div``;
+
 const Header: React.FC = () => {
     const { user, logout } = useAuth();
     const path = useLocation().pathname;
@@ -17,45 +22,43 @@ const Header: React.FC = () => {
         {
             key: "logout",
             label: (
-                <Link
+                <NoPaddingButton
                     onClick={() => {
                         logout();
                     }}
+                    type="link"
                 >
                     Logout
-                </Link>
+                </NoPaddingButton>
             )
         }
     ];
     return (
         <PageHeader
-            between={true}
+            between
             style={{ boxShadow: "0 0 5px 0 rgba(0, 0, 0, 0.1)" }}
         >
-            <LeftHeader gap={true}>
+            <LeftHeader gap>
                 <NoPaddingButton
-                    type={"link"}
+                    type="link"
                     onClick={path !== "/projects" ? resetRoute : undefined}
                 >
-                    <Logo width="180px" color={"rgb(38, 132, 255)"} />
+                    <Logo width="180px" color="rgb(38, 132, 255)" />
                 </NoPaddingButton>
                 <MemberPopover />
             </LeftHeader>
             <RightHeader>
                 <Dropdown menu={{ items }}>
-                    <Link onClick={(e) => e.preventDefault()}>
+                    <NoPaddingButton
+                        onClick={(e) => e.preventDefault()}
+                        type="link"
+                    >
                         Hi, {user?.username}
-                    </Link>
+                    </NoPaddingButton>
                 </Dropdown>
             </RightHeader>
         </PageHeader>
     );
 };
-
-const PageHeader = styled(Row)`
-    padding: 3.2rem;
-`;
-const LeftHeader = styled(Row)``;
-const RightHeader = styled.div``;
 
 export default Header;
