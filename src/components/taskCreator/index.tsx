@@ -5,7 +5,6 @@ import { useParams } from "react-router-dom";
 import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
-import { NoPaddingButton } from "../projectList";
 
 const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
     columnId,
@@ -46,13 +45,10 @@ const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
 
     if (!inputMode) {
         return (
-            <NoPaddingButton
-                onClick={toggle}
-                style={{ paddingLeft: "1rem" }}
-                type="text"
-            >
+            // eslint-disable-next-line
+            <a onClick={toggle} style={{ paddingLeft: "1rem" }}>
                 + Create task
-            </NoPaddingButton>
+            </a>
         );
     }
     return (
