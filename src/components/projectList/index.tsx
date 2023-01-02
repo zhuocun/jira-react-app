@@ -143,7 +143,10 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                     {
                         key: "edit",
                         label: (
-                            <NoPaddingButton onClick={() => onEdit(data._id)}>
+                            <NoPaddingButton
+                                onClick={() => onEdit(data._id)}
+                                type="link"
+                            >
                                 Edit
                             </NoPaddingButton>
                         )
@@ -151,7 +154,10 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                     {
                         key: "delete",
                         label: (
-                            <NoPaddingButton onClick={() => onDelete(data._id)}>
+                            <NoPaddingButton
+                                onClick={() => onDelete(data._id)}
+                                type="link"
+                            >
                                 Delete
                             </NoPaddingButton>
                         )
