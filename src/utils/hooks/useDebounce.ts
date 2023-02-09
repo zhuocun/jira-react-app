@@ -14,6 +14,8 @@ const useDebounce = <P>(param: P, delay: number): P => {
         return () => clearTimeout(timeout);
     }, [param, delay]);
 
+    // the return debouncedParam will fire for the first time when the component that uses the useDebounced hook is initially rendered,
+    // and it will return the initial value of the debouncedParam state, which is equal to the param value passed to the useDebounced hook.
     return debouncedParam;
 };
 
