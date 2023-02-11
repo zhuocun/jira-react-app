@@ -11,7 +11,7 @@
         "prettier": "prettier -c .prettierrc --write .",
         "eslint": "eslint . --ext .ts --ext tsx --fix",
         "pre-commit": "npm run prettier && npm run eslint",
-        "server": "json-server __json_server_mock__/db.json --watch --port 8080 --middlewares ./__json_server_mock__/middleware.js"
+        "server": "json-server __json_server_mock__/db.json --watch --port 8080 --middleware ./__json_server_mock__/middleware.js"
     },
     "dependencies": {
         "@ant-design/icons": "^4.8.0",
