@@ -1,7 +1,7 @@
 import { SearchOutlined } from "@ant-design/icons";
 import { Button, Form, Input, Select } from "antd";
 import { FormInstance } from "antd/lib/form/Form";
-import React from "react";
+import React, { Ref, useRef } from "react";
 
 import useAuth from "../../utils/hooks/useAuth";
 
@@ -45,7 +45,7 @@ const TaskSearchPanel: React.FC<Props> = ({
             coordinators.push(user);
         }
     }
-    const formRef = React.createRef<FormInstance>();
+    const formRef = useRef<FormInstance>(null);
     const resetParams = () => {
         setParam({
             taskName: undefined,
