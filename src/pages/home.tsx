@@ -7,7 +7,6 @@ import useAuth from "../utils/hooks/useAuth";
 import resetRoute from "../utils/resetRoute";
 
 const HomePage = () => {
-    const navigate = useNavigate();
     const { user, token, logout } = useAuth();
     const path = useLocation().pathname;
 
@@ -18,7 +17,7 @@ const HomePage = () => {
         if (!user && !token && path !== "/login" && path !== "/register") {
             logout();
         }
-    }, [logout, navigate, path, token, user]);
+    }, [logout, path, token, user]);
 
     return <div>{user && token ? <MainLayout /> : <AuthLayout />}</div>;
 };
