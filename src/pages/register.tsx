@@ -25,7 +25,7 @@ const RegisterPage = () => {
             <ErrorBox error={error} />
             <RegisterForm onError={setError} />
             <Divider />
-            <NoPaddingButton onClick={handleSwitch}>
+            <NoPaddingButton onClick={handleSwitch} type="link">
                 Log in to your account
             </NoPaddingButton>
         </>
