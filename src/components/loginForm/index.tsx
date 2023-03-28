@@ -5,7 +5,7 @@ import { AuthButton } from "../../layouts/authLayout";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 
 const LoginForm: React.FC<{
-    onError: React.Dispatch<React.SetStateAction<Error | null>>;
+    onError: React.Dispatch<React.SetStateAction<Error | null | IError>>;
 }> = ({ onError }) => {
     const navigate = useNavigate();
     const { mutateAsync, isLoading } = useReactMutation<IUser>(
