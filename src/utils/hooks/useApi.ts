@@ -15,6 +15,7 @@ export const api = async (
     { data, token, ...customConfig }: IConfig = {}
 ) => {
     let apiEndpoint = endpoint;
+    // const { logout } = useAuth();
     const config = {
         method: "GET",
         headers: {
@@ -35,18 +36,15 @@ export const api = async (
 
     return fetch(`${environment.apiBaseUrl}/${apiEndpoint}`, config).then(
         async (res) => {
-            if (res.status === 401) {
-                const { logout } = useAuth();
-                logout();
-                return Promise.reject(
-                    new Error("Login expired, please login again")
-                );
-            }
             const resData = await res.json();
+            const errorObj = resData.error;
             if (res.ok) {
                 return resData;
             }
-            return Promise.reject(resData);
+            if (errorObj) {
+                return Promise.reject(new Error(errorObj[0].msg));
+            }
+            return Promise.reject(new Error(resData));
         }
     );
 };

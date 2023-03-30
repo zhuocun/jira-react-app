@@ -13,7 +13,7 @@ const RegisterForm: React.FC<{
         "POST",
         undefined,
         undefined,
-        undefined,
+        onError,
         false
     );
     const handleSubmit = async (input: {
@@ -21,9 +21,7 @@ const RegisterForm: React.FC<{
         email: string;
         password: string;
     }) => {
-        await mutateAsync(input)
-            .then(() => navigate("/login"))
-            .catch(onError);
+        await mutateAsync(input).then(() => navigate("/login"));
     };
     return (
         <Form onFinish={handleSubmit}>

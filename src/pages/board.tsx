@@ -17,7 +17,7 @@ import useUrl from "../utils/hooks/useUrl";
 
 export const ColumnContainer = styled.div`
     display: flex;
-    min-height: 60%;
+    min-height: 75%;
     overflow-x: scroll;
 `;
 

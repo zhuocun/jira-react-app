@@ -9,7 +9,8 @@ const useReactMutation = <D>(
     endPoint: string,
     method: string,
     queryKey?: QueryKey,
-    callback?: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    callback?: (...args: any) => any,
     onError?: (err: Error) => void,
     setCache?: boolean
 ) => {
@@ -32,13 +33,13 @@ const useReactMutation = <D>(
                   }
                 : undefined,
             onMutate: callback
-                ? async (target: any) => {
+                ? async (target: unknown) => {
                       const previousItems = queryClient.getQueryData(
                           queryKey || ""
                       );
                       queryClient.setQueryData(
                           queryKey || endPoint,
-                          (old?: any[]) => {
+                          (old?: unknown[]) => {
                               return callback(target, old);
                           }
                       );
