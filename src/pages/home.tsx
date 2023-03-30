@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation } from "react-router";
 
 import AuthLayout from "../layouts/authLayout";
 import MainLayout from "../layouts/mainLayout";

@@ -15,6 +15,7 @@ export const Drop = ({ children, ...props }: DropProps) => {
         <Droppable {...props}>
             {(provided) => {
                 if (React.isValidElement(children)) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     return React.cloneElement<RefAttributes<unknown> | any>(
                         children,
                         {
@@ -52,6 +53,7 @@ export const Drag = ({ children, ...props }: DragProps) => {
         <Draggable {...props}>
             {(provided) => {
                 if (React.isValidElement(children)) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     return React.cloneElement<RefAttributes<unknown> | any>(
                         children,
                         {
