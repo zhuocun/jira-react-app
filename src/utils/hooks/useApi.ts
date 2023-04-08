@@ -15,7 +15,6 @@ export const api = async (
     { data, token, ...customConfig }: IConfig = {}
 ) => {
     let apiEndpoint = endpoint;
-    // const { logout } = useAuth();
     const config = {
         method: "GET",
         headers: {
