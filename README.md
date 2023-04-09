@@ -1,46 +1,29 @@
-# Getting Started with Create React App
+# jira-react-app
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+`jira-react-app` is a React-based front-end application for a Jira-like project management tool. This app provides a user-friendly interface for managing tasks, projects, and team collaborations.
 
-## Available Scripts
+## Technologies
 
-In the project directory, you can run:
+The project utilizes the following technologies:
 
-### `npm start`
+- **React**: A JavaScript library for building user interfaces, used as the main UI library.
+- **Redux**: A predictable state container for JavaScript apps, used for managing the application state.
+- **React-Query**: A data-fetching library for React, used for fetching, caching, and syncing server data in the app.
+- **Ant Design**: A popular design system and UI library for React, used for building the application components.
+- **Styled Components**: A CSS-in-JS library for styling React components using tagged template literals.
+- **React Beautiful DnD**: A drag-and-drop library for React, used for implementing drag-and-drop functionality.
+- **React Router**: A collection of navigational components for creating single-page applications with navigation.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Configuration
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+This project uses a combination of dependencies and devDependencies to ensure smooth development and efficient production builds. Some of the key packages include:
 
-### `npm test`
+- **craco**: A community-supported configuration layer for Create React App, used for customizing the configuration without ejecting.
+- **eslint**: A pluggable JavaScript linter used for identifying and reporting patterns in code.
+- **prettier**: An opinionated code formatter for consistent code style across the project.
+- **husky**: A tool for managing Git hooks, ensuring code quality before committing changes.
+- **lint-staged**: A package to run linters on Git staged files, used in conjunction with Husky for pre-commit checks.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The project is configured with scripts to streamline the development process, including scripts for starting the app, building production bundles, running tests, and performing pre-commit checks.
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+For a full list of dependencies, please refer to the `package.json` file.
