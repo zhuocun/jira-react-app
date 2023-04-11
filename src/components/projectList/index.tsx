@@ -81,15 +81,15 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         {
             key: "Liked",
             title: <Rate value={1} count={1} disabled />,
-            render(value, data) {
+            render(_, data) {
                 return (
                     <Rate
                         value={
                             currentProjectId === data._id
-                                ? user?.likedProjects.includes(data._id)
+                                ? user?.likedProjects?.includes(data._id)
                                     ? 0
                                     : 1
-                                : user?.likedProjects.includes(data._id)
+                                : user?.likedProjects?.includes(data._id)
                                 ? 1
                                 : 0
                         }
@@ -103,7 +103,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             key: "Project",
             title: "Project",
             sorter: (a, b) => a.projectName.localeCompare(b.projectName),
-            render(value, data) {
+            render(_, data) {
                 return <Link to={`${data._id}`}>{data.projectName}</Link>;
             }
         },
@@ -127,7 +127,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         {
             key: "Created At",
             title: "Created At",
-            render(index, data) {
+            render(_, data) {
                 return (
                     <span>
                         {data.createdAt
@@ -138,7 +138,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             }
         },
         {
-            render(value, data) {
+            render(_, data) {
                 const items: MenuProps["items"] = [
                     {
                         key: "edit",
