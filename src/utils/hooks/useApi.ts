@@ -41,6 +41,9 @@ export const api = async (
                 return resData;
             }
             if (errorObj) {
+                if (typeof errorObj === "string") {
+                    return Promise.reject(new Error(errorObj));
+                }
                 return Promise.reject(new Error(errorObj[0].msg));
             }
             return Promise.reject(new Error(resData));
@@ -54,7 +57,7 @@ const useApi = () => {
         (...[endpoint, config]: Parameters<typeof api>) =>
             api(endpoint, {
                 ...config,
-                token: user?.jwt || token
+                token: user?.jwt ?? token
             }),
         [token, user?.jwt]
     );

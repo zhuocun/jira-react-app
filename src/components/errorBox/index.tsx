@@ -11,7 +11,12 @@ const ErrorBox: React.FC<{ error: Error | IError | null | any }> = ({
             </Typography.Text>
         );
     }
-    if (error !== null && error.error != null) {
+    if (error?.error != null) {
+        if (typeof error.error === "string") {
+            return (
+                <Typography.Text type="danger">{error.error}</Typography.Text>
+            );
+        }
         return (
             <Typography.Text type="danger">
                 {error.error[0].msg || "Operation failed"}
