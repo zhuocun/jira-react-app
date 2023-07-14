@@ -66,7 +66,7 @@ const BoardPage = () => {
                     {!pLoading ? `${currentProject?.projectName} Board` : "..."}
                 </h1>
                 <TaskSearchPanel
-                    tasks={tasks || []}
+                    tasks={tasks ?? []}
                     param={param}
                     setParam={setParam}
                     members={members}
@@ -97,7 +97,7 @@ const BoardPage = () => {
                                                     (task) =>
                                                         task.columnId ===
                                                         column._id
-                                                ) || []
+                                                ) ?? []
                                             }
                                             key={column._id}
                                             column={column}
@@ -113,7 +113,7 @@ const BoardPage = () => {
                 ) : (
                     <BoardSpin />
                 )}
-                <TaskModal tasks={tasks || []} />
+                <TaskModal tasks={tasks ?? []} />
             </PageContainer>
         </DragDropContext>
     );
