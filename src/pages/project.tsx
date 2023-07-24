@@ -37,7 +37,7 @@ const ProjectPage = () => {
             <ProjectSearchPanel
                 param={param}
                 setParam={setParam}
-                members={members || []}
+                members={members ?? []}
                 loading={mLoading}
             />
             {pError || mError ? (
@@ -46,8 +46,8 @@ const ProjectPage = () => {
                 </Typography.Text>
             ) : null}
             <ProjectList
-                dataSource={projects || []}
-                members={members || []}
+                dataSource={projects ?? []}
+                members={members ?? []}
                 loading={pLoading || mLoading}
             />
         </PageContainer>
