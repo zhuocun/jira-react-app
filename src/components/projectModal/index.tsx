@@ -99,14 +99,16 @@ const ProjectModal: React.FC = observer(() => {
                                 ]}
                             >
                                 <Select placeholder="Managers">
-                                    {members?.map((member) => (
-                                        <Select.Option
-                                            value={member._id}
-                                            key={member._id}
-                                        >
-                                            {member.username}
-                                        </Select.Option>
-                                    ))}
+                                    {members
+                                        ? members.map((member) => (
+                                              <Select.Option
+                                                  value={member._id}
+                                                  key={member._id}
+                                              >
+                                                  {member.username}
+                                              </Select.Option>
+                                          ))
+                                        : null}
                                 </Select>
                             </Form.Item>
                             <Form.Item style={{ textAlign: "center" }}>
