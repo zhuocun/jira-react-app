@@ -101,18 +101,10 @@ const ProjectModal: React.FC = observer(() => {
                                 <Select placeholder="Managers">
                                     {members?.map((member) => (
                                         <Select.Option
-                                            value={
-                                                member.username
-                                                    ? member._id
-                                                    : " "
-                                            }
-                                            key={
-                                                member.username
-                                                    ? member._id
-                                                    : " "
-                                            }
+                                            value={member._id}
+                                            key={member._id}
                                         >
-                                            {member.username ?? " "}
+                                            {member.username ?? "...loading"}
                                         </Select.Option>
                                     ))}
                                 </Select>
