@@ -25,7 +25,7 @@ const useReactMutation = <D>(
         {
             onSuccess: setCache
                 ? async (data: D) =>
-                      queryClient.setQueryData(queryKey || endPoint, data)
+                      queryClient.setQueryData(queryKey ?? endPoint, data)
                 : () => queryClient.invalidateQueries(queryKey),
             onError: onError
                 ? (err: unknown) => {
@@ -35,10 +35,10 @@ const useReactMutation = <D>(
             onMutate: callback
                 ? async (target: unknown) => {
                       const previousItems = queryClient.getQueryData(
-                          queryKey || ""
+                          queryKey ?? ""
                       );
                       queryClient.setQueryData(
-                          queryKey || endPoint,
+                          queryKey ?? endPoint,
                           (old?: unknown[]) => {
                               return callback(target, old);
                           }

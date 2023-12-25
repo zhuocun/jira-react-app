@@ -11,7 +11,7 @@ import useAuth from "../utils/hooks/useAuth";
 const LoginPage = () => {
     const navigate = useNavigate();
     const { user, token } = useAuth();
-    const [error, setError] = useState<Error | null | IError>(null);
+    const [error, setError] = useState<Error | IError | null>(null);
     const handleSwitch = () => {
         navigate("/register");
     };
