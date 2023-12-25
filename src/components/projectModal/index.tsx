@@ -3,10 +3,10 @@ import { Button, Drawer, Form, Input, Select, Spin } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { observer } from "mobx-react";
 import { useEffect } from "react";
-import { useQueryClient } from "react-query";
 
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactMutation from "../../utils/hooks/useReactMutation";
+import useReactQuery from "../../utils/hooks/useReactQuery";
 import ErrorBox from "../errorBox";
 
 const Container = styled.div`
@@ -47,8 +47,8 @@ const ProjectModal: React.FC = observer(() => {
         form.setFieldsValue(editingProject);
     }, [editingProject, form]);
 
-    const members = useQueryClient().getQueryData<IMember[]>("users/members");
-
+    // const members = useQueryClient().getQueryData<IMember[]>("users/members");
+    const { data: members } = useReactQuery<IMember[]>("users/members");
     return (
         <Drawer forceRender open={isModalOpened} onClose={onClose} width="100%">
             <Container>
