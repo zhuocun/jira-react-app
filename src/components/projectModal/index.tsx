@@ -49,6 +49,7 @@ const ProjectModal: React.FC = observer(() => {
 
     // const members = useQueryClient().getQueryData<IMember[]>("users/members");
     const { data: members } = useReactQuery<IMember[]>("users/members");
+
     return (
         <Drawer forceRender open={isModalOpened} onClose={onClose} width="100%">
             <Container>
@@ -104,7 +105,7 @@ const ProjectModal: React.FC = observer(() => {
                                             value={member._id}
                                             key={member._id}
                                         >
-                                            {member.username ?? "...loading"}
+                                            {member.username}
                                         </Select.Option>
                                     ))}
                                 </Select>
