@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 
-import { projectActions } from "../../store/reducers/projectModalSlice";
+import { ProjectModalStoreContext } from "../../store/projectModalStore";
+// import { projectActions } from "../../store/reducers/projectModalSlice";
 
 import useReactQuery from "./useReactQuery";
-import { useReduxDispatch, useReduxSelector } from "./useRedux";
+// import { useReduxDispatch, useReduxSelector } from "./useRedux";
 import useUrl from "./useUrl";
 
 const useProjectModal = () => {
@@ -19,14 +20,18 @@ const useProjectModal = () => {
         undefined,
         Boolean(editingProjectId)
     );
-    const isModalOpened = useReduxSelector((s) => s.projectModal.isModalOpened);
-    const dispatch = useReduxDispatch();
+    const projectModalStore = useContext(ProjectModalStoreContext);
+    const { isModalOpened, openModalMobX, closeModalMobX } = projectModalStore;
+    // const isModalOpened = useReduxSelector((s) => s.projectModal.isModalOpened);
+    // const dispatch = useReduxDispatch();
     const openModal = () => {
         setModal({ modal: "on" });
+        // openModalMobX();
     };
     const closeModal = () => {
         setModal({ modal: undefined });
         setEditingProjectId({ editingProjectId: undefined });
+        // closeModalMobX();
     };
     const startEditing = (id: string) => {
         setEditingProjectId({ editingProjectId: id });
@@ -34,11 +39,13 @@ const useProjectModal = () => {
 
     useEffect(() => {
         if (modal === "on" || Boolean(editingProjectId)) {
-            dispatch(projectActions.openModal());
+            openModalMobX();
+            // dispatch(projectActions.openModal());
         } else {
-            dispatch(projectActions.closeModal());
+            closeModalMobX();
+            // dispatch(projectActions.closeModal());
         }
-    }, [dispatch, modal, editingProjectId]);
+    }, [modal, editingProjectId]);
 
     return {
         isModalOpened,
