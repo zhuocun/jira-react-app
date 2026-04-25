@@ -2,6 +2,17 @@
 
 Use this reference to reconstruct app context quickly before writing tests.
 
+## Contents
+
+- Runtime Stack
+- Entry Points And Providers
+- Routes
+- API Contract Expected By Frontend
+- Current Mock Backend Caveat
+- Main Workflows
+- State and cache behavior
+- Known Test Hazards
+
 ## Runtime Stack
 
 - React 18 with CRA and CRACO.

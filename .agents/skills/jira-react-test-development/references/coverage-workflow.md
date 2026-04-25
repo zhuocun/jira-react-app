@@ -2,6 +2,18 @@
 
 Use this workflow whenever continuing test work from an unknown progress level.
 
+## Contents
+
+- Rebuild Context First
+- Determine Current Progress
+- Choose The Next Target
+- Coverage-stage workflows from 0% through 99%
+- Testability refactor guidance
+- Coverage Scope
+- Running Tests
+- Definition Of A Good Test
+- Session Handoff
+
 ## Rebuild Context First
 
 Before choosing or writing tests, understand the current state of the test suite:

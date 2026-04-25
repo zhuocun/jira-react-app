@@ -34,6 +34,7 @@ Use this skill to continue test development for the React Jira-style app from an
    - `references/test-patterns.md` for recommended Jest/RTL helpers, provider wrappers, fetch mocks, router setup, and Ant Design handling.
    - `references/test-inventory.md` for file-by-file coverage goals and scenario ideas.
    - `references/coverage-workflow.md` for how to continue from 5%, 60%, 99%, or any other coverage state.
+   - `references/delegation-workflow.md` only when the user explicitly asks for subagents, delegation, or parallel test work.
 
 ## Quality Bar
 
@@ -65,6 +66,12 @@ Work in thin vertical passes until global statements, branches, functions, and l
 7. Use coverage output to close remaining uncovered lines and branches one file at a time.
 
 At the end of each test-development session, rerun full coverage, summarize remaining uncovered files/branches, and leave tests deterministic.
+
+## Parallel Delegation
+
+Use parallel subagents only when the user explicitly asks for subagents, delegation, or parallel agent work. When enabled, first rebuild context and run baseline coverage locally, then read `references/delegation-workflow.md` before spawning workers.
+
+The coordinator must assign disjoint write ownership. Shared files such as `src/setupTests.ts`, `src/test-utils.tsx`, `src/test-utils/`, `package.json`, and lockfiles need exactly one owner, or the coordinator keeps them local. Every worker must know it is not alone in the codebase, must avoid reverting other edits, and must report changed paths and validation results.
 
 ## Completion Criteria
 

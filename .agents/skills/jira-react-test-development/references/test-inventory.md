@@ -2,6 +2,22 @@
 
 Use this inventory to choose the next missing tests. Existing tests may already cover some scenarios; inspect before adding duplicates.
 
+## Contents
+
+- Highest Priority Utilities
+- API And React Query
+- Auth And Provider Hooks
+- URL And Modal Hooks
+- State Stores
+- Optimistic Update Callbacks
+- Layouts And Shared Components
+- Auth Forms And Pages
+- Header, Members, And Project Navigation
+- Project List Workflow
+- Board Workflow
+- App And Routes
+- Mock Backend Files
+
 ## Highest Priority Utilities
 
 `src/utils/filterRequest.ts`

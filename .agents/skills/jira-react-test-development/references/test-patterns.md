@@ -2,6 +2,21 @@
 
 Use these patterns as the default implementation style unless existing tests in the repo establish a stronger convention.
 
+## Contents
+
+- Test File Placement
+- Baseline Setup
+- Shared Render Helper
+- Test Data Factories
+- Fetch Mock
+- Router And Navigation
+- Auth Strategies
+- Ant Design Patterns
+- React Query Patterns
+- Drag And Drop
+- Timer And Debounce
+- Error Testing
+
 ## Test File Placement
 
 - Pure utility: `src/utils/filterRequest.test.ts`.
