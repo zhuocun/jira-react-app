@@ -1,0 +1,196 @@
+import {
+    act,
+    fireEvent,
+    render,
+    renderHook,
+    screen,
+    waitFor
+} from "@testing-library/react";
+import { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { MemoryRouter, useLocation } from "react-router-dom";
+
+import useAuth from "./useAuth";
+
+const member = (overrides: Partial<IMember> = {}): IMember => ({
+    _id: "u1",
+    email: "alice@example.com",
+    username: "Alice",
+    ...overrides
+});
+
+const user = (overrides: Partial<IUser> = {}): IUser => ({
+    ...member(),
+    jwt: "jwt-1",
+    likedProjects: [],
+    ...overrides
+});
+
+const createQueryClient = () =>
+    new QueryClient({
+        defaultOptions: {
+            queries: {
+                cacheTime: Infinity,
+                retry: false
+            }
+        }
+    });
+
+const createWrapper = (queryClient: QueryClient, initialEntries = ["/"]) =>
+    function Wrapper({ children }: { children: ReactNode }) {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter initialEntries={initialEntries}>
+                    {children}
+                </MemoryRouter>
+            </QueryClientProvider>
+        );
+    };
+
+const AuthProbe = () => {
+    const auth = useAuth();
+    const location = useLocation();
+
+    return (
+        <div>
+            <span data-testid="user">{auth.user?.username ?? "none"}</span>
+            <span data-testid="token">{auth.token ?? "none"}</span>
+            <span data-testid="path">{location.pathname}</span>
+            <button type="button" onClick={auth.logout}>
+                logout
+            </button>
+            <button type="button" onClick={auth.refreshUser}>
+                refresh
+            </button>
+        </div>
+    );
+};
+
+const renderAuthProbe = (queryClient: QueryClient, route = "/") =>
+    render(
+        <QueryClientProvider client={queryClient}>
+            <MemoryRouter initialEntries={[route]}>
+                <AuthProbe />
+            </MemoryRouter>
+        </QueryClientProvider>
+    );
+
+describe("useAuth", () => {
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    it("reads the cached user from React Query and token from localStorage", () => {
+        const queryClient = createQueryClient();
+        queryClient.setQueryData("users", user());
+        localStorage.setItem("Token", "stored-token");
+
+        renderAuthProbe(queryClient);
+
+        expect(screen.getByTestId("user")).toHaveTextContent("Alice");
+        expect(screen.getByTestId("token")).toHaveTextContent("stored-token");
+    });
+
+    it("clears cached auth state and navigates to login on logout", async () => {
+        const queryClient = createQueryClient();
+        queryClient.setQueryData("users", user());
+        localStorage.setItem("Token", "stored-token");
+
+        renderAuthProbe(queryClient);
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "logout" }));
+            await Promise.resolve();
+        });
+
+        await waitFor(() => expect(localStorage.getItem("Token")).toBeNull());
+        expect(queryClient.getQueryData("users")).toBeUndefined();
+        await waitFor(() =>
+            expect(screen.getByTestId("path")).toHaveTextContent("/login")
+        );
+    });
+
+    it("does not refetch users when there is no token", () => {
+        const queryClient = createQueryClient();
+        const refetchSpy = jest.spyOn(queryClient, "refetchQueries");
+
+        const { result } = renderHook(() => useAuth(), {
+            wrapper: createWrapper(queryClient)
+        });
+
+        act(() => {
+            result.current.refreshUser();
+        });
+
+        expect(refetchSpy).not.toHaveBeenCalled();
+    });
+
+    it("does not refetch users when a user is already cached", () => {
+        const queryClient = createQueryClient();
+        const refetchSpy = jest.spyOn(queryClient, "refetchQueries");
+        queryClient.setQueryData("users", user());
+        localStorage.setItem("Token", "stored-token");
+
+        const { result } = renderHook(() => useAuth(), {
+            wrapper: createWrapper(queryClient)
+        });
+
+        act(() => {
+            result.current.refreshUser();
+        });
+
+        expect(refetchSpy).not.toHaveBeenCalled();
+    });
+
+    it("refetches users when a token exists without cached user data and restores the stored JWT", async () => {
+        const queryClient = createQueryClient();
+        const serverUser = user({ jwt: "server-jwt" });
+        const refetchSpy = jest
+            .spyOn(queryClient, "refetchQueries")
+            .mockImplementation(() => {
+                queryClient.setQueryData("users", serverUser);
+                return Promise.resolve([]) as any;
+            });
+        localStorage.setItem("Token", "stored-token");
+
+        const { result } = renderHook(() => useAuth(), {
+            wrapper: createWrapper(queryClient)
+        });
+
+        act(() => {
+            result.current.refreshUser();
+        });
+
+        await waitFor(() => expect(refetchSpy).toHaveBeenCalledWith("users"));
+        await waitFor(() =>
+            expect(queryClient.getQueryData("users")).toEqual({
+                ...serverUser,
+                jwt: "stored-token"
+            })
+        );
+    });
+
+    it("logs out when refreshUser cannot refetch the current user", async () => {
+        const queryClient = createQueryClient();
+        const refetchSpy = jest
+            .spyOn(queryClient, "refetchQueries")
+            .mockImplementation(
+                () => Promise.reject(new Error("offline")) as any
+            );
+        localStorage.setItem("Token", "stored-token");
+
+        renderAuthProbe(queryClient);
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "refresh" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+
+        await waitFor(() => expect(refetchSpy).toHaveBeenCalledWith("users"));
+        await waitFor(() => expect(localStorage.getItem("Token")).toBeNull());
+        await waitFor(() =>
+            expect(screen.getByTestId("path")).toHaveTextContent("/login")
+        );
+    });
+});

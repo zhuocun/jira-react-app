@@ -1,0 +1,326 @@
+import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+
+import BoardPage from "./board";
+
+jest.mock("react-beautiful-dnd", () => {
+    const React = jest.requireActual("react");
+
+    return {
+        DragDropContext: ({ children, onDragEnd }: any) => (
+            <div data-has-drag-end={String(Boolean(onDragEnd))}>{children}</div>
+        ),
+        Draggable: ({ children, draggableId, index, isDragDisabled }: any) =>
+            children({
+                dragHandleProps: {
+                    "data-drag-handle-id": draggableId
+                },
+                draggableProps: {
+                    "data-drag-disabled": String(Boolean(isDragDisabled)),
+                    "data-draggable-id": draggableId,
+                    "data-draggable-index": index
+                },
+                innerRef: jest.fn()
+            }),
+        Droppable: ({ children, droppableId }: any) =>
+            children({
+                droppableProps: {
+                    "data-droppable-id": droppableId
+                },
+                innerRef: jest.fn(),
+                placeholder: React.createElement("span", {
+                    "data-testid": `placeholder-${droppableId}`
+                })
+            })
+    };
+});
+
+const member = (overrides: Partial<IMember> = {}): IMember => ({
+    _id: "member-1",
+    email: "alice@example.com",
+    username: "Alice",
+    ...overrides
+});
+
+const user = (overrides: Partial<IUser> = {}): IUser => ({
+    ...member(),
+    jwt: "token",
+    likedProjects: [],
+    ...overrides
+});
+
+const project = (overrides: Partial<IProject> = {}): IProject => ({
+    _id: "project-1",
+    createdAt: "2026-04-25T00:00:00.000Z",
+    managerId: "member-1",
+    organization: "Product",
+    projectName: "Roadmap",
+    ...overrides
+});
+
+const column = (overrides: Partial<IColumn> = {}): IColumn => ({
+    _id: "column-1",
+    columnName: "Todo",
+    index: 0,
+    projectId: "project-1",
+    ...overrides
+});
+
+const task = (overrides: Partial<ITask> = {}): ITask => ({
+    _id: "task-1",
+    columnId: "column-1",
+    coordinatorId: "member-1",
+    epic: "Feature",
+    index: 0,
+    note: "No note",
+    projectId: "project-1",
+    storyPoints: 3,
+    taskName: "Build task",
+    type: "Task",
+    ...overrides
+});
+
+const members = [
+    member(),
+    member({
+        _id: "member-2",
+        email: "bob@example.com",
+        username: "Bob"
+    })
+];
+
+const defaultColumns = [
+    column({ _id: "column-1", columnName: "Todo", index: 0 }),
+    column({ _id: "column-2", columnName: "Done", index: 1 }),
+    column({ _id: "mock", columnName: "Mock", index: 2 })
+];
+
+const defaultTasks = [
+    task(),
+    task({
+        _id: "task-2",
+        columnId: "column-1",
+        coordinatorId: "member-2",
+        taskName: "Fix bug",
+        type: "Bug"
+    }),
+    task({
+        _id: "mock",
+        columnId: "column-2",
+        taskName: "Optimistic task"
+    })
+];
+
+const response = (body: unknown, ok = true) =>
+    ({
+        json: jest.fn().mockResolvedValue(body),
+        ok,
+        status: ok ? 200 : 400
+    } as unknown as Response);
+
+const installAntdBrowserMocks = () => {
+    Object.defineProperty(window, "matchMedia", {
+        writable: true,
+        value: (query: string) => ({
+            addEventListener: jest.fn(),
+            addListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+            matches: false,
+            media: query,
+            onchange: null,
+            removeEventListener: jest.fn(),
+            removeListener: jest.fn()
+        })
+    });
+
+    class ResizeObserverMock {
+        observe = jest.fn();
+
+        unobserve = jest.fn();
+
+        disconnect = jest.fn();
+    }
+
+    Object.defineProperty(window, "ResizeObserver", {
+        writable: true,
+        value: ResizeObserverMock
+    });
+};
+
+const renderBoard = (route = "/projects/project-1/board") => {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            mutations: { retry: false },
+            queries: { retry: false }
+        }
+    });
+    queryClient.setQueryData("users", user());
+
+    return render(
+        <QueryClientProvider client={queryClient}>
+            <MemoryRouter initialEntries={[route]}>
+                <Routes>
+                    <Route
+                        path="/projects/:projectId/board"
+                        element={<BoardPage />}
+                    />
+                </Routes>
+            </MemoryRouter>
+        </QueryClientProvider>
+    );
+};
+
+describe("BoardPage", () => {
+    const fetchMock = jest.spyOn(global, "fetch");
+    const oldTitle = document.title;
+
+    beforeAll(() => {
+        installAntdBrowserMocks();
+    });
+
+    beforeEach(() => {
+        localStorage.clear();
+        fetchMock.mockReset();
+        fetchMock.mockImplementation((input) => {
+            const url = String(input);
+
+            if (url.includes("users/members")) {
+                return Promise.resolve(response(members));
+            }
+            if (url.includes("projects")) {
+                return Promise.resolve(response(project()));
+            }
+            if (url.includes("boards")) {
+                return Promise.resolve(response(defaultColumns));
+            }
+            if (url.includes("tasks")) {
+                return Promise.resolve(response(defaultTasks));
+            }
+
+            return Promise.resolve(response({}));
+        });
+    });
+
+    afterEach(() => {
+        document.title = oldTitle;
+    });
+
+    afterAll(() => {
+        fetchMock.mockRestore();
+    });
+
+    it("shows loading, then renders the project board, columns, tasks, and disabled mock drags", async () => {
+        let resolveProject: (value: Response) => void = () => undefined;
+        let resolveBoards: (value: Response) => void = () => undefined;
+        let resolveTasks: (value: Response) => void = () => undefined;
+        fetchMock.mockImplementation((input) => {
+            const url = String(input);
+
+            if (url.includes("users/members")) {
+                return Promise.resolve(response(members));
+            }
+            if (url.includes("projects")) {
+                return new Promise<Response>((resolve) => {
+                    resolveProject = resolve;
+                });
+            }
+            if (url.includes("boards")) {
+                return new Promise<Response>((resolve) => {
+                    resolveBoards = resolve;
+                });
+            }
+            if (url.includes("tasks")) {
+                return new Promise<Response>((resolve) => {
+                    resolveTasks = resolve;
+                });
+            }
+
+            return Promise.resolve(response({}));
+        });
+        const { container } = renderBoard();
+
+        expect(document.title).toBe("Board");
+        expect(
+            screen.getByRole("heading", { name: "..." })
+        ).toBeInTheDocument();
+        expect(container.querySelector(".ant-spin")).toBeInTheDocument();
+
+        resolveProject(response(project()));
+        resolveBoards(response(defaultColumns));
+        resolveTasks(response(defaultTasks));
+
+        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(screen.getByText("Build task")).toBeInTheDocument();
+        expect(screen.getByText("Fix bug")).toBeInTheDocument();
+        expect(screen.getByText("Optimistic task")).toBeInTheDocument();
+        expect(
+            screen.getByPlaceholderText(/Create column/)
+        ).toBeInTheDocument();
+
+        const headings = screen
+            .getAllByRole("heading", { level: 4 })
+            .map((heading) => heading.textContent);
+        expect(headings).toEqual(["Todo", "Done", "Mock"]);
+        expect(
+            screen.getByText("Mock").closest("[data-draggable-id='columnmock']")
+        ).toHaveAttribute("data-drag-disabled", "true");
+        expect(
+            screen
+                .getByText("Optimistic task")
+                .closest("[data-draggable-id='taskmock']")
+        ).toHaveAttribute("data-drag-disabled", "true");
+    });
+
+    it("passes URL filters through to columns", async () => {
+        renderBoard(
+            "/projects/project-1/board?taskName=Fix&type=Bug&coordinatorId=member-2"
+        );
+
+        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(screen.getByText("Fix bug")).toBeInTheDocument();
+        expect(screen.queryByText("Build task")).not.toBeInTheDocument();
+        expect(
+            screen.getByPlaceholderText("Search this board")
+        ).toBeInTheDocument();
+    });
+
+    it("opens the task modal from the editingTaskId URL param", async () => {
+        renderBoard("/projects/project-1/board?editingTaskId=task-1");
+
+        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(
+            await screen.findByDisplayValue("Build task")
+        ).toBeInTheDocument();
+    });
+
+    it("renders an empty board with the column creator", async () => {
+        fetchMock.mockImplementation((input) => {
+            const url = String(input);
+
+            if (url.includes("users/members")) {
+                return Promise.resolve(response(members));
+            }
+            if (url.includes("projects")) {
+                return Promise.resolve(response(project()));
+            }
+            if (url.includes("boards")) {
+                return Promise.resolve(response([]));
+            }
+            if (url.includes("tasks")) {
+                return Promise.resolve(response([]));
+            }
+
+            return Promise.resolve(response({}));
+        });
+        renderBoard();
+
+        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(
+            screen.getByPlaceholderText(/Create column/)
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole("heading", { level: 4 })
+        ).not.toBeInTheDocument();
+    });
+});

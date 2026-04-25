@@ -58,6 +58,7 @@ const BoardPage = () => {
 
     const { onDragEnd, isColumnDragDisabled, isTaskDragDisabled } =
         useDragEnd();
+    const visibleTasks = tasks ?? [];
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
@@ -66,7 +67,7 @@ const BoardPage = () => {
                     {!pLoading ? `${currentProject?.projectName} Board` : "..."}
                 </h1>
                 <TaskSearchPanel
-                    tasks={tasks ?? []}
+                    tasks={visibleTasks}
                     param={param}
                     setParam={setParam}
                     members={members}
@@ -92,13 +93,10 @@ const BoardPage = () => {
                                         }
                                     >
                                         <Column
-                                            tasks={
-                                                tasks?.filter(
-                                                    (task) =>
-                                                        task.columnId ===
-                                                        column._id
-                                                ) ?? []
-                                            }
+                                            tasks={visibleTasks.filter(
+                                                (task) =>
+                                                    task.columnId === column._id
+                                            )}
                                             key={column._id}
                                             column={column}
                                             param={debouncedParam}
@@ -113,7 +111,7 @@ const BoardPage = () => {
                 ) : (
                     <BoardSpin />
                 )}
-                <TaskModal tasks={tasks ?? []} />
+                <TaskModal tasks={visibleTasks} />
             </PageContainer>
         </DragDropContext>
     );

@@ -1,0 +1,282 @@
+import {
+    act,
+    fireEvent,
+    render,
+    screen,
+    waitFor
+} from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+
+import {
+    ProjectModalStoreContext,
+    projectModalStore
+} from "../store/projectModalStore";
+
+import ProjectPage from "./project";
+
+const member = (overrides: Partial<IMember> = {}): IMember => ({
+    _id: "member-1",
+    email: "alice@example.com",
+    username: "Alice",
+    ...overrides
+});
+
+const project = (overrides: Partial<IProject> = {}): IProject => ({
+    _id: "project-1",
+    createdAt: "2026-04-25T00:00:00.000Z",
+    managerId: "member-1",
+    organization: "Product",
+    projectName: "Roadmap",
+    ...overrides
+});
+
+const members = [
+    member(),
+    member({
+        _id: "member-2",
+        email: "bob@example.com",
+        username: "Bob"
+    })
+];
+
+const projects = [
+    project(),
+    project({
+        _id: "project-2",
+        managerId: "member-2",
+        organization: "Finance",
+        projectName: "Billing"
+    })
+];
+
+const response = (body: unknown, ok = true) =>
+    ({
+        json: jest.fn().mockResolvedValue(body),
+        ok,
+        status: ok ? 200 : 400
+    } as unknown as Response);
+
+const installAntdBrowserMocks = () => {
+    Object.defineProperty(window, "matchMedia", {
+        writable: true,
+        value: (query: string) => ({
+            addEventListener: jest.fn(),
+            addListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+            matches: false,
+            media: query,
+            onchange: null,
+            removeEventListener: jest.fn(),
+            removeListener: jest.fn()
+        })
+    });
+
+    class ResizeObserverMock {
+        observe = jest.fn();
+
+        unobserve = jest.fn();
+
+        disconnect = jest.fn();
+    }
+
+    Object.defineProperty(window, "ResizeObserver", {
+        writable: true,
+        value: ResizeObserverMock
+    });
+};
+
+const LocationProbe = () => {
+    const location = useLocation();
+
+    return <div data-testid="location">{location.search}</div>;
+};
+
+const renderPage = (route = "/projects") => {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            mutations: { retry: false },
+            queries: { retry: false }
+        }
+    });
+
+    return render(
+        <ProjectModalStoreContext.Provider value={projectModalStore}>
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter initialEntries={[route]}>
+                    <Routes>
+                        <Route
+                            path="/projects"
+                            element={
+                                <>
+                                    <ProjectPage />
+                                    <LocationProbe />
+                                </>
+                            }
+                        />
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>
+        </ProjectModalStoreContext.Provider>
+    );
+};
+
+describe("ProjectPage", () => {
+    const fetchMock = jest.spyOn(global, "fetch");
+    const oldTitle = document.title;
+
+    beforeAll(() => {
+        installAntdBrowserMocks();
+    });
+
+    beforeEach(() => {
+        jest.useRealTimers();
+        localStorage.clear();
+        projectModalStore.closeModalMobX();
+        fetchMock.mockReset();
+        fetchMock.mockImplementation((input) => {
+            const url = String(input);
+
+            if (url.includes("users/members")) {
+                return Promise.resolve(response(members));
+            }
+            if (url.includes("projects")) {
+                return Promise.resolve(response(projects));
+            }
+
+            return Promise.resolve(response({}));
+        });
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+        document.title = oldTitle;
+    });
+
+    afterAll(() => {
+        fetchMock.mockRestore();
+    });
+
+    it("reads URL filters, fetches projects and members, and restores the page title", async () => {
+        const { unmount } = renderPage(
+            "/projects?projectName=Road&managerId=member-1"
+        );
+
+        expect(document.title).toBe("Project List");
+        expect(await screen.findByText("Roadmap")).toBeInTheDocument();
+        expect(screen.getByText("Billing")).toBeInTheDocument();
+        expect(screen.getAllByText("Alice").length).toBeGreaterThan(0);
+        expect(screen.getByPlaceholderText("Search this list")).toHaveValue(
+            "Road"
+        );
+        expect(
+            fetchMock.mock.calls.some(([url]) =>
+                String(url).includes(
+                    "/api/v1/projects?projectName=Road&managerId=member-1"
+                )
+            )
+        ).toBe(true);
+
+        unmount();
+        expect(document.title).toBe(oldTitle);
+    });
+
+    it("shows loading first and then the empty table state", async () => {
+        let resolveProjects: (value: Response) => void = () => undefined;
+        let resolveMembers: (value: Response) => void = () => undefined;
+        fetchMock.mockImplementation((input) => {
+            const url = String(input);
+
+            if (url.includes("users/members")) {
+                return new Promise<Response>((resolve) => {
+                    resolveMembers = resolve;
+                });
+            }
+            if (url.includes("projects")) {
+                return new Promise<Response>((resolve) => {
+                    resolveProjects = resolve;
+                });
+            }
+
+            return Promise.resolve(response({}));
+        });
+        const { container } = renderPage();
+
+        expect(container.querySelector(".ant-spin")).toBeInTheDocument();
+
+        resolveProjects(response([]));
+        resolveMembers(response([]));
+
+        expect(await screen.findByText("No data")).toBeInTheDocument();
+    });
+
+    it("shows a shared error message when either query fails", async () => {
+        fetchMock.mockImplementation((input) => {
+            const url = String(input);
+
+            if (url.includes("users/members")) {
+                return Promise.resolve(response(members));
+            }
+            if (url.includes("projects")) {
+                return Promise.resolve(
+                    response({ error: "Project fetch failed" }, false)
+                );
+            }
+
+            return Promise.resolve(response({}));
+        });
+
+        renderPage();
+
+        expect(
+            await screen.findByText(
+                "Data fetching failed, please try again later."
+            )
+        ).toBeInTheDocument();
+    });
+
+    it("opens the project modal through URL state from the create button", async () => {
+        renderPage();
+
+        expect(await screen.findByText("Roadmap")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Create Project" }));
+
+        await waitFor(() =>
+            expect(screen.getByTestId("location")).toHaveTextContent("modal=on")
+        );
+    });
+
+    it("debounces project search URL params before refetching projects", async () => {
+        renderPage("/projects?projectName=Road");
+
+        expect(await screen.findByText("Roadmap")).toBeInTheDocument();
+        fetchMock.mockClear();
+
+        fireEvent.change(screen.getByPlaceholderText("Search this list"), {
+            target: { value: "Billing" }
+        });
+
+        expect(screen.getByTestId("location")).toHaveTextContent(
+            "projectName=Billing"
+        );
+        expect(
+            fetchMock.mock.calls.some(([url]) =>
+                String(url).includes("projectName=Billing")
+            )
+        ).toBe(false);
+
+        await act(async () => {
+            await new Promise((resolve) => {
+                setTimeout(resolve, 1100);
+            });
+        });
+
+        await waitFor(() =>
+            expect(
+                fetchMock.mock.calls.some(([url]) =>
+                    String(url).includes("projectName=Billing")
+                )
+            ).toBe(true)
+        );
+    });
+});

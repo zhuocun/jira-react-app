@@ -1,0 +1,104 @@
+/* eslint-disable global-require */
+import { fireEvent, render, screen } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
+
+import useAuth from "../utils/hooks/useAuth";
+
+import RegisterPage from "./register";
+
+jest.mock("../components/registerForm", () => {
+    const React = require("react");
+
+    return {
+        __esModule: true,
+        default: (props: { onError: (error: Error) => void }) =>
+            React.createElement(
+                "button",
+                {
+                    onClick: () => props.onError(new Error("Register failed")),
+                    type: "button"
+                },
+                "Mock Register Form"
+            )
+    };
+});
+jest.mock("../utils/hooks/useAuth");
+
+const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+
+const user = (overrides: Partial<IUser> = {}): IUser => ({
+    _id: "u1",
+    email: "alice@example.com",
+    jwt: "jwt-1",
+    likedProjects: [],
+    username: "Alice",
+    ...overrides
+});
+
+const renderRegisterPage = ({
+    currentUser,
+    token = null
+}: {
+    currentUser?: IUser;
+    token?: string | null;
+} = {}) => {
+    mockedUseAuth.mockReturnValue({
+        logout: jest.fn(),
+        refreshUser: jest.fn(),
+        token,
+        user: currentUser
+    });
+
+    window.history.pushState({}, "Register", "/register");
+
+    return render(
+        <BrowserRouter>
+            <RegisterPage />
+        </BrowserRouter>
+    );
+};
+
+describe("RegisterPage", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("renders title, form, error box, and the login link", () => {
+        renderRegisterPage();
+
+        expect(
+            screen.getByRole("heading", { name: /register for an account/i })
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /mock register form/i })
+        ).toBeInTheDocument();
+
+        fireEvent.click(
+            screen.getByRole("button", { name: /mock register form/i })
+        );
+
+        expect(screen.getByText("Register failed")).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /log in to your account/i })
+        ).toBeInTheDocument();
+    });
+
+    it("navigates to login from the switch link", () => {
+        renderRegisterPage();
+
+        fireEvent.click(
+            screen.getByRole("button", { name: /log in to your account/i })
+        );
+
+        expect(window.location.pathname).toBe("/login");
+    });
+
+    it("renders nothing for an already authenticated user", () => {
+        const { container } = renderRegisterPage({
+            currentUser: user(),
+            token: "jwt-1"
+        });
+
+        expect(container).toBeEmptyDOMElement();
+    });
+});
