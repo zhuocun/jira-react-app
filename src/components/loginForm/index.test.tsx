@@ -54,7 +54,7 @@ const renderLoginForm = ({
     mockedUseReactMutation.mockReturnValue({
         isLoading,
         mutateAsync
-    } as any);
+    } as unknown as ReturnType<typeof useReactMutation<IUser>>);
 
     window.history.pushState({}, "Login", "/login");
 
@@ -162,6 +162,24 @@ describe("LoginForm", () => {
             expect(window.location.pathname).toBe("/projects");
         });
         expect(localStorage.getItem("Token")).toBe("jwt-login");
+    });
+
+    it("keeps login failures on the current page for inline error handling", async () => {
+        mutateAsync.mockRejectedValue(new Error("Invalid credentials"));
+        renderLoginForm();
+
+        await changeField("Email", "alice@example.com");
+        await changeField("Password", "wrong");
+        await submitLogin();
+
+        await waitFor(() => {
+            expect(mutateAsync).toHaveBeenCalledWith({
+                email: "alice@example.com",
+                password: "wrong"
+            });
+        });
+        expect(window.location.pathname).toBe("/login");
+        expect(localStorage.getItem("Token")).toBeNull();
     });
 
     it("shows the submitting state from the mutation", () => {

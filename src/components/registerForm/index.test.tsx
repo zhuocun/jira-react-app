@@ -45,7 +45,7 @@ const renderRegisterForm = ({
     mockedUseReactMutation.mockReturnValue({
         isLoading,
         mutateAsync
-    } as any);
+    } as unknown as ReturnType<typeof useReactMutation<unknown>>);
 
     window.history.pushState({}, "Register", "/register");
 
@@ -157,6 +157,25 @@ describe("RegisterForm", () => {
         await waitFor(() => {
             expect(window.location.pathname).toBe("/login");
         });
+    });
+
+    it("keeps registration failures on the current page for inline error handling", async () => {
+        mutateAsync.mockRejectedValue(new Error("Register failed"));
+        renderRegisterForm();
+
+        await changeField("Email", "alice@example.com");
+        await changeField("Username", "Alice");
+        await changeField("Password", "secret");
+        await submitRegister();
+
+        await waitFor(() => {
+            expect(mutateAsync).toHaveBeenCalledWith({
+                email: "alice@example.com",
+                password: "secret",
+                username: "Alice"
+            });
+        });
+        expect(window.location.pathname).toBe("/register");
     });
 
     it("shows the submitting state from the mutation", () => {

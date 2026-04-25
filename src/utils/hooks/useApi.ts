@@ -10,6 +10,29 @@ interface IConfig extends RequestInit {
     token?: string | null;
 }
 
+const getApiErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) return error.message;
+    if (typeof error === "string") return error;
+    if (Array.isArray(error)) {
+        return getApiErrorMessage(error[0]);
+    }
+    if (error && typeof error === "object") {
+        const {
+            error: nestedError,
+            message,
+            msg
+        } = error as {
+            error?: unknown;
+            message?: unknown;
+            msg?: unknown;
+        };
+
+        return getApiErrorMessage(nestedError ?? message ?? msg);
+    }
+
+    return "Operation failed";
+};
+
 export const api = async (
     endpoint: string,
     { data, token, ...customConfig }: IConfig = {}
@@ -36,17 +59,10 @@ export const api = async (
     return fetch(`${environment.apiBaseUrl}/${apiEndpoint}`, config).then(
         async (res) => {
             const resData = await res.json();
-            const errorObj = resData.error;
             if (res.ok) {
                 return resData;
             }
-            if (errorObj) {
-                if (typeof errorObj === "string") {
-                    return Promise.reject(new Error(errorObj));
-                }
-                return Promise.reject(new Error(errorObj[0].msg));
-            }
-            return Promise.reject(new Error(resData));
+            return Promise.reject(new Error(getApiErrorMessage(resData)));
         }
     );
 };

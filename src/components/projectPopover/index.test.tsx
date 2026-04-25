@@ -73,7 +73,7 @@ const renderProjectPopover = () => {
                 projectName: "Billing"
             })
         ]
-    } as any);
+    } as unknown as ReturnType<typeof useReactQuery<IProject[]>>);
 
     window.history.pushState({}, "Projects", "/projects");
 

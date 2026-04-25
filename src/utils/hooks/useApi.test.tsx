@@ -135,6 +135,14 @@ describe("api", () => {
         await expect(api("boards")).rejects.toThrow("Board failed");
     });
 
+    it("rejects Error API payloads by preserving their message", async () => {
+        fetchMock().mockResolvedValue(
+            jsonResponse(new Error("Exploded"), false, 500)
+        );
+
+        await expect(api("boards")).rejects.toThrow("Exploded");
+    });
+
     it("rejects validation-shaped API errors", async () => {
         fetchMock().mockResolvedValue(
             jsonResponse({ error: [{ msg: "Name is required" }] }, false, 400)
@@ -149,6 +157,20 @@ describe("api", () => {
         );
 
         await expect(api("projects")).rejects.toThrow("Server failed");
+    });
+
+    it("rejects message-shaped API errors without object stringification", async () => {
+        fetchMock().mockResolvedValue(
+            jsonResponse({ message: "Unauthorized" }, false, 401)
+        );
+
+        await expect(api("projects")).rejects.toThrow("Unauthorized");
+    });
+
+    it("rejects empty API errors with a stable fallback message", async () => {
+        fetchMock().mockResolvedValue(jsonResponse({}, false, 500));
+
+        await expect(api("projects")).rejects.toThrow("Operation failed");
     });
 
     it("uses the authenticated user's JWT before the localStorage token fallback", async () => {

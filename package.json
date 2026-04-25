@@ -11,7 +11,7 @@
         "prettier": "prettier -c .prettierrc --write .",
         "eslint": "eslint . --ext .ts --ext tsx --fix",
         "pre-commit": "npm run prettier && npm run eslint",
-        "server": "json-server __json_server_mock__/db.json --watch --port 8080 --middleware ./__json_server_mock__/middleware.js"
+        "server": "json-server __json_server_mock__/db.json --watch --port 8080 --middlewares ./__json_server_mock__/middleware.js"
     },
     "dependencies": {
         "@ant-design/icons": "^4.8.0",
@@ -46,6 +46,7 @@
         "web-vitals": "^2.1.4"
     },
     "devDependencies": {
+        "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
         "@commitlint/config-conventional": "^17.2.0",
         "@craco/craco": "^7.0.0",
         "eslint": "^8.30.0",

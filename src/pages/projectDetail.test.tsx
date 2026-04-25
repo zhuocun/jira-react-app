@@ -14,6 +14,24 @@ const LocationProbe = () => {
     return <div data-testid="location">{location.pathname}</div>;
 };
 
+const silenceExpectedConsoleErrors = (expectedMessages: string[][]) => {
+    return jest
+        .spyOn(console, "error")
+        .mockImplementation((...args: Parameters<typeof console.error>) => {
+            const message = args.map(String).join(" ");
+
+            if (
+                expectedMessages.some((fragments) =>
+                    fragments.every((fragment) => message.includes(fragment))
+                )
+            ) {
+                return;
+            }
+
+            throw new Error(`Unexpected console.error: ${message}`);
+        });
+};
+
 const renderDetail = (route: string) =>
     render(
         <MemoryRouter initialEntries={[route]}>
@@ -31,6 +49,18 @@ const renderDetail = (route: string) =>
     );
 
 describe("ProjectDetailPage", () => {
+    let consoleErrorSpy: jest.SpyInstance;
+
+    beforeAll(() => {
+        consoleErrorSpy = silenceExpectedConsoleErrors([
+            ["Warning: An update to", "ForwardRef", "not wrapped in act"]
+        ]);
+    });
+
+    afterAll(() => {
+        consoleErrorSpy.mockRestore();
+    });
+
     it("redirects a project detail route to the board child route", async () => {
         renderDetail("/projects/project-1");
 

@@ -52,7 +52,7 @@ const renderMemberPopover = (members: IMember[] = [member()]) => {
     mockedUseReactQuery.mockReturnValue({
         data: members,
         refetch
-    } as any);
+    } as unknown as ReturnType<typeof useReactQuery<IMember[]>>);
 
     render(<MemberPopover />);
 

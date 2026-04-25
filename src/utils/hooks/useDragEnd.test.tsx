@@ -100,6 +100,7 @@ const drop = (
     type: "COLUMN" | "ROW" = "ROW"
 ) =>
     result.onDragEnd({
+        combine: null,
         destination,
         draggableId: "drag-1",
         mode: "FLUID",

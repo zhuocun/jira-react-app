@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Modal } from "antd";
+import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -11,21 +12,49 @@ import Column from ".";
 jest.mock("../../utils/hooks/useReactMutation");
 jest.mock("../../utils/hooks/useTaskModal");
 
+type DragMockProps = {
+    children: ReactNode;
+    draggableId: string;
+    isDragDisabled?: boolean;
+};
+
+type DropMockProps = {
+    children: ReactNode;
+    droppableId: string;
+};
+
+type TaskCreatorMockProps = {
+    columnId?: string;
+    disabled?: boolean;
+};
+
+type DropdownMenuItem = {
+    key?: string | number;
+    label?: ReactNode;
+};
+
+type DropdownMockProps = {
+    children: ReactNode;
+    menu?: {
+        items?: DropdownMenuItem[];
+    };
+};
+
 jest.mock("../dragAndDrop", () => ({
-    Drag: ({ children, draggableId, isDragDisabled }: any) => (
+    Drag: ({ children, draggableId, isDragDisabled }: DragMockProps) => (
         <div data-disabled={String(isDragDisabled)} data-testid={draggableId}>
             {children}
         </div>
     ),
-    Drop: ({ children, droppableId }: any) => (
+    Drop: ({ children, droppableId }: DropMockProps) => (
         <div data-testid={`drop-${droppableId}`}>{children}</div>
     ),
-    DropChild: ({ children }: any) => <div>{children}</div>
+    DropChild: ({ children }: { children: ReactNode }) => <div>{children}</div>
 }));
 
 jest.mock("../taskCreator", () => ({
     __esModule: true,
-    default: ({ columnId, disabled }: any) => (
+    default: ({ columnId, disabled }: TaskCreatorMockProps) => (
         <div
             data-column-id={columnId}
             data-disabled={String(disabled)}
@@ -40,7 +69,7 @@ jest.mock("antd", () => {
 
     return {
         ...actual,
-        Dropdown: ({ children, menu }: any) =>
+        Dropdown: ({ children, menu }: DropdownMockProps) =>
             React.createElement(
                 "div",
                 null,
@@ -48,7 +77,7 @@ jest.mock("antd", () => {
                 React.createElement(
                     "div",
                     { "data-testid": "dropdown-menu" },
-                    menu?.items?.map((item: any) =>
+                    menu?.items?.map((item) =>
                         React.createElement(
                             "div",
                             { key: item.key },
@@ -202,7 +231,10 @@ describe("Column", () => {
             .spyOn(Modal, "confirm")
             .mockImplementation((config) => {
                 config.onOk?.();
-                return { destroy: jest.fn(), update: jest.fn() } as any;
+                return {
+                    destroy: jest.fn(),
+                    update: jest.fn()
+                } as ReturnType<typeof Modal.confirm>;
             });
         renderColumn();
 

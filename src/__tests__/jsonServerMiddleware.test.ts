@@ -38,47 +38,65 @@ const runMiddleware = (request: Partial<MockRequest>) => {
 };
 
 describe("json-server middleware", () => {
-    it("returns a login token when credentials are present", () => {
-        const { next, res } = runMiddleware({
-            body: { email: "alice@example.com", password: "pw" },
-            path: "/login"
-        });
+    it.each(["/login", "/api/v1/auth/login"])(
+        "returns a login user when credentials are present for %s",
+        (path) => {
+            const { next, res } = runMiddleware({
+                body: { email: "alice@example.com", password: "pw" },
+                path
+            });
 
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({
-            email: "alice@example.com",
-            id: 0,
-            token: "alice@example.com"
-        });
-        expect(next).not.toHaveBeenCalled();
-    });
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({
+                _id: "alice@example.com",
+                email: "alice@example.com",
+                jwt: "alice@example.com",
+                likedProjects: [],
+                username: "alice"
+            });
+            expect(next).not.toHaveBeenCalled();
+        }
+    );
 
-    it.each([
-        [{ email: "wrong@example.com", password: "pw" }, "wrong email"],
-        [{ email: "alice@example.com" }, "missing password"]
-    ])("rejects invalid login credentials for %s", (body) => {
+    it("rejects invalid login credentials", () => {
         const { next, res } = runMiddleware({
-            body,
+            body: { email: "wrong@example.com", password: "pw" },
             path: "/login"
         });
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
-            message: "Invalid credential, please try again"
+            error: "Invalid credential, please try again"
         });
         expect(next).not.toHaveBeenCalled();
     });
 
-    it("creates users from valid register requests", () => {
+    it("rejects login requests with a missing password", () => {
         const { next, res } = runMiddleware({
-            body: { email: "alice@example.com", password: "pw" },
-            path: "/register"
+            body: { email: "alice@example.com" },
+            path: "/login"
         });
 
-        expect(res.status).toHaveBeenCalledWith(201);
-        expect(res.json).toHaveBeenCalledWith({ message: "User created" });
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+            error: "Invalid credential, please try again"
+        });
         expect(next).not.toHaveBeenCalled();
     });
+
+    it.each(["/register", "/api/v1/auth/register"])(
+        "creates users from valid register requests for %s",
+        (path) => {
+            const { next, res } = runMiddleware({
+                body: { email: "alice@example.com", password: "pw" },
+                path
+            });
+
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.json).toHaveBeenCalledWith({ message: "User created" });
+            expect(next).not.toHaveBeenCalled();
+        }
+    );
 
     it.each([
         [{ email: "wrong@example.com", password: "pw" }, "wrong email"],
@@ -91,7 +109,7 @@ describe("json-server middleware", () => {
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
-            message: "Register failed, please try again"
+            error: "Register failed, please try again"
         });
         expect(next).not.toHaveBeenCalled();
     });
@@ -100,23 +118,29 @@ describe("json-server middleware", () => {
         const { next, res } = runMiddleware({ path: "/projects" });
 
         expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+        expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized" });
         expect(next).not.toHaveBeenCalled();
     });
 
-    it("returns user info from a bearer authorization header", () => {
-        const { next, res } = runMiddleware({
-            headers: { authorization: "Bearer token-1" },
-            path: "/userInfo"
-        });
+    it.each(["/userInfo", "/api/v1/users"])(
+        "returns user info from a bearer authorization header for %s",
+        (path) => {
+            const { next, res } = runMiddleware({
+                headers: { authorization: "Bearer alice@example.com" },
+                path
+            });
 
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({
-            email: "token-1",
-            token: "token-1"
-        });
-        expect(next).not.toHaveBeenCalled();
-    });
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({
+                _id: "alice@example.com",
+                email: "alice@example.com",
+                jwt: "alice@example.com",
+                likedProjects: [],
+                username: "alice"
+            });
+            expect(next).not.toHaveBeenCalled();
+        }
+    );
 
     it("passes authorized non-special routes through", () => {
         const { next, res } = runMiddleware({

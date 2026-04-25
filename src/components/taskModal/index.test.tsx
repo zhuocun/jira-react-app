@@ -219,7 +219,10 @@ describe("TaskModal", () => {
             .spyOn(Modal, "confirm")
             .mockImplementation((config) => {
                 config.onOk?.();
-                return { destroy: jest.fn(), update: jest.fn() } as any;
+                return {
+                    destroy: jest.fn(),
+                    update: jest.fn()
+                } as ReturnType<typeof Modal.confirm>;
             });
         renderModal();
 

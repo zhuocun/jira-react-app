@@ -149,7 +149,7 @@ describe("useAuth", () => {
             .spyOn(queryClient, "refetchQueries")
             .mockImplementation(() => {
                 queryClient.setQueryData("users", serverUser);
-                return Promise.resolve([]) as any;
+                return Promise.resolve();
             });
         localStorage.setItem("Token", "stored-token");
 
@@ -175,7 +175,10 @@ describe("useAuth", () => {
         const refetchSpy = jest
             .spyOn(queryClient, "refetchQueries")
             .mockImplementation(
-                () => Promise.reject(new Error("offline")) as any
+                () =>
+                    Promise.reject(new Error("offline")) as ReturnType<
+                        QueryClient["refetchQueries"]
+                    >
             );
         localStorage.setItem("Token", "stored-token");
 

@@ -13,7 +13,6 @@ const createQueryClient = () =>
     new QueryClient({
         defaultOptions: {
             mutations: {
-                cacheTime: Infinity,
                 retry: false
             },
             queries: {
@@ -215,7 +214,9 @@ describe("useReactMutation", () => {
         );
 
         await act(async () => {
-            await result.current.mutateAsync(undefined as any);
+            await result.current.mutateAsync(
+                undefined as unknown as Record<string, unknown>
+            );
         });
 
         expect(apiMock).toHaveBeenCalledWith("profile", {

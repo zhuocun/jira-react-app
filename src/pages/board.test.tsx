@@ -1,17 +1,55 @@
 import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import BoardPage from "./board";
 
+type DragDropContextMockProps = {
+    children: ReactNode;
+    onDragEnd?: unknown;
+};
+
+type DraggableProvidedMock = {
+    dragHandleProps: Record<string, string>;
+    draggableProps: Record<string, string | number>;
+    innerRef: jest.Mock;
+};
+
+type DraggableMockProps = {
+    children: (provided: DraggableProvidedMock) => ReactNode;
+    draggableId: string;
+    index: number;
+    isDragDisabled?: boolean;
+};
+
+type DroppableProvidedMock = {
+    droppableProps: Record<string, string>;
+    innerRef: jest.Mock;
+    placeholder: ReactNode;
+};
+
+type DroppableMockProps = {
+    children: (provided: DroppableProvidedMock) => ReactNode;
+    droppableId: string;
+};
+
 jest.mock("react-beautiful-dnd", () => {
     const React = jest.requireActual("react");
 
     return {
-        DragDropContext: ({ children, onDragEnd }: any) => (
+        DragDropContext: ({
+            children,
+            onDragEnd
+        }: DragDropContextMockProps) => (
             <div data-has-drag-end={String(Boolean(onDragEnd))}>{children}</div>
         ),
-        Draggable: ({ children, draggableId, index, isDragDisabled }: any) =>
+        Draggable: ({
+            children,
+            draggableId,
+            index,
+            isDragDisabled
+        }: DraggableMockProps) =>
             children({
                 dragHandleProps: {
                     "data-drag-handle-id": draggableId
@@ -23,7 +61,7 @@ jest.mock("react-beautiful-dnd", () => {
                 },
                 innerRef: jest.fn()
             }),
-        Droppable: ({ children, droppableId }: any) =>
+        Droppable: ({ children, droppableId }: DroppableMockProps) =>
             children({
                 droppableProps: {
                     "data-droppable-id": droppableId
@@ -119,6 +157,24 @@ const response = (body: unknown, ok = true) =>
         status: ok ? 200 : 400
     } as unknown as Response);
 
+const silenceExpectedConsoleErrors = (expectedMessages: string[][]) => {
+    return jest
+        .spyOn(console, "error")
+        .mockImplementation((...args: Parameters<typeof console.error>) => {
+            const message = args.map(String).join(" ");
+
+            if (
+                expectedMessages.some((fragments) =>
+                    fragments.every((fragment) => message.includes(fragment))
+                )
+            ) {
+                return;
+            }
+
+            throw new Error(`Unexpected console.error: ${message}`);
+        });
+};
+
 const installAntdBrowserMocks = () => {
     Object.defineProperty(window, "matchMedia", {
         writable: true,
@@ -174,9 +230,13 @@ const renderBoard = (route = "/projects/project-1/board") => {
 describe("BoardPage", () => {
     const fetchMock = jest.spyOn(global, "fetch");
     const oldTitle = document.title;
+    let consoleErrorSpy: jest.SpyInstance;
 
     beforeAll(() => {
         installAntdBrowserMocks();
+        consoleErrorSpy = silenceExpectedConsoleErrors([
+            ["Warning: An update to", "BoardPage", "not wrapped in act"]
+        ]);
     });
 
     beforeEach(() => {
@@ -207,6 +267,7 @@ describe("BoardPage", () => {
     });
 
     afterAll(() => {
+        consoleErrorSpy.mockRestore();
         fetchMock.mockRestore();
     });
 

@@ -21,7 +21,12 @@ const RegisterForm: React.FC<{
         email: string;
         password: string;
     }) => {
-        await mutateAsync(input).then(() => navigate("/login"));
+        try {
+            await mutateAsync(input);
+            navigate("/login");
+        } catch {
+            // Error state is set by useReactMutation's onError callback.
+        }
     };
     return (
         <Form onFinish={handleSubmit}>

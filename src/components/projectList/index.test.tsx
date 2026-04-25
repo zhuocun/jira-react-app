@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Modal } from "antd";
+import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import useAuth from "../../utils/hooks/useAuth";
@@ -12,13 +13,25 @@ jest.mock("../../utils/hooks/useAuth");
 jest.mock("../../utils/hooks/useProjectModal");
 jest.mock("../../utils/hooks/useReactMutation");
 
+type DropdownMenuItem = {
+    key?: string | number;
+    label?: ReactNode;
+};
+
+type DropdownMockProps = {
+    children: ReactNode;
+    menu?: {
+        items?: DropdownMenuItem[];
+    };
+};
+
 jest.mock("antd", () => {
     const actual = jest.requireActual("antd");
     const React = jest.requireActual("react");
 
     return {
         ...actual,
-        Dropdown: ({ children, menu }: any) =>
+        Dropdown: ({ children, menu }: DropdownMockProps) =>
             React.createElement(
                 "div",
                 null,
@@ -26,7 +39,7 @@ jest.mock("antd", () => {
                 React.createElement(
                     "div",
                     { "data-testid": "dropdown-menu" },
-                    menu?.items?.map((item: any) =>
+                    menu?.items?.map((item) =>
                         React.createElement(
                             "div",
                             { key: item.key },
@@ -262,7 +275,10 @@ describe("ProjectList", () => {
             .spyOn(Modal, "confirm")
             .mockImplementation((config) => {
                 config.onOk?.();
-                return { destroy: jest.fn(), update: jest.fn() } as any;
+                return {
+                    destroy: jest.fn(),
+                    update: jest.fn()
+                } as ReturnType<typeof Modal.confirm>;
             });
         renderList();
 

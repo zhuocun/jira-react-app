@@ -47,6 +47,24 @@ const response = (body: unknown, ok = true) =>
         status: ok ? 200 : 400
     } as unknown as Response);
 
+const silenceExpectedConsoleErrors = (expectedMessages: string[][]) => {
+    return jest
+        .spyOn(console, "error")
+        .mockImplementation((...args: Parameters<typeof console.error>) => {
+            const message = args.map(String).join(" ");
+
+            if (
+                expectedMessages.some((fragments) =>
+                    fragments.every((fragment) => message.includes(fragment))
+                )
+            ) {
+                return;
+            }
+
+            throw new Error(`Unexpected console.error: ${message}`);
+        });
+};
+
 const installAntdBrowserMocks = () => {
     Object.defineProperty(window, "matchMedia", {
         writable: true,
@@ -113,9 +131,14 @@ const renderProjectModal = (route: string) => {
 
 describe("ProjectModal", () => {
     const fetchMock = jest.spyOn(global, "fetch");
+    let consoleErrorSpy: jest.SpyInstance;
 
     beforeAll(() => {
         installAntdBrowserMocks();
+        consoleErrorSpy = silenceExpectedConsoleErrors([
+            ["Warning: An update to", "null", "not wrapped in act"],
+            ["Warning: An update to", "Field", "not wrapped in act"]
+        ]);
     });
 
     beforeEach(() => {
@@ -150,6 +173,7 @@ describe("ProjectModal", () => {
     });
 
     afterAll(() => {
+        consoleErrorSpy.mockRestore();
         fetchMock.mockRestore();
     });
 

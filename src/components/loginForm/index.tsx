@@ -17,11 +17,13 @@ const LoginForm: React.FC<{
         true
     );
     const handleSubmit = async (input: { email: string; password: string }) => {
-        await mutateAsync(input)
-            .then((res) => {
-                localStorage.setItem("Token", res.jwt);
-            })
-            .then(() => navigate("/projects"));
+        try {
+            const res = await mutateAsync(input);
+            localStorage.setItem("Token", res.jwt);
+            navigate("/projects");
+        } catch {
+            // Error state is set by useReactMutation's onError callback.
+        }
     };
 
     return (

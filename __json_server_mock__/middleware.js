@@ -1,27 +1,33 @@
+const isPath = (req, ...paths) => paths.includes(req.path);
+
+const userFromEmail = (email) => ({
+    _id: email,
+    email,
+    jwt: email,
+    likedProjects: [],
+    username: email.split("@")[0]
+});
+
 module.exports = (req, res, next) => {
-    if (req.path === "/login") {
+    if (isPath(req, "/login", "/api/v1/auth/login")) {
         if (req.body.email && req.body.password) {
             if (req.body.email.includes("wrong")) {
                 return res
                     .status(400)
-                    .json({ message: "Invalid credential, please try again" });
+                    .json({ error: "Invalid credential, please try again" });
             }
-            return res.status(200).json({
-                id: 0,
-                email: req.body.email,
-                token: req.body.email
-            });
+            return res.status(200).json(userFromEmail(req.body.email));
         }
         return res
             .status(400)
-            .json({ message: "Invalid credential, please try again" });
+            .json({ error: "Invalid credential, please try again" });
     }
-    if (req.path === "/register") {
+    if (isPath(req, "/register", "/api/v1/auth/register")) {
         if (req.body.email && req.body.password) {
             if (req.body.email.includes("wrong")) {
                 return res
                     .status(400)
-                    .json({ message: "Register failed, please try again" });
+                    .json({ error: "Register failed, please try again" });
             }
             return res.status(201).json({
                 message: "User created"
@@ -29,16 +35,15 @@ module.exports = (req, res, next) => {
         }
         return res
             .status(400)
-            .json({ message: "Register failed, please try again" });
+            .json({ error: "Register failed, please try again" });
     }
     if (!req.headers.authorization) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ error: "Unauthorized" });
     }
-    if (req.path === "/userInfo") {
-        return res.status(200).json({
-            email: req.headers.authorization.slice(7),
-            token: req.headers.authorization.slice(7)
-        });
+    if (isPath(req, "/userInfo", "/api/v1/users")) {
+        return res
+            .status(200)
+            .json(userFromEmail(req.headers.authorization.slice(7)));
     }
-    next();
+    return next();
 };
