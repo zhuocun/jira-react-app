@@ -1,0 +1,138 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+
+import ProjectSearchPanel from ".";
+
+const member = (overrides: Partial<IMember> = {}): IMember => ({
+    _id: "u1",
+    email: "alice@example.com",
+    username: "Alice",
+    ...overrides
+});
+
+const members = [
+    member(),
+    member({
+        _id: "u2",
+        email: "bob@example.com",
+        username: "Bob"
+    })
+];
+
+const installAntdBrowserMocks = () => {
+    Object.defineProperty(window, "matchMedia", {
+        writable: true,
+        value: (query: string) => ({
+            addEventListener: jest.fn(),
+            addListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+            matches: false,
+            media: query,
+            onchange: null,
+            removeEventListener: jest.fn(),
+            removeListener: jest.fn()
+        })
+    });
+
+    class ResizeObserverMock {
+        observe = jest.fn();
+
+        unobserve = jest.fn();
+
+        disconnect = jest.fn();
+    }
+
+    Object.defineProperty(window, "ResizeObserver", {
+        writable: true,
+        value: ResizeObserverMock
+    });
+};
+
+describe("ProjectSearchPanel", () => {
+    beforeAll(() => {
+        installAntdBrowserMocks();
+    });
+
+    it("shows the current project name and updates it from the search input", () => {
+        const setParam = jest.fn();
+        const param = { projectName: "Roadmap", managerId: "u1" };
+
+        render(
+            <ProjectSearchPanel
+                loading={false}
+                members={members}
+                param={param}
+                setParam={setParam}
+            />
+        );
+
+        expect(screen.getByPlaceholderText("Search this list")).toHaveValue(
+            "Roadmap"
+        );
+
+        fireEvent.change(screen.getByPlaceholderText("Search this list"), {
+            target: { value: "Billing" }
+        });
+
+        expect(setParam).toHaveBeenCalledWith({
+            managerId: "u1",
+            projectName: "Billing"
+        });
+    });
+
+    it("shows the selected manager name when the manager id matches", () => {
+        render(
+            <ProjectSearchPanel
+                loading={false}
+                members={members}
+                param={{ projectName: "", managerId: "u2" }}
+                setParam={jest.fn()}
+            />
+        );
+
+        expect(screen.getByText("Bob")).toBeInTheDocument();
+    });
+
+    it("renders manager options and updates the manager id on selection", async () => {
+        const setParam = jest.fn();
+        const param = { projectName: "Roadmap", managerId: "" };
+
+        render(
+            <ProjectSearchPanel
+                loading={false}
+                members={members}
+                param={param}
+                setParam={setParam}
+            />
+        );
+
+        fireEvent.mouseDown(screen.getByRole("combobox"));
+
+        expect(screen.getAllByText("Managers").length).toBeGreaterThanOrEqual(
+            1
+        );
+        expect(await screen.findByText("Alice")).toBeInTheDocument();
+
+        fireEvent.click(await screen.findByText("Bob"));
+
+        expect(setParam).toHaveBeenCalledWith({
+            managerId: "u2",
+            projectName: "Roadmap"
+        });
+    });
+
+    it("shows the default label and loading state while managers load", () => {
+        const { container } = render(
+            <ProjectSearchPanel
+                loading
+                members={members}
+                param={{ projectName: "", managerId: "u1" }}
+                setParam={jest.fn()}
+            />
+        );
+
+        expect(screen.getByText("Managers")).toBeInTheDocument();
+        expect(
+            container.querySelector(".ant-select-loading")
+        ).toBeInTheDocument();
+    });
+});
