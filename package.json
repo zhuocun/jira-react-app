@@ -9,7 +9,7 @@
         "start": "vite --host 0.0.0.0 --port 3000",
         "build": "vite build",
         "test": "jest",
-        "prepare": "husky install",
+        "prepare": "husky",
         "prettier": "prettier -c .prettierrc --write .",
         "eslint": "eslint src __json_server_mock__ eslint.config.mjs vite.config.ts jest.config.cjs babel.config.cjs commitlint.config.js --fix",
         "pre-commit": "npm run prettier && npm run eslint",
