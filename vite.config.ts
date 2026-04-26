@@ -5,7 +5,9 @@ import svgr from "vite-plugin-svgr";
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), "");
     const apiUrl =
-        env.REACT_APP_API_URL || env.VITE_API_URL || "http://localhost:8001";
+        env.REACT_APP_API_URL ||
+        env.VITE_API_URL ||
+        "https://jira-python-server.vercel.app";
 
     return {
         build: {
