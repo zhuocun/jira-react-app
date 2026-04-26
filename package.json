@@ -2,6 +2,9 @@
     "name": "jira-react-app",
     "version": "0.1.0",
     "private": true,
+    "engines": {
+        "node": "24.x"
+    },
     "scripts": {
         "start": "vite --host 0.0.0.0 --port 3000",
         "build": "vite build",
