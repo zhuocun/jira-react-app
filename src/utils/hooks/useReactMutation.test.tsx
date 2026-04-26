@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import useApi from "./useApi";
 import useReactMutation from "./useReactMutation";
@@ -16,7 +16,7 @@ const createQueryClient = () =>
                 retry: false
             },
             queries: {
-                cacheTime: Infinity,
+                gcTime: Infinity,
                 retry: false
             }
         }
@@ -75,7 +75,9 @@ describe("useReactMutation", () => {
             method: "POST"
         });
         await waitFor(() =>
-            expect(invalidateSpy).toHaveBeenCalledWith(["projects"])
+            expect(invalidateSpy).toHaveBeenCalledWith({
+                queryKey: ["projects"]
+            })
         );
     });
 
@@ -109,7 +111,7 @@ describe("useReactMutation", () => {
             await result.current.mutateAsync({ projectId: "p1" });
         });
 
-        expect(queryClient.getQueryData("users")).toEqual(returnedUser);
+        expect(queryClient.getQueryData(["users"])).toEqual(returnedUser);
     });
 
     it("writes returned data to the endpoint cache when setCache is true without a query key", async () => {
@@ -136,7 +138,7 @@ describe("useReactMutation", () => {
             await result.current.mutateAsync({ theme: "dark" });
         });
 
-        expect(queryClient.getQueryData("profile")).toEqual(response);
+        expect(queryClient.getQueryData(["profile"])).toEqual(response);
     });
 
     it("applies optimistic callbacks and stores the previous cache in mutation context", async () => {
@@ -194,7 +196,7 @@ describe("useReactMutation", () => {
         });
 
         expect(callback).toHaveBeenCalledWith(target, undefined);
-        expect(queryClient.getQueryData("items")).toEqual([target]);
+        expect(queryClient.getQueryData(["items"])).toEqual([target]);
         expect(
             queryClient.getMutationCache().getAll()[0].state.context
         ).toEqual({
@@ -270,6 +272,8 @@ describe("useReactMutation", () => {
             await result.current.mutateAsync({ username: "Alice" });
         });
 
-        expect(invalidateSpy).toHaveBeenCalledWith(undefined);
+        expect(invalidateSpy).toHaveBeenCalledWith({
+            queryKey: ["profile"]
+        });
     });
 });

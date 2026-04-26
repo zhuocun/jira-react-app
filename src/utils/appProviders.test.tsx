@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { ReactNode, useContext } from "react";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 
 import {

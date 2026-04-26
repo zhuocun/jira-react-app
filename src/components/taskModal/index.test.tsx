@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Modal } from "antd";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 
 import TaskModal from ".";
@@ -107,7 +107,7 @@ const renderModal = (
             queries: { retry: false }
         }
     });
-    queryClient.setQueryData("users/members", members);
+    queryClient.setQueryData(["users/members"], members);
 
     return render(
         <QueryClientProvider client={queryClient}>

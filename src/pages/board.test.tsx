@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import BoardPage from "./board";
@@ -211,7 +211,7 @@ const renderBoard = (route = "/projects/project-1/board") => {
             queries: { retry: false }
         }
     });
-    queryClient.setQueryData("users", user());
+    queryClient.setQueryData(["users"], user());
 
     return render(
         <QueryClientProvider client={queryClient}>

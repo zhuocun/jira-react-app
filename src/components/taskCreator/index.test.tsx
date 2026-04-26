@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 import TaskCreator from ".";
@@ -32,7 +32,7 @@ const renderCreator = ({ disabled = false }: { disabled?: boolean } = {}) => {
             queries: { retry: false }
         }
     });
-    queryClient.setQueryData("users", user());
+    queryClient.setQueryData(["users"], user());
 
     return render(
         <QueryClientProvider client={queryClient}>

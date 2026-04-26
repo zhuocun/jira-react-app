@@ -1,14 +1,28 @@
-import { QueryKey, useMutation, useQueryClient } from "react-query";
+import { QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import filterRequest from "../filterRequest";
 import getError from "../getError";
 
 import useApi from "./useApi";
 
+const getQueryKey = (
+    queryKey: QueryKey | string | undefined,
+    fallback: string
+): QueryKey => {
+    if (Array.isArray(queryKey)) {
+        return queryKey;
+    }
+
+    return [queryKey ?? fallback];
+};
+
+type MutationParam = { [key: string]: unknown } | undefined;
+type MutationContext = { previousItems: unknown };
+
 const useReactMutation = <D>(
     endPoint: string,
     method: string,
-    queryKey?: QueryKey,
+    queryKey?: QueryKey | string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback?: (...args: any) => any,
     onError?: (err: Error) => void,
@@ -16,38 +30,36 @@ const useReactMutation = <D>(
 ) => {
     const api = useApi();
     const queryClient = useQueryClient();
-    return useMutation(
-        (param: { [key: string]: unknown }) =>
+    const cacheKey = getQueryKey(queryKey, endPoint);
+    const mutation = useMutation<D, unknown, MutationParam, MutationContext>({
+        mutationFn: (param) =>
             api(endPoint, {
                 data: filterRequest(param || {}),
                 method
             }),
-        {
-            onSuccess: setCache
-                ? async (data: D) =>
-                      queryClient.setQueryData(queryKey ?? endPoint, data)
-                : () => queryClient.invalidateQueries(queryKey),
-            onError: onError
-                ? (err: unknown) => {
-                      onError(getError(err));
-                  }
-                : undefined,
-            onMutate: callback
-                ? async (target: unknown) => {
-                      const previousItems = queryClient.getQueryData(
-                          queryKey ?? ""
-                      );
-                      queryClient.setQueryData(
-                          queryKey ?? endPoint,
-                          (old?: unknown[]) => {
-                              return callback(target, old);
-                          }
-                      );
-                      return { previousItems };
-                  }
-                : undefined
-        }
-    );
+        onSuccess: setCache
+            ? async (data: D) => queryClient.setQueryData(cacheKey, data)
+            : () => queryClient.invalidateQueries({ queryKey: cacheKey }),
+        onError: onError
+            ? (err: unknown) => {
+                  onError(getError(err));
+              }
+            : undefined,
+        onMutate: callback
+            ? async (target: unknown) => {
+                  const previousItems = queryClient.getQueryData(cacheKey);
+                  queryClient.setQueryData(cacheKey, (old?: unknown[]) => {
+                      return callback(target, old);
+                  });
+                  return { previousItems };
+              }
+            : undefined
+    });
+
+    return {
+        ...mutation,
+        isLoading: mutation.isPending
+    };
 };
 
 export default useReactMutation;

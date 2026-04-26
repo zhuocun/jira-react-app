@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import useApi from "./useApi";
 import useReactQuery from "./useReactQuery";
@@ -13,7 +13,7 @@ const createQueryClient = () =>
     new QueryClient({
         defaultOptions: {
             queries: {
-                cacheTime: Infinity,
+                gcTime: Infinity,
                 retry: false
             }
         }
@@ -58,7 +58,7 @@ describe("useReactQuery", () => {
             data: {},
             method: "GET"
         });
-        expect(queryClient.getQueryData("users")).toEqual([
+        expect(queryClient.getQueryData(["users"])).toEqual([
             { _id: "u1", username: "Alice" }
         ]);
     });

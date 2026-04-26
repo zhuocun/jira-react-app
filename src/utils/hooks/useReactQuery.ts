@@ -1,9 +1,19 @@
-import { useQuery } from "react-query";
+import { QueryKey, useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 
 import filterRequest from "../filterRequest";
 import getError from "../getError";
 
 import useApi from "./useApi";
+
+const getQueryKey = (
+    endPoint: string,
+    queryParam?: { [key: string]: unknown },
+    specialQueryKey?: string
+): QueryKey =>
+    queryParam
+        ? [specialQueryKey || endPoint, filterRequest(queryParam)]
+        : [endPoint];
 
 const useReactQuery = <D>(
     endPoint: string,
@@ -14,25 +24,45 @@ const useReactQuery = <D>(
     enabled = true
 ) => {
     const api = useApi();
-    return useQuery<D>(
-        queryParam
-            ? [specialQueryKey || endPoint, filterRequest(queryParam)]
-            : endPoint,
-        () =>
+    const successUpdatedAt = useRef(0);
+    const errorUpdatedAt = useRef(0);
+
+    const query = useQuery<D>({
+        queryKey: getQueryKey(endPoint, queryParam, specialQueryKey),
+        queryFn: () =>
             api(endPoint, {
                 data: filterRequest(queryParam || {}),
                 method: "GET"
             }),
-        {
-            onSuccess,
-            onError: onError
-                ? (err: unknown) => {
-                      onError(getError(err));
-                  }
-                : undefined,
-            enabled
+        enabled
+    });
+
+    useEffect(() => {
+        if (
+            onSuccess &&
+            query.isSuccess &&
+            query.dataUpdatedAt !== successUpdatedAt.current
+        ) {
+            successUpdatedAt.current = query.dataUpdatedAt;
+            onSuccess(query.data);
         }
-    );
+    }, [onSuccess, query.data, query.dataUpdatedAt, query.isSuccess]);
+
+    useEffect(() => {
+        if (
+            onError &&
+            query.isError &&
+            query.errorUpdatedAt !== errorUpdatedAt.current
+        ) {
+            errorUpdatedAt.current = query.errorUpdatedAt;
+            onError(getError(query.error));
+        }
+    }, [onError, query.error, query.errorUpdatedAt, query.isError]);
+
+    return {
+        ...query,
+        isIdle: query.status === "pending" && query.fetchStatus === "idle"
+    };
 };
 
 export default useReactQuery;

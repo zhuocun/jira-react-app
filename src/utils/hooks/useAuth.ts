@@ -1,10 +1,11 @@
-import { useQueryClient } from "react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 
 const useAuth = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const user = queryClient.getQueryData<IUser>("users");
+    const userQueryKey = ["users"];
+    const user = queryClient.getQueryData<IUser>(userQueryKey);
     const token = localStorage.getItem("Token");
     const clear = async () => {
         queryClient.clear();
@@ -16,15 +17,15 @@ const useAuth = () => {
     const refreshUser = () => {
         if (!user && token) {
             queryClient
-                .refetchQueries<IUser>("users")
+                .refetchQueries({ queryKey: userQueryKey })
                 .catch(() => {
                     logout();
                 })
                 .then(() => {
-                    queryClient.setQueryData("users", {
-                        ...queryClient.getQueryData<IUser>("users"),
+                    queryClient.setQueryData<IUser>(userQueryKey, {
+                        ...queryClient.getQueryData<IUser>(userQueryKey),
                         jwt: token
-                    });
+                    } as IUser);
                 });
         }
     };

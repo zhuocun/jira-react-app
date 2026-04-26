@@ -7,7 +7,7 @@ import {
     waitFor
 } from "@testing-library/react";
 import { ReactNode } from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, useLocation } from "react-router-dom";
 
 import useAuth from "./useAuth";
@@ -30,7 +30,7 @@ const createQueryClient = () =>
     new QueryClient({
         defaultOptions: {
             queries: {
-                cacheTime: Infinity,
+                gcTime: Infinity,
                 retry: false
             }
         }
@@ -82,7 +82,7 @@ describe("useAuth", () => {
 
     it("reads the cached user from React Query and token from localStorage", () => {
         const queryClient = createQueryClient();
-        queryClient.setQueryData("users", user());
+        queryClient.setQueryData(["users"], user());
         localStorage.setItem("Token", "stored-token");
 
         renderAuthProbe(queryClient);
@@ -93,7 +93,7 @@ describe("useAuth", () => {
 
     it("clears cached auth state and navigates to login on logout", async () => {
         const queryClient = createQueryClient();
-        queryClient.setQueryData("users", user());
+        queryClient.setQueryData(["users"], user());
         localStorage.setItem("Token", "stored-token");
 
         renderAuthProbe(queryClient);
@@ -104,7 +104,7 @@ describe("useAuth", () => {
         });
 
         await waitFor(() => expect(localStorage.getItem("Token")).toBeNull());
-        expect(queryClient.getQueryData("users")).toBeUndefined();
+        expect(queryClient.getQueryData(["users"])).toBeUndefined();
         await waitFor(() =>
             expect(screen.getByTestId("path")).toHaveTextContent("/login")
         );
@@ -128,7 +128,7 @@ describe("useAuth", () => {
     it("does not refetch users when a user is already cached", () => {
         const queryClient = createQueryClient();
         const refetchSpy = jest.spyOn(queryClient, "refetchQueries");
-        queryClient.setQueryData("users", user());
+        queryClient.setQueryData(["users"], user());
         localStorage.setItem("Token", "stored-token");
 
         const { result } = renderHook(() => useAuth(), {
@@ -148,7 +148,7 @@ describe("useAuth", () => {
         const refetchSpy = jest
             .spyOn(queryClient, "refetchQueries")
             .mockImplementation(() => {
-                queryClient.setQueryData("users", serverUser);
+                queryClient.setQueryData(["users"], serverUser);
                 return Promise.resolve();
             });
         localStorage.setItem("Token", "stored-token");
@@ -161,9 +161,11 @@ describe("useAuth", () => {
             result.current.refreshUser();
         });
 
-        await waitFor(() => expect(refetchSpy).toHaveBeenCalledWith("users"));
         await waitFor(() =>
-            expect(queryClient.getQueryData("users")).toEqual({
+            expect(refetchSpy).toHaveBeenCalledWith({ queryKey: ["users"] })
+        );
+        await waitFor(() =>
+            expect(queryClient.getQueryData(["users"])).toEqual({
                 ...serverUser,
                 jwt: "stored-token"
             })
@@ -190,7 +192,9 @@ describe("useAuth", () => {
             await Promise.resolve();
         });
 
-        await waitFor(() => expect(refetchSpy).toHaveBeenCalledWith("users"));
+        await waitFor(() =>
+            expect(refetchSpy).toHaveBeenCalledWith({ queryKey: ["users"] })
+        );
         await waitFor(() => expect(localStorage.getItem("Token")).toBeNull());
         await waitFor(() =>
             expect(screen.getByTestId("path")).toHaveTextContent("/login")
