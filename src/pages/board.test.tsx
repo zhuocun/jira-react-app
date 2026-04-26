@@ -34,7 +34,7 @@ type DroppableMockProps = {
     droppableId: string;
 };
 
-jest.mock("react-beautiful-dnd", () => {
+jest.mock("@hello-pangea/dnd", () => {
     const React = jest.requireActual("react");
 
     return {

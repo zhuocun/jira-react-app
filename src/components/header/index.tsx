@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 import { Dropdown, MenuProps } from "antd";
 import { useLocation } from "react-router";
 
-import { ReactComponent as Logo } from "../../assets/logo-software.svg";
+import Logo from "../../assets/logo-software.svg?react";
 import useAuth from "../../utils/hooks/useAuth";
 import resetRoute from "../../utils/resetRoute";
 import MemberPopover from "../memberPopover";
@@ -41,7 +41,11 @@ const Header: React.FC = () => {
             <LeftHeader gap>
                 <NoPaddingButton
                     type="link"
-                    onClick={path !== "/projects" ? resetRoute : undefined}
+                    onClick={
+                        path !== "/projects"
+                            ? () => resetRoute(window.location)
+                            : undefined
+                    }
                 >
                     <Logo width="180px" color="rgb(38, 132, 255)" />
                 </NoPaddingButton>

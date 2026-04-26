@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 
 import { Drag, Drop, DropChild } from ".";
 
-jest.mock("react-beautiful-dnd", () => {
+jest.mock("@hello-pangea/dnd", () => {
     const mockReact = jest.requireActual<typeof import("react")>("react");
 
     return {

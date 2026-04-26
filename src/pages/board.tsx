@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { Spin } from "antd";
-import { DragDropContext } from "react-beautiful-dnd";
+import { DragDropContext } from "@hello-pangea/dnd";
 import { useParams } from "react-router-dom";
 
 import Column from "../components/column";

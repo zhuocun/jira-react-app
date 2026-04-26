@@ -70,6 +70,19 @@ Object.defineProperty(globalThis, "MessageChannel", {
     value: TestMessageChannel
 });
 
+Object.defineProperty(globalThis, "fetch", {
+    configurable: true,
+    value: jest.fn(),
+    writable: true
+});
+
+const getComputedStyle = window.getComputedStyle.bind(window);
+
+Object.defineProperty(window, "getComputedStyle", {
+    configurable: true,
+    value: (element: Element) => getComputedStyle(element)
+});
+
 Object.defineProperty(globalThis, "ResizeObserver", {
     configurable: true,
     value: class ResizeObserver {

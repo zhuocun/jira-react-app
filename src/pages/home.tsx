@@ -12,7 +12,7 @@ const HomePage = () => {
 
     useEffect(() => {
         if (user && (path === "/login" || path === "/register")) {
-            resetRoute();
+            resetRoute(window.location);
         }
         if (!user && !token && path !== "/login" && path !== "/register") {
             logout();

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { DropResult } from "react-beautiful-dnd";
+import { DropResult } from "@hello-pangea/dnd";
 import { useParams } from "react-router-dom";
 
 import { columnCallback, taskCallback } from "../optimisticUpdate/reorder";

@@ -11,14 +11,14 @@ The project utilizes the following technologies:
 -   **React-Query**: A data-fetching library for React, used for fetching, caching, and syncing server data in the app.
 -   **Ant Design**: A popular design system and UI library for React, used for building the application components.
 -   **Styled Components**: A CSS-in-JS library for styling React components using tagged template literals.
--   **React Beautiful DnD**: A drag-and-drop library for React, used for implementing drag-and-drop functionality.
+-   **Hello Pangea DnD**: A drag-and-drop library for React, used for implementing drag-and-drop functionality.
 -   **React Router**: A collection of navigational components for creating single-page applications with navigation.
 
 ## Configuration
 
 This project uses a combination of dependencies and devDependencies to ensure smooth development and efficient production builds. Some of the key packages include:
 
--   **craco**: A community-supported configuration layer for Create React App, used for customizing the configuration without ejecting.
+-   **Vite**: A development server and production bundler used for local development and production builds.
 -   **eslint**: A pluggable JavaScript linter used for identifying and reporting patterns in code.
 -   **prettier**: An opinionated code formatter for consistent code style across the project.
 -   **husky**: A tool for managing Git hooks, ensuring code quality before committing changes.

@@ -6,7 +6,7 @@ import simpleImportSortPlugin from "eslint-plugin-simple-import-sort";
 
 export default [
     {
-        ignores: ["build/**", "coverage/**", "node_modules/**"],
+        ignores: ["build/**", "coverage/**", "dist/**", "node_modules/**"],
         linterOptions: {
             reportUnusedDisableDirectives: false
         }

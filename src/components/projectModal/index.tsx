@@ -51,20 +51,22 @@ const ProjectModal: React.FC = observer(() => {
     const { data: members } = useReactQuery<IMember[]>("users/members");
 
     return (
-        <Drawer forceRender open={isModalOpened} onClose={onClose} width="100%">
+        <Drawer forceRender open={isModalOpened} onClose={onClose} size="100%">
             <Container>
-                {isLoading ? (
-                    <Spin />
-                ) : (
-                    <>
-                        <h1>{modalTitle}</h1>
-                        <ErrorBox error={error} />
-                        <Form
-                            form={form}
-                            layout="vertical"
-                            style={{ width: "40rem" }}
-                            onFinish={onFinish}
-                        >
+                {isLoading && <Spin />}
+                <Form
+                    form={form}
+                    layout="vertical"
+                    style={{
+                        display: isLoading ? "none" : undefined,
+                        width: "40rem"
+                    }}
+                    onFinish={onFinish}
+                >
+                    <h1>{modalTitle}</h1>
+                    <ErrorBox error={error} />
+                    {!isLoading && (
+                        <>
                             <Form.Item
                                 label="Project Name"
                                 name="projectName"
@@ -119,9 +121,9 @@ const ProjectModal: React.FC = observer(() => {
                                     Submit
                                 </Button>
                             </Form.Item>
-                        </Form>
-                    </>
-                )}
+                        </>
+                    )}
+                </Form>
             </Container>
         </Drawer>
     );

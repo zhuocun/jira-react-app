@@ -1,5 +1,5 @@
-const resetRoute = () => {
-    window.location.href = `${window.location.origin}/projects`;
+const resetRoute = (location: Pick<Location, "href" | "origin">) => {
+    location.href = `${location.origin}/projects`;
 };
 
 export default resetRoute;

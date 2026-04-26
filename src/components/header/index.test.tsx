@@ -7,11 +7,12 @@ import resetRoute from "../../utils/resetRoute";
 
 import Header from ".";
 
-jest.mock("../../assets/logo-software.svg", () => {
+jest.mock("../../assets/logo-software.svg?react", () => {
     const React = require("react");
 
     return {
-        ReactComponent: (props: Record<string, unknown>) =>
+        __esModule: true,
+        default: (props: Record<string, unknown>) =>
             React.createElement("svg", {
                 "aria-label": "Jira Software",
                 ...props

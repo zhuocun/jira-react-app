@@ -53,7 +53,7 @@ describe("ProjectDetailPage", () => {
 
     beforeAll(() => {
         consoleErrorSpy = silenceExpectedConsoleErrors([
-            ["Warning: An update to", "ForwardRef", "not wrapped in act"]
+            ["An update to", "ForwardRef", "not wrapped in act"]
         ]);
     });
 
