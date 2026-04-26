@@ -28,13 +28,14 @@ jest.mock("../pages/board", () => ({
     default: () => null
 }));
 
-const element = (route: { element: ReactElement }) => route.element;
+const element = <Props,>(route: { element?: unknown }) =>
+    route.element as ReactElement<Props>;
 
 describe("routes", () => {
     it("redirects the bare root route to login", () => {
         expect(routes[0].path).toBe("/");
-        expect(element(routes[0]).type).toBe(Navigate);
-        expect(element(routes[0]).props.to).toBe("/login");
+        expect(element<{ to: string }>(routes[0]).type).toBe(Navigate);
+        expect(element<{ to: string }>(routes[0]).props.to).toBe("/login");
     });
 
     it("contains auth and project child routes under the home route", () => {

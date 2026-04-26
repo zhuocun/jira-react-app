@@ -55,7 +55,7 @@ const response = (body: unknown, ok = true) =>
         json: jest.fn().mockResolvedValue(body),
         ok,
         status: ok ? 200 : 400
-    } as unknown as Response);
+    }) as unknown as Response;
 
 const silenceExpectedConsoleErrors = (expectedMessages: string[][]) => {
     return jest
@@ -231,7 +231,9 @@ describe("ProjectPage", () => {
         resolveProjects(response([]));
         resolveMembers(response([]));
 
-        expect(await screen.findByText("No data")).toBeInTheDocument();
+        expect((await screen.findAllByText("No data")).length).toBeGreaterThan(
+            0
+        );
     });
 
     it("shows a shared error message when either query fails", async () => {

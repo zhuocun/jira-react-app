@@ -29,7 +29,7 @@ const queryResult = (overrides: Record<string, unknown> = {}) =>
         data: undefined,
         isLoading: false,
         ...overrides
-    } as unknown as ReturnType<typeof useReactQuery<IProject>>);
+    }) as unknown as ReturnType<typeof useReactQuery<IProject>>;
 
 const ProjectModalProbe = () => {
     const { closeModal, editingProject, isLoading, openModal, startEditing } =

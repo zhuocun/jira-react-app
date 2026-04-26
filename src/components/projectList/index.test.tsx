@@ -192,7 +192,7 @@ describe("ProjectList", () => {
             loading: false
         });
 
-        expect(screen.getByText("No data")).toBeInTheDocument();
+        expect(screen.getAllByText("No data").length).toBeGreaterThan(0);
     });
 
     it("calls the like mutation and flips the visible star while pending", async () => {

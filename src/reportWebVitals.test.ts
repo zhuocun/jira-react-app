@@ -1,17 +1,17 @@
 import { waitFor } from "@testing-library/react";
-import { getCLS, getFCP, getFID, getLCP, getTTFB } from "web-vitals";
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 
 import reportWebVitals from "./reportWebVitals";
 
 jest.mock("web-vitals", () => ({
-    getCLS: jest.fn(),
-    getFCP: jest.fn(),
-    getFID: jest.fn(),
-    getLCP: jest.fn(),
-    getTTFB: jest.fn()
+    onCLS: jest.fn(),
+    onFCP: jest.fn(),
+    onINP: jest.fn(),
+    onLCP: jest.fn(),
+    onTTFB: jest.fn()
 }));
 
-const vitals = [getCLS, getFID, getFCP, getLCP, getTTFB] as jest.Mock[];
+const vitals = [onCLS, onFCP, onINP, onLCP, onTTFB] as jest.Mock[];
 
 describe("reportWebVitals", () => {
     beforeEach(() => {

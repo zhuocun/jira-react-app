@@ -19,7 +19,7 @@ const queryResult = (overrides: Record<string, unknown> = {}) =>
         isIdle: false,
         isLoading: false,
         ...overrides
-    } as unknown as ReturnType<typeof useReactQuery<IUser>>);
+    }) as unknown as ReturnType<typeof useReactQuery<IUser>>;
 
 describe("AuthProvider", () => {
     beforeEach(() => {

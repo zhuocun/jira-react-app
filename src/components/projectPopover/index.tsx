@@ -1,9 +1,22 @@
-import { Divider, List, Popover, Typography } from "antd";
+import styled from "@emotion/styled";
+import { Divider, Popover, Typography } from "antd";
 import { useNavigate } from "react-router";
 
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 import { NoPaddingButton } from "../projectList";
+
+const ContentContainer = styled.div`
+    min-width: 30rem;
+`;
+
+const ProjectList = styled.div`
+    padding-top: 0.5rem;
+`;
+
+const ProjectItem = styled.div`
+    padding: 0.5rem 0;
+`;
 
 const ProjectPopover: React.FC = () => {
     const { openModal } = useProjectModal();
@@ -11,11 +24,11 @@ const ProjectPopover: React.FC = () => {
     const navigate = useNavigate();
 
     const content = (
-        <div style={{ minWidth: "30rem" }}>
+        <ContentContainer>
             <Typography.Text type="secondary">Projects</Typography.Text>
-            <List>
+            <ProjectList>
                 {projects?.map((project) => (
-                    <div key={project._id} style={{ marginTop: "1rem" }}>
+                    <ProjectItem key={project._id}>
                         <NoPaddingButton
                             type="text"
                             key={project._id}
@@ -23,14 +36,14 @@ const ProjectPopover: React.FC = () => {
                         >
                             {project.projectName}
                         </NoPaddingButton>
-                    </div>
+                    </ProjectItem>
                 ))}
-            </List>
+            </ProjectList>
             <Divider />
             <NoPaddingButton onClick={openModal} type="link">
                 Create Project
             </NoPaddingButton>
-        </div>
+        </ContentContainer>
     );
 
     return (

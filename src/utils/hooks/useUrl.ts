@@ -9,9 +9,12 @@ const useUrl = <K extends string>(keys: K[]) => {
     return [
         useMemo(
             () =>
-                stateKeys.reduce((prev, key) => {
-                    return { ...prev, [key]: searchParams.get(key) };
-                }, {} as { [key in K]: string }),
+                stateKeys.reduce(
+                    (prev, key) => {
+                        return { ...prev, [key]: searchParams.get(key) };
+                    },
+                    {} as { [key in K]: string }
+                ),
             [searchParams, stateKeys]
         ),
         (params: Partial<{ [key in K]: unknown }>) => {

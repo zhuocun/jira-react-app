@@ -9,7 +9,7 @@ const response = (body: unknown, ok = true) =>
         json: jest.fn().mockResolvedValue(body),
         ok,
         status: ok ? 200 : 400
-    } as unknown as Response);
+    }) as unknown as Response;
 
 const renderCreator = () => {
     const queryClient = new QueryClient({

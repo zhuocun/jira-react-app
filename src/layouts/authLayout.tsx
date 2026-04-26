@@ -28,9 +28,12 @@ const Header = styled.header`
 const Background = styled.div`
     background-attachment: fixed;
     background-image: url(${left}), url(${right});
-    background-position: left bottom, right bottom;
+    background-position:
+        left bottom,
+        right bottom;
     background-repeat: no-repeat;
-    background-size: calc(((100vw - 40rem) / 2) - 3.2rem),
+    background-size:
+        calc(((100vw - 40rem) / 2) - 3.2rem),
         calc(((100vw - 40rem) / 2) - 3.2rem), cover;
     height: 100%;
     position: absolute;

@@ -90,8 +90,8 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                                     ? 0
                                     : 1
                                 : user?.likedProjects?.includes(data._id)
-                                ? 1
-                                : 0
+                                  ? 1
+                                  : 0
                         }
                         count={1}
                         onChange={() => onLike(data._id)}

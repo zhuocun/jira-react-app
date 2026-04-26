@@ -18,8 +18,8 @@ const Row = styled.div<{
         typeof props.gap === "number"
             ? `${props.gap}rem`
             : props.gap
-            ? "2rem"
-            : undefined};
+              ? "2rem"
+              : undefined};
 `;
 
 export default Row;
