@@ -12,21 +12,23 @@ const useAuth = () => {
         localStorage.removeItem("Token");
     };
     const logout = () => {
-        clear().then(() => navigate("login"));
+        clear().then(() => navigate("/login"));
     };
-    const refreshUser = () => {
+    const refreshUser = async () => {
         if (!user && token) {
-            queryClient
-                .refetchQueries({ queryKey: userQueryKey })
-                .catch(() => {
-                    logout();
-                })
-                .then(() => {
+            try {
+                await queryClient.refetchQueries({ queryKey: userQueryKey });
+                const refreshed = queryClient.getQueryData<IUser>(userQueryKey);
+                if (refreshed) {
                     queryClient.setQueryData<IUser>(userQueryKey, {
-                        ...queryClient.getQueryData<IUser>(userQueryKey),
+                        ...refreshed,
                         jwt: token
-                    } as IUser);
-                });
+                    });
+                }
+            } catch {
+                await clear();
+                navigate("/login");
+            }
         }
     };
     return {

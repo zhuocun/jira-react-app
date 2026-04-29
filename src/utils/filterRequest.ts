@@ -8,13 +8,14 @@ const isVoid = (value: unknown) => {
 };
 
 const filterRequest = (object: { [key: string]: unknown }) => {
+    const next: { [key: string]: unknown } = {};
     Object.keys(object).forEach((key) => {
         const value = object[key];
-        if (isVoid(value)) {
-            delete object[key];
+        if (!isVoid(value)) {
+            next[key] = value;
         }
     });
-    return object;
+    return next;
 };
 
 export default filterRequest;

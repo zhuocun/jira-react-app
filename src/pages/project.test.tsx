@@ -5,13 +5,12 @@ import {
     screen,
     waitFor
 } from "@testing-library/react";
+import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 
-import {
-    ProjectModalStoreContext,
-    projectModalStore
-} from "../store/projectModalStore";
+import { store } from "../store";
+import { projectActions } from "../store/reducers/projectModalSlice";
 
 import ProjectPage from "./project";
 
@@ -119,7 +118,7 @@ const renderPage = (route = "/projects") => {
     });
 
     return render(
-        <ProjectModalStoreContext.Provider value={projectModalStore}>
+        <Provider store={store}>
             <QueryClientProvider client={queryClient}>
                 <MemoryRouter initialEntries={[route]}>
                     <Routes>
@@ -135,7 +134,7 @@ const renderPage = (route = "/projects") => {
                     </Routes>
                 </MemoryRouter>
             </QueryClientProvider>
-        </ProjectModalStoreContext.Provider>
+        </Provider>
     );
 };
 
@@ -155,7 +154,7 @@ describe("ProjectPage", () => {
     beforeEach(() => {
         jest.useRealTimers();
         localStorage.clear();
-        projectModalStore.closeModalMobX();
+        store.dispatch(projectActions.closeModal());
         fetchMock.mockReset();
         fetchMock.mockImplementation((input) => {
             const url = String(input);

@@ -3,6 +3,8 @@ import { useCallback } from "react";
 
 import environment from "../../constants/env";
 
+import { parseFetchBody } from "../parseFetchBody";
+
 import useAuth from "./useAuth";
 
 interface IConfig extends RequestInit {
@@ -51,14 +53,17 @@ export const api = async (
         config.method.toUpperCase() === "GET" ||
         config.method.toUpperCase() === "DELETE"
     ) {
-        apiEndpoint += `?${qs.stringify(data)}`;
+        const qsString = qs.stringify(data ?? {});
+        if (qsString) {
+            apiEndpoint += `?${qsString}`;
+        }
     } else {
         config.body = JSON.stringify(data);
     }
 
     return fetch(`${environment.apiBaseUrl}/${apiEndpoint}`, config).then(
         async (res) => {
-            const resData = await res.json();
+            const resData = await parseFetchBody(res);
             if (res.ok) {
                 return resData;
             }

@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { Button, Drawer, Form, Input, Select, Spin } from "antd";
 import { useForm } from "antd/lib/form/Form";
-import { observer } from "mobx-react";
 import { useEffect } from "react";
 
 import useProjectModal from "../../utils/hooks/useProjectModal";
@@ -17,7 +16,7 @@ const Container = styled.div`
     justify-content: center;
 `;
 
-const ProjectModal: React.FC = observer(() => {
+const ProjectModal: React.FC = () => {
     const { isModalOpened, closeModal, editingProject, isLoading } =
         useProjectModal();
 
@@ -127,6 +126,6 @@ const ProjectModal: React.FC = observer(() => {
             </Container>
         </Drawer>
     );
-});
+};
 
 export default ProjectModal;

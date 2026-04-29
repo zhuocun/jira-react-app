@@ -13,6 +13,8 @@ import {
     type AiChatExecutionContext,
     type AiChatToolCall
 } from "../ai/chatTools";
+import { getStoredBearerAuthHeader } from "../aiAuthHeader";
+import { parseFetchBody } from "../parseFetchBody";
 
 import {
     isProjectAiDisabled,
@@ -38,9 +40,13 @@ const remoteChatStep = async (
     context: ChatEngineContext,
     signal: AbortSignal
 ): Promise<ChatTurnResult> => {
+    const authHeader = getStoredBearerAuthHeader();
     const response = await fetch(`${environment.aiBaseUrl}/api/ai/chat`, {
         body: JSON.stringify({ messages, context }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            ...(authHeader ? { Authorization: authHeader } : {})
+        },
         method: "POST",
         signal
     });
@@ -50,7 +56,7 @@ const remoteChatStep = async (
     if (!response.ok) {
         throw new Error(`AI request failed (${response.status})`);
     }
-    return response.json() as Promise<ChatTurnResult>;
+    return (await parseFetchBody(response)) as ChatTurnResult;
 };
 
 const useAiChat = (ctx: UseAiChatContext | null) => {
