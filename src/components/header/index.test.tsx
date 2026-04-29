@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
 import useAuth from "../../utils/hooks/useAuth";
+import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import resetRoute from "../../utils/resetRoute";
 
 import Header from ".";
@@ -20,6 +21,7 @@ jest.mock("../../assets/logo-software.svg?react", () => {
     };
 });
 jest.mock("../../utils/hooks/useAuth");
+jest.mock("../../utils/hooks/useAiEnabled");
 jest.mock("../../utils/resetRoute");
 jest.mock("../memberPopover", () => {
     const React = require("react");
@@ -31,6 +33,9 @@ jest.mock("../memberPopover", () => {
 });
 
 const mockedUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+const mockedUseAiEnabled = useAiEnabled as jest.MockedFunction<
+    typeof useAiEnabled
+>;
 const mockedResetRoute = resetRoute as jest.MockedFunction<typeof resetRoute>;
 
 const user = (overrides: Partial<IUser> = {}): IUser => ({
@@ -58,7 +63,14 @@ const installAntdBrowserMocks = () => {
     });
 };
 
-const renderHeader = (path = "/projects/p1/board") => {
+const renderHeader = (
+    path = "/projects/p1/board",
+    ai?: Partial<{
+        available: boolean;
+        enabled: boolean;
+        setEnabled: (next: boolean) => void;
+    }>
+) => {
     const logout = jest.fn();
 
     mockedUseAuth.mockReturnValue({
@@ -66,6 +78,12 @@ const renderHeader = (path = "/projects/p1/board") => {
         refreshUser: jest.fn(),
         token: "jwt-1",
         user: user()
+    });
+    mockedUseAiEnabled.mockReturnValue({
+        available: true,
+        enabled: true,
+        setEnabled: jest.fn(),
+        ...ai
     });
 
     window.history.pushState({}, "Header", path);
@@ -136,5 +154,36 @@ describe("Header", () => {
         await waitFor(() => {
             expect(logout).toHaveBeenCalledTimes(1);
         });
+    });
+
+    it("renders the Board Copilot toggle when AI is available at build time", () => {
+        renderHeader();
+        expect(
+            screen.getByRole("switch", { name: /enable board copilot/i })
+        ).toBeInTheDocument();
+    });
+
+    it("does not render the Board Copilot toggle when AI is disabled at build time", () => {
+        renderHeader("/projects/p1/board", {
+            available: false,
+            enabled: false,
+            setEnabled: jest.fn()
+        });
+        expect(
+            screen.queryByRole("switch", { name: /enable board copilot/i })
+        ).not.toBeInTheDocument();
+    });
+
+    it("invokes setEnabled(false) when the switch is turned off", () => {
+        const setEnabled = jest.fn();
+        renderHeader("/projects/p1/board", {
+            available: true,
+            enabled: true,
+            setEnabled
+        });
+        fireEvent.click(
+            screen.getByRole("switch", { name: /enable board copilot/i })
+        );
+        expect(setEnabled.mock.calls[0][0]).toBe(false);
     });
 });
