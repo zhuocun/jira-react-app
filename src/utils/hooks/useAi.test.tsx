@@ -122,6 +122,50 @@ describe("useAi local engine", () => {
         );
     });
 
+    it("resolves semantic search for tasks locally", async () => {
+        const { result } = renderHook(() =>
+            useAi<ISearchResult>({ route: "search" })
+        );
+        await act(async () => {
+            await result.current.run({
+                search: {
+                    kind: "tasks",
+                    query: "login bug",
+                    projectContext: localContext()
+                }
+            });
+        });
+        expect(result.current.data?.ids).toContain("t1");
+        expect(result.current.error).toBeNull();
+    });
+
+    it("resolves semantic search for projects locally", async () => {
+        const { result } = renderHook(() =>
+            useAi<ISearchResult>({ route: "search" })
+        );
+        await act(async () => {
+            await result.current.run({
+                search: {
+                    kind: "projects",
+                    query: "roadmap product",
+                    projectsContext: {
+                        projects: [
+                            {
+                                _id: "p1",
+                                createdAt: "2026-01-01",
+                                managerId: "m1",
+                                organization: "Product",
+                                projectName: "Roadmap app"
+                            }
+                        ],
+                        members: localContext().members
+                    }
+                }
+            });
+        });
+        expect(result.current.data?.ids).toEqual(["p1"]);
+    });
+
     it("resets state on demand", async () => {
         const { result } = renderHook(() =>
             useAi<IDraftTaskSuggestion>({ route: "task-draft" })
@@ -144,7 +188,8 @@ describe("useAi local engine", () => {
             "task-breakdown",
             "estimate",
             "readiness",
-            "board-brief"
+            "board-brief",
+            "search"
         ] as const) {
             const { result } = renderHook(() => useAi({ route }));
             await expect(

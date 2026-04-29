@@ -66,3 +66,8 @@ interface IBoardBrief {
 interface ITaskBreakdownSuggestion {
     items: IDraftTaskSuggestion[];
 }
+
+interface ISearchResult {
+    ids: string[];
+    rationale: string;
+}

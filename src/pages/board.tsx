@@ -4,8 +4,9 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
-import AiSparkleIcon from "../components/aiSparkleIcon";
 import AiChatDrawer from "../components/aiChatDrawer";
+import AiSearchInput from "../components/aiSearchInput";
+import AiSparkleIcon from "../components/aiSparkleIcon";
 import BoardBriefDrawer from "../components/boardBriefDrawer";
 import Column from "../components/column";
 import ColumnCreator from "../components/columnCreator";
@@ -36,7 +37,12 @@ const BoardSpin = styled(Spin)`
 const BoardPage = () => {
     useTitle("Board");
     const { projectId } = useParams<{ projectId: string }>();
-    const [param, setParam] = useUrl(["taskName", "coordinatorId", "type"]);
+    const [param, setParam] = useUrl([
+        "taskName",
+        "coordinatorId",
+        "type",
+        "semanticIds"
+    ]);
     const debouncedParam = useDebounce(param, 1000);
     const { data: currentProject, isLoading: pLoading } =
         useReactQuery<IProject>("projects", {
@@ -66,6 +72,18 @@ const BoardPage = () => {
         useDragEnd();
     const visibleTasks = tasks ?? [];
     const { enabled: aiEnabled } = useAiEnabled();
+    const aiProjectContext =
+        currentProject && board
+            ? {
+                  project: {
+                      _id: currentProject._id,
+                      projectName: currentProject.projectName
+                  },
+                  columns: board,
+                  tasks: visibleTasks,
+                  members: members ?? []
+              }
+            : null;
     const [briefOpen, setBriefOpen] = useState(false);
     const [chatOpen, setChatOpen] = useState(false);
 
@@ -105,6 +123,25 @@ const BoardPage = () => {
                     setParam={setParam}
                     members={members}
                     loading={tLoading || mLoading}
+                    aiSearchSlot={
+                        aiEnabled && aiProjectContext ? (
+                            <div
+                                style={{
+                                    flexBasis: "100%",
+                                    marginBottom: "0.75rem"
+                                }}
+                            >
+                                <AiSearchInput
+                                    kind="tasks"
+                                    projectContext={aiProjectContext}
+                                    semanticIds={param.semanticIds}
+                                    setSemanticIds={(value) =>
+                                        setParam({ semanticIds: value })
+                                    }
+                                />
+                            </div>
+                        ) : undefined
+                    }
                 />
                 {!(bLoading || tLoading) ? (
                     <ColumnContainer>

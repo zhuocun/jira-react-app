@@ -30,12 +30,13 @@ For a full list of dependencies, please refer to the `package.json` file.
 
 ## Board Copilot (AI features)
 
-This app ships an AI assistant called **Board Copilot** with four capabilities:
+This app ships an AI assistant called **Board Copilot** with five capabilities:
 
 - **Smart task drafting** in the create-task flow (a "Draft with AI" button next to `+ Create task`).
 - **Story-point estimation and readiness check** inside the edit-task modal.
 - **Board summary / standup brief** opened from the `Brief` button in the board header.
 - **Ask Board Copilot** — conversational Q&A from the `Ask` button on the board or project list (read-only project data via tool calls locally; optional remote `/api/ai/chat` when `REACT_APP_AI_BASE_URL` is set).
+- **Semantic search** — natural-language search on the board and project list (local token ranking, or optional remote `POST …/api/ai/search` when `REACT_APP_AI_BASE_URL` is set). Results combine with existing text filters; use **Clear AI search** to drop only the semantic filter.
 
 All AI features are **opt-out**: the existing flows are unchanged, and AI surfaces are gated by a single env flag and a runtime user toggle (persisted in `localStorage` under `boardCopilot:enabled`).
 

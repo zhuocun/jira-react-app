@@ -9,6 +9,7 @@ export interface TaskSearchParam {
     taskName: string;
     coordinatorId: string;
     type: string;
+    semanticIds?: string;
 }
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
     setParam: (params: Partial<TaskSearchParam>) => void;
     members: IMember[] | undefined;
     loading: boolean;
+    aiSearchSlot?: React.ReactNode;
 }
 
 const TaskSearchPanel: React.FC<Props> = ({
@@ -24,7 +26,8 @@ const TaskSearchPanel: React.FC<Props> = ({
     param,
     setParam,
     members,
-    loading
+    loading,
+    aiSearchSlot
 }) => {
     const { user } = useAuth();
     const types: string[] = [];
@@ -50,7 +53,8 @@ const TaskSearchPanel: React.FC<Props> = ({
         setParam({
             taskName: undefined,
             coordinatorId: undefined,
-            type: undefined
+            type: undefined,
+            semanticIds: undefined
         });
         formRef.current?.setFieldsValue({
             taskName: null,
@@ -61,6 +65,7 @@ const TaskSearchPanel: React.FC<Props> = ({
 
     return (
         <Form ref={formRef} style={{ marginBottom: "2rem" }} layout="inline">
+            {aiSearchSlot}
             <Form.Item name="taskName">
                 <Input
                     style={{ width: "20rem" }}

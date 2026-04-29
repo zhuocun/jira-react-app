@@ -463,3 +463,88 @@ export const boardBrief = (context: AiContextProject): IBoardBrief => {
         recommendation
     };
 };
+
+export interface AiSearchProjectsContext {
+    projects: IProject[];
+    members: IMember[];
+}
+
+const scoreByJaccard = (queryTokens: Set<string>, text: string): number => {
+    if (queryTokens.size === 0) return 0;
+    return jaccard(queryTokens, tokenSet(text));
+};
+
+/** Deterministic semantic-style ranking: token overlap (Jaccard) over task/project text. */
+export const semanticSearch = (
+    kind: "tasks" | "projects",
+    query: string,
+    context: AiContextProject | AiSearchProjectsContext
+): ISearchResult => {
+    const q = (query || "").trim();
+    if (!q) {
+        return { ids: [], rationale: "Enter a description to search." };
+    }
+    const queryTokens = tokenSet(q);
+    if (queryTokens.size === 0) {
+        return {
+            ids: [],
+            rationale: "No semantic match for that phrase."
+        };
+    }
+
+    if (kind === "tasks") {
+        const ctx = context as AiContextProject;
+        const scored = ctx.tasks.map((task) => {
+            const hay = `${task.taskName} ${task.type} ${task.epic} ${task.note ?? ""}`;
+            return { id: task._id, score: scoreByJaccard(queryTokens, hay) };
+        });
+        scored.sort((a, b) => b.score - a.score);
+        const maxScore = scored[0]?.score ?? 0;
+        if (maxScore === 0) {
+            return {
+                ids: [],
+                rationale: "No semantic match for that phrase."
+            };
+        }
+        const cutoff = Math.max(0.08, maxScore * 0.42);
+        const ids = scored
+            .filter((row) => row.score >= cutoff)
+            .slice(0, 50)
+            .map((row) => row.id);
+        return {
+            ids,
+            rationale:
+                ids.length > 0
+                    ? `Ranked ${ids.length} task(s) by similarity to your phrase.`
+                    : "No semantic match for that phrase."
+        };
+    }
+
+    const ctx = context as AiSearchProjectsContext;
+    const memberById = new Map(ctx.members.map((m) => [m._id, m.username]));
+    const scored = ctx.projects.map((project) => {
+        const manager = memberById.get(project.managerId) ?? "";
+        const hay = `${project.projectName} ${project.organization} ${manager}`;
+        return { id: project._id, score: scoreByJaccard(queryTokens, hay) };
+    });
+    scored.sort((a, b) => b.score - a.score);
+    const maxScore = scored[0]?.score ?? 0;
+    if (maxScore === 0) {
+        return {
+            ids: [],
+            rationale: "No semantic match for that phrase."
+        };
+    }
+    const cutoff = Math.max(0.08, maxScore * 0.42);
+    const ids = scored
+        .filter((row) => row.score >= cutoff)
+        .slice(0, 50)
+        .map((row) => row.id);
+    return {
+        ids,
+        rationale:
+            ids.length > 0
+                ? `Ranked ${ids.length} project(s) by similarity to your phrase.`
+                : "No semantic match for that phrase."
+    };
+};
