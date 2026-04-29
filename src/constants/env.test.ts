@@ -22,6 +22,19 @@ describe("environment", () => {
         expect(environment.apiBaseUrl).toBe("https://jira-api.example/api/v1");
     });
 
+    it("defaults the API origin when REACT_APP_API_URL is unset", () => {
+        delete process.env.REACT_APP_API_URL;
+        delete process.env.REACT_APP_AI_BASE_URL;
+        delete process.env.REACT_APP_AI_ENABLED;
+
+        jest.resetModules();
+        const environment = require("./env").default;
+
+        expect(environment.apiBaseUrl).toBe(
+            "https://jira-python-server.vercel.app/api/v1"
+        );
+    });
+
     it("reflects the environment value at module load time", () => {
         process.env.REACT_APP_API_URL = "http://localhost:8080";
         delete process.env.REACT_APP_AI_BASE_URL;
