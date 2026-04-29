@@ -2,40 +2,40 @@
 
 Companion to [`docs/prd/board-copilot.md`](board-copilot.md). Tracks what has shipped to `main`, what is still open, and the concrete file/test inventory so a new contributor can pick up cleanly.
 
-| Field        | Value                                                                                                              |
-| ------------ | ------------------------------------------------------------------------------------------------------------------ |
-| Status       | Phases 0–3 in codebase; runtime Board Copilot toggle in header; dedicated tests for `AiChatDrawer` and `useAiChat` |
-| Last updated | 2026-04-29                                                                                                         |
-| Owner        | TBD (frontend)                                                                                                     |
+| Field        | Value                                                                                                                                                                         |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status       | Phases 0–3 on `main` (PR #3 merged); header runtime toggle + `AiChatDrawer` / `useAiChat` tests ship on [PR #4](https://github.com/zhuocun/jira-react-app/pull/4) when merged |
+| Last updated | 2026-04-29                                                                                                                                                                    |
+| Owner        | TBD (frontend)                                                                                                                                                                |
 
 ---
 
 ## Main vs in-flight
 
-| Location                                                                                                | What it contains                                                                                                                                                                 |
-| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`main`** (through merge of PR #2)                                                                     | Phases 0–2B: plumbing, board brief, smart drafting, estimation/readiness, validators, local engine for structured routes, docs through earlier PRs.                              |
-| **Branch `cursor/board-copilot-chat-33e7` / [PR #3](https://github.com/zhuocun/jira-react-app/pull/3)** | Phase 3: `AiChatDrawer`, `useAiChat`, `chatTools` / `chatEngine`, `Ask` on board + project list, optional remote `POST …/api/ai/chat`. Not merged to `main` until that PR lands. |
+| Location                                                                                                                | What it contains                                                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`main`** (through merge of [PR #3](https://github.com/zhuocun/jira-react-app/pull/3))                                 | Phases 0–3: everything through the conversational assistant (`AiChatDrawer`, `useAiChat`, `chatTools` / `chatEngine`, `Ask` on board + project list, optional remote `POST …/api/ai/chat`). |
+| **Branch `cursor/board-copilot-continue-58b0` / [PR #4](https://github.com/zhuocun/jira-react-app/pull/4)** (this work) | Header **Board Copilot** `Switch` (PRD §7.3), dedicated tests for `AiChatDrawer` and `useAiChat` (local + remote), `/dist` in `.gitignore`, progress doc refresh.                           |
 
 ---
 
 ## At a glance
 
-| Phase    | Capability                                                 | PRD section | Status                                                                                                 |
-| -------- | ---------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ |
-| Phase 0  | Plumbing (env, hook, validators, runtime toggle)           | §7, §3.5    | ✅ Shipped                                                                                             |
-| Phase 1  | Capability C — Board summary brief                         | §5.3        | ✅ Shipped                                                                                             |
-| Phase 2A | Capability A — Smart task drafting                         | §5.1        | ✅ Shipped                                                                                             |
-| Phase 2B | Capability B — AI estimation + readiness                   | §5.2        | ✅ Shipped                                                                                             |
-| Phase 3  | Capability D — Conversational assistant                    | §5.4        | ✅ On PR #3 branch ([link](https://github.com/zhuocun/jira-react-app/pull/3)); merge to `main` pending |
-| Phase 4  | Capability E — Semantic search                             | §5.5        | ⏳ Not started                                                                                         |
-| Backend  | Vercel `api/ai/[route].ts` proxy with provider abstraction | §7.2        | ⏳ Not started (FE works against the deterministic local engine in the meantime)                       |
+| Phase    | Capability                                                 | PRD section | Status                                                                           |
+| -------- | ---------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| Phase 0  | Plumbing (env, hook, validators, runtime toggle)           | §7, §3.5    | ✅ Shipped                                                                       |
+| Phase 1  | Capability C — Board summary brief                         | §5.3        | ✅ Shipped                                                                       |
+| Phase 2A | Capability A — Smart task drafting                         | §5.1        | ✅ Shipped                                                                       |
+| Phase 2B | Capability B — AI estimation + readiness                   | §5.2        | ✅ Shipped                                                                       |
+| Phase 3  | Capability D — Conversational assistant                    | §5.4        | ✅ Shipped on `main` ([PR #3](https://github.com/zhuocun/jira-react-app/pull/3)) |
+| Phase 4  | Capability E — Semantic search                             | §5.5        | ⏳ Not started                                                                   |
+| Backend  | Vercel `api/ai/[route].ts` proxy with provider abstraction | §7.2        | ⏳ Not started (FE works against the deterministic local engine in the meantime) |
 
 ---
 
 ## What shipped
 
-Historical note: the first large Board Copilot drop was PR #1; later PRs extended docs and added Phase 3 on a separate branch (see table above).
+Historical note: the first large Board Copilot drop was PR #1; [PR #3](https://github.com/zhuocun/jira-react-app/pull/3) merged Phase 3 (Ask Board Copilot) to `main`.
 
 ### Phase 0 — Plumbing
 
@@ -64,7 +64,7 @@ Historical note: the first large Board Copilot drop was PR #1; later PRs extende
 - `src/components/aiTaskAssistPanel/index.tsx` — sidebar showing suggested story points (with confidence and similar-task back-references) and a readiness check (missing acceptance criteria, missing coordinator, etc.) with one-click `Apply` that fills the antd form.
 - `src/components/taskModal/index.tsx` — extends the form with `epic`, `storyPoints`, `note` editors so AI suggestions have somewhere to land, and mounts the assist panel for non-mock tasks when AI is enabled.
 
-### Phase 3 — Capability D: Conversational assistant (PR #3 branch; not on `main` until merged)
+### Phase 3 — Capability D: Conversational assistant
 
 - `src/components/aiChatDrawer/index.tsx` — right-edge `Drawer` (“Ask Board Copilot”) with message thread, read-only tool traces, local deterministic engine or `POST` to remote `/api/ai/chat` when `REACT_APP_AI_BASE_URL` is set.
 - `src/utils/hooks/useAiChat.ts` — orchestrates turns; executes validated read-only tools via `executeChatToolCall` (`src/utils/ai/chatTools.ts`).
@@ -95,7 +95,7 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `
     - `src/components/header/index.test.tsx` (includes Board Copilot toggle)
     - Extended: `src/components/{taskCreator,taskModal}/index.test.tsx`, `src/constants/env.test.ts`
 
-**Note:** AC-D1–AC-D4 apply only after Phase 3 is merged to `main` (currently [PR #3](https://github.com/zhuocun/jira-react-app/pull/3)).
+**Note:** AC-D1–AC-D4 apply with Phase 3 on `main` ([PR #3](https://github.com/zhuocun/jira-react-app/pull/3)).
 
 ### Acceptance-criteria status (against the PRD)
 
@@ -122,7 +122,7 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `
 | AC-D1 | Only registered read-only tools can run client-side                               | ✅ (`chatTools.ts` whitelist)                                                           |
 | AC-D2 | Tool definitions not supplied from user thread (remote must own tools)            | ✅ (local engine is fixed; remote contract documented in progress doc)                  |
 | AC-D3 | Closing the chat drawer aborts in-flight work                                     | ✅ (`useAiChat` + drawer `abort`)                                                       |
-| AC-D4 | Conversation cleared on hard reload                                               | ✅ (in-memory state only); Phase 3 code on PR #3 branch                                 |
+| AC-D4 | Conversation cleared on hard reload                                               | ✅ (in-memory state only)                                                               |
 | AC-E1 | Returned `ids` intersected with cache                                             | ⏳ Phase 4 not started                                                                  |
 | AC-E2 | Empty semantic search restores list + hint                                        | ⏳ Phase 4 not started                                                                  |
 | AC-E3 | Clearing AI search restores prior filters                                         | ⏳ Phase 4 not started                                                                  |
@@ -130,10 +130,6 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `
 ---
 
 ## What is open
-
-### Merge Phase 3 to `main`
-
-- Close [PR #3](https://github.com/zhuocun/jira-react-app/pull/3) (or equivalent) so Phase 3 ships on `main`. Until then, the Phase 3 files listed above exist only on that branch.
 
 ### Phase 4 — Capability E: Semantic search (PRD §5.5)
 
@@ -188,7 +184,7 @@ To exercise Board Copilot in the browser:
 5. Open any existing task to see the Board Copilot sidebar (Capability B).
 6. Click `Ask` in the board or project list header to open the conversational assistant (Capability D).
 
-To turn AI off without rebuilding:
+To turn AI off without rebuilding, use the **Board Copilot** switch in the app header (when `REACT_APP_AI_ENABLED` is not `false`), or:
 
 ```js
 localStorage.setItem("boardCopilot:enabled", "false");

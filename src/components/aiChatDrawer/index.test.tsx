@@ -143,7 +143,7 @@ describe("AiChatDrawer", () => {
         });
     });
 
-    it("calls onClose and resets input when the drawer is closed", async () => {
+    it("calls onClose when the drawer close control is used", async () => {
         const { onClose } = renderDrawer(true);
         fireEvent.change(screen.getByLabelText("Message Board Copilot"), {
             target: { value: "hello" }

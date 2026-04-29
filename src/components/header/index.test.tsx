@@ -174,7 +174,7 @@ describe("Header", () => {
         ).not.toBeInTheDocument();
     });
 
-    it("persists Board Copilot off when the switch is turned off", () => {
+    it("invokes setEnabled(false) when the switch is turned off", () => {
         const setEnabled = jest.fn();
         renderHeader("/projects/p1/board", {
             available: true,
