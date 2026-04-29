@@ -37,14 +37,6 @@ const useReactMutation = <D>(
                 data: filterRequest(param || {}),
                 method
             }),
-        onSuccess: setCache
-            ? async (data: D) => queryClient.setQueryData(cacheKey, data)
-            : () => queryClient.invalidateQueries({ queryKey: cacheKey }),
-        onError: onError
-            ? (err: unknown) => {
-                  onError(getError(err));
-              }
-            : undefined,
         onMutate: callback
             ? async (target: unknown) => {
                   const previousItems = queryClient.getQueryData(cacheKey);
@@ -53,7 +45,18 @@ const useReactMutation = <D>(
                   });
                   return { previousItems };
               }
-            : undefined
+            : undefined,
+        onError: (err, _vars, context) => {
+            if (callback && context) {
+                queryClient.setQueryData(cacheKey, context.previousItems);
+            }
+            if (onError) {
+                onError(err instanceof Error ? err : getError(err));
+            }
+        },
+        onSuccess: setCache
+            ? async (data: D) => queryClient.setQueryData(cacheKey, data)
+            : () => queryClient.invalidateQueries({ queryKey: cacheKey })
     });
 
     return {

@@ -10,7 +10,7 @@ The project utilizes the following technologies:
 - **Redux**: A predictable state container for JavaScript apps, used for managing the application state.
 - **React-Query**: A data-fetching library for React, used for fetching, caching, and syncing server data in the app.
 - **Ant Design**: A popular design system and UI library for React, used for building the application components.
-- **Styled Components**: A CSS-in-JS library for styling React components using tagged template literals.
+- **Emotion**: A CSS-in-JS library (`@emotion/react`, `@emotion/styled`) for styling components.
 - **Hello Pangea DnD**: A drag-and-drop library for React, used for implementing drag-and-drop functionality.
 - **React Router**: A collection of navigational components for creating single-page applications with navigation.
 
@@ -51,8 +51,10 @@ Board Copilot has two backends:
 
 | Variable                | Default | Effect                                                                        |
 | ----------------------- | ------- | ----------------------------------------------------------------------------- |
-| `REACT_APP_AI_ENABLED`  | `true`  | Set to `false` at build time to hide every AI surface and bypass the hook.    |
-| `REACT_APP_AI_BASE_URL` | empty   | When non-empty, AI calls go to `${...}/api/ai/<route>`. Empty = local engine. |
+| `REACT_APP_AI_ENABLED`  | `true`  | Set to `false` at build time to hide every AI surface and bypass the hook. Also supports `VITE_AI_ENABLED` (see Vite note below).    |
+| `REACT_APP_AI_BASE_URL` | empty   | When non-empty, AI calls go to `${...}/api/ai/<route>`. Empty = local engine. Also supports `VITE_AI_BASE_URL`. |
+
+Vite inlines `process.env.REACT_APP_*` at build time via `vite.config.ts`. You may use `VITE_AI_BASE_URL` / `VITE_AI_ENABLED` in `.env` files as aliases; they map to the same client bundle flags.
 
 The runtime toggle (per browser) overrides nothing about availability — it only lets a user disable AI on top of an already-enabled build.
 

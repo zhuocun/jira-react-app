@@ -1,10 +1,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { Provider } from "react-redux";
 import { MemoryRouter, useLocation } from "react-router-dom";
 
-import {
-    ProjectModalStoreContext,
-    projectModalStore
-} from "../../store/projectModalStore";
+import { store } from "../../store";
+import { projectActions } from "../../store/reducers/projectModalSlice";
 
 import useProjectModal from "./useProjectModal";
 import useReactQuery from "./useReactQuery";
@@ -60,31 +59,33 @@ const ProjectModalProbe = () => {
 
 const renderProjectModalProbe = (route: string) =>
     render(
-        <ProjectModalStoreContext.Provider value={projectModalStore}>
+        <Provider store={store}>
             <MemoryRouter initialEntries={[route]}>
                 <ProjectModalProbe />
             </MemoryRouter>
-        </ProjectModalStoreContext.Provider>
+        </Provider>
     );
 
 describe("useProjectModal", () => {
     beforeEach(() => {
-        projectModalStore.closeModalMobX();
+        store.dispatch(projectActions.closeModal());
         mockedUseReactQuery.mockReset();
         mockedUseReactQuery.mockReturnValue(queryResult());
     });
 
     afterEach(() => {
-        projectModalStore.closeModalMobX();
+        store.dispatch(projectActions.closeModal());
     });
 
-    it("opens the MobX modal store when modal=on is present", async () => {
+    it("opens the Redux modal flag when modal=on is present", async () => {
         renderProjectModalProbe("/projects?modal=on");
 
-        await waitFor(() => expect(projectModalStore.isModalOpened).toBe(true));
+        await waitFor(() =>
+            expect(store.getState().projectModal.isModalOpened).toBe(true)
+        );
     });
 
-    it("opens the MobX modal store and fetches the editing project when editingProjectId is present", async () => {
+    it("opens the modal and fetches the editing project when editingProjectId is present", async () => {
         mockedUseReactQuery.mockReturnValue(
             queryResult({
                 data: project(),
@@ -94,7 +95,9 @@ describe("useProjectModal", () => {
 
         renderProjectModalProbe("/projects?editingProjectId=p1");
 
-        await waitFor(() => expect(projectModalStore.isModalOpened).toBe(true));
+        await waitFor(() =>
+            expect(store.getState().projectModal.isModalOpened).toBe(true)
+        );
         expect(mockedUseReactQuery).toHaveBeenCalledWith(
             "projects",
             { projectId: "p1" },
@@ -107,13 +110,13 @@ describe("useProjectModal", () => {
         expect(screen.getByTestId("loading")).toHaveTextContent("loading");
     });
 
-    it("closes the MobX modal store when neither modal param is present", async () => {
-        projectModalStore.openModalMobX();
+    it("closes the modal when neither modal param is present", async () => {
+        store.dispatch(projectActions.openModal());
 
         renderProjectModalProbe("/projects");
 
         await waitFor(() =>
-            expect(projectModalStore.isModalOpened).toBe(false)
+            expect(store.getState().projectModal.isModalOpened).toBe(false)
         );
         expect(mockedUseReactQuery).toHaveBeenCalledWith(
             "projects",
@@ -148,7 +151,7 @@ describe("useProjectModal", () => {
             expect(screen.getByTestId("search")).toHaveTextContent("")
         );
         await waitFor(() =>
-            expect(projectModalStore.isModalOpened).toBe(false)
+            expect(store.getState().projectModal.isModalOpened).toBe(false)
         );
     });
 });

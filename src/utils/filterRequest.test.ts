@@ -27,7 +27,7 @@ describe("filterRequest", () => {
         });
     });
 
-    it("mutates and returns the same object", () => {
+    it("returns a new object without mutating the input", () => {
         const params = {
             projectName: "Jira clone",
             assigneeId: ""
@@ -35,7 +35,11 @@ describe("filterRequest", () => {
 
         const result = filterRequest(params);
 
-        expect(result).toBe(params);
-        expect(params).toEqual({ projectName: "Jira clone" });
+        expect(result).not.toBe(params);
+        expect(params).toEqual({
+            projectName: "Jira clone",
+            assigneeId: ""
+        });
+        expect(result).toEqual({ projectName: "Jira clone" });
     });
 });

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import environment from "../../constants/env";
+import { getStoredBearerAuthHeader } from "../aiAuthHeader";
+import { parseFetchBody } from "../parseFetchBody";
+
 import {
     AiContextProject,
     AiSearchProjectsContext,
@@ -187,16 +190,20 @@ const remoteResolve = async (
     payload: RunPayload,
     signal: AbortSignal
 ): Promise<unknown> => {
+    const authHeader = getStoredBearerAuthHeader();
     const response = await fetch(`${environment.aiBaseUrl}/api/ai/${route}`, {
         body: JSON.stringify(payload),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            ...(authHeader ? { Authorization: authHeader } : {})
+        },
         method: "POST",
         signal
     });
     if (!response.ok) {
         throw new Error(`AI request failed (${response.status})`);
     }
-    return response.json();
+    return parseFetchBody(response);
 };
 
 const useAi = <T>(options: UseAiOptions) => {

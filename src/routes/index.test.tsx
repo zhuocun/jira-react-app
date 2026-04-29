@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Navigate } from "react-router";
+import { Navigate, Outlet } from "react-router";
 
 import routes from ".";
 
@@ -32,31 +32,42 @@ const element = <Props,>(route: { element?: unknown }) =>
     route.element as ReactElement<Props>;
 
 describe("routes", () => {
-    it("redirects the bare root route to login", () => {
-        expect(routes[0].path).toBe("/");
-        expect(element<{ to: string }>(routes[0]).type).toBe(Navigate);
-        expect(element<{ to: string }>(routes[0]).props.to).toBe("/login");
+    it("wraps the app in an outlet with an index redirect to login", () => {
+        const root = routes[0];
+        expect(root.path).toBe("/");
+        expect(element(root).type).toBe(Outlet);
+
+        const indexRedirect = root.children?.[0];
+        expect(
+            indexRedirect && "index" in indexRedirect && indexRedirect.index
+        ).toBe(true);
+        expect(
+            element<{ to: string }>(indexRedirect as { element?: unknown }).type
+        ).toBe(Navigate);
+        expect(
+            element<{ to: string }>(indexRedirect as { element?: unknown })
+                .props.to
+        ).toBe("/login");
     });
 
-    it("contains auth and project child routes under the home route", () => {
-        const homeRoute = routes[1];
-
-        expect(homeRoute.path).toBe("/");
-        expect(homeRoute.children?.map((route) => route.path)).toEqual([
-            "/register",
-            "/login",
-            "/projects",
-            "/projects/:projectId"
+    it("contains auth and project child routes under the home shell", () => {
+        const homeShell = routes[0].children?.[1];
+        expect(homeShell?.path).toBeUndefined();
+        expect(homeShell?.children?.map((route) => route.path)).toEqual([
+            "register",
+            "login",
+            "projects",
+            "projects/:projectId"
         ]);
     });
 
     it("nests the board route below project detail", () => {
-        const projectDetailRoute = routes[1].children?.find(
-            (route) => route.path === "/projects/:projectId"
+        const projectDetailRoute = routes[0].children?.[1]?.children?.find(
+            (route) => route.path === "projects/:projectId"
         );
 
         expect(
             projectDetailRoute?.children?.map((route) => route.path)
-        ).toEqual(["/projects/:projectId/board"]);
+        ).toEqual(["board"]);
     });
 });

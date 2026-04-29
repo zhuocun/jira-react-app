@@ -1,13 +1,13 @@
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 
-import { ProjectModalStoreContext } from "../../store/projectModalStore";
-// import { projectActions } from "../../store/reducers/projectModalSlice";
+import { projectActions } from "../../store/reducers/projectModalSlice";
 
 import useReactQuery from "./useReactQuery";
-// import { useReduxDispatch, useReduxSelector } from "./useRedux";
+import { useReduxDispatch, useReduxSelector } from "./useRedux";
 import useUrl from "./useUrl";
 
 const useProjectModal = () => {
+    const dispatch = useReduxDispatch();
     const [{ modal }, setModal] = useUrl(["modal"]);
     const [{ editingProjectId }, setEditingProjectId] = useUrl([
         "editingProjectId"
@@ -20,18 +20,13 @@ const useProjectModal = () => {
         undefined,
         Boolean(editingProjectId)
     );
-    const projectModalStore = useContext(ProjectModalStoreContext);
-    const { isModalOpened, openModalMobX, closeModalMobX } = projectModalStore;
-    // const isModalOpened = useReduxSelector((s) => s.projectModal.isModalOpened);
-    // const dispatch = useReduxDispatch();
+    const isModalOpened = useReduxSelector((s) => s.projectModal.isModalOpened);
     const openModal = () => {
         setModal({ modal: "on" });
-        // openModalMobX();
     };
     const closeModal = () => {
         setModal({ modal: undefined });
         setEditingProjectId({ editingProjectId: undefined });
-        // closeModalMobX();
     };
     const startEditing = (id: string) => {
         setEditingProjectId({ editingProjectId: id });
@@ -39,13 +34,11 @@ const useProjectModal = () => {
 
     useEffect(() => {
         if (modal === "on" || Boolean(editingProjectId)) {
-            openModalMobX();
-            // dispatch(projectActions.openModal());
+            dispatch(projectActions.openModal());
         } else {
-            closeModalMobX();
-            // dispatch(projectActions.closeModal());
+            dispatch(projectActions.closeModal());
         }
-    }, [modal, editingProjectId]);
+    }, [dispatch, modal, editingProjectId]);
 
     return {
         isModalOpened,
