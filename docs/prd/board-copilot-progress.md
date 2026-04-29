@@ -160,7 +160,7 @@ Not started — **no `api/` routes in this repo** yet. The client posts to `${RE
 ### Product / UX gaps (from PRD)
 
 - ~~**Runtime toggle UI** (PRD §7.3)~~: shipped in `src/components/header` (`Switch` + `useAiEnabled`).
-- **“Disable AI for this project”** (PRD §8): not implemented; needs storage keyed by `projectId` and guards before firing AI.
+- ~~**“Disable AI for this project”** (PRD §8)~~: shipped — `boardCopilot:disabledProjectIds` in `localStorage`, `useAiProjectDisabled` + **Project AI** switch on the board header, guards in `useAi` / `useAiChat`, `boardAiOn` passed to `Column` / `TaskCreator` / `TaskModal`.
 - **Observability** (PRD §7.7, §9): client/server counters — lands with proxy.
 - **Chat write-tools** (PRD §5.4 follow-up): out of scope until a later version.
 

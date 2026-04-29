@@ -22,6 +22,39 @@ import {
     validateReadiness,
     validateSearch
 } from "../ai/validate";
+import {
+    isProjectAiDisabled,
+    PROJECT_AI_DISABLED_MESSAGE
+} from "../ai/projectAiStorage";
+
+const assertProjectsAiAllowed = (payload: RunPayload) => {
+    const blocked = new Set<string>();
+    if (payload.draft?.context.project._id) {
+        blocked.add(payload.draft.context.project._id);
+    }
+    if (payload.estimate?.context.project._id) {
+        blocked.add(payload.estimate.context.project._id);
+    }
+    if (payload.readiness?.context.project._id) {
+        blocked.add(payload.readiness.context.project._id);
+    }
+    if (payload.brief?.context.project._id) {
+        blocked.add(payload.brief.context.project._id);
+    }
+    if (payload.search?.kind === "tasks" && payload.search.projectContext) {
+        blocked.add(payload.search.projectContext.project._id);
+    }
+    if (payload.search?.kind === "projects" && payload.search.projectsContext) {
+        for (const p of payload.search.projectsContext.projects) {
+            blocked.add(p._id);
+        }
+    }
+    for (const id of blocked) {
+        if (isProjectAiDisabled(id)) {
+            throw new Error(PROJECT_AI_DISABLED_MESSAGE);
+        }
+    }
+};
 
 export type AiRoute =
     | "task-draft"
@@ -201,6 +234,7 @@ const useAi = <T>(options: UseAiOptions) => {
             setIsLoading(true);
             setError(null);
             try {
+                assertProjectsAiAllowed(payload);
                 let raw: unknown;
                 if (environment.aiUseLocalEngine) {
                     raw = await Promise.resolve(localResolve(route, payload));

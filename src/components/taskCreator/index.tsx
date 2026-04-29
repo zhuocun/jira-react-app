@@ -9,10 +9,11 @@ import newTaskCallback from "../../utils/optimisticUpdate/createTask";
 import AiSparkleIcon from "../aiSparkleIcon";
 import AiTaskDraftModal from "../aiTaskDraftModal";
 
-const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
-    columnId,
-    disabled
-}) => {
+const TaskCreator: React.FC<{
+    columnId?: string;
+    disabled: boolean;
+    boardAiOn?: boolean;
+}> = ({ columnId, disabled, boardAiOn = true }) => {
     const { user } = useAuth();
     const [taskName, setTaskName] = useState("");
     const [inputMode, setInputMode] = useState(false);
@@ -53,7 +54,7 @@ const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
             <span style={{ paddingLeft: "1rem" }}>
                 {/* eslint-disable-next-line */}
                 <a onClick={toggle}>+ Create task</a>
-                {aiEnabled && (
+                {aiEnabled && boardAiOn && (
                     <>
                         <span style={{ margin: "0 0.6rem" }}>·</span>
                         <Button

@@ -26,6 +26,7 @@ type DropMockProps = {
 type TaskCreatorMockProps = {
     columnId?: string;
     disabled?: boolean;
+    boardAiOn?: boolean;
 };
 
 type DropdownMenuItem = {
@@ -54,8 +55,9 @@ jest.mock("../dragAndDrop", () => ({
 
 jest.mock("../taskCreator", () => ({
     __esModule: true,
-    default: ({ columnId, disabled }: TaskCreatorMockProps) => (
+    default: ({ columnId, disabled, boardAiOn }: TaskCreatorMockProps) => (
         <div
+            data-board-ai={String(boardAiOn !== false)}
             data-column-id={columnId}
             data-disabled={String(disabled)}
             data-testid="task-creator"
@@ -126,6 +128,7 @@ const startEditing = jest.fn();
 const renderColumn = ({
     boardColumn = column(),
     isDragDisabled = false,
+    boardAiOn = true,
     param = defaultParam,
     tasks = [
         task(),
@@ -145,6 +148,7 @@ const renderColumn = ({
     isDragDisabled?: boolean;
     param?: TaskSearchParam;
     tasks?: ITask[];
+    boardAiOn?: boolean;
 } = {}) => {
     mockedUseReactMutation.mockReturnValue({ mutate: removeColumn });
     mockedUseTaskModal.mockReturnValue({ startEditing });
@@ -156,6 +160,7 @@ const renderColumn = ({
                     path="/projects/:projectId/board"
                     element={
                         <Column
+                            boardAiOn={boardAiOn}
                             column={boardColumn}
                             isDragDisabled={isDragDisabled}
                             param={param}
@@ -196,6 +201,18 @@ describe("Column", () => {
         expect(screen.getByTestId("task-creator")).toHaveAttribute(
             "data-column-id",
             "column-1"
+        );
+        expect(screen.getByTestId("task-creator")).toHaveAttribute(
+            "data-board-ai",
+            "true"
+        );
+    });
+
+    it("passes boardAiOn=false to TaskCreator when project AI is off", () => {
+        renderColumn({ boardAiOn: false });
+        expect(screen.getByTestId("task-creator")).toHaveAttribute(
+            "data-board-ai",
+            "false"
         );
     });
 
