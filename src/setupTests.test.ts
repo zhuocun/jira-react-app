@@ -5,3 +5,7 @@ test("loads jest-dom matchers for the test harness", () => {
 
     expect(element).toHaveTextContent("ready");
 });
+
+test("polyfills matchMedia for Ant Design responsive hooks", () => {
+    expect(window.matchMedia).toEqual(expect.any(Function));
+});
