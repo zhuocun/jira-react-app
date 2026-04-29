@@ -2,11 +2,11 @@
 
 Companion to [`docs/prd/board-copilot.md`](board-copilot.md). Tracks what has shipped to `main`, what is still open, and the concrete file/test inventory so a new contributor can pick up cleanly.
 
-| Field        | Value                                                                                                      |
-| ------------ | ---------------------------------------------------------------------------------------------------------- |
-| Status       | Phases 0–2B on `main`; Phase 3 (Ask Board Copilot) implemented on branch / PR #3 (merge to `main` pending) |
-| Last updated | 2026-04-29                                                                                                 |
-| Owner        | TBD (frontend)                                                                                             |
+| Field        | Value                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Status       | Phases 0–3 in codebase; runtime Board Copilot toggle in header; dedicated tests for `AiChatDrawer` and `useAiChat` |
+| Last updated | 2026-04-29                                                                                                         |
+| Owner        | TBD (frontend)                                                                                                     |
 
 ---
 
@@ -76,21 +76,23 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `
 **PRD gaps / follow-ups for Phase 3**
 
 - Chat uses **request–response JSON**, not **SSE** token streaming (PRD §6.1 / §7.1 describe SSE for `useAi`; structured routes also use non-streaming `fetch` today).
-- **Tests:** `aiChatDrawer` and `useAiChat` have no dedicated component/hook test files yet (tool/engine units exist).
+- **Tests:** `src/components/aiChatDrawer/index.test.tsx`, `src/utils/hooks/useAiChat.test.tsx`, `src/utils/hooks/useAiChat.remote.test.tsx` cover the drawer, local chat turns, and remote chat transport (tool/engine units remain in `*.test.ts`).
 
 ### Shared
 
+- `src/components/header/index.tsx` — **Board Copilot** runtime switch (Ant Design `Switch`) when `REACT_APP_AI_ENABLED` is not `false`; persists via `useAiEnabled` / `localStorage` (PRD §7.3).
 - `src/components/aiSparkleIcon/index.tsx` — single shared "AI" affordance used wherever AI initiates an action.
 - `README.md` — Board Copilot section: backends, env vars, safety, link to the PRD.
 
 ### Test coverage
 
-- 72 suites, 312 tests (was 59/232 before Board Copilot work began).
+- 75 suites, 326 tests (was 59/232 before Board Copilot work began).
 - Coverage on the runtime AI scope: **97% statements / 92.37% branches / 97% functions / 97.84% lines**.
 - New test files:
     - `src/utils/ai/{engine,keywords,storyPoints,validate,chatEngine,chatTools}.test.ts`
-    - `src/utils/hooks/{useAi,useAi.remote,useAiEnabled,useAiEnabled.disabled}.test.tsx`
-    - `src/components/{aiTaskDraftModal,aiTaskAssistPanel,boardBriefDrawer}/index.test.tsx`
+    - `src/utils/hooks/{useAi,useAi.remote,useAiChat,useAiChat.remote,useAiEnabled,useAiEnabled.disabled}.test.tsx`
+    - `src/components/{aiChatDrawer,aiTaskDraftModal,aiTaskAssistPanel,boardBriefDrawer}/index.test.tsx`
+    - `src/components/header/index.test.tsx` (includes Board Copilot toggle)
     - Extended: `src/components/{taskCreator,taskModal}/index.test.tsx`, `src/constants/env.test.ts`
 
 **Note:** AC-D1–AC-D4 apply only after Phase 3 is merged to `main` (currently [PR #3](https://github.com/zhuocun/jira-react-app/pull/3)).
@@ -154,7 +156,7 @@ Not started — **no `api/` routes in this repo** yet. The client posts to `${RE
 
 ### Product / UX gaps (from PRD)
 
-- **Runtime toggle UI** (PRD §7.3): `useAiEnabled` + `localStorage` exist; no switch in `src/components/header` (or elsewhere).
+- ~~**Runtime toggle UI** (PRD §7.3)~~: shipped in `src/components/header` (`Switch` + `useAiEnabled`).
 - **“Disable AI for this project”** (PRD §8): not implemented; needs storage keyed by `projectId` and guards before firing AI.
 - **Observability** (PRD §7.7, §9): client/server counters — lands with proxy.
 - **Chat write-tools** (PRD §5.4 follow-up): out of scope until a later version.
@@ -175,7 +177,7 @@ CI=true npm test -- --watchAll=false --runInBand --coverage --coverageReporters=
 npx vite build
 ```
 
-Expected: lint clean, 72 suites / 312 tests pass, ≥97% statement coverage, build succeeds.
+Expected: lint clean, 75 suites / 326 tests pass, ≥97% statement coverage, build succeeds.
 
 To exercise Board Copilot in the browser:
 
