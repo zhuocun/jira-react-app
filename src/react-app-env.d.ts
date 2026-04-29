@@ -1,4 +1,6 @@
 /// <reference types="vite/client" />
+/// <reference types="node" />
+/// <reference types="jest" />
 
 declare module "*.css";
 

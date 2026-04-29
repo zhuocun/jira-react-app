@@ -64,7 +64,7 @@ const renderProjectPopover = () => {
         isModalOpened: false,
         openModal,
         startEditing: jest.fn()
-    });
+    } as ReturnType<typeof useProjectModal>);
     mockedUseReactQuery.mockReturnValue({
         data: [
             project(),

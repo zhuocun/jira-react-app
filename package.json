@@ -3,12 +3,13 @@
     "version": "0.1.0",
     "private": true,
     "engines": {
-        "node": "24.x"
+        "node": ">=22 <25"
     },
     "scripts": {
         "start": "vite --host 0.0.0.0 --port 3000",
         "build": "vite build",
         "test": "jest",
+        "typecheck": "tsc --noEmit",
         "prepare": "husky",
         "prettier": "prettier -c .prettierrc --write .",
         "eslint": "eslint src __json_server_mock__ eslint.config.mjs vite.config.ts jest.config.cjs babel.config.cjs commitlint.config.js --fix",
@@ -50,6 +51,8 @@
         "@commitlint/config-conventional": "^20.5.0",
         "@eslint/js": "^10.0.1",
         "@testing-library/dom": "^10.4.1",
+        "@types/node": "^25.6.0",
+        "@types/qs": "^6.15.0",
         "@typescript-eslint/eslint-plugin": "^8.59.0",
         "@typescript-eslint/parser": "^8.59.0",
         "@vitejs/plugin-react": "^6.0.1",

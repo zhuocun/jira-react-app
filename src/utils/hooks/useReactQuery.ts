@@ -29,11 +29,11 @@ const useReactQuery = <D>(
 
     const query = useQuery<D>({
         queryKey: getQueryKey(endPoint, queryParam, specialQueryKey),
-        queryFn: () =>
-            api(endPoint, {
+        queryFn: async () =>
+            (await api(endPoint, {
                 data: filterRequest(queryParam || {}),
                 method: "GET"
-            }),
+            })) as D,
         enabled
     });
 

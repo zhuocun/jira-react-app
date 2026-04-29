@@ -7,8 +7,8 @@ type MockRequest = {
 };
 
 type MockResponse = {
-    json: jest.Mock<MockResponse, [unknown]>;
-    status: jest.Mock<MockResponse, [number]>;
+    json: jest.Mock;
+    status: jest.Mock;
 };
 
 const createRequest = (overrides: Partial<MockRequest> = {}): MockRequest => ({
@@ -21,8 +21,8 @@ const createRequest = (overrides: Partial<MockRequest> = {}): MockRequest => ({
 const createResponse = (): MockResponse => {
     const response = {} as MockResponse;
 
-    response.status = jest.fn(() => response);
-    response.json = jest.fn(() => response);
+    response.status = jest.fn((_code: number) => response);
+    response.json = jest.fn((_body?: unknown) => response);
 
     return response;
 };
@@ -101,7 +101,7 @@ describe("json-server middleware", () => {
     it.each([
         [{ email: "wrong@example.com", password: "pw" }, "wrong email"],
         [{ email: "alice@example.com" }, "missing password"]
-    ])("rejects invalid register requests for %s", (body) => {
+    ])("rejects invalid register requests for %s", (body, _label) => {
         const { next, res } = runMiddleware({
             body,
             path: "/register"
