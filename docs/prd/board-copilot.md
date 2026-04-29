@@ -2,12 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft v1 |
+| Status | v1 — Phases 0–2B shipped, Phases 3–4 + backend pending |
 | Owner | TBD (frontend) |
 | Last updated | 2026-04-29 |
 | Target repository | `jira-react-app` (this repo) |
 | Target release | Internal preview, then opt-in toggle for end users |
 | Document scope | Product, UX, technical contract, rollout, testing |
+| Implementation progress | See [`board-copilot-progress.md`](board-copilot-progress.md) |
 
 ---
 
