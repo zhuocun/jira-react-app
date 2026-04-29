@@ -1,0 +1,190 @@
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+
+import AiTaskAssistPanel from ".";
+
+const installAntdMocks = () => {
+    Object.defineProperty(window, "matchMedia", {
+        writable: true,
+        value: () => ({
+            addEventListener: jest.fn(),
+            addListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+            matches: false,
+            media: "",
+            onchange: null,
+            removeEventListener: jest.fn(),
+            removeListener: jest.fn()
+        })
+    });
+};
+
+const seedClient = () => {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(
+        ["users/members"],
+        [{ _id: "m1", email: "a@b.c", username: "Alice" }]
+    );
+    queryClient.setQueryData(
+        ["boards", { projectId: "p1" }],
+        [{ _id: "c1", columnName: "Todo", index: 0, projectId: "p1" }]
+    );
+    queryClient.setQueryData(
+        ["tasks", { projectId: "p1" }],
+        [
+            {
+                _id: "t1",
+                columnId: "c1",
+                coordinatorId: "m1",
+                epic: "Auth",
+                index: 0,
+                note: "old",
+                projectId: "p1",
+                storyPoints: 5,
+                taskName: "Old login bug",
+                type: "Bug"
+            },
+            {
+                _id: "t2",
+                columnId: "c1",
+                coordinatorId: "m1",
+                epic: "Auth",
+                index: 1,
+                note: "old",
+                projectId: "p1",
+                storyPoints: 3,
+                taskName: "Reset password",
+                type: "Task"
+            }
+        ]
+    );
+    return queryClient;
+};
+
+const mountPanel = (
+    overrides: Partial<{
+        values: {
+            taskName?: string;
+            note?: string;
+            type?: string;
+            epic?: string;
+            coordinatorId?: string;
+            storyPoints?: number;
+        };
+        onApplyStoryPoints: (value: StoryPoints) => void;
+        onApplySuggestion: (
+            field: IReadinessIssue["field"],
+            suggestion: string
+        ) => void;
+        onOpenSimilarTask: (taskId: string) => void;
+        excludeTaskId?: string;
+    }> = {}
+) => {
+    const queryClient = seedClient();
+    const onApplyStoryPoints = jest.fn();
+    const onApplySuggestion = jest.fn();
+    const onOpenSimilarTask = jest.fn();
+    render(
+        <QueryClientProvider client={queryClient}>
+            <MemoryRouter initialEntries={["/projects/p1/board"]}>
+                <Routes>
+                    <Route
+                        path="/projects/:projectId/board"
+                        element={
+                            <AiTaskAssistPanel
+                                excludeTaskId={overrides.excludeTaskId}
+                                onApplyStoryPoints={
+                                    overrides.onApplyStoryPoints ??
+                                    onApplyStoryPoints
+                                }
+                                onApplySuggestion={
+                                    overrides.onApplySuggestion ??
+                                    onApplySuggestion
+                                }
+                                onOpenSimilarTask={
+                                    overrides.onOpenSimilarTask ??
+                                    onOpenSimilarTask
+                                }
+                                values={
+                                    overrides.values ?? {
+                                        taskName: "Investigate flaky login bug"
+                                    }
+                                }
+                            />
+                        }
+                    />
+                </Routes>
+            </MemoryRouter>
+        </QueryClientProvider>
+    );
+    return { onApplyStoryPoints, onApplySuggestion, onOpenSimilarTask };
+};
+
+describe("AiTaskAssistPanel", () => {
+    beforeAll(() => {
+        installAntdMocks();
+        jest.useFakeTimers();
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
+    it("shows story-point suggestion grounded in the cache and applies it", async () => {
+        const { onApplyStoryPoints } = mountPanel();
+        // debounce flush
+        await waitFor(() =>
+            expect(jest.getTimerCount()).toBeGreaterThanOrEqual(1)
+        );
+        jest.advanceTimersByTime(1000);
+        const apply = await screen.findByLabelText(
+            "Apply suggested story points"
+        );
+        fireEvent.click(apply);
+        expect(onApplyStoryPoints).toHaveBeenCalledTimes(1);
+    });
+
+    it("applies a readiness suggestion to the bound field", async () => {
+        const { onApplySuggestion } = mountPanel({
+            values: { taskName: "Hi" }
+        });
+        jest.advanceTimersByTime(1000);
+        const button = await screen.findByLabelText(
+            /Apply readiness suggestion for taskName/
+        );
+        fireEvent.click(button);
+        expect(onApplySuggestion).toHaveBeenCalledWith(
+            "taskName",
+            expect.any(String)
+        );
+    });
+
+    it("opens a similar task when its link is clicked", async () => {
+        const { onOpenSimilarTask } = mountPanel({
+            values: { taskName: "Investigate flaky login bug" }
+        });
+        jest.advanceTimersByTime(1000);
+        const links = await screen.findAllByText(/Old login bug/);
+        const link = links.find((node) => node.tagName === "A");
+        expect(link).toBeTruthy();
+        fireEvent.click(link!);
+        expect(onOpenSimilarTask).toHaveBeenCalledWith("t1");
+    });
+
+    it("renders a positive readiness alert when nothing is wrong", async () => {
+        mountPanel({
+            values: {
+                taskName: "Reset password reliably",
+                note: "## Acceptance criteria\n- Done when reset works",
+                epic: "Auth",
+                type: "Task",
+                coordinatorId: "m1"
+            }
+        });
+        jest.advanceTimersByTime(1000);
+        expect(
+            await screen.findByText(/Looks ready to work on/)
+        ).toBeInTheDocument();
+    });
+});

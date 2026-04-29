@@ -56,6 +56,22 @@ const renderCreator = ({ disabled = false }: { disabled?: boolean } = {}) => {
 describe("TaskCreator", () => {
     const fetchMock = jest.spyOn(global, "fetch");
 
+    beforeAll(() => {
+        Object.defineProperty(window, "matchMedia", {
+            writable: true,
+            value: () => ({
+                addEventListener: jest.fn(),
+                addListener: jest.fn(),
+                dispatchEvent: jest.fn(),
+                matches: false,
+                media: "",
+                onchange: null,
+                removeEventListener: jest.fn(),
+                removeListener: jest.fn()
+            })
+        });
+    });
+
     beforeEach(() => {
         fetchMock.mockReset();
         fetchMock.mockResolvedValue(
@@ -136,5 +152,15 @@ describe("TaskCreator", () => {
         expect(
             screen.getByPlaceholderText("What needs to be done?")
         ).toBeDisabled();
+    });
+
+    it("opens the Board Copilot draft modal from the Draft with AI button", async () => {
+        renderCreator();
+        fireEvent.click(
+            screen.getByLabelText("Draft a task with Board Copilot")
+        );
+        await waitFor(() =>
+            expect(screen.getByLabelText("Task prompt")).toBeInTheDocument()
+        );
     });
 });
