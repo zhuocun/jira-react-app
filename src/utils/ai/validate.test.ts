@@ -140,7 +140,8 @@ describe("validateEstimate", () => {
                 rationale: "r",
                 similar: [
                     { _id: "t1", reason: "match" },
-                    { _id: "ghost", reason: "noop" }
+                    { _id: "ghost", reason: "noop" },
+                    null as unknown as IEstimateSimilar
                 ],
                 storyPoints: 5
             },
@@ -257,5 +258,14 @@ describe("validateSearch", () => {
             ids: [],
             rationale: ""
         });
+    });
+
+    it("normalises non-string rationale", () => {
+        expect(
+            validateSearch(
+                { ids: ["x"], rationale: 123 as unknown as string },
+                new Set(["x"])
+            )
+        ).toEqual({ ids: ["x"], rationale: "" });
     });
 });

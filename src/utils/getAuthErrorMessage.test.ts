@@ -20,4 +20,17 @@ describe("getAuthErrorMessage", () => {
     it("handles plain strings", () => {
         expect(getAuthErrorMessage("Bad request")).toBe("Bad request");
     });
+
+    it("returns Request failed for null or undefined bodies", () => {
+        expect(getAuthErrorMessage(null)).toBe("Request failed");
+        expect(getAuthErrorMessage(undefined)).toBe("Request failed");
+    });
+
+    it("falls through nestedMessage when error array items lack msg", () => {
+        expect(
+            getAuthErrorMessage({
+                error: [{ notMsg: true }]
+            })
+        ).toBe("Operation failed");
+    });
 });

@@ -276,4 +276,30 @@ describe("useReactMutation", () => {
             queryKey: ["profile"]
         });
     });
+
+    it("rolls back optimistic cache when the mutation fails", async () => {
+        const queryClient = createQueryClient();
+        const previousItems = [{ _id: "old" }];
+        const callback = jest.fn((item, old?: unknown[]) => [
+            ...(old ?? []),
+            item
+        ]);
+        queryClient.setQueryData(["items"], previousItems);
+        apiMock.mockRejectedValue(new Error("network"));
+
+        const { result } = renderHook(
+            () => useReactMutation("items", "POST", ["items"], callback),
+            {
+                wrapper: createWrapper(queryClient)
+            }
+        );
+
+        await act(async () => {
+            await expect(
+                result.current.mutateAsync({ _id: "new" })
+            ).rejects.toThrow("network");
+        });
+
+        expect(queryClient.getQueryData(["items"])).toEqual(previousItems);
+    });
 });

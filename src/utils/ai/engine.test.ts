@@ -419,4 +419,50 @@ describe("engine.semanticSearch", () => {
         const out = semanticSearch("projects", "billing acme", ctx);
         expect(out.ids).toEqual(["p1"]);
     });
+
+    it("returns no semantic match when the query has no meaningful tokens", () => {
+        const out = semanticSearch("tasks", "a an the", taskCtx());
+        expect(out.ids).toEqual([]);
+        expect(out.rationale).toMatch(/No semantic match/i);
+    });
+
+    it("returns no semantic match for projects when scores are all zero", () => {
+        const ctx: AiSearchProjectsContext = {
+            projects: [
+                {
+                    _id: "p1",
+                    createdAt: "2026-01-01",
+                    managerId: "m1",
+                    organization: "X",
+                    projectName: "Y"
+                }
+            ],
+            members: [member({ _id: "m1", username: "Z" })]
+        };
+        const out = semanticSearch("projects", "qqq zzz", ctx);
+        expect(out.ids).toEqual([]);
+        expect(out.rationale).toMatch(/No semantic match/i);
+    });
+});
+
+describe("engine.draftTask column picking", () => {
+    it("uses a valid fallback column id for bugs when no triage or backlog name matches", () => {
+        const context = buildContext({
+            columns: [
+                column({
+                    _id: "col-dev",
+                    columnName: "Development",
+                    index: 0
+                })
+            ],
+            tasks: []
+        });
+        const suggestion = draftTask({
+            prompt: "Crash on startup",
+            columnId: "col-dev",
+            context
+        });
+        expect(suggestion.type).toBe("Bug");
+        expect(suggestion.columnId).toBe("col-dev");
+    });
 });

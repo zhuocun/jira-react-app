@@ -155,4 +155,70 @@ describe("AiTaskDraftModal", () => {
         expect(onClose).toHaveBeenCalled();
         expect(fetchMock).not.toHaveBeenCalled();
     });
+
+    it("resets draft state when the modal is closed from open", async () => {
+        const queryClient = seedClient();
+        const { rerender } = render(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter initialEntries={["/projects/p1/board"]}>
+                    <Routes>
+                        <Route
+                            path="/projects/:projectId/board"
+                            element={
+                                <AiTaskDraftModal
+                                    columnId="c1"
+                                    onClose={jest.fn()}
+                                    open
+                                />
+                            }
+                        />
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>
+        );
+
+        fireEvent.change(screen.getByLabelText("Task prompt"), {
+            target: { value: "Some prompt text" }
+        });
+
+        rerender(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter initialEntries={["/projects/p1/board"]}>
+                    <Routes>
+                        <Route
+                            path="/projects/:projectId/board"
+                            element={
+                                <AiTaskDraftModal
+                                    columnId="c1"
+                                    onClose={jest.fn()}
+                                    open={false}
+                                />
+                            }
+                        />
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>
+        );
+
+        rerender(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter initialEntries={["/projects/p1/board"]}>
+                    <Routes>
+                        <Route
+                            path="/projects/:projectId/board"
+                            element={
+                                <AiTaskDraftModal
+                                    columnId="c1"
+                                    onClose={jest.fn()}
+                                    open
+                                />
+                            }
+                        />
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>
+        );
+
+        expect(screen.getByLabelText("Task prompt")).toHaveValue("");
+    });
 });

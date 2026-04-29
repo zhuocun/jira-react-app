@@ -33,4 +33,9 @@ describe("projectAiStorage", () => {
             /disabled for this project/i
         );
     });
+
+    it("treats invalid JSON in storage as empty", () => {
+        localStorage.setItem("boardCopilot:disabledProjectIds", "not-json");
+        expect(isProjectAiDisabled("p1")).toBe(false);
+    });
 });

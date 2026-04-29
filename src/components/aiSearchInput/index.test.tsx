@@ -159,6 +159,30 @@ describe("AiSearchInput", () => {
         expect(call.split(",")).toContain("t-login");
     });
 
+    it("runs search when Enter is pressed in the natural language field", async () => {
+        const setSemanticIds = jest.fn();
+        render(
+            <AiSearchInput
+                kind="tasks"
+                projectContext={projectContext}
+                semanticIds={undefined}
+                setSemanticIds={setSemanticIds}
+            />
+        );
+
+        fireEvent.change(screen.getByLabelText("Ask in natural language"), {
+            target: { value: "login token flaky" }
+        });
+        fireEvent.keyDown(screen.getByLabelText("Ask in natural language"), {
+            key: "Enter",
+            code: "Enter"
+        });
+
+        await waitFor(() => {
+            expect(setSemanticIds).toHaveBeenCalled();
+        });
+    });
+
     it("shows a hint when no tasks match", async () => {
         const setSemanticIds = jest.fn();
         render(

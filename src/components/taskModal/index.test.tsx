@@ -333,6 +333,17 @@ describe("TaskModal", () => {
                     ) as HTMLTextAreaElement
                 ).value
             ).toMatch(/## Acceptance criteria/);
+            fireEvent.change(screen.getByPlaceholderText("Epic"), {
+                target: { value: "" }
+            });
+            jest.advanceTimersByTime(1000);
+            const epicSuggestion = await screen.findByLabelText(
+                /Apply readiness suggestion for epic/
+            );
+            fireEvent.click(epicSuggestion);
+            expect(
+                (screen.getByPlaceholderText("Epic") as HTMLInputElement).value
+            ).toBeTruthy();
             expect(taskNameInput).toBeInTheDocument();
         } finally {
             jest.useRealTimers();

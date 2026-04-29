@@ -229,4 +229,33 @@ describe("useAiChat", () => {
         });
         expect(result.current.error).toBeNull();
     });
+
+    it("ends with a fallback message after too many tool rounds", async () => {
+        jest.spyOn(chatEngine, "chatAssistantTurn").mockImplementation(() => ({
+            kind: "tool_calls",
+            toolCalls: [
+                {
+                    arguments: {},
+                    id: "loop",
+                    name: "listProjects"
+                }
+            ]
+        }));
+
+        const { result } = renderHook(() => useAiChat(chatCtx()), {
+            wrapper: wrapper(queryClient)
+        });
+
+        await act(async () => {
+            await result.current.send("Loop the tools");
+        });
+
+        await waitFor(() => {
+            expect(result.current.isLoading).toBe(false);
+        });
+        const lastAssistant = [...result.current.messages]
+            .reverse()
+            .find((m) => m.role === "assistant");
+        expect(lastAssistant?.content).toMatch(/too many steps/i);
+    });
 });

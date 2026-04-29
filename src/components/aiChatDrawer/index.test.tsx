@@ -169,4 +169,25 @@ describe("AiChatDrawer", () => {
         });
         expect(screen.getByText(/ask about this board/i)).toBeInTheDocument();
     });
+
+    it("renders tool output when the assistant requests listProjects", async () => {
+        mockApi.mockImplementation(async (endpoint: string) => {
+            if (endpoint === "projects") {
+                return [{ _id: "p1", projectName: "Roadmap" }];
+            }
+            return [];
+        });
+        renderDrawer(true);
+        fireEvent.change(screen.getByLabelText("Message Board Copilot"), {
+            target: { value: "List all projects" }
+        });
+        fireEvent.click(screen.getByLabelText("Send message"));
+        await waitFor(() => {
+            expect(screen.getByText("listProjects")).toBeInTheDocument();
+        });
+        expect(mockApi).toHaveBeenCalledWith(
+            "projects",
+            expect.objectContaining({ method: "GET" })
+        );
+    });
 });
