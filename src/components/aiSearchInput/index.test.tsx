@@ -75,6 +75,20 @@ describe("AiSearchInput", () => {
         jest.clearAllMocks();
     });
 
+    it("does not show Clear AI search when semanticIds is null (URL missing param)", () => {
+        render(
+            <AiSearchInput
+                kind="tasks"
+                projectContext={projectContext}
+                semanticIds={null}
+                setSemanticIds={jest.fn()}
+            />
+        );
+        expect(
+            screen.queryByLabelText("Clear AI search")
+        ).not.toBeInTheDocument();
+    });
+
     it("returns null when AI is disabled at runtime", () => {
         mockedUseAiEnabled.mockReturnValue({
             available: true,

@@ -15,30 +15,35 @@ import AiSparkleIcon from "../aiSparkleIcon";
 type TaskSearchProps = {
     kind: "tasks";
     projectContext: AiContextProject;
-    semanticIds: string | undefined;
+    semanticIds: string | null | undefined;
     setSemanticIds: (value: string | undefined) => void;
 };
 
 type ProjectSearchProps = {
     kind: "projects";
     projectsContext: AiSearchProjectsContext;
-    semanticIds: string | undefined;
+    semanticIds: string | null | undefined;
     setSemanticIds: (value: string | undefined) => void;
 };
 
 type Props = TaskSearchProps | ProjectSearchProps;
+
+/** URL search params use `null` for missing keys; treat like unset. */
+const hasActiveSemanticFilter = (semanticIds: string | null | undefined) =>
+    Boolean(semanticIds?.trim());
 
 const AiSearchInput: React.FC<Props> = (props) => {
     const { enabled: aiEnabled } = useAiEnabled();
     const searchAi = useAi<ISearchResult>({ route: "search" });
     const [draft, setDraft] = useState("");
     const [noMatchHint, setNoMatchHint] = useState<string | null>(null);
+    const semanticActive = hasActiveSemanticFilter(props.semanticIds);
 
     useEffect(() => {
-        if (props.semanticIds === undefined) {
+        if (!semanticActive) {
             setNoMatchHint(null);
         }
-    }, [props.semanticIds]);
+    }, [semanticActive]);
 
     const applyResult = useCallback(
         (result: ISearchResult) => {
@@ -134,7 +139,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                 >
                     Search
                 </Button>
-                {props.semanticIds !== undefined ? (
+                {semanticActive ? (
                     <Button aria-label="Clear AI search" onClick={onClear}>
                         Clear AI search
                     </Button>
@@ -147,19 +152,19 @@ const AiSearchInput: React.FC<Props> = (props) => {
                 <Alert
                     closable
                     description={noMatchHint}
-                    message="Semantic search"
                     onClose={() => setNoMatchHint(null)}
                     showIcon
                     style={{ marginTop: "0.75rem", maxWidth: "40rem" }}
+                    title="Semantic search"
                     type="info"
                 />
             ) : null}
             {searchAi.error ? (
                 <Alert
                     closable
-                    message={searchAi.error.message}
                     onClose={() => searchAi.reset()}
                     style={{ marginTop: "0.75rem", maxWidth: "40rem" }}
+                    title={searchAi.error.message}
                     type="warning"
                 />
             ) : null}
