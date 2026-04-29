@@ -32,11 +32,11 @@ const useReactMutation = <D>(
     const queryClient = useQueryClient();
     const cacheKey = getQueryKey(queryKey, endPoint);
     const mutation = useMutation<D, unknown, MutationParam, MutationContext>({
-        mutationFn: (param) =>
-            api(endPoint, {
+        mutationFn: async (param) =>
+            (await api(endPoint, {
                 data: filterRequest(param || {}),
                 method
-            }),
+            })) as D,
         onMutate: callback
             ? async (target: unknown) => {
                   const previousItems = queryClient.getQueryData(cacheKey);

@@ -41,4 +41,9 @@ describe("parseFetchBody", () => {
         } as unknown as Response;
         await expect(parseFetchBody(res)).resolves.toEqual({ ok: true });
     });
+
+    it("returns undefined when neither text nor json is available", async () => {
+        const res = {} as unknown as Response;
+        await expect(parseFetchBody(res)).resolves.toBeUndefined();
+    });
 });

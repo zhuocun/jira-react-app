@@ -52,7 +52,9 @@ describe("routes", () => {
 
     it("contains auth and project child routes under the home shell", () => {
         const homeShell = routes[0].children?.[1];
-        expect(homeShell?.path).toBeUndefined();
+        expect(
+            homeShell && "path" in homeShell ? homeShell.path : undefined
+        ).toBe(undefined);
         expect(homeShell?.children?.map((route) => route.path)).toEqual([
             "register",
             "login",
