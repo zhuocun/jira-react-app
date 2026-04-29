@@ -2,29 +2,40 @@
 
 Companion to [`docs/prd/board-copilot.md`](board-copilot.md). Tracks what has shipped to `main`, what is still open, and the concrete file/test inventory so a new contributor can pick up cleanly.
 
-| Field        | Value                                                                |
-| ------------ | -------------------------------------------------------------------- |
-| Status       | Phase 0–3 shipped (conversational assistant on board + project list) |
-| Last updated | 2026-04-29                                                           |
-| Owner        | TBD (frontend)                                                       |
+| Field        | Value                                                                                                      |
+| ------------ | ---------------------------------------------------------------------------------------------------------- |
+| Status       | Phases 0–2B on `main`; Phase 3 (Ask Board Copilot) implemented on branch / PR #3 (merge to `main` pending) |
+| Last updated | 2026-04-29                                                                                                 |
+| Owner        | TBD (frontend)                                                                                             |
+
+---
+
+## Main vs in-flight
+
+| Location                                                                                                | What it contains                                                                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`main`** (through merge of PR #2)                                                                     | Phases 0–2B: plumbing, board brief, smart drafting, estimation/readiness, validators, local engine for structured routes, docs through earlier PRs.                              |
+| **Branch `cursor/board-copilot-chat-33e7` / [PR #3](https://github.com/zhuocun/jira-react-app/pull/3)** | Phase 3: `AiChatDrawer`, `useAiChat`, `chatTools` / `chatEngine`, `Ask` on board + project list, optional remote `POST …/api/ai/chat`. Not merged to `main` until that PR lands. |
 
 ---
 
 ## At a glance
 
-| Phase    | Capability                                                 | PRD section | Status                                                                           |
-| -------- | ---------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------- |
-| Phase 0  | Plumbing (env, hook, validators, runtime toggle)           | §7, §3.5    | ✅ Shipped                                                                       |
-| Phase 1  | Capability C — Board summary brief                         | §5.3        | ✅ Shipped                                                                       |
-| Phase 2A | Capability A — Smart task drafting                         | §5.1        | ✅ Shipped                                                                       |
-| Phase 2B | Capability B — AI estimation + readiness                   | §5.2        | ✅ Shipped                                                                       |
-| Phase 3  | Capability D — Conversational assistant                    | §5.4        | ✅ Shipped                                                                       |
-| Phase 4  | Capability E — Semantic search                             | §5.5        | ⏳ Not started                                                                   |
-| Backend  | Vercel `api/ai/[route].ts` proxy with provider abstraction | §7.2        | ⏳ Not started (FE works against the deterministic local engine in the meantime) |
+| Phase    | Capability                                                 | PRD section | Status                                                                                                 |
+| -------- | ---------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ |
+| Phase 0  | Plumbing (env, hook, validators, runtime toggle)           | §7, §3.5    | ✅ Shipped                                                                                             |
+| Phase 1  | Capability C — Board summary brief                         | §5.3        | ✅ Shipped                                                                                             |
+| Phase 2A | Capability A — Smart task drafting                         | §5.1        | ✅ Shipped                                                                                             |
+| Phase 2B | Capability B — AI estimation + readiness                   | §5.2        | ✅ Shipped                                                                                             |
+| Phase 3  | Capability D — Conversational assistant                    | §5.4        | ✅ On PR #3 branch ([link](https://github.com/zhuocun/jira-react-app/pull/3)); merge to `main` pending |
+| Phase 4  | Capability E — Semantic search                             | §5.5        | ⏳ Not started                                                                                         |
+| Backend  | Vercel `api/ai/[route].ts` proxy with provider abstraction | §7.2        | ⏳ Not started (FE works against the deterministic local engine in the meantime)                       |
 
 ---
 
-## What shipped (PR #1, merged)
+## What shipped
+
+Historical note: the first large Board Copilot drop was PR #1; later PRs extended docs and added Phase 3 on a separate branch (see table above).
 
 ### Phase 0 — Plumbing
 
@@ -53,7 +64,7 @@ Companion to [`docs/prd/board-copilot.md`](board-copilot.md). Tracks what has sh
 - `src/components/aiTaskAssistPanel/index.tsx` — sidebar showing suggested story points (with confidence and similar-task back-references) and a readiness check (missing acceptance criteria, missing coordinator, etc.) with one-click `Apply` that fills the antd form.
 - `src/components/taskModal/index.tsx` — extends the form with `epic`, `storyPoints`, `note` editors so AI suggestions have somewhere to land, and mounts the assist panel for non-mock tasks when AI is enabled.
 
-### Phase 3 — Capability D: Conversational assistant
+### Phase 3 — Capability D: Conversational assistant (PR #3 branch; not on `main` until merged)
 
 - `src/components/aiChatDrawer/index.tsx` — right-edge `Drawer` (“Ask Board Copilot”) with message thread, read-only tool traces, local deterministic engine or `POST` to remote `/api/ai/chat` when `REACT_APP_AI_BASE_URL` is set.
 - `src/utils/hooks/useAiChat.ts` — orchestrates turns; executes validated read-only tools via `executeChatToolCall` (`src/utils/ai/chatTools.ts`).
@@ -61,6 +72,11 @@ Companion to [`docs/prd/board-copilot.md`](board-copilot.md). Tracks what has sh
 - `src/pages/board.tsx` and `src/pages/project.tsx` — `Ask` button when AI is enabled.
 
 Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `{ messages, context }` returning `{ kind: "text", text }` or `{ kind: "tool_calls", toolCalls }` using the same read-only tool names as `chatTools.ts`.
+
+**PRD gaps / follow-ups for Phase 3**
+
+- Chat uses **request–response JSON**, not **SSE** token streaming (PRD §6.1 / §7.1 describe SSE for `useAi`; structured routes also use non-streaming `fetch` today).
+- **Tests:** `aiChatDrawer` and `useAiChat` have no dedicated component/hook test files yet (tool/engine units exist).
 
 ### Shared
 
@@ -76,6 +92,8 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `
     - `src/utils/hooks/{useAi,useAi.remote,useAiEnabled,useAiEnabled.disabled}.test.tsx`
     - `src/components/{aiTaskDraftModal,aiTaskAssistPanel,boardBriefDrawer}/index.test.tsx`
     - Extended: `src/components/{taskCreator,taskModal}/index.test.tsx`, `src/constants/env.test.ts`
+
+**Note:** AC-D1–AC-D4 apply only after Phase 3 is merged to `main` (currently [PR #3](https://github.com/zhuocun/jira-react-app/pull/3)).
 
 ### Acceptance-criteria status (against the PRD)
 
@@ -102,39 +120,49 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `
 | AC-D1 | Only registered read-only tools can run client-side                               | ✅ (`chatTools.ts` whitelist)                                                           |
 | AC-D2 | Tool definitions not supplied from user thread (remote must own tools)            | ✅ (local engine is fixed; remote contract documented in progress doc)                  |
 | AC-D3 | Closing the chat drawer aborts in-flight work                                     | ✅ (`useAiChat` + drawer `abort`)                                                       |
-| AC-D4 | Conversation cleared on hard reload                                               | ✅ (in-memory state only)                                                               |
+| AC-D4 | Conversation cleared on hard reload                                               | ✅ (in-memory state only); Phase 3 code on PR #3 branch                                 |
+| AC-E1 | Returned `ids` intersected with cache                                             | ⏳ Phase 4 not started                                                                  |
+| AC-E2 | Empty semantic search restores list + hint                                        | ⏳ Phase 4 not started                                                                  |
+| AC-E3 | Clearing AI search restores prior filters                                         | ⏳ Phase 4 not started                                                                  |
 
 ---
 
 ## What is open
 
+### Merge Phase 3 to `main`
+
+- Close [PR #3](https://github.com/zhuocun/jira-react-app/pull/3) (or equivalent) so Phase 3 ships on `main`. Until then, the Phase 3 files listed above exist only on that branch.
+
 ### Phase 4 — Capability E: Semantic search (PRD §5.5)
 
-Not started. Smallest standalone slice:
+Not started. No `aiSearchInput`, no `search` route on `useAi`, no `ISearchResult` in `src/interfaces/ai.d.ts`. Smallest slice:
 
 - `src/components/aiSearchInput/` mounted inside `taskSearchPanel` and `projectSearchPanel`.
-- A new `search` route in `useAi`.
-- Result `ids` intersected with the cache before narrowing the existing filter state.
+- Extend `useAi` `AiRoute` with `"search"` (or a dedicated hook) + local engine stub / remote `POST …/api/ai/search`.
+- Result `ids` intersected with the cache before narrowing the existing filter state; restore previous filters when clearing AI search (AC-E3).
 
 ### Backend — Vercel proxy (PRD §7.2)
 
-Not started. Structured routes (`task-draft`, `estimate`, etc.) and chat (`/api/ai/chat`) POST to `${REACT_APP_AI_BASE_URL}/api/ai/...` when that env var is set. To plug in a real LLM:
+Not started — **no `api/` routes in this repo** yet. The client posts to `${REACT_APP_AI_BASE_URL}/api/ai/<route>` when that env var is set. To plug in a real LLM:
 
-- Add `api/ai/[route].ts` (Vercel function) per `vercel.json`.
-- Hold the model API key in the Vercel env (never `REACT_APP_*`).
-- Per route, define the JSON schema for structured output (mirrors `src/interfaces/ai.d.ts`).
-- Wrap user input in a server-defined system prompt to mitigate prompt injection.
+- Add `api/ai/[route].ts` (or equivalent) per `vercel.json`.
+- Hold the model API key in the server env (never `REACT_APP_*`).
+- Per route: JSON schema for structured output (existing types in `src/interfaces/ai.d.ts`; add `ISearchResult` when Phase 4 lands).
+- Chat route should expose **only** the read-only tools from `chatTools.ts` on the server; never trust client-supplied tool definitions (AC-D2).
 - Enforce per-IP, per-route token budgets and timeouts (PRD §9).
 - Log only metadata (route, latency, token counts, status) — never raw user content in production.
 
-The FE contract is stable: each route returns the JSON shape declared in `src/interfaces/ai.d.ts`. The hook will validate it before any UI sees it.
+### Product / UX gaps (from PRD)
 
-### Other PRD items not yet implemented
+- **Runtime toggle UI** (PRD §7.3): `useAiEnabled` + `localStorage` exist; no switch in `src/components/header` (or elsewhere).
+- **“Disable AI for this project”** (PRD §8): not implemented; needs storage keyed by `projectId` and guards before firing AI.
+- **Observability** (PRD §7.7, §9): client/server counters — lands with proxy.
+- **Chat write-tools** (PRD §5.4 follow-up): out of scope until a later version.
 
-- A user-facing settings entry for the runtime toggle (PRD §7.3, Phase 1.5). The toggle hook and storage key already exist; only the UI surface is missing. Suggested location: the user dropdown in `src/components/header/index.tsx`.
-- "Disable AI for this project" per-project setting (PRD §8). Requires new state somewhere (likely `localStorage` keyed by `projectId`) and a guard in `useAiEnabled` or in each AI surface.
-- Server-side observability counters and SLO measurements (PRD §7.7, §9). Lands with the Vercel proxy.
-- Phase 3 chat write-tools follow-up (PRD §5.4 follow-up, OQ6). Out of scope until v3.
+### Optional polish
+
+- **SSE / streaming** for chat and structured routes if you want parity with PRD §7.1 (today: synchronous local engine + JSON `fetch` for remote).
+- **`useAi.ts` type union:** PRD lists `chat` and `search` on `AiRoute`; implementation keeps chat in `useAiChat` and structured routes in `useAi` — fine, but document or consolidate if desired.
 
 ---
 
