@@ -1,14 +1,14 @@
 # PRD: Board Copilot — AI assistance inside `jira-react-app`
 
-| Field | Value |
-| --- | --- |
-| Status | v1 — Phases 0–2B shipped, Phases 3–4 + backend pending |
-| Owner | TBD (frontend) |
-| Last updated | 2026-04-29 |
-| Target repository | `jira-react-app` (this repo) |
-| Target release | Internal preview, then opt-in toggle for end users |
-| Document scope | Product, UX, technical contract, rollout, testing |
-| Implementation progress | See [`board-copilot-progress.md`](board-copilot-progress.md) |
+| Field                   | Value                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| Status                  | v1 — Phases 0–2B on `main`; Phase 3 (chat) in PR #3; Phase 4 (semantic search) + Vercel proxy not started |
+| Owner                   | TBD (frontend)                                                                                            |
+| Last updated            | 2026-04-29                                                                                                |
+| Target repository       | `jira-react-app` (this repo)                                                                              |
+| Target release          | Internal preview, then opt-in toggle for end users                                                        |
+| Document scope          | Product, UX, technical contract, rollout, testing                                                         |
+| Implementation progress | See [`board-copilot-progress.md`](board-copilot-progress.md)                                              |
 
 ---
 
@@ -127,15 +127,15 @@ A JSON object that conforms to `IDraftTaskSuggestion`:
 
 ```ts
 interface IDraftTaskSuggestion {
-    taskName: string;            // required, <= 120 chars
-    type: "Task" | "Bug";        // restricted to existing task types in the project, fallback to Task/Bug
-    epic: string;                // <= 60 chars; reused from existing epics if a match is strong
+    taskName: string; // required, <= 120 chars
+    type: "Task" | "Bug"; // restricted to existing task types in the project, fallback to Task/Bug
+    epic: string; // <= 60 chars; reused from existing epics if a match is strong
     storyPoints: 1 | 2 | 3 | 5 | 8 | 13;
-    note: string;                // markdown; should include "Acceptance criteria" section
-    columnId: string;            // must be a real columnId from the current board
-    coordinatorId: string;       // must be a real member _id; falls back to current user
-    confidence: number;          // 0..1
-    rationale: string;           // <= 280 chars, shown under the form
+    note: string; // markdown; should include "Acceptance criteria" section
+    columnId: string; // must be a real columnId from the current board
+    coordinatorId: string; // must be a real member _id; falls back to current user
+    confidence: number; // 0..1
+    rationale: string; // <= 280 chars, shown under the form
 }
 ```
 
@@ -143,9 +143,9 @@ interface IDraftTaskSuggestion {
 
 1. The hook posts `{ projectId, prompt, context }` to `/api/ai/task-draft`.
 2. `context` is computed client-side from existing React Query caches:
-   - All `IColumn[]` for the current project (id, name, index).
-   - All `IMember[]` (id, username).
-   - A truncated list of recent `ITask[]` summaries for the project (id, name, type, epic, storyPoints) to ground epic and point suggestions.
+    - All `IColumn[]` for the current project (id, name, index).
+    - All `IMember[]` (id, username).
+    - A truncated list of recent `ITask[]` summaries for the project (id, name, type, epic, storyPoints) to ground epic and point suggestions.
 3. The proxy calls the model in JSON-schema mode using the `IDraftTaskSuggestion` schema.
 4. The response is **validated client-side**: any `columnId`/`coordinatorId` not present in the cache is replaced with the safe default (current column for create-from-column, current user for coordinator). Invalid `storyPoints` snap to the nearest allowed Fibonacci value.
 5. The validated suggestion populates the existing `Form.setFieldsValue` in a small drafting modal that wraps the same fields as the edit modal.
@@ -186,19 +186,21 @@ The same panel is mounted in the drafting modal from Capability A.
 ```ts
 interface IEstimateSuggestion {
     storyPoints: 1 | 2 | 3 | 5 | 8 | 13;
-    confidence: number;            // 0..1
-    rationale: string;             // <= 280 chars
+    confidence: number; // 0..1
+    rationale: string; // <= 280 chars
     similar: Array<{ _id: string; reason: string }>; // up to 3, ids must exist in cache
 }
 
 interface IReadinessIssue {
     field: "taskName" | "note" | "epic" | "type" | "coordinatorId";
     severity: "info" | "warn" | "error";
-    message: string;               // <= 160 chars
-    suggestion?: string;           // optional value to one-click apply
+    message: string; // <= 160 chars
+    suggestion?: string; // optional value to one-click apply
 }
 
-interface IReadinessReport { issues: IReadinessIssue[]; }
+interface IReadinessReport {
+    issues: IReadinessIssue[];
+}
 ```
 
 #### 5.2.4 Behavior
@@ -237,12 +239,21 @@ The hook composes a compact JSON snapshot client-side, then posts it to `/api/ai
 
 ```ts
 interface IBoardBrief {
-    headline: string;            // one sentence, <= 140 chars
+    headline: string; // one sentence, <= 140 chars
     counts: Array<{ columnId: string; columnName: string; count: number }>;
-    largestUnstarted: Array<{ taskId: string; taskName: string; storyPoints: number }>; // up to 3
-    unowned: Array<{ taskId: string; taskName: string }>;                                // up to 5
-    workload: Array<{ memberId: string; username: string; openTasks: number; openPoints: number }>;
-    recommendation: string;      // <= 280 chars, one actionable next step
+    largestUnstarted: Array<{
+        taskId: string;
+        taskName: string;
+        storyPoints: number;
+    }>; // up to 3
+    unowned: Array<{ taskId: string; taskName: string }>; // up to 5
+    workload: Array<{
+        memberId: string;
+        username: string;
+        openTasks: number;
+        openPoints: number;
+    }>;
+    recommendation: string; // <= 280 chars, one actionable next step
 }
 ```
 
@@ -303,7 +314,10 @@ All tool calls are **read-only in Phase 2**. Write tools are out of scope until 
 #### 5.5.2 Output
 
 ```ts
-interface ISearchResult { ids: string[]; rationale: string; }
+interface ISearchResult {
+    ids: string[];
+    rationale: string;
+}
 ```
 
 The existing filter state is updated with the returned ids. The existing substring filters still apply on top.
@@ -348,13 +362,13 @@ A single hook that all five capabilities call.
 
 ```ts
 type AiRoute =
-  | "task-draft"
-  | "task-breakdown"
-  | "estimate"
-  | "readiness"
-  | "board-brief"
-  | "chat"
-  | "search";
+    | "task-draft"
+    | "task-breakdown"
+    | "estimate"
+    | "readiness"
+    | "board-brief"
+    | "chat"
+    | "search";
 
 interface UseAiOptions<T> {
     route: AiRoute;
@@ -385,8 +399,8 @@ Implementation rules:
 - Reads `OPENAI_API_KEY` (or generic `AI_PROVIDER_KEY`) from environment. Never echoed to the client.
 - Wraps the user input in a server-defined system prompt per route (mitigates prompt injection).
 - Per route, defines:
-  - JSON schema for structured output.
-  - Tool definitions (only for `chat`; only the read-only tools listed in 5.4.2).
+    - JSON schema for structured output.
+    - Tool definitions (only for `chat`; only the read-only tools listed in 5.4.2).
 - Streams SSE chunks back as they arrive.
 - Enforces a per-IP, per-route token budget and a hard timeout (default 30s).
 - Logs only request metadata (route, latency, token counts, status), never raw prompts in production logs.
@@ -394,8 +408,8 @@ Implementation rules:
 ### 7.3 Configuration
 
 - New constants in `src/constants/env.ts` (or extension of the existing one):
-  - `aiEnabled: boolean` from `import.meta.env.VITE_AI_ENABLED ?? false`.
-  - `aiBaseUrl: string` from `import.meta.env.VITE_AI_BASE_URL ?? ""` (empty = same origin).
+    - `aiEnabled: boolean` from `import.meta.env.VITE_AI_ENABLED ?? false`.
+    - `aiBaseUrl: string` from `import.meta.env.VITE_AI_BASE_URL ?? ""` (empty = same origin).
 - New runtime toggle in a settings menu (Phase 1.5): a single switch persisted to `localStorage` under `boardCopilot:enabled`. The hook short-circuits if either source is `false`.
 
 ### 7.4 Data flow per capability
@@ -458,9 +472,9 @@ BoardPage  ──snapshot──▶ useAi("board-brief") ──SSE──▶ /api/
 - Time-to-first-token target: ≤1.2s p50, ≤2.5s p95 under 50 RPS.
 - Capability C end-to-end target: ≤2s p50, ≤4s p95 for projects with ≤200 tasks.
 - Per-request token budget per route:
-  - `task-draft`, `estimate`, `readiness`, `search`: ≤2k input, ≤512 output.
-  - `board-brief`: ≤6k input, ≤1k output.
-  - `chat`: ≤8k input over the whole turn, ≤1k output per turn.
+    - `task-draft`, `estimate`, `readiness`, `search`: ≤2k input, ≤512 output.
+    - `board-brief`: ≤6k input, ≤1k output.
+    - `chat`: ≤8k input over the whole turn, ≤1k output per turn.
 - Server-side rate limit: 30 requests / minute / IP per route, 200 / hour / IP overall. Returns HTTP 429 with `Retry-After`.
 - Client-side debounce on estimation (1000ms via existing `useDebounce`).
 - Aborts on unmount free both client buffers and server-side streaming costs.
@@ -559,24 +573,24 @@ Tracked via the same web-vitals-style events emitted by the client and the serve
 ### 15.1 Code-area touch list
 
 - New
-  - `api/ai/[route].ts` (Vercel function)
-  - `src/utils/hooks/useAi.ts`
-  - `src/utils/ai/validate.ts`
-  - `src/utils/ai/schemas.ts` (JSON schemas mirrored from TS interfaces)
-  - `src/components/aiPanel/` (shared sidebar used by Capabilities A and B)
-  - `src/components/boardBriefDrawer/` (Capability C)
-  - `src/components/aiChatDrawer/` (Capability D, Phase 3)
-  - `src/components/aiSearchInput/` (Capability E, Phase 4)
-  - `src/assets/sparkles.svg`
+    - `api/ai/[route].ts` (Vercel function)
+    - `src/utils/hooks/useAi.ts`
+    - `src/utils/ai/validate.ts`
+    - `src/utils/ai/schemas.ts` (JSON schemas mirrored from TS interfaces)
+    - `src/components/aiPanel/` (shared sidebar used by Capabilities A and B)
+    - `src/components/boardBriefDrawer/` (Capability C)
+    - `src/components/aiChatDrawer/` (Capability D, Phase 3)
+    - `src/components/aiSearchInput/` (Capability E, Phase 4)
+    - `src/assets/sparkles.svg`
 - Modified
-  - `src/components/taskCreator/index.tsx` (Capability A)
-  - `src/components/taskModal/index.tsx` (Capability B)
-  - `src/pages/board.tsx` (Capability C trigger)
-  - `src/components/taskSearchPanel/index.tsx`, `src/components/projectSearchPanel/index.tsx` (Capability E)
-  - `src/constants/env.ts` (new flags)
-  - `package.json` (add provider SDK + zod or a lightweight schema validator)
-  - `README.md` (AI section, including key safety)
-  - `vercel.json` (routes for `/api/ai/*` if needed)
+    - `src/components/taskCreator/index.tsx` (Capability A)
+    - `src/components/taskModal/index.tsx` (Capability B)
+    - `src/pages/board.tsx` (Capability C trigger)
+    - `src/components/taskSearchPanel/index.tsx`, `src/components/projectSearchPanel/index.tsx` (Capability E)
+    - `src/constants/env.ts` (new flags)
+    - `package.json` (add provider SDK + zod or a lightweight schema validator)
+    - `README.md` (AI section, including key safety)
+    - `vercel.json` (routes for `/api/ai/*` if needed)
 
 ### 15.2 Out-of-scope but worth tracking for v3
 
