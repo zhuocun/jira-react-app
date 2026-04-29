@@ -1,18 +1,22 @@
 import { Button, Form, Input, Modal, Select } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import _ from "lodash";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 
+import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteTask";
+import AiTaskAssistPanel from "../aiTaskAssistPanel";
 
 const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
     const [form] = useForm();
     const { projectId } = useParams<{ projectId: string }>();
-    const { editingTaskId, closeModal } = useTaskModal();
+    const { editingTaskId, startEditing, closeModal } = useTaskModal();
+    const { enabled: aiEnabled } = useAiEnabled();
+    const [formTick, setFormTick] = useState(0);
     const { mutateAsync: update, isLoading: uLoading } = useReactMutation(
         "tasks",
         "PUT"
@@ -68,6 +72,19 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
         form.setFieldsValue(editingTask);
     }, [form, editingTask]);
 
+    const liveValues = (() => {
+        const fromForm = form.getFieldsValue();
+        return {
+            taskName: fromForm.taskName ?? editingTask?.taskName,
+            note: fromForm.note ?? editingTask?.note,
+            type: fromForm.type ?? editingTask?.type,
+            epic: fromForm.epic ?? editingTask?.epic,
+            coordinatorId: fromForm.coordinatorId ?? editingTask?.coordinatorId,
+            storyPoints: fromForm.storyPoints ?? editingTask?.storyPoints
+        };
+    })();
+    void formTick;
+
     return (
         <Modal
             confirmLoading={uLoading}
@@ -84,6 +101,7 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                 labelCol={{ span: 6 }}
                 form={form}
                 initialValues={editingTask}
+                onValuesChange={() => setFormTick((tick) => tick + 1)}
             >
                 <Form.Item
                     label="Task Name"
@@ -144,7 +162,48 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                         )}
                     </Select>
                 </Form.Item>
+                <Form.Item label="Epic" name="epic">
+                    <Input placeholder="Epic" />
+                </Form.Item>
+                <Form.Item label="Story Points" name="storyPoints">
+                    <Select
+                        options={[1, 2, 3, 5, 8, 13].map((value) => ({
+                            label: `${value}`,
+                            value
+                        }))}
+                        placeholder="Story points"
+                    />
+                </Form.Item>
+                <Form.Item label="Notes" name="note">
+                    <Input.TextArea
+                        placeholder="Notes / acceptance criteria"
+                        rows={4}
+                    />
+                </Form.Item>
             </Form>
+            {aiEnabled && editingTaskId && editingTaskId !== "mock" && (
+                <AiTaskAssistPanel
+                    excludeTaskId={editingTaskId}
+                    onApplyStoryPoints={(value) => {
+                        form.setFieldsValue({ storyPoints: value });
+                        setFormTick((tick) => tick + 1);
+                    }}
+                    onApplySuggestion={(field, suggestion) => {
+                        const current = form.getFieldValue(field) ?? "";
+                        if (field === "note") {
+                            const appended = `${current}${
+                                current ? "\n\n" : ""
+                            }## Acceptance criteria\n- ${suggestion}`;
+                            form.setFieldsValue({ note: appended });
+                        } else {
+                            form.setFieldsValue({ [field]: suggestion });
+                        }
+                        setFormTick((tick) => tick + 1);
+                    }}
+                    onOpenSimilarTask={(taskId) => startEditing(taskId)}
+                    values={liveValues}
+                />
+            )}
             <div style={{ textAlign: "right" }}>
                 <Button
                     danger

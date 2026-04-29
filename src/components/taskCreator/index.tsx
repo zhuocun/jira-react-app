@@ -1,10 +1,13 @@
-import { Input } from "antd";
+import { Button, Input } from "antd";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
+import AiSparkleIcon from "../aiSparkleIcon";
+import AiTaskDraftModal from "../aiTaskDraftModal";
 
 const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
     columnId,
@@ -13,6 +16,8 @@ const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
     const { user } = useAuth();
     const [taskName, setTaskName] = useState("");
     const [inputMode, setInputMode] = useState(false);
+    const [aiOpen, setAiOpen] = useState(false);
+    const { enabled: aiEnabled } = useAiEnabled();
     const { projectId } = useParams<{ projectId: string }>();
     const { mutateAsync, isLoading } = useReactMutation(
         "tasks",
@@ -45,10 +50,32 @@ const TaskCreator: React.FC<{ columnId?: string; disabled: boolean }> = ({
 
     if (!inputMode) {
         return (
-            // eslint-disable-next-line
-            <a onClick={toggle} style={{ paddingLeft: "1rem" }}>
-                + Create task
-            </a>
+            <span style={{ paddingLeft: "1rem" }}>
+                {/* eslint-disable-next-line */}
+                <a onClick={toggle}>+ Create task</a>
+                {aiEnabled && (
+                    <>
+                        <span style={{ margin: "0 0.6rem" }}>·</span>
+                        <Button
+                            aria-label="Draft a task with Board Copilot"
+                            disabled={disabled}
+                            icon={<AiSparkleIcon />}
+                            onClick={() => setAiOpen(true)}
+                            size="small"
+                            type="link"
+                        >
+                            Draft with AI
+                        </Button>
+                        {aiOpen && (
+                            <AiTaskDraftModal
+                                columnId={columnId}
+                                onClose={() => setAiOpen(false)}
+                                open
+                            />
+                        )}
+                    </>
+                )}
+            </span>
         );
     }
     return (

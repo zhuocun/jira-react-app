@@ -1,14 +1,19 @@
 import styled from "@emotion/styled";
-import { Spin } from "antd";
+import { Button, Spin } from "antd";
 import { DragDropContext } from "@hello-pangea/dnd";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 
+import AiSparkleIcon from "../components/aiSparkleIcon";
+import BoardBriefDrawer from "../components/boardBriefDrawer";
 import Column from "../components/column";
 import ColumnCreator from "../components/columnCreator";
 import { Drag, Drop, DropChild } from "../components/dragAndDrop";
 import PageContainer from "../components/pageContainer";
+import Row from "../components/row";
 import TaskModal from "../components/taskModal";
 import TaskSearchPanel from "../components/taskSearchPanel";
+import useAiEnabled from "../utils/hooks/useAiEnabled";
 import useDebounce from "../utils/hooks/useDebounce";
 import useDragEnd from "../utils/hooks/useDragEnd";
 import useReactQuery from "../utils/hooks/useReactQuery";
@@ -59,13 +64,29 @@ const BoardPage = () => {
     const { onDragEnd, isColumnDragDisabled, isTaskDragDisabled } =
         useDragEnd();
     const visibleTasks = tasks ?? [];
+    const { enabled: aiEnabled } = useAiEnabled();
+    const [briefOpen, setBriefOpen] = useState(false);
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <PageContainer>
-                <h1>
-                    {!pLoading ? `${currentProject?.projectName} Board` : "..."}
-                </h1>
+                <Row between>
+                    <h1>
+                        {!pLoading
+                            ? `${currentProject?.projectName} Board`
+                            : "..."}
+                    </h1>
+                    {aiEnabled && (
+                        <Button
+                            aria-label="Open Board Copilot brief"
+                            icon={<AiSparkleIcon />}
+                            onClick={() => setBriefOpen(true)}
+                            type="default"
+                        >
+                            Brief
+                        </Button>
+                    )}
+                </Row>
                 <TaskSearchPanel
                     tasks={visibleTasks}
                     param={param}
@@ -112,6 +133,16 @@ const BoardPage = () => {
                     <BoardSpin />
                 )}
                 <TaskModal tasks={visibleTasks} />
+                {aiEnabled && (
+                    <BoardBriefDrawer
+                        columns={board ?? []}
+                        members={members ?? []}
+                        onClose={() => setBriefOpen(false)}
+                        open={briefOpen}
+                        project={currentProject}
+                        tasks={visibleTasks}
+                    />
+                )}
             </PageContainer>
         </DragDropContext>
     );
