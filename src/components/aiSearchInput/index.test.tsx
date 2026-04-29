@@ -69,6 +69,7 @@ describe("AiSearchInput", () => {
             enabled: true,
             setEnabled: jest.fn()
         });
+        localStorage.removeItem("boardCopilot:disabledProjectIds");
     });
 
     afterEach(() => {
@@ -105,6 +106,34 @@ describe("AiSearchInput", () => {
             />
         );
         expect(container.firstChild).toBeNull();
+    });
+
+    it("blocks local semantic search when project AI is disabled for that project", async () => {
+        localStorage.setItem(
+            "boardCopilot:disabledProjectIds",
+            JSON.stringify(["p1"])
+        );
+        const setSemanticIds = jest.fn();
+        render(
+            <AiSearchInput
+                kind="tasks"
+                projectContext={projectContext}
+                semanticIds={undefined}
+                setSemanticIds={setSemanticIds}
+            />
+        );
+
+        fireEvent.change(screen.getByLabelText("Ask in natural language"), {
+            target: { value: "login token flaky" }
+        });
+        fireEvent.click(screen.getByLabelText("Run natural language search"));
+
+        await waitFor(() => {
+            expect(
+                screen.getByText(/Board Copilot is disabled for this project/i)
+            ).toBeInTheDocument();
+        });
+        expect(setSemanticIds).not.toHaveBeenCalled();
     });
 
     it("runs local semantic search and sets matching task ids", async () => {

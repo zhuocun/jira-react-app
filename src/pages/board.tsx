@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { Button, Space, Spin, Switch, Tooltip, Typography } from "antd";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import AiChatDrawer from "../components/aiChatDrawer";
@@ -92,6 +92,12 @@ const BoardPage = () => {
             : null;
     const [briefOpen, setBriefOpen] = useState(false);
     const [chatOpen, setChatOpen] = useState(false);
+
+    useEffect(() => {
+        if (!boardAiOn && param.semanticIds) {
+            setParam({ semanticIds: undefined });
+        }
+    }, [boardAiOn, param.semanticIds, setParam]);
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>

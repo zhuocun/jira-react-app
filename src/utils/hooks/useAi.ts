@@ -27,7 +27,8 @@ import {
     PROJECT_AI_DISABLED_MESSAGE
 } from "../ai/projectAiStorage";
 
-const assertProjectsAiAllowed = (payload: RunPayload) => {
+/** Throws if any project in the payload has per-project AI disabled (PRD §8). */
+export const assertRunPayloadProjectsAiAllowed = (payload: RunPayload) => {
     const blocked = new Set<string>();
     if (payload.draft?.context.project._id) {
         blocked.add(payload.draft.context.project._id);
@@ -68,7 +69,7 @@ interface UseAiOptions {
     route: AiRoute;
 }
 
-interface RunPayload {
+export interface RunPayload {
     draft?: DraftRequest & { count?: number };
     estimate?: EstimateRequest & { context: AiContextProject };
     readiness?: ReadinessRequest & { context: AiContextProject };
@@ -234,7 +235,7 @@ const useAi = <T>(options: UseAiOptions) => {
             setIsLoading(true);
             setError(null);
             try {
-                assertProjectsAiAllowed(payload);
+                assertRunPayloadProjectsAiAllowed(payload);
                 let raw: unknown;
                 if (environment.aiUseLocalEngine) {
                     raw = await Promise.resolve(localResolve(route, payload));

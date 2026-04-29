@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -280,16 +280,31 @@ describe("BoardPage", () => {
 
         expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
         expect(
-            screen.queryByRole("button", { name: "Brief" })
+            screen.queryByRole("button", {
+                name: /Open Board Copilot brief/i
+            })
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole("button", { name: "Ask" })
+            screen.queryByRole("button", { name: /Ask Board Copilot/i })
         ).not.toBeInTheDocument();
         expect(
             screen.getByRole("switch", {
                 name: /Board Copilot for this project/i
             })
         ).not.toBeChecked();
+    });
+
+    it("clears semanticIds from the URL when Project AI is off so the board is not stuck filtered", async () => {
+        localStorage.setItem(
+            "boardCopilot:disabledProjectIds",
+            JSON.stringify(["project-1"])
+        );
+        renderBoard("/projects/project-1/board?semanticIds=task-1");
+
+        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText("Fix bug")).toBeInTheDocument();
+        });
     });
 
     it("shows Brief and Ask again after turning Project AI back on", async () => {
