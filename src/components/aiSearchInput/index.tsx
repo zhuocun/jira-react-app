@@ -1,0 +1,170 @@
+import { Alert, Button, Input, Space, Spin } from "antd";
+import React, { useCallback, useEffect, useState } from "react";
+
+import environment from "../../constants/env";
+import {
+    AiContextProject,
+    AiSearchProjectsContext,
+    semanticSearch
+} from "../../utils/ai/engine";
+import { validateSearch } from "../../utils/ai/validate";
+import useAi from "../../utils/hooks/useAi";
+import useAiEnabled from "../../utils/hooks/useAiEnabled";
+import AiSparkleIcon from "../aiSparkleIcon";
+
+type TaskSearchProps = {
+    kind: "tasks";
+    projectContext: AiContextProject;
+    semanticIds: string | undefined;
+    setSemanticIds: (value: string | undefined) => void;
+};
+
+type ProjectSearchProps = {
+    kind: "projects";
+    projectsContext: AiSearchProjectsContext;
+    semanticIds: string | undefined;
+    setSemanticIds: (value: string | undefined) => void;
+};
+
+type Props = TaskSearchProps | ProjectSearchProps;
+
+const AiSearchInput: React.FC<Props> = (props) => {
+    const { enabled: aiEnabled } = useAiEnabled();
+    const searchAi = useAi<ISearchResult>({ route: "search" });
+    const [draft, setDraft] = useState("");
+    const [noMatchHint, setNoMatchHint] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (props.semanticIds === undefined) {
+            setNoMatchHint(null);
+        }
+    }, [props.semanticIds]);
+
+    const applyResult = useCallback(
+        (result: ISearchResult) => {
+            if (result.ids.length === 0) {
+                props.setSemanticIds(undefined);
+                setNoMatchHint(
+                    result.rationale?.trim() ||
+                        "No semantic match for that phrase."
+                );
+                return;
+            }
+            setNoMatchHint(null);
+            props.setSemanticIds(result.ids.join(","));
+        },
+        [props]
+    );
+
+    const onSearch = async () => {
+        const query = draft.trim();
+        if (!query) return;
+        setNoMatchHint(null);
+        if (!environment.aiUseLocalEngine) {
+            try {
+                const payload =
+                    props.kind === "tasks"
+                        ? {
+                              search: {
+                                  kind: "tasks" as const,
+                                  query,
+                                  projectContext: (props as TaskSearchProps)
+                                      .projectContext
+                              }
+                          }
+                        : {
+                              search: {
+                                  kind: "projects" as const,
+                                  query,
+                                  projectsContext: (props as ProjectSearchProps)
+                                      .projectsContext
+                              }
+                          };
+                const result = await searchAi.run(payload);
+                applyResult(result);
+            } catch {
+                setNoMatchHint("Board Copilot search failed. Try again.");
+            }
+            return;
+        }
+        let raw: ISearchResult;
+        if (props.kind === "tasks") {
+            const ctx = (props as TaskSearchProps).projectContext;
+            raw = semanticSearch("tasks", query, ctx);
+            const valid = new Set(ctx.tasks.map((t) => t._id));
+            applyResult(validateSearch(raw, valid));
+        } else {
+            const ctx = (props as ProjectSearchProps).projectsContext;
+            raw = semanticSearch("projects", query, ctx);
+            const valid = new Set(ctx.projects.map((p) => p._id));
+            applyResult(validateSearch(raw, valid));
+        }
+    };
+
+    const onClear = () => {
+        setDraft("");
+        setNoMatchHint(null);
+        searchAi.reset();
+        props.setSemanticIds(undefined);
+    };
+
+    if (!aiEnabled) return null;
+
+    const busy = searchAi.isLoading;
+
+    return (
+        <div style={{ marginBottom: "1rem" }}>
+            <Space wrap align="start">
+                <Input
+                    aria-label="Ask in natural language"
+                    disabled={busy}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onPressEnter={() => void onSearch()}
+                    placeholder="Ask in natural language"
+                    style={{ width: "22rem" }}
+                    value={draft}
+                />
+                <Button
+                    aria-label="Run natural language search"
+                    disabled={busy || !draft.trim()}
+                    icon={<AiSparkleIcon />}
+                    loading={busy}
+                    onClick={() => void onSearch()}
+                    type="default"
+                >
+                    Search
+                </Button>
+                {props.semanticIds !== undefined ? (
+                    <Button aria-label="Clear AI search" onClick={onClear}>
+                        Clear AI search
+                    </Button>
+                ) : null}
+            </Space>
+            {busy ? (
+                <Spin style={{ display: "block", marginTop: "0.75rem" }} />
+            ) : null}
+            {noMatchHint ? (
+                <Alert
+                    closable
+                    description={noMatchHint}
+                    message="Semantic search"
+                    onClose={() => setNoMatchHint(null)}
+                    showIcon
+                    style={{ marginTop: "0.75rem", maxWidth: "40rem" }}
+                    type="info"
+                />
+            ) : null}
+            {searchAi.error ? (
+                <Alert
+                    closable
+                    message={searchAi.error.message}
+                    onClose={() => searchAi.reset()}
+                    style={{ marginTop: "0.75rem", maxWidth: "40rem" }}
+                    type="warning"
+                />
+            ) : null}
+        </div>
+    );
+};
+
+export default AiSearchInput;

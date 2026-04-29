@@ -251,6 +251,18 @@ describe("Column", () => {
         confirmSpy.mockRestore();
     });
 
+    it("filters tasks by semanticIds when set", () => {
+        renderColumn({
+            param: {
+                ...defaultParam,
+                semanticIds: "task-1"
+            }
+        });
+
+        expect(screen.getByText("Build task")).toBeInTheDocument();
+        expect(screen.queryByText("Fix bug")).not.toBeInTheDocument();
+    });
+
     it("disables delete for the optimistic mock column", () => {
         const confirmSpy = jest.spyOn(Modal, "confirm");
         renderColumn({ boardColumn: column({ _id: "mock" }) });

@@ -115,3 +115,11 @@ export const validateReadiness = (raw: IReadinessReport): IReadinessReport => ({
             )
     )
 });
+
+export const validateSearch = (
+    raw: ISearchResult,
+    validIds: Set<string>
+): ISearchResult => ({
+    ids: (raw.ids || []).filter((id) => validIds.has(id)),
+    rationale: typeof raw.rationale === "string" ? raw.rationale : ""
+});

@@ -123,7 +123,12 @@ const Column = React.forwardRef<
                             (!param.coordinatorId ||
                                 task.coordinatorId === param.coordinatorId) &&
                             (!param.taskName ||
-                                task.taskName.includes(param.taskName)) ? (
+                                task.taskName.includes(param.taskName)) &&
+                            (!param.semanticIds ||
+                                param.semanticIds
+                                    .split(",")
+                                    .filter(Boolean)
+                                    .includes(task._id)) ? (
                                 <Drag
                                     key={task._id || task.taskName}
                                     index={index}

@@ -187,4 +187,36 @@ describe("useAi remote transport", () => {
         expect(result.current.data?.taskName).toBe("second");
         pending = [];
     });
+
+    it("posts search payload to the remote proxy and filters unknown ids", async () => {
+        fetchSpy.mockResolvedValue({
+            json: jest.fn().mockResolvedValue({
+                ids: ["t1", "ghost"],
+                rationale: "from server"
+            }),
+            ok: true,
+            status: 200
+        } as unknown as Response);
+
+        const { result } = renderHook(() =>
+            useAi<ISearchResult>({ route: "search" })
+        );
+
+        await act(async () => {
+            await result.current.run({
+                search: {
+                    kind: "tasks",
+                    query: "login",
+                    projectContext: localContext()
+                }
+            });
+        });
+
+        expect(fetchSpy).toHaveBeenCalledWith(
+            "https://copilot.example/api/ai/search",
+            expect.objectContaining({ method: "POST" })
+        );
+        expect(result.current.data?.ids).toEqual(["t1"]);
+        expect(result.current.data?.rationale).toBe("from server");
+    });
 });

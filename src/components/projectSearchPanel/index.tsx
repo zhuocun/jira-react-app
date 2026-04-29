@@ -1,27 +1,32 @@
 import { SearchOutlined } from "@ant-design/icons";
 import { Form, Input, Select } from "antd";
+import React from "react";
 
-interface SearchParam {
+export interface ProjectSearchParam {
     projectName: string;
     managerId: string;
+    semanticIds?: string;
 }
 
 interface Props {
-    param: SearchParam;
-    setParam: (params: Partial<SearchParam>) => void;
+    param: ProjectSearchParam;
+    setParam: (params: Partial<ProjectSearchParam>) => void;
     members: IMember[];
     loading: boolean;
+    aiSearchSlot?: React.ReactNode;
 }
 
 const ProjectSearchPanel: React.FC<Props> = ({
     param,
     setParam,
     members,
-    loading
+    loading,
+    aiSearchSlot
 }) => {
     const defaultUser = members.filter((u) => u._id === param.managerId)[0];
     return (
         <Form style={{ marginBottom: "2rem" }} layout="inline">
+            {aiSearchSlot}
             <Form.Item>
                 <Input
                     value={param.projectName}

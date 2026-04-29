@@ -2,6 +2,7 @@ import { Button, Space, Typography } from "antd";
 import { useState } from "react";
 
 import AiChatDrawer from "../components/aiChatDrawer";
+import AiSearchInput from "../components/aiSearchInput";
 import AiSparkleIcon from "../components/aiSparkleIcon";
 import PageContainer from "../components/pageContainer";
 import ProjectList from "../components/projectList";
@@ -19,13 +20,19 @@ const ProjectPage = () => {
     const { openModal } = useProjectModal();
     const { enabled: aiEnabled } = useAiEnabled();
     const [chatOpen, setChatOpen] = useState(false);
-    const [param, setParam] = useUrl(["projectName", "managerId"]);
+    const [param, setParam] = useUrl([
+        "projectName",
+        "managerId",
+        "semanticIds"
+    ]);
     const debouncedParam = useDebounce(param, 1000);
+    const { projectName, managerId } = debouncedParam;
+    const fetchParam = { projectName, managerId };
     const {
         isLoading: pLoading,
         error: pError,
         data: projects
-    } = useReactQuery<IProject[]>("projects", debouncedParam);
+    } = useReactQuery<IProject[]>("projects", fetchParam);
     const {
         isLoading: mLoading,
         error: mError,
@@ -57,6 +64,28 @@ const ProjectPage = () => {
                 setParam={setParam}
                 members={members ?? []}
                 loading={mLoading}
+                aiSearchSlot={
+                    aiEnabled ? (
+                        <div
+                            style={{
+                                flexBasis: "100%",
+                                marginBottom: "0.75rem"
+                            }}
+                        >
+                            <AiSearchInput
+                                kind="projects"
+                                projectsContext={{
+                                    projects: projects ?? [],
+                                    members: members ?? []
+                                }}
+                                semanticIds={param.semanticIds}
+                                setSemanticIds={(value) =>
+                                    setParam({ semanticIds: value })
+                                }
+                            />
+                        </div>
+                    ) : undefined
+                }
             />
             {pError || mError ? (
                 <Typography.Text type="danger">
@@ -64,7 +93,16 @@ const ProjectPage = () => {
                 </Typography.Text>
             ) : null}
             <ProjectList
-                dataSource={projects ?? []}
+                dataSource={
+                    param.semanticIds
+                        ? (projects ?? []).filter((p) =>
+                              param
+                                  .semanticIds!.split(",")
+                                  .filter(Boolean)
+                                  .includes(p._id)
+                          )
+                        : (projects ?? [])
+                }
                 members={members ?? []}
                 loading={pLoading || mLoading}
             />

@@ -4,6 +4,7 @@ import {
     validateDraft,
     validateEstimate,
     validateReadiness,
+    validateSearch,
     ValidateContext
 } from "./validate";
 
@@ -240,5 +241,21 @@ describe("validateReadiness", () => {
 
     it("handles missing issues array", () => {
         expect(validateReadiness({} as IReadinessReport).issues).toEqual([]);
+    });
+});
+
+describe("validateSearch", () => {
+    it("keeps only ids present in the valid set", () => {
+        const valid = new Set(["a", "b"]);
+        expect(
+            validateSearch({ ids: ["a", "ghost", "b"], rationale: "r" }, valid)
+        ).toEqual({ ids: ["a", "b"], rationale: "r" });
+    });
+
+    it("normalises missing fields", () => {
+        expect(validateSearch({} as ISearchResult, new Set(["x"]))).toEqual({
+            ids: [],
+            rationale: ""
+        });
     });
 });

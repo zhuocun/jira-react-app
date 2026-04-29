@@ -2,34 +2,34 @@
 
 Companion to [`docs/prd/board-copilot.md`](board-copilot.md). Tracks what has shipped to `main`, what is still open, and the concrete file/test inventory so a new contributor can pick up cleanly.
 
-| Field        | Value                                                                                                                                                                         |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status       | Phases 0–3 on `main` (PR #3 merged); header runtime toggle + `AiChatDrawer` / `useAiChat` tests ship on [PR #4](https://github.com/zhuocun/jira-react-app/pull/4) when merged |
-| Last updated | 2026-04-29                                                                                                                                                                    |
-| Owner        | TBD (frontend)                                                                                                                                                                |
+| Field        | Value                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Status       | Phases 0–4: semantic search ships on branch `cursor/board-copilot-semantic-search-1b36` (this work); Phases 0–3 on `main` |
+| Last updated | 2026-04-29                                                                                                                |
+| Owner        | TBD (frontend)                                                                                                            |
 
 ---
 
 ## Main vs in-flight
 
-| Location                                                                                                                | What it contains                                                                                                                                                                            |
-| ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`main`** (through merge of [PR #3](https://github.com/zhuocun/jira-react-app/pull/3))                                 | Phases 0–3: everything through the conversational assistant (`AiChatDrawer`, `useAiChat`, `chatTools` / `chatEngine`, `Ask` on board + project list, optional remote `POST …/api/ai/chat`). |
-| **Branch `cursor/board-copilot-continue-58b0` / [PR #4](https://github.com/zhuocun/jira-react-app/pull/4)** (this work) | Header **Board Copilot** `Switch` (PRD §7.3), dedicated tests for `AiChatDrawer` and `useAiChat` (local + remote), `/dist` in `.gitignore`, progress doc refresh.                           |
+| Location                                                                                | What it contains                                                                                                                                                                            |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`main`** (through merge of [PR #3](https://github.com/zhuocun/jira-react-app/pull/3)) | Phases 0–3: everything through the conversational assistant (`AiChatDrawer`, `useAiChat`, `chatTools` / `chatEngine`, `Ask` on board + project list, optional remote `POST …/api/ai/chat`). |
+| **Branch `cursor/board-copilot-semantic-search-1b36`** (this work)                      | Phase 4 — **Capability E**: `AiSearchInput`, `semanticSearch` in `engine.ts`, `search` route on `useAi`, URL param `semanticIds`, task + project panel integration, tests.                  |
 
 ---
 
 ## At a glance
 
-| Phase    | Capability                                                 | PRD section | Status                                                                           |
-| -------- | ---------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------- |
-| Phase 0  | Plumbing (env, hook, validators, runtime toggle)           | §7, §3.5    | ✅ Shipped                                                                       |
-| Phase 1  | Capability C — Board summary brief                         | §5.3        | ✅ Shipped                                                                       |
-| Phase 2A | Capability A — Smart task drafting                         | §5.1        | ✅ Shipped                                                                       |
-| Phase 2B | Capability B — AI estimation + readiness                   | §5.2        | ✅ Shipped                                                                       |
-| Phase 3  | Capability D — Conversational assistant                    | §5.4        | ✅ Shipped on `main` ([PR #3](https://github.com/zhuocun/jira-react-app/pull/3)) |
-| Phase 4  | Capability E — Semantic search                             | §5.5        | ⏳ Not started                                                                   |
-| Backend  | Vercel `api/ai/[route].ts` proxy with provider abstraction | §7.2        | ⏳ Not started (FE works against the deterministic local engine in the meantime) |
+| Phase    | Capability                                                 | PRD section | Status                                                                              |
+| -------- | ---------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------- |
+| Phase 0  | Plumbing (env, hook, validators, runtime toggle)           | §7, §3.5    | ✅ Shipped                                                                          |
+| Phase 1  | Capability C — Board summary brief                         | §5.3        | ✅ Shipped                                                                          |
+| Phase 2A | Capability A — Smart task drafting                         | §5.1        | ✅ Shipped                                                                          |
+| Phase 2B | Capability B — AI estimation + readiness                   | §5.2        | ✅ Shipped                                                                          |
+| Phase 3  | Capability D — Conversational assistant                    | §5.4        | ✅ Shipped on `main` ([PR #3](https://github.com/zhuocun/jira-react-app/pull/3))    |
+| Phase 4  | Capability E — Semantic search                             | §5.5        | ✅ Shipped on `cursor/board-copilot-semantic-search-1b36` (merge to `main` pending) |
+| Backend  | Vercel `api/ai/[route].ts` proxy with provider abstraction | §7.2        | ⏳ Not started (FE works against the deterministic local engine in the meantime)    |
 
 ---
 
@@ -42,10 +42,10 @@ Historical note: the first large Board Copilot drop was PR #1; [PR #3](https://g
 - **Env flags** (`src/constants/env.ts`): `aiEnabled`, `aiBaseUrl`, `aiUseLocalEngine`. Defaults to enabled with the local engine; `REACT_APP_AI_ENABLED=false` hides every AI surface; `REACT_APP_AI_BASE_URL=…` switches to the remote proxy.
 - **Runtime toggle** (`src/utils/hooks/useAiEnabled.ts`): persisted to `localStorage` under `boardCopilot:enabled`, with cross-component live updates via a custom `boardCopilot:toggled` event.
 - **Single AI hook** (`src/utils/hooks/useAi.ts`): exposes `run`, `abort`, `reset`, `data`, `error`, `isLoading`. Owns the `AbortController` lifecycle, switches transparently between the local engine and the remote proxy, and validates every response before resolving.
-- **Local AI engine** (`src/utils/ai/engine.ts`): deterministic `draftTask`, `breakdownTask`, `estimate`, `readiness`, `boardBrief`. Lets the FE work end-to-end with no backend.
+- **Local AI engine** (`src/utils/ai/engine.ts`): deterministic `draftTask`, `breakdownTask`, `estimate`, `readiness`, `boardBrief`, `semanticSearch`. Lets the FE work end-to-end with no backend.
 - **Validators** (`src/utils/ai/validate.ts`): cross-checks every model-supplied id (`columnId`, `coordinatorId`, similar `taskId`s) against the cached context, drops or replaces unknown ids, and clamps story points to `1/2/3/5/8/13`.
 - **Pure helpers** (`src/utils/ai/keywords.ts`, `src/utils/ai/storyPoints.ts`): tokenisation, Jaccard similarity, Fibonacci snapping.
-- **Typed contracts** (`src/interfaces/ai.d.ts`): `IDraftTaskSuggestion`, `ITaskBreakdownSuggestion`, `IEstimateSuggestion`, `IReadinessReport`, `IBoardBrief` — these are the shapes the future remote proxy must return per route.
+- **Typed contracts** (`src/interfaces/ai.d.ts`): `IDraftTaskSuggestion`, `ITaskBreakdownSuggestion`, `IEstimateSuggestion`, `IReadinessReport`, `IBoardBrief`, `ISearchResult` — these are the shapes the future remote proxy must return per route.
 
 ### Phase 1 — Capability C: Board summary brief
 
@@ -78,6 +78,21 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `
 - Chat uses **request–response JSON**, not **SSE** token streaming (PRD §6.1 / §7.1 describe SSE for `useAi`; structured routes also use non-streaming `fetch` today).
 - **Tests:** `src/components/aiChatDrawer/index.test.tsx`, `src/utils/hooks/useAiChat.test.tsx`, `src/utils/hooks/useAiChat.remote.test.tsx` cover the drawer, local chat turns, and remote chat transport (tool/engine units remain in `*.test.ts`).
 
+### Phase 4 — Capability E: Semantic search (PRD §5.5)
+
+- `src/interfaces/ai.d.ts` — `ISearchResult` (`ids`, `rationale`).
+- `src/utils/ai/engine.ts` — `semanticSearch` (Jaccard over tokenised query vs task name/type/epic/note or project name/org/manager); `AiSearchProjectsContext` for project-side context.
+- `src/utils/ai/validate.ts` — `validateSearch` intersects `ids` with known cache ids.
+- `src/utils/hooks/useAi.ts` — `AiRoute` includes `"search"`; `RunPayload.search` with `kind`, `query`, and `projectContext` or `projectsContext`.
+- `src/components/aiSearchInput/index.tsx` — “Ask in natural language” + Search / Clear AI search; local engine or remote `POST …/api/ai/search`.
+- `src/components/taskSearchPanel/index.tsx` — optional `aiSearchSlot`; `TaskSearchParam.semanticIds`; Reset clears semantic filter.
+- `src/components/projectSearchPanel/index.tsx` — optional `aiSearchSlot`; `ProjectSearchParam.semanticIds`.
+- `src/pages/board.tsx` — `semanticIds` in URL; passes slot + `AiSearchInput` when AI enabled and project context ready.
+- `src/pages/project.tsx` — `semanticIds` in URL; debounced API fetch excludes `semanticIds`; list filtered client-side by semantic ids when set.
+- `src/components/column/index.tsx` — AND semantic id filter with existing task filters.
+
+Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/search` with JSON body matching `RunPayload.search` (same `kind`, `query`, and context objects as other AI routes). Response `{ ids, rationale }` is validated with `validateSearch` client-side.
+
 ### Shared
 
 - `src/components/header/index.tsx` — **Board Copilot** runtime switch (Ant Design `Switch`) when `REACT_APP_AI_ENABLED` is not `false`; persists via `useAiEnabled` / `localStorage` (PRD §7.3).
@@ -86,12 +101,12 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `
 
 ### Test coverage
 
-- 75 suites, 326 tests (was 59/232 before Board Copilot work began).
+- 76 suites, 340 tests.
 - Coverage on the runtime AI scope: **97% statements / 92.37% branches / 97% functions / 97.84% lines**.
 - New test files:
     - `src/utils/ai/{engine,keywords,storyPoints,validate,chatEngine,chatTools}.test.ts`
     - `src/utils/hooks/{useAi,useAi.remote,useAiChat,useAiChat.remote,useAiEnabled,useAiEnabled.disabled}.test.tsx`
-    - `src/components/{aiChatDrawer,aiTaskDraftModal,aiTaskAssistPanel,boardBriefDrawer}/index.test.tsx`
+    - `src/components/{aiChatDrawer,aiSearchInput,aiTaskDraftModal,aiTaskAssistPanel,boardBriefDrawer}/index.test.tsx`
     - `src/components/header/index.test.tsx` (includes Board Copilot toggle)
     - Extended: `src/components/{taskCreator,taskModal}/index.test.tsx`, `src/constants/env.test.ts`
 
@@ -123,21 +138,13 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/chat` with body `
 | AC-D2 | Tool definitions not supplied from user thread (remote must own tools)            | ✅ (local engine is fixed; remote contract documented in progress doc)                  |
 | AC-D3 | Closing the chat drawer aborts in-flight work                                     | ✅ (`useAiChat` + drawer `abort`)                                                       |
 | AC-D4 | Conversation cleared on hard reload                                               | ✅ (in-memory state only)                                                               |
-| AC-E1 | Returned `ids` intersected with cache                                             | ⏳ Phase 4 not started                                                                  |
-| AC-E2 | Empty semantic search restores list + hint                                        | ⏳ Phase 4 not started                                                                  |
-| AC-E3 | Clearing AI search restores prior filters                                         | ⏳ Phase 4 not started                                                                  |
+| AC-E1 | Returned `ids` intersected with cache                                             | ✅ (`validateSearch`)                                                                   |
+| AC-E2 | Empty semantic search restores list + hint                                        | ✅ (info `Alert` + full list when no ids)                                               |
+| AC-E3 | Clearing AI search restores prior filters                                         | ✅ (`semanticIds` removed from URL / reset)                                             |
 
 ---
 
 ## What is open
-
-### Phase 4 — Capability E: Semantic search (PRD §5.5)
-
-Not started. No `aiSearchInput`, no `search` route on `useAi`, no `ISearchResult` in `src/interfaces/ai.d.ts`. Smallest slice:
-
-- `src/components/aiSearchInput/` mounted inside `taskSearchPanel` and `projectSearchPanel`.
-- Extend `useAi` `AiRoute` with `"search"` (or a dedicated hook) + local engine stub / remote `POST …/api/ai/search`.
-- Result `ids` intersected with the cache before narrowing the existing filter state; restore previous filters when clearing AI search (AC-E3).
 
 ### Backend — Vercel proxy (PRD §7.2)
 
@@ -145,7 +152,7 @@ Not started — **no `api/` routes in this repo** yet. The client posts to `${RE
 
 - Add `api/ai/[route].ts` (or equivalent) per `vercel.json`.
 - Hold the model API key in the server env (never `REACT_APP_*`).
-- Per route: JSON schema for structured output (existing types in `src/interfaces/ai.d.ts`; add `ISearchResult` when Phase 4 lands).
+- Per route: JSON schema for structured output (existing types in `src/interfaces/ai.d.ts`, including `ISearchResult` for search).
 - Chat route should expose **only** the read-only tools from `chatTools.ts` on the server; never trust client-supplied tool definitions (AC-D2).
 - Enforce per-IP, per-route token budgets and timeouts (PRD §9).
 - Log only metadata (route, latency, token counts, status) — never raw user content in production.
@@ -173,7 +180,7 @@ CI=true npm test -- --watchAll=false --runInBand --coverage --coverageReporters=
 npx vite build
 ```
 
-Expected: lint clean, 75 suites / 326 tests pass, ≥97% statement coverage, build succeeds.
+Expected: lint clean, 76 suites / 340 tests pass, ≥97% statement coverage, build succeeds.
 
 To exercise Board Copilot in the browser:
 
@@ -183,6 +190,7 @@ To exercise Board Copilot in the browser:
 4. Click `+ Create task` → `Draft with AI`, type a prompt, click `Draft task` (Capability A) or `Break down` for subtasks.
 5. Open any existing task to see the Board Copilot sidebar (Capability B).
 6. Click `Ask` in the board or project list header to open the conversational assistant (Capability D).
+7. Use **Ask in natural language** above the board or project filters, then **Search** (Capability E); **Clear AI search** removes only the semantic filter.
 
 To turn AI off without rebuilding, use the **Board Copilot** switch in the app header (when `REACT_APP_AI_ENABLED` is not `false`), or:
 

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import environment from "../../constants/env";
 import {
     AiContextProject,
+    AiSearchProjectsContext,
     boardBrief,
     breakdownTask,
     DraftRequest,
@@ -10,14 +11,16 @@ import {
     estimate,
     EstimateRequest,
     readiness,
-    ReadinessRequest
+    ReadinessRequest,
+    semanticSearch
 } from "../ai/engine";
 import {
     validateBoardBrief,
     validateBreakdown,
     validateDraft,
     validateEstimate,
-    validateReadiness
+    validateReadiness,
+    validateSearch
 } from "../ai/validate";
 
 export type AiRoute =
@@ -25,7 +28,8 @@ export type AiRoute =
     | "task-breakdown"
     | "estimate"
     | "readiness"
-    | "board-brief";
+    | "board-brief"
+    | "search";
 
 interface UseAiOptions {
     route: AiRoute;
@@ -36,6 +40,12 @@ interface RunPayload {
     estimate?: EstimateRequest & { context: AiContextProject };
     readiness?: ReadinessRequest & { context: AiContextProject };
     brief?: { context: AiContextProject };
+    search?: {
+        kind: "tasks" | "projects";
+        query: string;
+        projectContext?: AiContextProject;
+        projectsContext?: AiSearchProjectsContext;
+    };
 }
 
 const localResolve = (route: AiRoute, payload: RunPayload): unknown => {
@@ -60,6 +70,20 @@ const localResolve = (route: AiRoute, payload: RunPayload): unknown => {
         case "board-brief": {
             if (!payload.brief) throw new Error("brief payload required");
             return boardBrief(payload.brief.context);
+        }
+        case "search": {
+            if (!payload.search) throw new Error("search payload required");
+            const { kind, query, projectContext, projectsContext } =
+                payload.search;
+            if (kind === "tasks") {
+                if (!projectContext)
+                    throw new Error("projectContext required for task search");
+                return semanticSearch("tasks", query, projectContext);
+            }
+            if (!projectsContext) {
+                throw new Error("projectsContext required for project search");
+            }
+            return semanticSearch("projects", query, projectsContext);
         }
         default:
             throw new Error(`Unknown AI route: ${route as string}`);
@@ -105,6 +129,21 @@ const validateResponse = (
     }
     if (route === "readiness") {
         return validateReadiness(raw as IReadinessReport);
+    }
+    if (route === "search" && payload.search) {
+        const validIds =
+            payload.search.kind === "tasks" && payload.search.projectContext
+                ? new Set(
+                      payload.search.projectContext.tasks.map(
+                          (task) => task._id
+                      )
+                  )
+                : new Set(
+                      (payload.search.projectsContext?.projects ?? []).map(
+                          (project) => project._id
+                      )
+                  );
+        return validateSearch(raw as ISearchResult, validIds);
     }
     return raw;
 };

@@ -1,12 +1,14 @@
 import {
     AiContextProject,
+    AiSearchProjectsContext,
     boardBrief,
     breakdownTask,
     detectEpic,
     detectType,
     draftTask,
     estimate,
-    readiness
+    readiness,
+    semanticSearch
 } from "./engine";
 
 const member = (overrides: Partial<IMember> = {}): IMember => ({
@@ -351,5 +353,70 @@ describe("engine.boardBrief", () => {
         });
         const brief = boardBrief(context);
         expect(brief.recommendation).toMatch(/balanced/i);
+    });
+});
+
+describe("engine.semanticSearch", () => {
+    const taskCtx = (): AiContextProject =>
+        buildContext({
+            tasks: [
+                task({
+                    _id: "t-auth",
+                    taskName: "Fix flaky login",
+                    epic: "Auth",
+                    note: "token expiry"
+                }),
+                task({
+                    _id: "t-ui",
+                    taskName: "Button spacing",
+                    epic: "UI Polish",
+                    note: "css"
+                })
+            ]
+        });
+
+    it("ranks tasks by token overlap with the query", () => {
+        const out = semanticSearch("tasks", "login token auth", taskCtx());
+        expect(out.ids).toContain("t-auth");
+        expect(out.ids.length).toBeGreaterThan(0);
+        expect(out.rationale).toMatch(/similarity/i);
+    });
+
+    it("returns empty ids when nothing matches", () => {
+        const out = semanticSearch("tasks", "quantum blockchain", taskCtx());
+        expect(out.ids).toEqual([]);
+        expect(out.rationale).toMatch(/No semantic match/i);
+    });
+
+    it("handles whitespace-only query", () => {
+        const out = semanticSearch("tasks", "   ", taskCtx());
+        expect(out.ids).toEqual([]);
+    });
+
+    it("ranks projects using name, org, and manager", () => {
+        const ctx: AiSearchProjectsContext = {
+            projects: [
+                {
+                    _id: "p1",
+                    createdAt: "2026-01-01",
+                    managerId: "m1",
+                    organization: "Acme Billing",
+                    projectName: "Invoices"
+                },
+                {
+                    _id: "p2",
+                    createdAt: "2026-01-02",
+                    managerId: "m2",
+                    organization: "Mobile",
+                    projectName: "App refresh"
+                }
+            ],
+            members: [
+                member({ _id: "m1", username: "Alice" }),
+                member({ _id: "m2", username: "Bob" })
+            ]
+        };
+        const out = semanticSearch("projects", "billing acme", ctx);
+        expect(out.ids).toEqual(["p1"]);
     });
 });

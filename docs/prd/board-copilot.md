@@ -1,14 +1,14 @@
 # PRD: Board Copilot — AI assistance inside `jira-react-app`
 
-| Field                   | Value                                                                                                   |
-| ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| Status                  | v1 — Phases 0–3 on `main` (chat merged via PR #3); Phase 4 (semantic search) + Vercel proxy not started |
-| Owner                   | TBD (frontend)                                                                                          |
-| Last updated            | 2026-04-29                                                                                              |
-| Target repository       | `jira-react-app` (this repo)                                                                            |
-| Target release          | Internal preview, then opt-in toggle for end users                                                      |
-| Document scope          | Product, UX, technical contract, rollout, testing                                                       |
-| Implementation progress | See [`board-copilot-progress.md`](board-copilot-progress.md)                                            |
+| Field                   | Value                                                                                                                                     |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                  | v1 — Phases 0–3 on `main`; Phase 4 (semantic search) implemented on `cursor/board-copilot-semantic-search-1b36`; Vercel proxy not started |
+| Owner                   | TBD (frontend)                                                                                                                            |
+| Last updated            | 2026-04-29                                                                                                                                |
+| Target repository       | `jira-react-app` (this repo)                                                                                                              |
+| Target release          | Internal preview, then opt-in toggle for end users                                                                                        |
+| Document scope          | Product, UX, technical contract, rollout, testing                                                                                         |
+| Implementation progress | See [`board-copilot-progress.md`](board-copilot-progress.md)                                                                              |
 
 ---
 
