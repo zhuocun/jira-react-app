@@ -85,7 +85,7 @@ export interface RunPayload {
     };
 }
 
-const localResolve = (route: AiRoute, payload: RunPayload): unknown => {
+export const localResolve = (route: AiRoute, payload: RunPayload): unknown => {
     switch (route) {
         case "task-draft": {
             if (!payload.draft) throw new Error("draft payload required");
@@ -127,7 +127,7 @@ const localResolve = (route: AiRoute, payload: RunPayload): unknown => {
     }
 };
 
-const validateResponse = (
+export const validateResponse = (
     route: AiRoute,
     raw: unknown,
     payload: RunPayload

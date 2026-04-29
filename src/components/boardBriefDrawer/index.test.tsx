@@ -129,6 +129,21 @@ describe("BoardBriefDrawer", () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 
+    it("opens editing when an unowned task row is clicked", async () => {
+        const startEditing = jest.fn();
+        mockedUseTaskModal.mockReturnValue({
+            closeModal: jest.fn(),
+            editingTaskId: undefined,
+            isLoading: false,
+            startEditing
+        } as unknown as ReturnType<typeof useTaskModal>);
+        const { onClose } = renderDrawer(true);
+        const rows = await screen.findAllByText("Unowned task");
+        fireEvent.click(rows[rows.length - 1]);
+        expect(startEditing).toHaveBeenCalledWith("t2");
+        expect(onClose).toHaveBeenCalled();
+    });
+
     it("renders nothing when open is false", () => {
         const queryClient = new QueryClient();
         const { container } = render(

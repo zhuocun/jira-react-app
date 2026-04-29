@@ -5,19 +5,21 @@
 import "@testing-library/jest-dom";
 import { TextDecoder, TextEncoder } from "util";
 
-Object.defineProperty(window, "matchMedia", {
-    writable: true,
-    value: jest.fn().mockImplementation((query: string) => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn()
-    }))
-});
+if (typeof window !== "undefined") {
+    Object.defineProperty(window, "matchMedia", {
+        writable: true,
+        value: jest.fn().mockImplementation((query: string) => ({
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn()
+        }))
+    });
+}
 
 type MessagePortCallback = ((event: { data: unknown }) => void) | null;
 
@@ -90,12 +92,14 @@ Object.defineProperty(globalThis, "fetch", {
     writable: true
 });
 
-const getComputedStyle = window.getComputedStyle.bind(window);
+if (typeof window !== "undefined") {
+    const getComputedStyle = window.getComputedStyle.bind(window);
 
-Object.defineProperty(window, "getComputedStyle", {
-    configurable: true,
-    value: (element: Element) => getComputedStyle(element)
-});
+    Object.defineProperty(window, "getComputedStyle", {
+        configurable: true,
+        value: (element: Element) => getComputedStyle(element)
+    });
+}
 
 Object.defineProperty(globalThis, "ResizeObserver", {
     configurable: true,

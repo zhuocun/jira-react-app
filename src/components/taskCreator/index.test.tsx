@@ -174,4 +174,23 @@ describe("TaskCreator", () => {
             expect(screen.getByLabelText("Task prompt")).toBeInTheDocument()
         );
     });
+
+    it("closes the draft modal and returns to link mode", async () => {
+        renderCreator();
+        fireEvent.click(
+            screen.getByLabelText("Draft a task with Board Copilot")
+        );
+        await waitFor(() =>
+            expect(screen.getByLabelText("Task prompt")).toBeInTheDocument()
+        );
+        fireEvent.click(screen.getByRole("button", { name: /close/i }));
+        await waitFor(() => {
+            expect(
+                screen.queryByLabelText("Task prompt")
+            ).not.toBeInTheDocument();
+        });
+        expect(
+            screen.getByLabelText("Draft a task with Board Copilot")
+        ).toBeInTheDocument();
+    });
 });

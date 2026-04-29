@@ -130,4 +130,24 @@ describe("useAiChat remote transport", () => {
             expect(result.current.error?.message).toMatch(/busy/i);
         });
     });
+
+    it("surfaces generic HTTP failures from the remote chat endpoint", async () => {
+        fetchSpy.mockResolvedValue({
+            json: jest.fn(),
+            ok: false,
+            status: 503
+        } as unknown as Response);
+
+        const { result } = renderHook(() => useAiChat(chatCtx()), {
+            wrapper: wrapper(queryClient)
+        });
+
+        await act(async () => {
+            await result.current.send("Hi");
+        });
+
+        await waitFor(() => {
+            expect(result.current.error?.message).toMatch(/AI request failed/i);
+        });
+    });
 });

@@ -83,6 +83,7 @@ describe("useAi local engine", () => {
             });
         });
         expect(breakdown.result.current.data?.items.length).toBeGreaterThan(0);
+        breakdown.unmount();
 
         const estimateHook = renderHook(() =>
             useAi<IEstimateSuggestion>({ route: "estimate" })
@@ -97,6 +98,7 @@ describe("useAi local engine", () => {
             });
         });
         expect(estimateHook.result.current.data?.storyPoints).toBeDefined();
+        estimateHook.unmount();
 
         const readinessHook = renderHook(() =>
             useAi<IReadinessReport>({ route: "readiness" })
@@ -112,6 +114,7 @@ describe("useAi local engine", () => {
         expect(
             readinessHook.result.current.data?.issues.length
         ).toBeGreaterThan(0);
+        readinessHook.unmount();
 
         const briefHook = renderHook(() =>
             useAi<IBoardBrief>({ route: "board-brief" })
@@ -124,6 +127,7 @@ describe("useAi local engine", () => {
         expect(briefHook.result.current.data?.headline.length).toBeGreaterThan(
             0
         );
+        briefHook.unmount();
     });
 
     it("resolves semantic search for tasks locally", async () => {
@@ -216,17 +220,21 @@ describe("useAi local engine", () => {
             "board-brief",
             "search"
         ] as const) {
-            const { result } = renderHook(() => useAi({ route }));
+            const { result, unmount } = renderHook(() => useAi({ route }));
             await expect(
                 act(async () => result.current.run({}))
             ).rejects.toBeInstanceOf(Error);
+            unmount();
         }
     });
 
     it("rejects unknown routes through the local resolver", async () => {
-        const { result } = renderHook(() => useAi({ route: "ghost" as never }));
+        const { result, unmount } = renderHook(() =>
+            useAi({ route: "ghost" as never })
+        );
         await expect(
             act(async () => result.current.run({}))
         ).rejects.toBeInstanceOf(Error);
+        unmount();
     });
 });

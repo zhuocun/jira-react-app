@@ -41,4 +41,31 @@ describe("useAiEnabled", () => {
         });
         expect(b.current.enabled).toBe(false);
     });
+
+    it("syncs from a storage-backed toggle event without calling setEnabled", () => {
+        const { result } = renderHook(() => useAiEnabled());
+        expect(result.current.enabled).toBe(true);
+        act(() => {
+            window.localStorage.setItem(STORAGE_KEY, "false");
+            window.dispatchEvent(
+                new CustomEvent<boolean>("boardCopilot:toggled", {
+                    detail: false
+                })
+            );
+        });
+        expect(result.current.enabled).toBe(false);
+    });
+
+    it("no-ops setEnabled when window is undefined", () => {
+        const originalWindow = global.window;
+        // @ts-expect-error simulate non-browser
+        delete global.window;
+
+        const { result } = renderHook(() => useAiEnabled());
+        act(() => {
+            result.current.setEnabled(false);
+        });
+
+        global.window = originalWindow;
+    });
 });
