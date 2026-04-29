@@ -1,10 +1,11 @@
 import styled from "@emotion/styled";
-import { Button, Spin } from "antd";
+import { Button, Space, Spin } from "antd";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import AiSparkleIcon from "../components/aiSparkleIcon";
+import AiChatDrawer from "../components/aiChatDrawer";
 import BoardBriefDrawer from "../components/boardBriefDrawer";
 import Column from "../components/column";
 import ColumnCreator from "../components/columnCreator";
@@ -66,6 +67,7 @@ const BoardPage = () => {
     const visibleTasks = tasks ?? [];
     const { enabled: aiEnabled } = useAiEnabled();
     const [briefOpen, setBriefOpen] = useState(false);
+    const [chatOpen, setChatOpen] = useState(false);
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
@@ -77,14 +79,24 @@ const BoardPage = () => {
                             : "..."}
                     </h1>
                     {aiEnabled && (
-                        <Button
-                            aria-label="Open Board Copilot brief"
-                            icon={<AiSparkleIcon />}
-                            onClick={() => setBriefOpen(true)}
-                            type="default"
-                        >
-                            Brief
-                        </Button>
+                        <Space>
+                            <Button
+                                aria-label="Open Board Copilot brief"
+                                icon={<AiSparkleIcon />}
+                                onClick={() => setBriefOpen(true)}
+                                type="default"
+                            >
+                                Brief
+                            </Button>
+                            <Button
+                                aria-label="Ask Board Copilot"
+                                icon={<AiSparkleIcon />}
+                                onClick={() => setChatOpen(true)}
+                                type="default"
+                            >
+                                Ask
+                            </Button>
+                        </Space>
                     )}
                 </Row>
                 <TaskSearchPanel
@@ -134,14 +146,25 @@ const BoardPage = () => {
                 )}
                 <TaskModal tasks={visibleTasks} />
                 {aiEnabled && (
-                    <BoardBriefDrawer
-                        columns={board ?? []}
-                        members={members ?? []}
-                        onClose={() => setBriefOpen(false)}
-                        open={briefOpen}
-                        project={currentProject}
-                        tasks={visibleTasks}
-                    />
+                    <>
+                        <BoardBriefDrawer
+                            columns={board ?? []}
+                            members={members ?? []}
+                            onClose={() => setBriefOpen(false)}
+                            open={briefOpen}
+                            project={currentProject}
+                            tasks={visibleTasks}
+                        />
+                        <AiChatDrawer
+                            columns={board ?? []}
+                            knownProjectIds={projectId ? [projectId] : []}
+                            members={members ?? []}
+                            onClose={() => setChatOpen(false)}
+                            open={chatOpen}
+                            project={currentProject ?? null}
+                            tasks={visibleTasks}
+                        />
+                    </>
                 )}
             </PageContainer>
         </DragDropContext>
