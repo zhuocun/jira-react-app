@@ -280,4 +280,37 @@ describe("TaskModal", () => {
         expect(await screen.findByText("Edit Task")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
     });
+
+    it("renders the Board Copilot assist panel and applies its suggestions", async () => {
+        jest.useFakeTimers();
+        try {
+            renderModal();
+            const taskNameInput = await screen.findByDisplayValue("Build task");
+            jest.advanceTimersByTime(1000);
+            const applyPoints = await screen.findByLabelText(
+                "Apply suggested story points"
+            );
+            fireEvent.click(applyPoints);
+            // Apply readiness suggestion for the note field
+            fireEvent.change(
+                screen.getByPlaceholderText("Notes / acceptance criteria"),
+                { target: { value: "" } }
+            );
+            jest.advanceTimersByTime(1000);
+            const noteSuggestion = await screen.findByLabelText(
+                /Apply readiness suggestion for note/
+            );
+            fireEvent.click(noteSuggestion);
+            expect(
+                (
+                    screen.getByPlaceholderText(
+                        "Notes / acceptance criteria"
+                    ) as HTMLTextAreaElement
+                ).value
+            ).toMatch(/## Acceptance criteria/);
+            expect(taskNameInput).toBeInTheDocument();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
 });

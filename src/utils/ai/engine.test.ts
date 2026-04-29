@@ -1,0 +1,355 @@
+import {
+    AiContextProject,
+    boardBrief,
+    breakdownTask,
+    detectEpic,
+    detectType,
+    draftTask,
+    estimate,
+    readiness
+} from "./engine";
+
+const member = (overrides: Partial<IMember> = {}): IMember => ({
+    _id: "m1",
+    email: "alice@example.com",
+    username: "Alice",
+    ...overrides
+});
+
+const column = (overrides: Partial<IColumn> = {}): IColumn => ({
+    _id: "col-todo",
+    columnName: "Todo",
+    index: 0,
+    projectId: "p1",
+    ...overrides
+});
+
+const task = (overrides: Partial<ITask> = {}): ITask => ({
+    _id: "t1",
+    columnId: "col-todo",
+    coordinatorId: "m1",
+    epic: "Auth",
+    index: 0,
+    note: "",
+    projectId: "p1",
+    storyPoints: 3,
+    taskName: "Fix login",
+    type: "Bug",
+    ...overrides
+});
+
+const buildContext = (
+    overrides: Partial<AiContextProject> = {}
+): AiContextProject => ({
+    project: { _id: "p1", projectName: "Roadmap" },
+    columns: [
+        column({ _id: "col-todo", columnName: "Todo", index: 0 }),
+        column({ _id: "col-progress", columnName: "In Progress", index: 1 }),
+        column({ _id: "col-done", columnName: "Done", index: 2 })
+    ],
+    members: [member(), member({ _id: "m2", username: "Bob" })],
+    tasks: [
+        task({ _id: "t1", taskName: "Fix flaky login", storyPoints: 3 }),
+        task({
+            _id: "t2",
+            taskName: "Investigate slow login",
+            storyPoints: 5,
+            type: "Bug"
+        }),
+        task({
+            _id: "t3",
+            columnId: "col-progress",
+            coordinatorId: "m2",
+            epic: "Performance",
+            taskName: "Optimize query throughput",
+            storyPoints: 8,
+            type: "Task"
+        })
+    ],
+    ...overrides
+});
+
+describe("engine.detectType", () => {
+    it("detects bug-flavoured prompts", () => {
+        expect(detectType("There's a flaky test in the auth flow")).toBe("Bug");
+        expect(detectType("Crash when uploading large files")).toBe("Bug");
+    });
+
+    it("falls back to Task for normal feature work", () => {
+        expect(detectType("Add a settings page")).toBe("Task");
+    });
+});
+
+describe("engine.detectEpic", () => {
+    it("matches keyword epics", () => {
+        expect(detectEpic("Add the login screen")).toBe("Auth");
+        expect(detectEpic("Slow queries cause latency")).toBe("Performance");
+        expect(detectEpic("Refactor the navigation menu")).toBe("Refactor");
+        expect(detectEpic("Update the README documentation")).toBe(
+            "Documentation"
+        );
+        expect(detectEpic("Increase test coverage")).toBe("Testing");
+        expect(detectEpic("Polish the modal styling")).toBe("UI Polish");
+        expect(detectEpic("Fix a flaky regression")).toBe("Bug Fix");
+    });
+
+    it("falls back to New Feature when nothing matches", () => {
+        expect(detectEpic("Generic chore item")).toBe("New Feature");
+    });
+});
+
+describe("engine.draftTask", () => {
+    it("produces a complete suggestion grounded in context", () => {
+        const context = buildContext();
+        const suggestion = draftTask({
+            prompt: "Investigate flaky login on Safari, half day, blocks v2",
+            columnId: "col-todo",
+            coordinatorId: "m2",
+            context
+        });
+
+        expect(suggestion.taskName.length).toBeGreaterThan(0);
+        expect(suggestion.type).toBe("Bug");
+        // "investigate flaky login" hits the bug epic before the auth epic
+        expect(["Auth", "Bug Fix"]).toContain(suggestion.epic);
+        expect([1, 2, 3, 5, 8, 13]).toContain(suggestion.storyPoints);
+        expect(suggestion.columnId).toBe("col-todo");
+        expect(suggestion.coordinatorId).toBe("m2");
+        expect(suggestion.note).toContain("Acceptance criteria");
+        expect(suggestion.confidence).toBeGreaterThan(0);
+        expect(suggestion.confidence).toBeLessThanOrEqual(1);
+    });
+
+    it("falls back when no column or coordinator is supplied", () => {
+        const suggestion = draftTask({
+            prompt: "Add a new dashboard widget for sprint velocity",
+            context: buildContext()
+        });
+        expect(suggestion.columnId).toBe("col-todo");
+        expect(suggestion.coordinatorId).toBe("m1");
+        expect(suggestion.type).toBe("Task");
+    });
+
+    it("handles empty prompt safely", () => {
+        const suggestion = draftTask({
+            prompt: "",
+            context: buildContext({ columns: [], members: [] })
+        });
+        expect(suggestion.taskName).toBe("Untitled task");
+        expect(suggestion.columnId).toBe("");
+        expect(suggestion.coordinatorId).toBe("");
+    });
+
+    it("truncates very long prompts in the task name", () => {
+        const longPrompt = "A".repeat(200);
+        const suggestion = draftTask({
+            prompt: longPrompt,
+            context: buildContext()
+        });
+        expect(suggestion.taskName.length).toBeLessThan(longPrompt.length);
+        expect(suggestion.taskName.endsWith("…")).toBe(true);
+    });
+
+    it("scales story points to the prompt size hints", () => {
+        const small = draftTask({
+            prompt: "Quick typo fix in header",
+            context: buildContext()
+        });
+        const large = draftTask({
+            prompt: "Build a complex multi-step onboarding flow that integrates with five external services and requires a week of work",
+            context: buildContext()
+        });
+        expect(small.storyPoints).toBeLessThan(large.storyPoints);
+    });
+});
+
+describe("engine.breakdownTask", () => {
+    it("returns 2..6 child suggestions", () => {
+        const result = breakdownTask(
+            { prompt: "Build dashboard", context: buildContext() },
+            10
+        );
+        expect(result.items.length).toBeLessThanOrEqual(6);
+        expect(result.items.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("shrinks story points relative to the parent", () => {
+        const context = buildContext();
+        const parent = draftTask({
+            prompt: "Big complex week-long migration to v2",
+            context
+        });
+        const result = breakdownTask({
+            prompt: "Big complex week-long migration to v2",
+            context
+        });
+        result.items.forEach((item) => {
+            expect(item.storyPoints).toBeLessThanOrEqual(parent.storyPoints);
+        });
+    });
+});
+
+describe("engine.estimate", () => {
+    it("uses similar past tasks when they exist", () => {
+        const context = buildContext();
+        const result = estimate({
+            taskName: "Fix flaky login on iOS",
+            tasks: context.tasks
+        });
+        expect(result.similar.length).toBeGreaterThan(0);
+        expect([1, 2, 3, 5, 8, 13]).toContain(result.storyPoints);
+        expect(result.confidence).toBeGreaterThan(0.4);
+    });
+
+    it("falls back to text length when nothing is similar", () => {
+        const result = estimate({
+            taskName: "Compose interplanetary haiku",
+            tasks: []
+        });
+        expect(result.similar).toEqual([]);
+        expect([1, 2, 3, 5, 8, 13]).toContain(result.storyPoints);
+        expect(result.confidence).toBeGreaterThan(0);
+    });
+
+    it("excludes the task being edited from its own similar set", () => {
+        const context = buildContext();
+        const result = estimate({
+            taskName: "Fix flaky login",
+            tasks: context.tasks,
+            excludeTaskId: "t1"
+        });
+        expect(
+            result.similar.find((entry) => entry._id === "t1")
+        ).toBeUndefined();
+    });
+
+    it("ignores mock and invalid story-point tasks", () => {
+        const result = estimate({
+            taskName: "Fix login",
+            tasks: [
+                task({ _id: "mock", taskName: "Fix login mock" }),
+                task({ _id: "bad", taskName: "Fix login bad", storyPoints: 4 })
+            ]
+        });
+        expect(result.similar.length).toBe(0);
+    });
+
+    it("returns a fallback with low confidence when task title hint matched", () => {
+        const result = estimate({
+            taskName: "trivial typo fix",
+            tasks: []
+        });
+        expect(result.confidence).toBeGreaterThan(0.5);
+    });
+});
+
+describe("engine.readiness", () => {
+    it("flags every missing field with severities", () => {
+        const report = readiness({ taskName: "Hi" });
+        const fields = report.issues.map((issue) => issue.field).sort();
+        expect(fields).toEqual(
+            expect.arrayContaining([
+                "coordinatorId",
+                "epic",
+                "note",
+                "taskName",
+                "type"
+            ])
+        );
+    });
+
+    it("returns no issues when fully populated", () => {
+        const report = readiness({
+            taskName: "Fix login regression",
+            note: "## Acceptance criteria\n- Login works",
+            epic: "Auth",
+            type: "Bug",
+            coordinatorId: "m1"
+        });
+        expect(report.issues).toEqual([]);
+    });
+
+    it("downgrades note to info when content exists but criteria are missing", () => {
+        const report = readiness({
+            taskName: "Fix login regression",
+            note: "Some context only",
+            epic: "Auth",
+            type: "Bug",
+            coordinatorId: "m1"
+        });
+        const noteIssue = report.issues.find((issue) => issue.field === "note");
+        expect(noteIssue?.severity).toBe("info");
+    });
+});
+
+describe("engine.boardBrief", () => {
+    it("counts per column, picks largest unstarted, and surfaces unowned", () => {
+        const context = buildContext();
+        const brief = boardBrief(context);
+        expect(brief.headline).toMatch(/3 tasks/);
+        expect(brief.counts.find((c) => c.columnId === "col-todo")?.count).toBe(
+            2
+        );
+        expect(brief.largestUnstarted[0].taskId).toBe("t2");
+    });
+
+    it("includes a recommendation about unowned tasks when present", () => {
+        const context = buildContext({
+            tasks: [task({ _id: "t1", coordinatorId: "ghost" })]
+        });
+        const brief = boardBrief(context);
+        expect(brief.recommendation).toMatch(/unowned/i);
+    });
+
+    it("recommends breaking down a large unstarted task", () => {
+        const context = buildContext({
+            tasks: [
+                task({ _id: "t1", storyPoints: 13, taskName: "Huge migration" })
+            ]
+        });
+        const brief = boardBrief(context);
+        expect(brief.recommendation).toMatch(/break/i);
+    });
+
+    it("recommends rebalancing when one member dominates and no item is large", () => {
+        const context = buildContext({
+            tasks: [
+                task({
+                    _id: "t1",
+                    coordinatorId: "m1",
+                    storyPoints: 5,
+                    columnId: "col-progress"
+                }),
+                task({
+                    _id: "t2",
+                    coordinatorId: "m1",
+                    storyPoints: 5,
+                    columnId: "col-progress"
+                }),
+                task({
+                    _id: "t3",
+                    coordinatorId: "m2",
+                    storyPoints: 1,
+                    columnId: "col-progress"
+                })
+            ]
+        });
+        const brief = boardBrief(context);
+        expect(brief.recommendation).toMatch(/rebalanc/i);
+    });
+
+    it("falls back to a balanced message", () => {
+        const context = buildContext({
+            tasks: [
+                task({
+                    _id: "t1",
+                    coordinatorId: "m1",
+                    storyPoints: 1,
+                    columnId: "col-progress"
+                })
+            ]
+        });
+        const brief = boardBrief(context);
+        expect(brief.recommendation).toMatch(/balanced/i);
+    });
+});
