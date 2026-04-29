@@ -91,10 +91,16 @@ const renderModal = (
     options: {
         initialTasks?: ITask[] | undefined;
         route?: string;
+        boardAiOn?: boolean;
     } = {}
 ) => {
     const route =
         options.route ?? "/projects/project-1/board?editingTaskId=task-1";
+    const boardAiOn =
+        Object.prototype.hasOwnProperty.call(options, "boardAiOn") &&
+        options.boardAiOn === false
+            ? false
+            : true;
     const initialTasks = Object.prototype.hasOwnProperty.call(
         options,
         "initialTasks"
@@ -117,7 +123,10 @@ const renderModal = (
                         path="/projects/:projectId/board"
                         element={
                             <>
-                                <TaskModal tasks={initialTasks} />
+                                <TaskModal
+                                    boardAiOn={boardAiOn}
+                                    tasks={initialTasks}
+                                />
                                 <LocationProbe />
                             </>
                         }
@@ -279,6 +288,22 @@ describe("TaskModal", () => {
 
         expect(await screen.findByText("Edit Task")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+    });
+
+    it("hides the assist panel when board AI is off for the project", async () => {
+        jest.useFakeTimers();
+        try {
+            renderModal({ boardAiOn: false });
+            expect(
+                await screen.findByDisplayValue("Build task")
+            ).toBeInTheDocument();
+            jest.advanceTimersByTime(1500);
+            expect(
+                screen.queryByLabelText("Apply suggested story points")
+            ).not.toBeInTheDocument();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it("renders the Board Copilot assist panel and applies its suggestions", async () => {

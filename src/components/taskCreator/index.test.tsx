@@ -25,7 +25,10 @@ const response = (body: unknown, ok = true) =>
         status: ok ? 200 : 400
     }) as unknown as Response;
 
-const renderCreator = ({ disabled = false }: { disabled?: boolean } = {}) => {
+const renderCreator = ({
+    disabled = false,
+    boardAiOn = true
+}: { disabled?: boolean; boardAiOn?: boolean } = {}) => {
     const queryClient = new QueryClient({
         defaultOptions: {
             mutations: { retry: false },
@@ -42,6 +45,7 @@ const renderCreator = ({ disabled = false }: { disabled?: boolean } = {}) => {
                         path="/projects/:projectId/board"
                         element={
                             <TaskCreator
+                                boardAiOn={boardAiOn}
                                 columnId="column-1"
                                 disabled={disabled}
                             />
@@ -152,6 +156,13 @@ describe("TaskCreator", () => {
         expect(
             screen.getByPlaceholderText("What needs to be done?")
         ).toBeDisabled();
+    });
+
+    it("hides Draft with AI when boardAiOn is false", () => {
+        renderCreator({ boardAiOn: false });
+        expect(
+            screen.queryByLabelText("Draft a task with Board Copilot")
+        ).not.toBeInTheDocument();
     });
 
     it("opens the Board Copilot draft modal from the Draft with AI button", async () => {

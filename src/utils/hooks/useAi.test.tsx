@@ -28,6 +28,10 @@ const localContext = (): {
 });
 
 describe("useAi local engine", () => {
+    beforeEach(() => {
+        localStorage.removeItem("boardCopilot:disabledProjectIds");
+    });
+
     it("resolves a task draft locally", async () => {
         const { result } = renderHook(() =>
             useAi<IDraftTaskSuggestion>({ route: "task-draft" })
@@ -164,6 +168,27 @@ describe("useAi local engine", () => {
             });
         });
         expect(result.current.data?.ids).toEqual(["p1"]);
+    });
+
+    it("throws when project AI is disabled for that context", async () => {
+        localStorage.setItem(
+            "boardCopilot:disabledProjectIds",
+            JSON.stringify(["p1"])
+        );
+        const { result } = renderHook(() =>
+            useAi<IDraftTaskSuggestion>({ route: "task-draft" })
+        );
+
+        await expect(
+            act(async () => {
+                await result.current.run({
+                    draft: {
+                        prompt: "x",
+                        context: localContext()
+                    }
+                });
+            })
+        ).rejects.toThrow(/disabled for this project/i);
     });
 
     it("resets state on demand", async () => {

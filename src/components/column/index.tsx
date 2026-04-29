@@ -95,86 +95,96 @@ const Column = React.forwardRef<
         column: IColumn;
         param: TaskSearchParam;
         isDragDisabled: boolean;
+        boardAiOn?: boolean;
     }
->(({ column, param, tasks, isDragDisabled, ...props }, ref) => {
-    const { startEditing } = useTaskModal();
-    return (
-        <ColumnContainer {...props} ref={ref}>
-            <Row between marginBottom={1.5}>
-                <h4
-                    style={{
-                        textTransform: "uppercase",
-                        paddingLeft: "1rem"
-                    }}
-                >
-                    {column.columnName}
-                </h4>
-                <DeleteDropDown columnId={column._id} />
-            </Row>
-            <TaskContainer>
-                <Drop
-                    type="ROW"
-                    direction="vertical"
-                    droppableId={String(column._id)}
-                >
-                    <DropChild>
-                        {tasks?.map((task, index) =>
-                            (!param.type || task.type === param.type) &&
-                            (!param.coordinatorId ||
-                                task.coordinatorId === param.coordinatorId) &&
-                            (!param.taskName ||
-                                task.taskName.includes(param.taskName)) &&
-                            (!param.semanticIds ||
-                                param.semanticIds
-                                    .split(",")
-                                    .filter(Boolean)
-                                    .includes(task._id)) ? (
-                                <Drag
-                                    key={task._id || task.taskName}
-                                    index={index}
-                                    draggableId={`task${task._id}`}
-                                    isDragDisabled={
-                                        isDragDisabled || task._id === "mock"
-                                    }
-                                >
-                                    <TaskCardContainer
-                                        onClick={
-                                            task._id !== "mock"
-                                                ? () => startEditing(task._id)
-                                                : undefined
+>(
+    (
+        { column, param, tasks, isDragDisabled, boardAiOn = true, ...props },
+        ref
+    ) => {
+        const { startEditing } = useTaskModal();
+        return (
+            <ColumnContainer {...props} ref={ref}>
+                <Row between marginBottom={1.5}>
+                    <h4
+                        style={{
+                            textTransform: "uppercase",
+                            paddingLeft: "1rem"
+                        }}
+                    >
+                        {column.columnName}
+                    </h4>
+                    <DeleteDropDown columnId={column._id} />
+                </Row>
+                <TaskContainer>
+                    <Drop
+                        type="ROW"
+                        direction="vertical"
+                        droppableId={String(column._id)}
+                    >
+                        <DropChild>
+                            {tasks?.map((task, index) =>
+                                (!param.type || task.type === param.type) &&
+                                (!param.coordinatorId ||
+                                    task.coordinatorId ===
+                                        param.coordinatorId) &&
+                                (!param.taskName ||
+                                    task.taskName.includes(param.taskName)) &&
+                                (!param.semanticIds ||
+                                    param.semanticIds
+                                        .split(",")
+                                        .filter(Boolean)
+                                        .includes(task._id)) ? (
+                                    <Drag
+                                        key={task._id || task.taskName}
+                                        index={index}
+                                        draggableId={`task${task._id}`}
+                                        isDragDisabled={
+                                            isDragDisabled ||
+                                            task._id === "mock"
                                         }
                                     >
-                                        <TaskCard>
-                                            <div
-                                                style={{
-                                                    marginBottom: "2rem"
-                                                }}
-                                            >
-                                                {task.taskName}
-                                            </div>
-                                            <img
-                                                src={
-                                                    task.type === "Task"
-                                                        ? taskIcon
-                                                        : bugIcon
-                                                }
-                                                alt="Type icon"
-                                            />
-                                        </TaskCard>
-                                    </TaskCardContainer>
-                                </Drag>
-                            ) : null
-                        )}
-                        <TaskCreator
-                            columnId={column._id}
-                            disabled={isDragDisabled}
-                        />
-                    </DropChild>
-                </Drop>
-            </TaskContainer>
-        </ColumnContainer>
-    );
-});
+                                        <TaskCardContainer
+                                            onClick={
+                                                task._id !== "mock"
+                                                    ? () =>
+                                                          startEditing(task._id)
+                                                    : undefined
+                                            }
+                                        >
+                                            <TaskCard>
+                                                <div
+                                                    style={{
+                                                        marginBottom: "2rem"
+                                                    }}
+                                                >
+                                                    {task.taskName}
+                                                </div>
+                                                <img
+                                                    src={
+                                                        task.type === "Task"
+                                                            ? taskIcon
+                                                            : bugIcon
+                                                    }
+                                                    alt="Type icon"
+                                                />
+                                            </TaskCard>
+                                        </TaskCardContainer>
+                                    </Drag>
+                                ) : null
+                            )}
+                            <TaskCreator
+                                boardAiOn={boardAiOn}
+                                columnId={column._id}
+                                disabled={isDragDisabled}
+                            />
+                        </DropChild>
+                    </Drop>
+                </TaskContainer>
+            </ColumnContainer>
+        );
+    }
+);
 
 Column.displayName = "Column";
 

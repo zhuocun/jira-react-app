@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -269,6 +269,66 @@ describe("BoardPage", () => {
     afterAll(() => {
         consoleErrorSpy.mockRestore();
         fetchMock.mockRestore();
+    });
+
+    it("hides board-scoped AI when Project AI is disabled for this project", async () => {
+        localStorage.setItem(
+            "boardCopilot:disabledProjectIds",
+            JSON.stringify(["project-1"])
+        );
+        renderBoard();
+
+        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", {
+                name: /Open Board Copilot brief/i
+            })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: /Ask Board Copilot/i })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.getByRole("switch", {
+                name: /Board Copilot for this project/i
+            })
+        ).not.toBeChecked();
+    });
+
+    it("clears semanticIds from the URL when Project AI is off so the board is not stuck filtered", async () => {
+        localStorage.setItem(
+            "boardCopilot:disabledProjectIds",
+            JSON.stringify(["project-1"])
+        );
+        renderBoard("/projects/project-1/board?semanticIds=task-1");
+
+        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText("Fix bug")).toBeInTheDocument();
+        });
+    });
+
+    it("shows Brief and Ask again after turning Project AI back on", async () => {
+        localStorage.setItem(
+            "boardCopilot:disabledProjectIds",
+            JSON.stringify(["project-1"])
+        );
+        renderBoard();
+
+        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        fireEvent.click(
+            screen.getByRole("switch", {
+                name: /Board Copilot for this project/i
+            })
+        );
+
+        expect(
+            await screen.findByRole("button", {
+                name: /Open Board Copilot brief/i
+            })
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /Ask Board Copilot/i })
+        ).toBeInTheDocument();
     });
 
     it("shows loading, then renders the project board, columns, tasks, and disabled mock drags", async () => {

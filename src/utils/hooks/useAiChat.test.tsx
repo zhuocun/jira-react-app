@@ -62,6 +62,7 @@ describe("useAiChat", () => {
         queryClient = new QueryClient({
             defaultOptions: { queries: { retry: false } }
         });
+        localStorage.removeItem("boardCopilot:disabledProjectIds");
         mockedUseAuth.mockReturnValue({
             logout: jest.fn(),
             refreshUser: jest.fn(),
@@ -111,6 +112,26 @@ describe("useAiChat", () => {
     afterEach(() => {
         jest.restoreAllMocks();
         mockApi.mockReset();
+    });
+
+    it("does not send and sets error when project AI is disabled", async () => {
+        localStorage.setItem(
+            "boardCopilot:disabledProjectIds",
+            JSON.stringify(["p1"])
+        );
+        const { result } = renderHook(() => useAiChat(chatCtx()), {
+            wrapper: wrapper(queryClient)
+        });
+
+        await act(async () => {
+            await result.current.send("Hello");
+        });
+
+        expect(result.current.messages).toEqual([]);
+        expect(result.current.error?.message).toMatch(
+            /disabled for this project/i
+        );
+        expect(mockApi).not.toHaveBeenCalled();
     });
 
     it("returns a board-style answer from the local engine without calling the API", async () => {

@@ -11,7 +11,10 @@ import useTaskModal from "../../utils/hooks/useTaskModal";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteTask";
 import AiTaskAssistPanel from "../aiTaskAssistPanel";
 
-const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
+const TaskModal: React.FC<{
+    tasks: ITask[] | undefined;
+    boardAiOn?: boolean;
+}> = ({ tasks, boardAiOn = true }) => {
     const [form] = useForm();
     const { projectId } = useParams<{ projectId: string }>();
     const { editingTaskId, startEditing, closeModal } = useTaskModal();
@@ -181,29 +184,32 @@ const TaskModal: React.FC<{ tasks: ITask[] | undefined }> = ({ tasks }) => {
                     />
                 </Form.Item>
             </Form>
-            {aiEnabled && editingTaskId && editingTaskId !== "mock" && (
-                <AiTaskAssistPanel
-                    excludeTaskId={editingTaskId}
-                    onApplyStoryPoints={(value) => {
-                        form.setFieldsValue({ storyPoints: value });
-                        setFormTick((tick) => tick + 1);
-                    }}
-                    onApplySuggestion={(field, suggestion) => {
-                        const current = form.getFieldValue(field) ?? "";
-                        if (field === "note") {
-                            const appended = `${current}${
-                                current ? "\n\n" : ""
-                            }## Acceptance criteria\n- ${suggestion}`;
-                            form.setFieldsValue({ note: appended });
-                        } else {
-                            form.setFieldsValue({ [field]: suggestion });
-                        }
-                        setFormTick((tick) => tick + 1);
-                    }}
-                    onOpenSimilarTask={(taskId) => startEditing(taskId)}
-                    values={liveValues}
-                />
-            )}
+            {aiEnabled &&
+                boardAiOn &&
+                editingTaskId &&
+                editingTaskId !== "mock" && (
+                    <AiTaskAssistPanel
+                        excludeTaskId={editingTaskId}
+                        onApplyStoryPoints={(value) => {
+                            form.setFieldsValue({ storyPoints: value });
+                            setFormTick((tick) => tick + 1);
+                        }}
+                        onApplySuggestion={(field, suggestion) => {
+                            const current = form.getFieldValue(field) ?? "";
+                            if (field === "note") {
+                                const appended = `${current}${
+                                    current ? "\n\n" : ""
+                                }## Acceptance criteria\n- ${suggestion}`;
+                                form.setFieldsValue({ note: appended });
+                            } else {
+                                form.setFieldsValue({ [field]: suggestion });
+                            }
+                            setFormTick((tick) => tick + 1);
+                        }}
+                        onOpenSimilarTask={(taskId) => startEditing(taskId)}
+                        values={liveValues}
+                    />
+                )}
             <div style={{ textAlign: "right" }}>
                 <Button
                     danger

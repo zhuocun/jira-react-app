@@ -8,7 +8,9 @@ import {
     semanticSearch
 } from "../../utils/ai/engine";
 import { validateSearch } from "../../utils/ai/validate";
-import useAi from "../../utils/hooks/useAi";
+import useAi, {
+    assertRunPayloadProjectsAiAllowed
+} from "../../utils/hooks/useAi";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import AiSparkleIcon from "../aiSparkleIcon";
 
@@ -65,27 +67,33 @@ const AiSearchInput: React.FC<Props> = (props) => {
         const query = draft.trim();
         if (!query) return;
         setNoMatchHint(null);
+        const searchPayload =
+            props.kind === "tasks"
+                ? {
+                      search: {
+                          kind: "tasks" as const,
+                          query,
+                          projectContext: (props as TaskSearchProps)
+                              .projectContext
+                      }
+                  }
+                : {
+                      search: {
+                          kind: "projects" as const,
+                          query,
+                          projectsContext: (props as ProjectSearchProps)
+                              .projectsContext
+                      }
+                  };
+        try {
+            assertRunPayloadProjectsAiAllowed(searchPayload);
+        } catch {
+            setNoMatchHint("Board Copilot is disabled for this project.");
+            return;
+        }
         if (!environment.aiUseLocalEngine) {
             try {
-                const payload =
-                    props.kind === "tasks"
-                        ? {
-                              search: {
-                                  kind: "tasks" as const,
-                                  query,
-                                  projectContext: (props as TaskSearchProps)
-                                      .projectContext
-                              }
-                          }
-                        : {
-                              search: {
-                                  kind: "projects" as const,
-                                  query,
-                                  projectsContext: (props as ProjectSearchProps)
-                                      .projectsContext
-                              }
-                          };
-                const result = await searchAi.run(payload);
+                const result = await searchAi.run(searchPayload);
                 applyResult(result);
             } catch {
                 setNoMatchHint("Board Copilot search failed. Try again.");

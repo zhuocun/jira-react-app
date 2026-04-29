@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
-import { Button, Space, Spin } from "antd";
+import { Button, Space, Spin, Switch, Tooltip, Typography } from "antd";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import AiChatDrawer from "../components/aiChatDrawer";
@@ -16,6 +16,7 @@ import Row from "../components/row";
 import TaskModal from "../components/taskModal";
 import TaskSearchPanel from "../components/taskSearchPanel";
 import useAiEnabled from "../utils/hooks/useAiEnabled";
+import useAiProjectDisabled from "../utils/hooks/useAiProjectDisabled";
 import useDebounce from "../utils/hooks/useDebounce";
 import useDragEnd from "../utils/hooks/useDragEnd";
 import useReactQuery from "../utils/hooks/useReactQuery";
@@ -72,6 +73,11 @@ const BoardPage = () => {
         useDragEnd();
     const visibleTasks = tasks ?? [];
     const { enabled: aiEnabled } = useAiEnabled();
+    const {
+        disabled: aiDisabledForProject,
+        setDisabled: setProjectAiDisabled
+    } = useAiProjectDisabled(projectId);
+    const boardAiOn = aiEnabled && !aiDisabledForProject;
     const aiProjectContext =
         currentProject && board
             ? {
@@ -87,6 +93,12 @@ const BoardPage = () => {
     const [briefOpen, setBriefOpen] = useState(false);
     const [chatOpen, setChatOpen] = useState(false);
 
+    useEffect(() => {
+        if (!boardAiOn && param.semanticIds) {
+            setParam({ semanticIds: undefined });
+        }
+    }, [boardAiOn, param.semanticIds, setParam]);
+
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <PageContainer>
@@ -97,23 +109,44 @@ const BoardPage = () => {
                             : "..."}
                     </h1>
                     {aiEnabled && (
-                        <Space>
-                            <Button
-                                aria-label="Open Board Copilot brief"
-                                icon={<AiSparkleIcon />}
-                                onClick={() => setBriefOpen(true)}
-                                type="default"
-                            >
-                                Brief
-                            </Button>
-                            <Button
-                                aria-label="Ask Board Copilot"
-                                icon={<AiSparkleIcon />}
-                                onClick={() => setChatOpen(true)}
-                                type="default"
-                            >
-                                Ask
-                            </Button>
+                        <Space align="center">
+                            <Tooltip title="Turn off to hide Board Copilot on this board and block AI requests for this project.">
+                                <Space size={4}>
+                                    <Switch
+                                        aria-label="Board Copilot for this project"
+                                        checked={!aiDisabledForProject}
+                                        onChange={(checked) =>
+                                            setProjectAiDisabled(!checked)
+                                        }
+                                    />
+                                    <Typography.Text
+                                        style={{ fontSize: "0.85rem" }}
+                                        type="secondary"
+                                    >
+                                        Project AI
+                                    </Typography.Text>
+                                </Space>
+                            </Tooltip>
+                            {boardAiOn && (
+                                <>
+                                    <Button
+                                        aria-label="Open Board Copilot brief"
+                                        icon={<AiSparkleIcon />}
+                                        onClick={() => setBriefOpen(true)}
+                                        type="default"
+                                    >
+                                        Brief
+                                    </Button>
+                                    <Button
+                                        aria-label="Ask Board Copilot"
+                                        icon={<AiSparkleIcon />}
+                                        onClick={() => setChatOpen(true)}
+                                        type="default"
+                                    >
+                                        Ask
+                                    </Button>
+                                </>
+                            )}
                         </Space>
                     )}
                 </Row>
@@ -124,7 +157,7 @@ const BoardPage = () => {
                     members={members}
                     loading={tLoading || mLoading}
                     aiSearchSlot={
-                        aiEnabled && aiProjectContext ? (
+                        boardAiOn && aiProjectContext ? (
                             <div
                                 style={{
                                     flexBasis: "100%",
@@ -163,6 +196,7 @@ const BoardPage = () => {
                                         }
                                     >
                                         <Column
+                                            boardAiOn={boardAiOn}
                                             tasks={visibleTasks.filter(
                                                 (task) =>
                                                     task.columnId === column._id
@@ -181,8 +215,8 @@ const BoardPage = () => {
                 ) : (
                     <BoardSpin />
                 )}
-                <TaskModal tasks={visibleTasks} />
-                {aiEnabled && (
+                <TaskModal boardAiOn={boardAiOn} tasks={visibleTasks} />
+                {boardAiOn && (
                     <>
                         <BoardBriefDrawer
                             columns={board ?? []}

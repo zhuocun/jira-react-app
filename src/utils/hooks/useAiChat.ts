@@ -14,6 +14,11 @@ import {
     type AiChatToolCall
 } from "../ai/chatTools";
 
+import {
+    isProjectAiDisabled,
+    PROJECT_AI_DISABLED_MESSAGE
+} from "../ai/projectAiStorage";
+
 import useApi from "./useApi";
 
 const MAX_TOOL_ROUNDS = 5;
@@ -99,6 +104,11 @@ const useAiChat = (ctx: UseAiChatContext | null) => {
         async (userText: string) => {
             const trimmed = userText.trim();
             if (!trimmed || !ctx) return;
+
+            if (isProjectAiDisabled(ctx.execution.projectId)) {
+                setError(new Error(PROJECT_AI_DISABLED_MESSAGE));
+                return;
+            }
 
             controllerRef.current?.abort();
             const controller = new AbortController();
