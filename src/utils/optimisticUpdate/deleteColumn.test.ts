@@ -27,10 +27,15 @@ describe("deleteColumnCallback", () => {
             oldColumns
         );
 
-        expect(result).toBe(oldColumns);
+        expect(result).not.toBe(oldColumns);
         expect(result).toEqual([
             column({ _id: "column-1", columnName: "Todo", index: 0 }),
             column({ _id: "column-3", columnName: "Done", index: 1 })
+        ]);
+        expect(oldColumns).toEqual([
+            column({ _id: "column-1", columnName: "Todo", index: 0 }),
+            column({ _id: "column-2", columnName: "Doing", index: 1 }),
+            column({ _id: "column-3", columnName: "Done", index: 2 })
         ]);
     });
 
@@ -52,7 +57,7 @@ describe("deleteColumnCallback", () => {
         ]);
     });
 
-    it("documents current missing-target behavior by deleting the first column", () => {
+    it("preserves the existing cache when the target column is missing", () => {
         const oldColumns = [
             column({ _id: "column-1", columnName: "Todo", index: 0 }),
             column({ _id: "column-2", columnName: "Doing", index: 1 }),
@@ -64,9 +69,7 @@ describe("deleteColumnCallback", () => {
             oldColumns
         );
 
-        expect(result).toEqual([
-            column({ _id: "column-2", columnName: "Doing", index: 0 }),
-            column({ _id: "column-3", columnName: "Done", index: 1 })
-        ]);
+        expect(result).toBe(oldColumns);
+        expect(result).toEqual(oldColumns);
     });
 });

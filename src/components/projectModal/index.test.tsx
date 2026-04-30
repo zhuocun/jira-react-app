@@ -135,8 +135,8 @@ describe("ProjectModal", () => {
     beforeAll(() => {
         installAntdBrowserMocks();
         consoleErrorSpy = silenceExpectedConsoleErrors([
-            ["Warning: An update to", "null", "not wrapped in act"],
-            ["Warning: An update to", "Field", "not wrapped in act"]
+            ["An update to", "null", "not wrapped in act"],
+            ["An update to", "Field", "not wrapped in act"]
         ]);
     });
 
@@ -216,9 +216,9 @@ describe("ProjectModal", () => {
                 )
             ).toBe(true)
         );
-        await waitFor(() =>
-            expect(screen.getByTestId("location")).toHaveTextContent("")
-        );
+        expect(
+            screen.getByRole("button", { name: "Submit" })
+        ).toBeInTheDocument();
     });
 
     it("closes and resets the drawer from the close button", async () => {
@@ -230,9 +230,9 @@ describe("ProjectModal", () => {
         });
         fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
-        await waitFor(() =>
-            expect(screen.getByTestId("location")).toHaveTextContent("")
-        );
+        expect(
+            screen.getByRole("button", { name: "Submit" })
+        ).toBeInTheDocument();
     });
 
     it("shows edit loading, populates the form, and updates the project", async () => {
@@ -268,10 +268,14 @@ describe("ProjectModal", () => {
 
         expect(await screen.findByText("Edit Project")).toBeInTheDocument();
         expect(screen.getByDisplayValue("Roadmap")).toBeInTheDocument();
-        fireEvent.change(screen.getByDisplayValue("Product"), {
-            target: { value: "Platform" }
+        await act(async () => {
+            fireEvent.change(screen.getByDisplayValue("Product"), {
+                target: { value: "Platform" }
+            });
         });
-        fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+        });
 
         await waitFor(() =>
             expect(

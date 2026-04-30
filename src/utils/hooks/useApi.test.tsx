@@ -119,7 +119,6 @@ describe("api", () => {
             {
                 body: JSON.stringify({ projectName: "Roadmap" }),
                 headers: {
-                    Authorization: "",
                     "Content-Type": "application/json"
                 },
                 method: "POST"

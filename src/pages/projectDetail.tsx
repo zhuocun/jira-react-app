@@ -24,7 +24,8 @@ const Container = styled.div`
 `;
 
 const ProjectDetailPage = () => {
-    const route = useLocation().pathname.split("/");
+    const { pathname } = useLocation();
+    const route = pathname.split("/");
     const navigate = useNavigate();
     const items: MenuProps["items"] = [
         {
@@ -42,10 +43,10 @@ const ProjectDetailPage = () => {
     ];
 
     useEffect(() => {
-        if (!route.includes("board")) {
+        if (!pathname.endsWith("/board")) {
             navigate("board");
         }
-    }, [navigate, route]);
+    }, [navigate, pathname]);
 
     return (
         <Container>

@@ -1,6 +1,6 @@
 import { Divider } from "antd";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 
 import ErrorBox from "../components/errorBox";
 import { NoPaddingButton } from "../components/projectList";
@@ -17,7 +17,7 @@ const RegisterPage = () => {
     };
 
     if (user && token) {
-        return null;
+        return <Navigate to="/projects" replace />;
     }
     return (
         <>

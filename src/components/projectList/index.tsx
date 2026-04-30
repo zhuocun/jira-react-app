@@ -10,7 +10,7 @@ import {
 } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import useAuth from "../../utils/hooks/useAuth";
@@ -32,7 +32,6 @@ export const NoPaddingButton = styled(Button)`
 
 const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const { user, refreshUser } = useAuth();
-    refreshUser();
     const [currentProjectId, setCurrentProjectId] = useState("");
     const { mutateAsync: update } = useReactMutation(
         "users/likes",
@@ -49,6 +48,10 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const onEdit = (projectId: string) => {
         startEditing(projectId);
     };
+
+    useEffect(() => {
+        refreshUser();
+    }, [refreshUser]);
 
     const dataSource: ProjectIntro[] | undefined = props.dataSource?.map(
         (p, index) => ({

@@ -3,15 +3,11 @@ const deleteTaskCallback = (
     old: IProject[] | undefined
 ) => {
     if (!old) return undefined;
-    let index = 0;
-    for (let i = 0; i < old.length; i++) {
-        if (old[i]._id === target.projectId) {
-            index = i;
-            break;
-        }
+    const index = old.findIndex((project) => project._id === target.projectId);
+    if (index === -1) {
+        return old;
     }
-    old.splice(index, 1);
-    return old;
+    return old.filter((project) => project._id !== target.projectId);
 };
 
 export default deleteTaskCallback;

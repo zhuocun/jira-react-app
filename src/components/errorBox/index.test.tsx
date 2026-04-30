@@ -48,7 +48,7 @@ describe("ErrorBox", () => {
 
         expect(container).toBeEmptyDOMElement();
 
-        rerender(<ErrorBox error={{}} />);
+        rerender(<ErrorBox error={{} as unknown} />);
 
         expect(container).toBeEmptyDOMElement();
     });

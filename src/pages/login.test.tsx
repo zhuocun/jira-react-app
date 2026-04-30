@@ -1,5 +1,5 @@
 /* eslint-disable global-require */
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
 import useAuth from "../utils/hooks/useAuth";
@@ -93,12 +93,14 @@ describe("LoginPage", () => {
         expect(window.location.pathname).toBe("/register");
     });
 
-    it("renders nothing for an already authenticated user", () => {
-        const { container } = renderLoginPage({
+    it("redirects an already authenticated user to projects", async () => {
+        renderLoginPage({
             currentUser: user(),
             token: "jwt-1"
         });
 
-        expect(container).toBeEmptyDOMElement();
+        await waitFor(() => {
+            expect(window.location.pathname).toBe("/projects");
+        });
     });
 });

@@ -19,14 +19,17 @@ const Container = styled.div`
 const ProjectModal: React.FC = () => {
     const { isModalOpened, closeModal, editingProject, isLoading } =
         useProjectModal();
+    const isEditing = Boolean(editingProject);
 
-    const {
-        mutateAsync,
-        error,
-        isLoading: mutateLoading
-    } = editingProject
-        ? useReactMutation("projects", "PUT")
-        : useReactMutation("projects", "POST");
+    const createProjectMutation = useReactMutation<IProject>(
+        "projects",
+        "POST"
+    );
+    const updateProjectMutation = useReactMutation<IProject>("projects", "PUT");
+    const activeMutation = isEditing
+        ? updateProjectMutation
+        : createProjectMutation;
+    const { mutateAsync, error, isLoading: mutateLoading } = activeMutation;
 
     const [form] = useForm();
     const onClose = () => {
@@ -40,7 +43,7 @@ const ProjectModal: React.FC = () => {
     }) => {
         mutateAsync({ ...editingProject, ...input }).then(onClose);
     };
-    const modalTitle = editingProject ? "Edit Project" : "Create Project";
+    const modalTitle = isEditing ? "Edit Project" : "Create Project";
 
     useEffect(() => {
         form.setFieldsValue(editingProject);
