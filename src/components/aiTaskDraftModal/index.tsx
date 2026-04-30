@@ -162,10 +162,14 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
             onCancel={onClose}
             open={open}
             title={
-                <Space align="center" size={space.xs}>
+                <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />
-                    <span>Draft a task with Board Copilot</span>
-                    <Tag color="processing">{microcopy.a11y.aiBadge}</Tag>
+                    <span style={{ fontWeight: 600 }}>
+                        Draft a task with Board Copilot
+                    </span>
+                    <Tag variant="filled" color="purple">
+                        {microcopy.a11y.aiBadge}
+                    </Tag>
                 </Space>
             }
             width="min(640px, calc(100vw - 32px))"
@@ -214,7 +218,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 <Alert
                     showIcon
                     style={{ marginBottom: space.md }}
-                    message={
+                    title={
                         (draftAi.error ?? breakdownAi.error)?.message ??
                         "Couldn't draft this time."
                     }
@@ -233,7 +237,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                         description={suggestion.rationale}
                         showIcon
                         style={{ marginBottom: space.sm }}
-                        message={
+                        title={
                             <span>
                                 {`${microcopy.a11y.aiSuggestion} · review and edit before creating`}{" "}
                                 <Tag style={{ marginInlineStart: space.xs }}>
@@ -323,7 +327,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                     <Alert
                         showIcon
                         style={{ marginBottom: space.sm }}
-                        message={`${microcopy.a11y.aiSuggestion}: pick the subtasks you want to create`}
+                        title={`${microcopy.a11y.aiSuggestion}: pick the subtasks you want to create`}
                         type="info"
                     />
                     {breakdownItems.map((item, index) => (

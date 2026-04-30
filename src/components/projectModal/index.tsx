@@ -1,9 +1,9 @@
-import { Form, Input, Modal, Select, Spin } from "antd";
+import { Form, Input, Modal, Select, Spin, Typography } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { useEffect } from "react";
 
 import { microcopy } from "../../constants/microcopy";
-import { space } from "../../theme/tokens";
+import { fontSize, lineHeight, space } from "../../theme/tokens";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useReactQuery from "../../utils/hooks/useReactQuery";
@@ -66,7 +66,8 @@ const ProjectModal: React.FC = () => {
             confirmLoading={mutateLoading}
             destroyOnHidden={false}
             forceRender
-            okButtonProps={{ disabled: isLoading }}
+            okButtonProps={{ disabled: isLoading, size: "large" }}
+            cancelButtonProps={{ size: "large" }}
             okText={okText}
             onCancel={onClose}
             onOk={submit}
@@ -78,6 +79,20 @@ const ProjectModal: React.FC = () => {
                 aria-label={microcopy.a11y.loadingProject}
                 spinning={isLoading}
             >
+                <Typography.Text
+                    style={{
+                        display: "block",
+                        fontSize: fontSize.sm,
+                        lineHeight: lineHeight.normal,
+                        marginBottom: space.md,
+                        marginTop: -space.xs
+                    }}
+                    type="secondary"
+                >
+                    {isEditing
+                        ? "Update project details and assignment."
+                        : "Set a name, organization, and a manager to start tracking work."}
+                </Typography.Text>
                 <Form
                     form={form}
                     layout="vertical"

@@ -21,7 +21,6 @@ import BoardBriefDrawer from "../components/boardBriefDrawer";
 import Column from "../components/column";
 import ColumnCreator from "../components/columnCreator";
 import { Drag, Drop, DropChild } from "../components/dragAndDrop";
-import PageContainer from "../components/pageContainer";
 import Row from "../components/row";
 import TaskModal from "../components/taskModal";
 import TaskSearchPanel from "../components/taskSearchPanel";
@@ -29,6 +28,10 @@ import { microcopy } from "../constants/microcopy";
 import {
     breakpoints,
     columnMinWidthRem,
+    fontSize,
+    fontWeight,
+    letterSpacing,
+    lineHeight,
     radius,
     space as themeSpace
 } from "../theme/tokens";
@@ -39,6 +42,32 @@ import useDragEnd from "../utils/hooks/useDragEnd";
 import useReactQuery from "../utils/hooks/useReactQuery";
 import useTitle from "../utils/hooks/useTitle";
 import useUrl from "../utils/hooks/useUrl";
+
+/**
+ * The board page deliberately opts out of `PageContainer`'s max-width because
+ * Kanban columns flow horizontally and benefit from the full viewport on
+ * ultra-wide monitors. We keep our own padding here.
+ */
+const BoardShell = styled.div`
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: ${themeSpace.lg}px ${themeSpace.md}px ${themeSpace.md}px;
+    padding-block-end: max(${themeSpace.lg}px, env(safe-area-inset-bottom));
+    padding-inline-start: max(${themeSpace.md}px, env(safe-area-inset-left));
+    padding-inline-end: max(${themeSpace.md}px, env(safe-area-inset-right));
+    width: 100%;
+
+    @media (min-width: ${breakpoints.md}px) {
+        padding: ${themeSpace.xl}px ${themeSpace.xl}px ${themeSpace.xl}px;
+        padding-inline-start: max(
+            ${themeSpace.xl}px,
+            env(safe-area-inset-left)
+        );
+        padding-inline-end: max(${themeSpace.xl}px, env(safe-area-inset-right));
+    }
+`;
 
 export const ColumnContainer = styled.div`
     display: flex;
@@ -95,6 +124,20 @@ const BoardHeader = styled.div`
     display: flex;
     flex-direction: column;
     gap: ${themeSpace.xs}px;
+    margin-bottom: ${themeSpace.lg}px;
+`;
+
+const BoardTitle = styled(Typography.Title)`
+    && {
+        flex: 1 1 auto;
+        font-size: ${fontSize.xxl}px;
+        font-weight: ${fontWeight.semibold};
+        letter-spacing: ${letterSpacing.tight};
+        line-height: ${lineHeight.tight};
+        margin: 0;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
 `;
 
 const BoardPage = () => {
@@ -182,7 +225,7 @@ const BoardPage = () => {
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <PageContainer>
+            <BoardShell>
                 <BoardHeader>
                     <Row
                         between
@@ -204,17 +247,9 @@ const BoardPage = () => {
                                 />
                             </span>
                         ) : (
-                            <Typography.Title
-                                level={1}
-                                style={{
-                                    flex: "1 1 auto",
-                                    margin: 0,
-                                    minWidth: 0,
-                                    overflowWrap: "anywhere"
-                                }}
-                            >
+                            <BoardTitle level={1}>
                                 {currentProject?.projectName} board
-                            </Typography.Title>
+                            </BoardTitle>
                         )}
                         {aiEnabled && (
                             <Space align="center" size={themeSpace.xs} wrap>
@@ -307,7 +342,7 @@ const BoardPage = () => {
                             <div
                                 style={{
                                     flexBasis: "100%",
-                                    marginBottom: "0.75rem"
+                                    marginBottom: themeSpace.sm
                                 }}
                             >
                                 <AiSearchInput
@@ -337,7 +372,7 @@ const BoardPage = () => {
                             </Button>
                         }
                         description={microcopy.feedback.retryHint}
-                        message={microcopy.feedback.loadFailed}
+                        title={microcopy.feedback.loadFailed}
                         showIcon
                         style={{ marginBottom: themeSpace.md }}
                         type="error"
@@ -405,7 +440,7 @@ const BoardPage = () => {
                         />
                     </>
                 )}
-            </PageContainer>
+            </BoardShell>
         </DragDropContext>
     );
 };

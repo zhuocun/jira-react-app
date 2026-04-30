@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { Input, Select } from "antd";
 import React from "react";
 
-import { space } from "../../theme/tokens";
+import { breakpoints, radius, space } from "../../theme/tokens";
 
 export interface ProjectSearchParam {
     projectName: string;
@@ -19,16 +19,28 @@ interface Props {
     aiSearchSlot?: React.ReactNode;
 }
 
+const FilterShell = styled.div`
+    background: var(--ant-color-bg-container, #fff);
+    border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+    border-radius: ${radius.lg}px;
+    margin-bottom: ${space.md}px;
+    padding: ${space.sm}px;
+
+    @media (min-width: ${breakpoints.md}px) {
+        padding: ${space.md}px;
+    }
+`;
+
 const FilterRow = styled.div`
     display: flex;
     flex-direction: column;
-    gap: ${space.sm}px;
-    margin-bottom: ${space.lg}px;
+    gap: ${space.xs}px;
 
-    @media (min-width: 768px) {
+    @media (min-width: ${breakpoints.md}px) {
         align-items: center;
         flex-direction: row;
         flex-wrap: wrap;
+        gap: ${space.sm}px;
     }
 `;
 
@@ -36,7 +48,7 @@ const FlexInput = styled.div`
     flex: 1 1 14rem;
     min-width: 0;
 
-    @media (min-width: 768px) {
+    @media (min-width: ${breakpoints.md}px) {
         max-width: 22rem;
     }
 `;
@@ -45,7 +57,7 @@ const FlexSelect = styled.div`
     flex: 1 1 12rem;
     min-width: 0;
 
-    @media (min-width: 768px) {
+    @media (min-width: ${breakpoints.md}px) {
         max-width: 14rem;
     }
 `;
@@ -60,7 +72,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
     const defaultUser = members.find((u) => u._id === param.managerId);
 
     return (
-        <div>
+        <FilterShell>
             {aiSearchSlot}
             <FilterRow role="search" aria-label="Filter projects">
                 <FlexInput>
@@ -74,7 +86,14 @@ const ProjectSearchPanel: React.FC<Props> = ({
                             })
                         }
                         placeholder="Search this list"
-                        suffix={<SearchOutlined aria-hidden />}
+                        prefix={
+                            <SearchOutlined
+                                aria-hidden
+                                style={{
+                                    color: "var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.45))"
+                                }}
+                            />
+                        }
                         type="search"
                         value={param.projectName}
                     />
@@ -107,7 +126,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                     />
                 </FlexSelect>
             </FilterRow>
-        </div>
+        </FilterShell>
     );
 };
 

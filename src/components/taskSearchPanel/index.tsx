@@ -4,7 +4,7 @@ import { Button, Input, Select } from "antd";
 import React, { useMemo } from "react";
 
 import { microcopy } from "../../constants/microcopy";
-import { space } from "../../theme/tokens";
+import { breakpoints, radius, space } from "../../theme/tokens";
 import useAuth from "../../utils/hooks/useAuth";
 
 export interface TaskSearchParam {
@@ -23,19 +23,28 @@ interface Props {
     aiSearchSlot?: React.ReactNode;
 }
 
-const FILTER_FORM_GAP = `${space.sm}px ${space.sm}px`;
+const FilterShell = styled.div`
+    background: var(--ant-color-bg-container, #fff);
+    border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+    border-radius: ${radius.lg}px;
+    margin-bottom: ${space.md}px;
+    padding: ${space.sm}px;
+
+    @media (min-width: ${breakpoints.md}px) {
+        padding: ${space.md}px;
+    }
+`;
 
 const FilterRow = styled.div`
     display: flex;
     flex-direction: column;
-    gap: ${space.sm}px;
-    margin-bottom: ${space.lg}px;
+    gap: ${space.xs}px;
 
-    @media (min-width: 768px) {
+    @media (min-width: ${breakpoints.md}px) {
         align-items: center;
         flex-direction: row;
         flex-wrap: wrap;
-        gap: ${FILTER_FORM_GAP};
+        gap: ${space.sm}px;
     }
 `;
 
@@ -43,7 +52,7 @@ const FlexInput = styled.div`
     flex: 1 1 14rem;
     min-width: 0;
 
-    @media (min-width: 768px) {
+    @media (min-width: ${breakpoints.md}px) {
         max-width: 22rem;
     }
 `;
@@ -52,7 +61,7 @@ const FlexSelect = styled.div`
     flex: 1 1 12rem;
     min-width: 0;
 
-    @media (min-width: 768px) {
+    @media (min-width: ${breakpoints.md}px) {
         max-width: 14rem;
     }
 `;
@@ -69,8 +78,9 @@ const ResetButtonSlot = styled.div`
         width: 100%;
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: ${breakpoints.md}px) {
         flex: 0 0 auto;
+        margin-inline-start: auto;
 
         > .ant-btn {
             width: auto;
@@ -123,7 +133,7 @@ const TaskSearchPanel: React.FC<Props> = ({
     };
 
     return (
-        <div>
+        <FilterShell>
             {aiSearchSlot}
             <FilterRow role="search" aria-label="Filter tasks">
                 <FlexInput>
@@ -137,7 +147,14 @@ const TaskSearchPanel: React.FC<Props> = ({
                             })
                         }
                         placeholder="Search this board"
-                        suffix={<SearchOutlined aria-hidden />}
+                        prefix={
+                            <SearchOutlined
+                                aria-hidden
+                                style={{
+                                    color: "var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.45))"
+                                }}
+                            />
+                        }
                         type="search"
                         value={param.taskName}
                     />
@@ -189,12 +206,12 @@ const TaskSearchPanel: React.FC<Props> = ({
                     </Select>
                 </FlexSelect>
                 <ResetButtonSlot>
-                    <Button onClick={resetParams}>
+                    <Button onClick={resetParams} type="text">
                         {microcopy.actions.resetFilters}
                     </Button>
                 </ResetButtonSlot>
             </FilterRow>
-        </div>
+        </FilterShell>
     );
 };
 

@@ -15,13 +15,16 @@ export const space = {
     md: 16,
     lg: 24,
     xl: 32,
-    xxl: 48
+    xxl: 48,
+    xxxl: 64
 } as const;
 
 export const radius = {
-    sm: 4,
-    md: 6,
-    lg: 8,
+    xs: 4,
+    sm: 6,
+    md: 10,
+    lg: 14,
+    xl: 20,
     pill: 999
 } as const;
 
@@ -30,31 +33,99 @@ export const fontSize = {
     sm: 13,
     base: 14,
     md: 16,
-    lg: 20,
-    xl: 24,
-    xxl: 32
+    lg: 18,
+    xl: 22,
+    xxl: 28,
+    display: 36
 } as const;
 
 export const fontWeight = {
     regular: 400,
     medium: 500,
-    semibold: 600
+    semibold: 600,
+    bold: 700
 } as const;
 
 export const lineHeight = {
     tight: 1.25,
+    snug: 1.4,
     normal: 1.5,
     relaxed: 1.65
 } as const;
 
+export const letterSpacing = {
+    tight: "-0.02em",
+    normal: "0",
+    wide: "0.04em",
+    wider: "0.08em"
+} as const;
+
 /**
- * Brand colors. Surface / status colors come from AntD's algorithm so dark
- * mode flips cleanly; only the brand stays constant.
+ * Refined indigo brand. Replaces the old Atlassian Jira blue (#2684FF) with
+ * a calmer indigo that feels closer to Linear / Vercel without copying any
+ * single product. Hover/active are darker steps in the same hue. AA contrast
+ * on white (5.1:1 normal text, 7+ bold/large) and AA on dark surfaces.
  */
 export const brand = {
-    primary: "#2684FF",
-    primaryHover: "#1f6fd1",
-    primaryActive: "#1559b6"
+    primary: "#5E6AD2",
+    primaryHover: "#4F5BC4",
+    primaryActive: "#3F4AAA",
+    primaryBg: "#EEF0FF",
+    primaryBgDark: "#1C1F3D"
+} as const;
+
+/**
+ * Accent gradient used for AI surfaces (sparkle icon, badges, highlights).
+ * Sits beside the indigo brand without competing with it.
+ */
+export const accent = {
+    start: "#7C5CFF",
+    end: "#C084FC",
+    glow: "rgba(124, 92, 255, 0.18)"
+} as const;
+
+/**
+ * Semantic palette aligned with the new brand. We expose explicit hexes here
+ * because AntD's defaults (e.g. red-5 = #ff4d4f) are too saturated for the
+ * refined neutral surface treatment. Components reading `--ant-color-*`
+ * still pick up AntD's auto-derived variants.
+ */
+export const semantic = {
+    success: "#10B981",
+    successBg: "#ECFDF5",
+    warning: "#F59E0B",
+    warningBg: "#FFFBEB",
+    error: "#EF4444",
+    errorBg: "#FEF2F2",
+    info: "#3B82F6",
+    infoBg: "#EFF6FF",
+    favorite: "#F43F5E"
+} as const;
+
+/**
+ * Tag color tokens. Used to keep "Bug" / "Task" / story-points / epic chips
+ * visually consistent across cards, brief drawer, draft modal.
+ */
+export const tag = {
+    task: "geekblue",
+    bug: "magenta",
+    epic: "purple",
+    points: "default"
+} as const;
+
+/**
+ * Layered shadow tokens. The old single-flat shadow looked dated; modern
+ * cards use two stacked shadows (a tight ambient one and a softer cast) to
+ * read as floating without being heavy.
+ */
+export const shadow = {
+    xs: "0 1px 2px rgba(15, 23, 42, 0.06)",
+    sm: "0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08)",
+    md: "0 2px 4px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.08)",
+    lg: "0 8px 16px rgba(15, 23, 42, 0.08), 0 16px 32px rgba(15, 23, 42, 0.10)",
+    xl: "0 16px 32px rgba(15, 23, 42, 0.12), 0 32px 64px rgba(15, 23, 42, 0.14)",
+    focus: "0 0 0 3px rgba(94, 106, 210, 0.20)",
+    inset: "inset 0 1px 0 rgba(255, 255, 255, 0.06)"
 } as const;
 
 /**
@@ -62,9 +133,16 @@ export const brand = {
  * `prefers-reduced-motion` can cut all of them to zero in one place.
  */
 export const motion = {
-    short: 100,
+    instant: 60,
+    short: 120,
     medium: 200,
-    long: 300
+    long: 320
+} as const;
+
+export const easing = {
+    standard: "cubic-bezier(0.2, 0, 0, 1)",
+    emphasized: "cubic-bezier(0.3, 0, 0, 1)",
+    decelerate: "cubic-bezier(0, 0, 0, 1)"
 } as const;
 
 export const zIndex = {
@@ -92,7 +170,22 @@ export const maxLineLengthCh = 75;
  * Standard board column width (in rem). Reused by the board page skeleton so
  * the loading layout matches the real columns.
  */
-export const columnMinWidthRem = 29.5;
+export const columnMinWidthRem = 18;
+
+/**
+ * Maximum width (in rem) for routed pages so content doesn't sprawl on
+ * ultra-wide monitors. The board page opts out and lets columns scroll.
+ */
+export const pageMaxWidthRem = 88;
+
+/**
+ * Modern sans-serif stack. We load Inter from Google Fonts; the rest is a
+ * progressive-enhancement fallback that matches each major OS's UI font.
+ */
+export const fontFamily = {
+    sans: '"Inter", "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    mono: '"JetBrains Mono", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace'
+} as const;
 
 /**
  * Breakpoints (CSS px). Keep this list short — anything more granular should
@@ -101,5 +194,6 @@ export const columnMinWidthRem = 29.5;
 export const breakpoints = {
     sm: 480,
     md: 768,
-    lg: 1024
+    lg: 1024,
+    xl: 1280
 } as const;

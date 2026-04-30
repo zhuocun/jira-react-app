@@ -5,7 +5,7 @@ import type { InputRef } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { radius, space } from "../../theme/tokens";
+import { fontWeight, motion, radius, space } from "../../theme/tokens";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import newColumnCallback from "../../utils/optimisticUpdate/createColumn";
 
@@ -14,33 +14,35 @@ const Slot = styled.div`
     display: flex;
     margin-right: ${space.md}px;
     min-width: 16rem;
-    padding: ${space.xs}px;
+    padding: ${space.xs}px 0;
 `;
 
 const AddColumnButton = styled.button`
     align-items: center;
-    background: var(--ant-color-fill-quaternary, rgb(244, 245, 247));
-    border: 1px dashed transparent;
+    background: var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
+    border: 1px dashed var(--ant-color-border, rgba(15, 23, 42, 0.15));
     border-radius: ${radius.lg}px;
-    color: var(--ant-color-text-secondary, rgba(0, 0, 0, 0.6));
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.6));
     cursor: pointer;
     display: inline-flex;
     font: inherit;
+    font-weight: ${fontWeight.medium};
     gap: ${space.xs}px;
     height: 100%;
     justify-content: center;
-    min-height: 2.5rem;
+    min-height: 3rem;
     padding: ${space.sm}px ${space.md}px;
     transition:
-        background-color 100ms ease-out,
-        border-color 100ms ease-out,
-        color 100ms ease-out;
+        background-color ${motion.short}ms ease-out,
+        border-color ${motion.short}ms ease-out,
+        color ${motion.short}ms ease-out;
     width: 100%;
 
     &:hover:not(:disabled) {
-        background: var(--ant-color-fill-tertiary, rgb(232, 234, 240));
-        border-color: var(--ant-color-primary, #2684ff);
-        color: var(--ant-color-text, rgba(0, 0, 0, 0.88));
+        background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.08));
+        border-color: var(--ant-color-primary, #5e6ad2);
+        border-style: solid;
+        color: var(--ant-color-primary, #5e6ad2);
     }
 
     &:disabled {
@@ -121,7 +123,7 @@ const ColumnCreator: React.FC = () => {
                     }
                 }}
                 onPressEnter={submit}
-                placeholder=" + Create column"
+                placeholder="Create column name"
                 ref={inputRef}
                 size="large"
                 value={columnName}

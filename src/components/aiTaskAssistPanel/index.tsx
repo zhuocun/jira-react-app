@@ -157,12 +157,19 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
     return (
         <Card
             size="small"
-            style={{ marginTop: space.md }}
+            style={{
+                background:
+                    "linear-gradient(180deg, rgba(124, 92, 255, 0.04) 0%, transparent 100%)",
+                borderColor: "rgba(124, 92, 255, 0.18)",
+                marginTop: space.md
+            }}
             title={
-                <Space align="center" size={space.xs}>
+                <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />
-                    <span>Board Copilot</span>
-                    <Tag color="processing">{microcopy.a11y.aiBadge}</Tag>
+                    <span style={{ fontWeight: 600 }}>Board Copilot</span>
+                    <Tag variant="filled" color="purple">
+                        {microcopy.a11y.aiBadge}
+                    </Tag>
                 </Space>
             }
         >
@@ -179,7 +186,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                 <Alert
                     showIcon
                     style={{ marginBottom: space.xs }}
-                    message={
+                    title={
                         estimateAi.error.message || "Failed to estimate task"
                     }
                     type="warning"
@@ -278,7 +285,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                 <Alert
                     showIcon
                     style={{ marginBottom: space.xs }}
-                    message={
+                    title={
                         readinessAi.error.message ||
                         "Failed to run readiness check"
                     }
@@ -288,7 +295,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
             {readinessAi.data && readinessAi.data.issues.length === 0 && (
                 <Alert
                     showIcon
-                    message="Looks ready to work on."
+                    title="Looks ready to work on."
                     type="success"
                 />
             )}
@@ -316,7 +323,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                         key={`${issue.field}-${issue.message}`}
                         showIcon
                         style={{ marginBottom: space.xxs }}
-                        message={`${microcopy.a11y.aiSuggestion}: ${issue.message}`}
+                        title={`${microcopy.a11y.aiSuggestion}: ${issue.message}`}
                         type={
                             issue.severity === "error"
                                 ? "error"

@@ -1,11 +1,11 @@
-import { Button, Form, Input, Modal, Select } from "antd";
+import { Button, Form, Input, Modal, Select, Tag, Typography } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
-import { space } from "../../theme/tokens";
+import { fontSize, fontWeight, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -101,6 +101,37 @@ const TaskModal: React.FC<{
     const titleText = editingTask?.taskName
         ? `Edit Task · ${editingTask.taskName}`
         : "Edit Task";
+    const titleNode = (
+        <div
+            style={{
+                alignItems: "center",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: space.xs,
+                minWidth: 0
+            }}
+        >
+            {editingTask ? (
+                <Tag
+                    variant="filled"
+                    color={editingTask.type === "Bug" ? "magenta" : "geekblue"}
+                    style={{ fontWeight: 500, marginInlineEnd: 0 }}
+                >
+                    {editingTask.type === "Bug" ? "Bug" : "Task"}
+                </Tag>
+            ) : null}
+            <Typography.Text
+                style={{
+                    fontSize: fontSize.lg,
+                    fontWeight: fontWeight.semibold,
+                    lineHeight: 1.3,
+                    overflowWrap: "anywhere"
+                }}
+            >
+                {titleText}
+            </Typography.Text>
+        </div>
+    );
 
     return (
         <Modal
@@ -108,6 +139,8 @@ const TaskModal: React.FC<{
             centered
             forceRender
             okText={microcopy.actions.save}
+            okButtonProps={{ size: "large" }}
+            cancelButtonProps={{ size: "large" }}
             onOk={onOk}
             cancelText={microcopy.actions.cancel}
             onCancel={onClose}
@@ -148,7 +181,7 @@ const TaskModal: React.FC<{
                     </div>
                 </div>
             )}
-            title={titleText}
+            title={titleNode}
             open={Boolean(editingTaskId)}
             width="min(640px, calc(100vw - 32px))"
         >
