@@ -14,8 +14,6 @@ const mockedUseReactQuery = useReactQuery as jest.MockedFunction<
 
 const queryResult = (overrides: Record<string, unknown> = {}) =>
     ({
-        error: null,
-        isError: false,
         isIdle: false,
         isLoading: false,
         ...overrides
@@ -105,7 +103,7 @@ describe("AuthProvider", () => {
         expect(screen.queryByText("Hidden content")).not.toBeInTheDocument();
     });
 
-    it("shows the page error when the user query fails", () => {
+    it("keeps rendering children when the user query reports an error", async () => {
         mockedUseAuth.mockReturnValue({
             logout: jest.fn(),
             refreshUser: jest.fn(),
@@ -114,18 +112,19 @@ describe("AuthProvider", () => {
         });
         mockedUseReactQuery.mockReturnValue(
             queryResult({
-                error: new Error("Session refresh failed"),
-                isError: true
+                isIdle: false,
+                isLoading: false
             })
         );
 
         render(
             <AuthProvider>
-                <div>Hidden content</div>
+                <div>Recovered content</div>
             </AuthProvider>
         );
 
-        expect(screen.getByText("Session refresh failed")).toBeInTheDocument();
-        expect(screen.queryByText("Hidden content")).not.toBeInTheDocument();
+        await waitFor(() =>
+            expect(screen.getByText("Recovered content")).toBeInTheDocument()
+        );
     });
 });

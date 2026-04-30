@@ -1,23 +1,21 @@
-import { useEffect } from "react";
-import { useLocation } from "react-router";
+import { Navigate, useLocation } from "react-router";
 
 import AuthLayout from "../layouts/authLayout";
 import MainLayout from "../layouts/mainLayout";
 import useAuth from "../utils/hooks/useAuth";
-import resetRoute from "../utils/resetRoute";
 
 const HomePage = () => {
-    const { user, token, logout } = useAuth();
+    const { user, token } = useAuth();
     const path = useLocation().pathname;
+    const isAuthRoute = path === "/login" || path === "/register";
 
-    useEffect(() => {
-        if (user && (path === "/login" || path === "/register")) {
-            resetRoute(window.location);
-        }
-        if (!user && !token && path !== "/login" && path !== "/register") {
-            logout();
-        }
-    }, [logout, path, token, user]);
+    if (user && token && isAuthRoute) {
+        return <Navigate to="/projects" replace />;
+    }
+
+    if (!user && !token && !isAuthRoute) {
+        return <Navigate to="/login" replace />;
+    }
 
     return <div>{user && token ? <MainLayout /> : <AuthLayout />}</div>;
 };

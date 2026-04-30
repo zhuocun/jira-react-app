@@ -170,7 +170,7 @@ describe("ProjectList", () => {
         likeProject.mockResolvedValue({});
     });
 
-    it("renders project rows with manager, fallback, date, and relative links", () => {
+    it("renders project rows with manager, fallback, date, and relative links", async () => {
         renderList();
 
         expect(screen.getByRole("link", { name: "Roadmap" })).toHaveAttribute(
@@ -183,7 +183,7 @@ describe("ProjectList", () => {
         expect(screen.getByText("Design System")).toBeInTheDocument();
         expect(screen.getByText("unknown")).toBeInTheDocument();
         expect(screen.getByText("Null")).toBeInTheDocument();
-        expect(refreshUser).toHaveBeenCalled();
+        await waitFor(() => expect(refreshUser).toHaveBeenCalledTimes(1));
     });
 
     it("shows the Ant Design empty table state", () => {

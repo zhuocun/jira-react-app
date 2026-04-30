@@ -40,12 +40,16 @@ export const api = async (
     { data, token, ...customConfig }: IConfig = {}
 ) => {
     let apiEndpoint = endpoint;
+    const headers: Record<string, string> = {};
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+    if (data) {
+        headers["Content-Type"] = "application/json";
+    }
     const config = {
         method: "GET",
-        headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-            "Content-Type": data ? "application/json" : ""
-        },
+        headers,
         ...customConfig
     };
 

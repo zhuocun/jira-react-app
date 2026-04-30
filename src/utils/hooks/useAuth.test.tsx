@@ -125,7 +125,7 @@ describe("useAuth", () => {
         expect(refetchSpy).not.toHaveBeenCalled();
     });
 
-    it("does not refetch users when a user is already cached", () => {
+    it("does not refetch users when a matching user is already cached", () => {
         const queryClient = createQueryClient();
         const refetchSpy = jest.spyOn(queryClient, "refetchQueries");
         queryClient.setQueryData(["users"], user());
@@ -140,6 +140,37 @@ describe("useAuth", () => {
         });
 
         expect(refetchSpy).not.toHaveBeenCalled();
+    });
+
+    it("refetches users when the cached user JWT differs from the stored token", async () => {
+        const queryClient = createQueryClient();
+        const serverUser = user({ jwt: "server-jwt" });
+        const refetchSpy = jest
+            .spyOn(queryClient, "refetchQueries")
+            .mockImplementation(() => {
+                queryClient.setQueryData(["users"], serverUser);
+                return Promise.resolve();
+            });
+        queryClient.setQueryData(["users"], user({ jwt: "stale-jwt" }));
+        localStorage.setItem("Token", "stored-token");
+
+        const { result } = renderHook(() => useAuth(), {
+            wrapper: createWrapper(queryClient)
+        });
+
+        act(() => {
+            result.current.refreshUser();
+        });
+
+        await waitFor(() =>
+            expect(refetchSpy).toHaveBeenCalledWith({ queryKey: ["users"] })
+        );
+        await waitFor(() =>
+            expect(queryClient.getQueryData(["users"])).toEqual({
+                ...serverUser,
+                jwt: "stored-token"
+            })
+        );
     });
 
     it("refetches users when a token exists without cached user data and restores the stored JWT", async () => {
@@ -176,12 +207,21 @@ describe("useAuth", () => {
         const queryClient = createQueryClient();
         const refetchSpy = jest
             .spyOn(queryClient, "refetchQueries")
-            .mockImplementation(
-                () =>
-                    Promise.reject(new Error("offline")) as ReturnType<
-                        QueryClient["refetchQueries"]
-                    >
-            );
+            .mockImplementation(() => Promise.resolve());
+        jest.spyOn(queryClient, "getQueryState").mockReturnValue({
+            data: undefined,
+            dataUpdateCount: 0,
+            dataUpdatedAt: 0,
+            error: new Error("offline"),
+            errorUpdateCount: 1,
+            errorUpdatedAt: Date.now(),
+            fetchFailureCount: 1,
+            fetchFailureReason: new Error("offline"),
+            fetchMeta: null,
+            isInvalidated: false,
+            status: "error",
+            fetchStatus: "idle"
+        });
         localStorage.setItem("Token", "stored-token");
 
         renderAuthProbe(queryClient);

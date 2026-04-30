@@ -16,7 +16,7 @@ describe("deleteProjectCallback", () => {
         ).toBeUndefined();
     });
 
-    it("removes the matching project from the existing cache", () => {
+    it("removes the matching project from the existing cache without mutating the input", () => {
         const oldProjects = [
             project({ _id: "project-1", projectName: "Alpha" }),
             project({ _id: "project-2", projectName: "Beta" }),
@@ -28,14 +28,19 @@ describe("deleteProjectCallback", () => {
             oldProjects
         );
 
-        expect(result).toBe(oldProjects);
+        expect(result).not.toBe(oldProjects);
         expect(result?.map((item) => item._id)).toEqual([
             "project-1",
             "project-3"
         ]);
+        expect(oldProjects.map((item) => item._id)).toEqual([
+            "project-1",
+            "project-2",
+            "project-3"
+        ]);
     });
 
-    it("documents current missing-target behavior by removing the first project", () => {
+    it("preserves the existing projects when the target project is missing", () => {
         const oldProjects = [
             project({ _id: "project-1", projectName: "Alpha" }),
             project({ _id: "project-2", projectName: "Beta" })
@@ -46,6 +51,10 @@ describe("deleteProjectCallback", () => {
             oldProjects
         );
 
-        expect(result?.map((item) => item._id)).toEqual(["project-2"]);
+        expect(result).toBe(oldProjects);
+        expect(result?.map((item) => item._id)).toEqual([
+            "project-1",
+            "project-2"
+        ]);
     });
 });

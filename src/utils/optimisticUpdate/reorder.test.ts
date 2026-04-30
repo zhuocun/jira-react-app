@@ -43,6 +43,7 @@ describe("columnCallback", () => {
         );
 
         expect(ids(result)).toEqual(["column-3", "column-1", "column-2"]);
+        expect(result.map((item) => item.index)).toEqual([0, 1, 2]);
         expect(ids(columns)).toEqual(["column-1", "column-2", "column-3"]);
     });
 
@@ -57,6 +58,7 @@ describe("columnCallback", () => {
         );
 
         expect(ids(result)).toEqual(["column-2", "column-3", "column-1"]);
+        expect(result.map((item) => item.index)).toEqual([0, 1, 2]);
     });
 
     it("moves a column to the end when there is no reference id", () => {
@@ -70,6 +72,7 @@ describe("columnCallback", () => {
         );
 
         expect(ids(result)).toEqual(["column-2", "column-3", "column-1"]);
+        expect(result.map((item) => item.index)).toEqual([0, 1, 2]);
     });
 
     it("preserves order when moving the last column with no reference id", () => {
@@ -83,6 +86,34 @@ describe("columnCallback", () => {
         );
 
         expect(ids(result)).toEqual(["column-1", "column-2", "column-3"]);
+        expect(result).not.toBe(columns);
+    });
+
+    it("preserves order when the moving column cannot be found", () => {
+        const result = columnCallback(
+            {
+                fromId: "missing",
+                referenceId: "column-1",
+                type: "before"
+            },
+            columns
+        );
+
+        expect(result).toEqual(columns);
+        expect(result).not.toBe(columns);
+    });
+
+    it("preserves order when the reference column cannot be found", () => {
+        const result = columnCallback(
+            {
+                fromId: "column-1",
+                referenceId: "missing",
+                type: "before"
+            },
+            columns
+        );
+
+        expect(result).toEqual(columns);
         expect(result).not.toBe(columns);
     });
 });
@@ -110,6 +141,7 @@ describe("taskCallback", () => {
         expect(result.find((item) => item._id === "task-2")?.columnId).toBe(
             "column-1"
         );
+        expect(result.map((item) => item.index)).toEqual([0, 1, 2]);
         expect(ids(tasks)).toEqual(["task-1", "task-2", "task-3"]);
     });
 
@@ -129,6 +161,7 @@ describe("taskCallback", () => {
         expect(result.find((item) => item._id === "task-1")?.columnId).toBe(
             "column-2"
         );
+        expect(result.map((item) => item.index)).toEqual([0, 1, 2]);
     });
 
     it("moves a task to an empty target column position when there is no reference id", () => {
@@ -147,6 +180,7 @@ describe("taskCallback", () => {
         expect(result.find((item) => item._id === "task-1")?.columnId).toBe(
             "column-3"
         );
+        expect(result.map((item) => item.index)).toEqual([0, 1, 2]);
     });
 
     it("preserves order when the last task is moved with no reference id", () => {
@@ -165,5 +199,41 @@ describe("taskCallback", () => {
         expect(result.find((item) => item._id === "task-3")?.columnId).toBe(
             "column-2"
         );
+        expect(result.map((item) => item.index)).toEqual([0, 1, 2]);
+    });
+
+    it("preserves order when the moving task cannot be found", () => {
+        const result = taskCallback(
+            {
+                fromId: "missing",
+                referenceId: "task-1",
+                fromColumnId: "column-1",
+                referenceColumnId: "column-1",
+                type: "before"
+            },
+            tasks
+        );
+
+        expect(result).toEqual(tasks);
+        expect(result).not.toBe(tasks);
+    });
+
+    it("preserves order when the reference task cannot be found", () => {
+        const result = taskCallback(
+            {
+                fromId: "task-1",
+                referenceId: "missing",
+                fromColumnId: "column-1",
+                referenceColumnId: "column-2",
+                type: "before"
+            },
+            tasks
+        );
+
+        expect(ids(result)).toEqual(["task-1", "task-2", "task-3"]);
+        expect(result.find((item) => item._id === "task-1")?.columnId).toBe(
+            "column-1"
+        );
+        expect(result.map((item) => item.index)).toEqual([0, 1, 2]);
     });
 });

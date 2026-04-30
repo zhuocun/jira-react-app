@@ -30,11 +30,16 @@ describe("deleteTaskCallback", () => {
 
         const result = deleteTaskCallback({ taskId: "task-2" }, oldTasks);
 
-        expect(result).toBe(oldTasks);
+        expect(result).not.toBe(oldTasks);
         expect(result?.map((item) => item._id)).toEqual(["task-1", "task-3"]);
+        expect(oldTasks.map((item) => item._id)).toEqual([
+            "task-1",
+            "task-2",
+            "task-3"
+        ]);
     });
 
-    it("documents current missing-target behavior by removing the first task", () => {
+    it("leaves the cache unchanged when the target task is missing", () => {
         const oldTasks = [
             task({ _id: "task-1", taskName: "First" }),
             task({ _id: "task-2", taskName: "Second" })
@@ -42,6 +47,7 @@ describe("deleteTaskCallback", () => {
 
         const result = deleteTaskCallback({ taskId: "missing" }, oldTasks);
 
-        expect(result?.map((item) => item._id)).toEqual(["task-2"]);
+        expect(result).toBe(oldTasks);
+        expect(result?.map((item) => item._id)).toEqual(["task-1", "task-2"]);
     });
 });

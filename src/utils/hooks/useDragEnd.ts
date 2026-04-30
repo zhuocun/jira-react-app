@@ -62,7 +62,7 @@ const useDragEnd = () => {
                 }
                 reorderTask({
                     fromId: fromTask?._id,
-                    referenceId: referenceTask?._id,
+                    referenceId: referenceTask?._id ?? "",
                     fromColumnId,
                     referenceColumnId,
                     type:
