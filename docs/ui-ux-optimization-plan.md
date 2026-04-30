@@ -4,6 +4,15 @@ This document is a critical review of the current `jira-react-app` interface and
 
 The plan is intentionally pragmatic: Phase 1 ("Foundations") removes the worst structural debt that everything else inherits, Phase 2 ("Surfaces") rebuilds the high-traffic screens, Phase 3 ("Polish & Accessibility") hardens the experience, and Phase 4 ("Stretch") adds nice-to-have UX.
 
+Every recommendation in this plan is anchored to one or more of these external rubrics so it can be defended in review. Section 7 maps individual items back to the rubric.
+
+- **Nielsen's 10 usability heuristics** — visibility of system status, match with the real world, user control & freedom, consistency & standards, error prevention, recognition over recall, flexibility & efficiency, aesthetic & minimalist design, helping users recover from errors, help & documentation.
+- **WCAG 2.2 AA** — with explicit attention to the new 2.2 criteria: 2.4.11 Focus Not Obscured (Minimum), 2.4.12 Focus Not Obscured (Enhanced), 2.4.13 Focus Appearance, 2.5.7 Dragging Movements, 2.5.8 Target Size (Minimum), 3.2.6 Consistent Help, 3.3.7 Redundant Entry, 3.3.8 Accessible Authentication (Minimum).
+- **Inclusive Components / GOV.UK Design System patterns** for forms, error summaries, and "one thing per page" decomposition.
+- **Material Design 3 motion & state-layer guidance** for hover/pressed/focused states and motion durations.
+- **Refactoring UI / Practical Typography** for spacing scale, type scale, and visual hierarchy.
+- **OS-level preferences**: `prefers-reduced-motion`, `prefers-color-scheme`, `prefers-contrast`, `forced-colors`.
+
 ---
 
 ## 1. Audit summary — what hurts today
@@ -189,8 +198,11 @@ The plan is split into four phases. Phases are ordered by dependency (Phase 1 un
 
 7. **Auth screens (`src/layouts/authLayout.tsx`, `loginForm`, `registerForm`).**
    - Add real `<Form.Item label>` to every field. Keep placeholders as helper text only.
-   - Add: "Show password" toggle, "Forgot password" link (route can be a TODO page), caps-lock hint on the password input.
-   - Add: password strength meter on register; minimum-length hint inline.
+   - Set `autocomplete` properly: `username` + `email` on the email field, `current-password` on login, `new-password` on register, `name` on the register username field. Set `inputMode="email"` on email inputs and `enterKeyHint="go"` on the submit-row inputs.
+   - Add a "Show password" toggle (icon-only `Button` with `aria-pressed`), a caps-lock hint that appears under the password field while the key is on, and a "Forgot password" link (route can be a TODO page).
+   - On register: password-strength meter (zxcvbn-equivalent or a deterministic length+class heuristic to avoid the dependency), minimum-length hint inline, plus a "Match" indicator if a confirm-password field is added.
+   - Render a top-of-form **error summary** (`role="alert"`) whenever the API returns an error, with anchor links to fields that failed; this satisfies WCAG 3.3.1 / 3.3.3 (see 2.A.1).
+   - Do not block paste (`onPaste`) on password fields (WCAG 3.3.8).
    - Replace the "Register for an account" `NoPaddingButton` with a regular AntD `Link` and add the inverse on the register page.
    - Make the card width adapt to viewport (`max-width: 40rem; width: min(40rem, 100% - 2rem)`).
    - Replace the absolutely positioned background SVGs with a single subtle gradient or blurred shape that scales with the viewport — the current `calc()` math collapses on small screens.
@@ -206,12 +218,23 @@ The plan is split into four phases. Phases are ordered by dependency (Phase 1 un
 3. **Audit color contrast.**
    Replace ad-hoc `rgba(0,0,0,0.5)` muted text with `Typography.Text type="secondary"` (which respects the theme algorithm). Verify contrast at AA for: muted body text, the brand-tinted message bubbles in `aiChatDrawer`, the warning Alerts.
 
-4. **Accessibility pass.**
-   - Add `aria-label`s to every icon-only button after Phase 2.1.
-   - Set `alt=""` on decorative SVGs (`bug.svg`, `task.svg` inside `column`) and convey the type via a sibling `<Tag>` with text.
-   - Add keyboard support to drag-and-drop (`@hello-pangea/dnd` provides `useKeyboardSensor`-like handlers via its built-in announcer; document the keystrokes in a tooltip).
-   - Add `aria-live` to the search panel result announcements (e.g. "12 tasks match").
-   - Ensure focus is restored to the trigger when a drawer/modal closes.
+4. **Accessibility pass — WCAG 2.2 AA, line by line.**
+   - **2.4.3 Focus Order / 2.4.7 Focus Visible / 2.4.13 Focus Appearance.** Add a global focus ring using `:focus-visible` (2 px outline in `colorPrimary`, 2 px offset). Audit drawers and modals with `tab` / `shift+tab`; make sure focus is trapped while open and returned to the invoking control on close (today `TaskModal`, `BoardBriefDrawer`, `AiChatDrawer`, `ProjectModal` rely on AntD defaults — verify and add `triggerRef` patterns where AntD does not handle it).
+   - **2.4.11 / 2.4.12 Focus Not Obscured.** Sticky elements (the new top-tier header and column headers from Phase 2.3) must not occlude focused controls; add `scroll-padding-top` on the page container equal to the header height.
+   - **2.5.5 / 2.5.8 Target Size.** Every interactive element must be at least 24 × 24 CSS px (AA) and ideally 44 × 44 (AAA / mobile guidance). The "..." dropdown trigger in `projectList` and `column` is currently smaller than 24 px — fix when the icon swap happens in Phase 2.2.
+   - **2.5.7 Dragging Movements.** Drag-and-drop on the board must have a non-drag alternative. Wire `@hello-pangea/dnd`'s keyboard sensor (Space to lift, arrows to move, Space to drop, Esc to cancel) and surface those keystrokes in a tooltip on the card and in the help dialog from Phase 4.
+   - **3.3.1 / 3.3.3 Error Identification & Suggestion.** Replace single-line error toasts with a per-form **error summary** at the top of the form linking to the offending field (GOV.UK pattern). Reuse `<ErrorBox>` as the summary container and add `aria-describedby` from each field to its inline error.
+   - **3.3.7 Redundant Entry.** When a user creates a task immediately after creating a column, prefill `coordinatorId` to the current user (already does) and `epic` to the most recently used value in this project. The login form's email should be `autocomplete="username"` so the password manager remembers it.
+   - **3.3.8 Accessible Authentication (Minimum).** No CAPTCHA; ensure password fields accept paste (do not block `onPaste`); `autocomplete="current-password"` on login and `autocomplete="new-password"` on register. The "Show password" toggle (Phase 2.7) is required for users who cannot reliably type long passwords.
+   - **1.4.3 Contrast (Minimum) / 1.4.11 Non-text Contrast.** Replace ad-hoc `rgba(0,0,0,0.5)` and `rgba(0,0,0,0.6)` with `Typography.Text type="secondary"`; verify ≥ 4.5 : 1 for body text, ≥ 3 : 1 for UI components (focus rings, input borders).
+   - **1.4.1 Use of Color (color-blind safety).** The bug/task icon is currently the only signal of type, and the breakdown modal uses red Tag for `Bug` and blue Tag for `Task` (`src/components/aiTaskDraftModal/index.tsx:316–318`). Add a text label inside every Tag (`Bug` / `Task`) and prefer shape (icon outline vs. filled) over hue. Status alerts must not rely on color alone — keep AntD's icon prefix.
+   - **1.4.10 Reflow / 1.4.4 Resize Text.** Phase 1.1 (kill the rem hack) and Phase 1.3 (responsive layout) together satisfy 1.4.10; manually verify reflow at 320 CSS px width and 200 % zoom.
+   - **1.4.12 Text Spacing.** No CSS rule may break when users override `line-height: 1.5`, `letter-spacing: 0.12em`, `word-spacing: 0.16em`, `paragraph-spacing: 2em`. Test once per surface.
+   - **4.1.3 Status Messages.** Add `aria-live="polite"` to: filter result counts ("12 tasks match"), optimistic mutation feedback ("Task created"), AI suggestion arrival, and the chat drawer (already present at `aiChatDrawer:124–133`).
+   - **`forced-colors` / Windows High Contrast.** Replace background-image-based affordances (drop hints, gradient scroll fade) with `border` and `background-color` so they survive forced-colors mode; use `forced-color-adjust: none` only where unavoidable (the brand logo).
+   - **`prefers-reduced-motion`.** Wrap every motion (drag lift, modal slide, skeleton-to-content cross-fade, toast slide) in `@media (prefers-reduced-motion: no-preference) { … }` or use AntD's `motion` token set to none when the media query matches.
+   - **Decorative SVGs.** Set `alt=""` (or `aria-hidden="true"` on inline SVG) on `bug.svg`, `task.svg`, the auth `left.svg` / `right.svg` decorations, and the brand sparkle when next to a visible label.
+   - **Tooling.** Add `jest-axe` to the test suite and assert zero violations on every page render in `App.test.tsx`, `board.test.tsx`, `project.test.tsx`, `taskModal/index.test.tsx`, `aiChatDrawer/index.test.tsx`. Add `eslint-plugin-jsx-a11y` to `eslint.config.mjs` so regressions are caught at lint time.
 
 5. **Loading states.**
    - Replace bare `<Spin>` blocks with `<Skeleton.Input>` / `<Skeleton.Avatar>` / `<Skeleton.Paragraph>` matching the eventual layout for: project list rows, board columns, task cards, brief drawer sections, chat drawer initial load, AI assist panel.
@@ -262,19 +285,180 @@ The plan is split into four phases. Phases are ordered by dependency (Phase 1 un
 
 ---
 
+## 2.A Cross-cutting best-practice rules
+
+Each rule below is a contract every component must satisfy after the relevant phase ships. They are extracted out of the per-screen sections so we can audit them globally.
+
+### 2.A.1 Forms
+
+Every input must declare:
+
+- A `<label>` (`<Form.Item label>`), never label-by-placeholder.
+- `autocomplete` (e.g. `username`, `current-password`, `new-password`, `email`, `name`, `organization`) so password managers and OS autofill work.
+- `inputMode` for soft-keyboard hint (`email`, `numeric`, `search`, `text`).
+- `enterKeyHint` (`go`, `search`, `send`, `done`) so mobile keyboards show the right action.
+- `required` (real attribute, not just rule) and `aria-invalid` when in error.
+- `aria-describedby` linking to inline help text and inline errors.
+
+Form-level rules:
+
+- One field per row on `xs`/`sm`, two columns on `md+` only when fields are logically grouped (e.g. first/last name).
+- Submit button label must match the action verb ("Create project", "Save changes", "Log in"), never "Submit" or "OK".
+- Disable the submit button only when the form is busy, not when invalid (let the click trigger validation so users discover what is wrong).
+- Show an **error summary** at the top with anchor links to fields, in addition to inline errors (GOV.UK pattern, also satisfies WCAG 3.3.1 / 3.3.3).
+- Trap focus inside the form's modal/drawer and restore it on close.
+- Confirm before discarding unsaved changes (`useUnsavedChangesGuard` hook reading from `Form.isFieldsTouched()`); applies to `TaskModal`, `ProjectModal`, `AiTaskDraftModal`.
+
+### 2.A.2 Touch & mobile
+
+- Minimum hit target: 44 × 44 CSS px on touch viewports (use `min-block-size: 44px` on `Button` via the AntD theme `controlHeight` token; raise from 32 to 44 only on `pointer: coarse`).
+- Honor `env(safe-area-inset-*)` on the header and fixed footer so the UI clears the iOS notch and gesture bar.
+- The board's horizontal scroll must work with touch swipe; do not intercept `touchstart` for drag-and-drop (`@hello-pangea/dnd` handles this — verify with a real device after Phase 2.3).
+- Long-press to enter drag mode on touch (this is `hello-pangea/dnd` default; document it).
+- Bottom-sheet variant of `AiChatDrawer` and `TaskModal` on `xs`/`sm` so the keyboard does not push the form off-screen.
+
+### 2.A.3 Motion, color-scheme, and contrast preferences
+
+- Wrap every motion in `@media (prefers-reduced-motion: no-preference)` or set AntD's `motion` token to `false` when the media query matches.
+- Read `prefers-color-scheme` on first paint and pick AntD's `defaultAlgorithm` vs `darkAlgorithm` accordingly; the user's explicit choice (Phase 1.2) overrides the OS.
+- Read `prefers-contrast: more` and switch to a higher-contrast token bundle (thicker borders, ≥ 7 : 1 text contrast).
+- All motion durations: short interactions (focus ring, hover) = 100 ms ease-out; medium (toasts, skeleton fades) = 200 ms ease-out; large (drawer slide) = 300 ms ease-in-out.
+
+### 2.A.4 Feedback & destructive actions
+
+- **Toasts (`message` / `notification`)** for non-blocking outcomes ("Task created", "Couldn't save — retry"). Place top-right, auto-dismiss after 4 s, persist on hover. Each destructive toast carries an **Undo** action for at least 5 s; on click, replay the inverse mutation against the React Query cache (covers create, update, delete on tasks/columns/projects).
+- **Modal.confirm** only for irreversible operations that cannot be undone (e.g. permanent project deletion). For reversible ones (delete column with no tasks, archive task), use a toast with Undo instead — far better than the current `Modal.confirm` everywhere pattern at `src/components/projectList/index.tsx:71–81`, `src/components/column/index.tsx:57–67`, `src/components/taskModal/index.tsx:62–72`.
+- **Inline alerts** for state that persists with the surface (e.g. "Board Copilot disabled for this project"); never blocks input.
+- **Optimistic updates** must show an immediate visual change, a quiet inline spinner (only after 250 ms), and roll back with a toast on failure.
+
+### 2.A.5 Surface taxonomy (drawer vs. modal vs. popover vs. inline)
+
+Right now, the AI features mix all four. Adopt one rule per intent:
+
+| Intent | Surface | Examples |
+| --- | --- | --- |
+| Focused edit / required confirmation | **Modal** (centered, focus-trapped) | Edit task, Create project, delete-confirm |
+| Side panel that augments the main view | **Drawer** (right, dismissible, non-modal on `md+`) | Board brief, Ask Copilot chat, Activity feed |
+| Quick lookup / picker, dismissed on outside click | **Popover** | Members, Projects switcher, avatar menu |
+| Suggestion or status that lives inside the form | **Inline panel/Card** | AI assist on task modal |
+
+Apply: move `AiTaskDraftModal` to a drawer (it is augmentation, not blocking confirmation) **only if** breakdown selection still fits; otherwise document why it stays a modal. Keep `BoardBriefDrawer` and `AiChatDrawer` as drawers. Keep `TaskModal` and `ProjectModal` as modals.
+
+### 2.A.6 Internationalization readiness
+
+We will not ship i18n yet, but every change in this plan must keep the door open:
+
+- No string concatenation in JSX (`Edit · {taskName}` is fine because it is a template, but `"Hi, " + user.username` would not be). Use ICU placeholders.
+- Avoid hard-coded plurals ("1 tasks") — wrap counts in a `<Plural value={n} one="task" other="tasks" />` helper, even if the implementation is a stub today.
+- Avoid baked-in date/number formats — use `Intl.DateTimeFormat` / `Intl.NumberFormat` instead of `dayjs(...).format("YYYY-MM-DD")` (e.g. `src/components/projectList/index.tsx:135–139`).
+- Logical CSS properties only: `margin-inline-start` instead of `margin-left`, `padding-block` instead of `padding-top`/`bottom`, so an RTL flip is one `dir="rtl"` away.
+- Do not embed text inside SVGs that would need to be translated (the auth `left.svg`/`right.svg` decorations are safe; future illustrations must follow the same rule).
+
+### 2.A.7 Performance UX
+
+The point of these is that they are *felt* by the user even if no benchmark moves.
+
+- **Route-level code splitting.** Convert `src/routes/index.tsx` to use `React.lazy(() => import(...))` per page; wrap each lazy boundary in a route-shaped `Suspense fallback={<Skeleton …/>}`.
+- **Prefetch on hover.** When a user hovers a row in `ProjectList`, prefetch `["boards", { projectId }]` and `["tasks", { projectId }]` via `queryClient.prefetchQuery`. Same for the project switcher popover.
+- **Throttled spinners.** Use a `useDelayedFlag(loading, 250)` hook so spinners only render after 250 ms; this kills the chat/AI panel "flash of spinner" on the local engine.
+- **`React.memo` for cards and rows.** `Column` and the project list `<Avatar>` cell re-render every keystroke today; memoize after the bucket-by-column refactor (Phase 1.6).
+- **Image lazy loading.** All `<img>` and `<Avatar src>` get `loading="lazy"` and explicit width/height to avoid CLS.
+- **Skeleton shape match.** Skeletons must match the final element's bounding box to avoid layout shift on resolve. Quantify: target Cumulative Layout Shift (CLS) < 0.1, Interaction to Next Paint (INP) < 200 ms, Largest Contentful Paint (LCP) < 2.5 s on a 4× CPU-throttled run.
+- **Bundle budget.** Keep the initial JS bundle below 200 KB gzipped after Phase 1; add `rollup-plugin-visualizer` to `vite.config.ts` so regressions are visible in PRs.
+
+### 2.A.8 AI provenance, transparency, and undo
+
+The PRD already enforces validation; the UI should make the provenance obvious.
+
+- After a user clicks **Apply** on an AI suggestion, mark the affected field with a small `Suggested by Copilot` badge until the user edits it. This satisfies "match between system and the real world" and gives users a hook to retract.
+- Every AI write must be undoable via the same toast/Undo pattern (see 2.A.4). Tasks created by Draft with AI carry a hidden `meta.source = "ai"` for analytics and easy bulk-rollback.
+- The chat drawer must hide raw tool-call payloads from end users (`src/components/aiChatDrawer/index.tsx:141–166`) and surface them only behind a "Show details" toggle. This is both a UX concern (clutter) and a safety concern (do not paint internal ids in front of users).
+- Confidence percentages must be paired with a plain-language band ("Low / Moderate / High") so users without a probability intuition can act.
+- Provide a "Why?" affordance on every AI suggestion that opens a popover with the same `rationale` text already returned by the engine — this turns "magic" into "machine following these rules".
+
+### 2.A.9 Keyboard shortcut catalog (single source)
+
+Define every shortcut once in `src/constants/shortcuts.ts` and surface them in a help dialog (Phase 4 onboarding). Initial set:
+
+| Shortcut | Where | Action |
+| --- | --- | --- |
+| `Cmd/Ctrl+K` | Global | Open command palette |
+| `?` | Global | Open shortcut help |
+| `g p` | Global | Go to projects |
+| `g b` | Project page | Go to board |
+| `c` | Board | Create task in focused column |
+| `Esc` | Modal/Drawer | Close (with unsaved-change guard) |
+| `e` | Focused task card | Open edit modal |
+| `Space / arrows / Esc` | Focused task card | Drag with keyboard (delegated to dnd library) |
+
+Use a single `useShortcut(combo, handler)` hook so the catalog cannot drift from the implementation.
+
+### 2.A.10 Visual hierarchy & typography
+
+- 4-step type scale anchored at the body size (12 / 14 / 16 / 20 / 24 / 32 px) — never invent a new size at use site.
+- Maximum two type weights per surface (regular + semibold).
+- Maximum one accent color per surface; status uses AntD's semantic palette (`success`, `warning`, `error`, `info`) plus icons, never raw hex.
+- Line length capped at 75 ch for body copy (chat messages, brief descriptions, modal notes).
+- Use AntD's `Typography.Title level={1..5}` instead of bare `<h1>`/`<h4>` so font-size, line-height, and margin come from a single token bundle.
+
+### 2.A.11 Information architecture & navigation
+
+- Every page has a unique `<title>` (`useTitle` hook already exists in `src/utils/hooks/useTitle.ts` — extend it to set `<meta name="description">` per page).
+- Every nested page shows a breadcrumb (Phase 2.5).
+- Active route gets an accessible "current page" treatment (`aria-current="page"`).
+- Browser back never loses scroll position on the project list or board (use `react-router`'s `ScrollRestoration`).
+- URLs are the source of truth for filter state (already true via `useUrl`); never duplicate state into Redux for filters.
+
+---
+
+## 2.B Heuristics map — Nielsen × this plan
+
+This table demonstrates that no heuristic is left unaddressed.
+
+| Heuristic | Plan items |
+| --- | --- |
+| Visibility of system status | Phase 2.3 (header tier with Copilot status), 2.A.4 (toasts), 2.A.7 (throttled spinners), 3.5 (skeletons), 3.4 (`aria-live`) |
+| Match between system & real world | Phase 3.1 (microcopy), 2.A.8 ("Suggested by Copilot" badge), 2.A.6 (locale-aware dates) |
+| User control & freedom | 2.A.4 (Undo), 2.A.1 (unsaved-changes guard), 2.A.9 (`Esc` everywhere) |
+| Consistency & standards | 1.1, 1.4 (tokens + typography), 2.A.5 (surface taxonomy), 3.1 (microcopy), 2.A.10 (type scale) |
+| Error prevention | 2.A.1 (real labels + autocomplete), 2.A.4 (replace blocking confirms with undoable toasts), 2.7 (caps-lock hint) |
+| Recognition rather than recall | 2.A.2 (visible touch affordances), 2.A.9 (shortcut help dialog), 2.4 (assignee/points/epic on cards) |
+| Flexibility & efficiency | Phase 4.1 (command palette), 2.A.9 (shortcuts), 4.5 (inline edit), 2.A.7 (prefetch on hover) |
+| Aesthetic & minimalist design | Phase 2.3 (board H1 declutter), 2.A.10 (one accent per surface), 2.A.8 ("Show details" hides tool calls) |
+| Help users recognize, diagnose, recover | 2.A.4 (toast with Undo), 3.4 (3.3.1/3.3.3 inline errors + summary), 3.7 (error boundary + Retry) |
+| Help & documentation | 2.A.9 (shortcut help dialog), Phase 4.4 (in-app onboarding), 2.A.8 ("Why?" rationale popover) |
+
+---
+
+## 2.C Tooling & governance
+
+To keep the design from drifting after these phases ship:
+
+- **Storybook** for every component in `src/components/**`. Each story documents `default`, `loading`, `empty`, `error`, `disabled`, and `with content overflow` states.
+- **Visual regression** via `@storybook/test-runner` + Playwright snapshots, run in CI on every PR.
+- **`jest-axe`** assertion in every page and modal test (`App.test.tsx`, `board.test.tsx`, `project.test.tsx`, `taskModal/index.test.tsx`, `aiChatDrawer/index.test.tsx`, `aiTaskDraftModal/index.test.tsx`, etc.). The `jira-react-test-development` skill already targets 100 % coverage; the same gate enforces zero a11y violations.
+- **`eslint-plugin-jsx-a11y`** added to `eslint.config.mjs`; failures block CI.
+- **Design tokens documented** at `docs/design-tokens.md` (single source for spacing, color, type, motion). Storybook reads from the same module.
+- **Component contribution checklist** in `CONTRIBUTING.md`: passes a11y, ships story, supports keyboard, supports `prefers-reduced-motion`, has loading/empty/error states, ships tests.
+- **Analytics hooks (privacy-respecting).** Wrap mutations in a `track(event, payload)` no-op today (no third-party endpoint), so the AI surfaces and the new toasts have a single instrumentation point we can wire up later.
+- **Dependency hygiene.** `lodash` is currently imported in full at `src/components/taskModal/index.tsx:3`; after Phase 1, replace with `lodash-es` named imports or native equivalents to keep the bundle budget honest.
+
+---
+
 ## 3. Suggested execution order
 
-The order below batches changes that share files so we do not churn the same area twice.
+The order below batches changes that share files so we do not churn the same area twice. Cross-cutting rules (Section 2.A) and the heuristics map (Section 2.B) are applied within each Phase, not as a separate pass.
 
-1. Phase 1.1, 1.2, 1.4, 1.5 — theme tokens + ConfigProvider + remove the rem hack. Ship behind the existing visual tests; expect a thin pass of pixel adjustments.
-2. Phase 1.3, 1.6 — responsive layout + tasks-by-column grouping.
-3. Phase 2.1, 2.5 — header + project detail shell collapse (both touch the global chrome).
-4. Phase 2.2 — project list redesign.
-5. Phase 2.3, 2.4 — board page + task card redesign (single thread because they share `Column`).
-6. Phase 2.6 — task modal split-pane.
-7. Phase 2.7 — auth screens.
-8. Phase 3 — polish, accessibility, microcopy in one pass per surface.
-9. Phase 4 — pick the highest-leverage stretch item (likely the command palette, since it reuses Board Copilot infrastructure).
+1. **Tooling first.** Add `eslint-plugin-jsx-a11y`, `jest-axe`, `rollup-plugin-visualizer`, and the design-tokens doc skeleton (Section 2.C). Ship Storybook scaffolding so all subsequent components land with stories from day one.
+2. Phase 1.1, 1.2, 1.4, 1.5 — theme tokens + ConfigProvider + remove the rem hack + `prefers-color-scheme` wiring (2.A.3). Ship behind the existing visual tests; expect a thin pass of pixel adjustments.
+3. Phase 1.3, 1.6 — responsive layout + tasks-by-column grouping. Land 2.A.2 (touch targets, safe-area-inset) at the same time.
+4. Phase 2.1, 2.5 — header + project detail shell collapse (both touch the global chrome). Land 2.A.11 (breadcrumbs, `aria-current`, `ScrollRestoration`) here.
+5. Phase 2.2 — project list redesign + 2.A.7 (route-level code splitting + prefetch on hover) since both touch the same files.
+6. Phase 2.3, 2.4 — board page + task card redesign (single thread because they share `Column`). Land 2.A.4 (toast + Undo for column/task deletes), 2.A.9 (board shortcuts), and the 2.5.7 keyboard drag-and-drop.
+7. Phase 2.6 — task modal split-pane + 2.A.8 ("Suggested by Copilot" badge, "Why?" affordance) + 2.A.1 (unsaved-changes guard, error summary).
+8. Phase 2.7 — auth screens with the full 2.A.1 / WCAG 3.3.7 / 3.3.8 contract.
+9. Phase 3 — polish, accessibility, microcopy in one pass per surface; this is also when `jest-axe` assertions and visual regression baselines get added per component.
+10. Phase 4 — pick the highest-leverage stretch item (likely the command palette, since it reuses Board Copilot infrastructure and shortcut catalog from 2.A.9).
 
 ---
 
@@ -292,4 +476,65 @@ The order below batches changes that share files so we do not churn the same are
 
 - Backend changes (the json-server mock + the optional `REACT_APP_AI_BASE_URL` proxy stay as-is).
 - New AI capabilities — Phase 4 only repackages existing Board Copilot features into a command palette.
-- Internationalization — flagged here so it is on the roadmap, but the current copy is English-only and there is no `i18n` infra to extend.
+- A full i18n release. We commit to **i18n readiness** (Section 2.A.6: ICU placeholders, `Intl.*` formatters, logical CSS properties, no string concatenation in JSX), but leaving the actual translation pipeline (`react-intl` / `i18next`, message-id extraction, locale switcher) out of scope.
+
+---
+
+## 6. Acceptance criteria — how we know the plan worked
+
+Each criterion below is testable. Tie-break ties to user-impact, not engineer-impact.
+
+- **Lighthouse (mobile profile, throttled).** Performance ≥ 90, Accessibility = 100, Best Practices ≥ 95 on `/login`, `/projects`, `/projects/:id/board`.
+- **Axe (`jest-axe`).** Zero violations on every page test and every modal/drawer test.
+- **Core Web Vitals (4× CPU throttling, simulated 4G).** LCP < 2.5 s, INP < 200 ms, CLS < 0.1 on the same three routes.
+- **Bundle.** Initial JS ≤ 200 KB gzipped after Phase 1; ≤ 250 KB after Phase 2 even with Storybook in dev mode.
+- **Touch.** Every interactive element ≥ 44 × 44 CSS px on `pointer: coarse` viewports; verified via a Playwright spec that walks every `button, a, [role="button"], input, select, textarea`.
+- **Keyboard.** Every flow that the mouse can complete is completable from the keyboard alone, including drag-and-drop. Verified by a Playwright keyboard-only spec covering: log in, create project, open board, create task, drag task to next column, edit task, apply AI suggestion, delete task with Undo.
+- **Reduced motion.** With `prefers-reduced-motion: reduce`, no element animates duration > 0.01 ms (asserted by Playwright reading `animationDuration`/`transitionDuration` on transitioning elements).
+- **High contrast / forced colors.** `forced-colors: active` Playwright spec verifies all interactive controls remain visible and labeled.
+- **Color-blind safety.** Manual review with the Chromium `vision-deficiency` emulation flag for `protanopia`, `deuteranopia`, `tritanopia` on the board and the AI breakdown modal; every type signal must be readable without color.
+- **Microcopy lint.** A `scripts/lint-microcopy.ts` checker grep-fails on banned strings (`Submit`, `OK`, `Login`, `Register`, ALL-CAPS button labels, `Are you sure?` without an Undo).
+- **Heuristics review.** Each PR description maps the change back to Section 2.B (heuristics map) and Section 2.A (cross-cutting rules) by name. Reviewers reject PRs that fail to do so.
+
+---
+
+## 7. Plan ↔ external rubric mapping
+
+This is the explicit answer to "does the plan embody UI/UX best practice?". Each row demonstrates that an external rubric line is covered.
+
+| External rubric | Plan section(s) |
+| --- | --- |
+| Nielsen 1 — Visibility of system status | 2.A.4, 2.A.7, 3.5, 3.7 |
+| Nielsen 2 — Match real world | 2.A.6, 2.A.8, 3.1 |
+| Nielsen 3 — User control & freedom | 2.A.1, 2.A.4, 2.A.9 |
+| Nielsen 4 — Consistency & standards | 1.1, 2.A.5, 2.A.10, 3.1 |
+| Nielsen 5 — Error prevention | 2.A.1, 2.A.4, 2.7 |
+| Nielsen 6 — Recognition over recall | 2.4, 2.A.2, 2.A.9 |
+| Nielsen 7 — Flexibility & efficiency | 4.1, 4.5, 2.A.7, 2.A.9 |
+| Nielsen 8 — Aesthetic & minimalist | 2.3, 2.A.10, 2.A.8 |
+| Nielsen 9 — Recover from errors | 2.A.4, 3.4, 3.7 |
+| Nielsen 10 — Help & documentation | 2.A.9, 4.4, 2.A.8 |
+| WCAG 1.4.3 / 1.4.11 Contrast | 3.3, 3.4 |
+| WCAG 1.4.1 Use of Color | 3.4, 2.A.8 |
+| WCAG 1.4.10 Reflow / 1.4.4 Resize | 1.1, 1.3 |
+| WCAG 1.4.12 Text Spacing | 3.4 |
+| WCAG 2.1.1 Keyboard | 2.4, 3.2, 3.4, 2.A.9 |
+| WCAG 2.4.3 / .7 / .11 / .12 / .13 Focus | 3.4 |
+| WCAG 2.5.5 / 2.5.8 Target size | 2.A.2, 3.4 |
+| WCAG 2.5.7 Dragging movements | 2.3, 3.4 |
+| WCAG 3.2.6 Consistent help | 2.A.9, 4.4 |
+| WCAG 3.3.1 / 3.3.3 Error identification & suggestion | 2.A.1, 3.4, 2.7 |
+| WCAG 3.3.7 Redundant entry | 2.7, 3.4 |
+| WCAG 3.3.8 Accessible authentication | 2.7 |
+| WCAG 4.1.3 Status messages | 3.4, 2.A.4 |
+| `prefers-reduced-motion` | 2.A.3, 3.8 |
+| `prefers-color-scheme` | 1.2, 2.A.3 |
+| `prefers-contrast` | 2.A.3 |
+| `forced-colors` | 3.4 |
+| GOV.UK error summary pattern | 2.A.1, 2.7, 3.4 |
+| Material 3 state layers | 2.4 (hover/focused/pressed states on cards) |
+| Refactoring UI / type & spacing scale | 1.1, 2.A.10 |
+| Inclusive Components — accessible drag-and-drop | 3.4, 2.A.9 |
+| Core Web Vitals (LCP / INP / CLS) | 2.A.7, 6 |
+| Storybook + visual regression governance | 2.C |
+
