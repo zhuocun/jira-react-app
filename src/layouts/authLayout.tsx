@@ -36,10 +36,7 @@ const Background = styled.div`
         left bottom,
         right bottom;
     background-repeat: no-repeat;
-    background-size:
-        min(40vw, 32rem),
-        min(40vw, 32rem),
-        cover;
+    background-size: min(40vw, 32rem), min(40vw, 32rem), cover;
     height: 100%;
     pointer-events: none;
     position: absolute;

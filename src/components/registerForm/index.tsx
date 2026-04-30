@@ -84,7 +84,9 @@ const RegisterForm: React.FC<{
                     enterKeyHint="go"
                     iconRender={(visible) =>
                         visible ? (
-                            <EyeOutlined aria-label={microcopy.actions.hidePassword} />
+                            <EyeOutlined
+                                aria-label={microcopy.actions.hidePassword}
+                            />
                         ) : (
                             <EyeInvisibleOutlined
                                 aria-label={microcopy.actions.showPassword}

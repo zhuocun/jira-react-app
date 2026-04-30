@@ -68,9 +68,7 @@ const changeField = async (placeholder: string, value: string) => {
 
 const submitRegister = async () => {
     await act(async () => {
-        fireEvent.click(
-            screen.getByRole("button", { name: /^sign up$/i })
-        );
+        fireEvent.click(screen.getByRole("button", { name: /^sign up$/i }));
     });
 };
 
@@ -183,8 +181,8 @@ describe("RegisterForm", () => {
     it("shows the submitting state from the mutation", () => {
         renderRegisterForm({ isLoading: true });
 
-        expect(
-            screen.getByRole("button", { name: /sign up/i })
-        ).toHaveClass("ant-btn-loading");
+        expect(screen.getByRole("button", { name: /sign up/i })).toHaveClass(
+            "ant-btn-loading"
+        );
     });
 });
