@@ -1,4 +1,5 @@
-import { Button, Space, Typography } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { Alert, Button, Space } from "antd";
 import { useState } from "react";
 
 import AiChatDrawer from "../components/aiChatDrawer";
@@ -8,6 +9,7 @@ import PageContainer from "../components/pageContainer";
 import ProjectList from "../components/projectList";
 import ProjectSearchPanel from "../components/projectSearchPanel";
 import Row from "../components/row";
+import { microcopy } from "../constants/microcopy";
 import useAiEnabled from "../utils/hooks/useAiEnabled";
 import useDebounce from "../utils/hooks/useDebounce";
 import useProjectModal from "../utils/hooks/useProjectModal";
@@ -54,7 +56,12 @@ const ProjectPage = () => {
                             Ask
                         </Button>
                     )}
-                    <Button type="link" onClick={openModal}>
+                    <Button
+                        aria-label="Create Project"
+                        icon={<PlusOutlined aria-hidden />}
+                        onClick={openModal}
+                        type="primary"
+                    >
                         Create Project
                     </Button>
                 </Space>
@@ -88,9 +95,13 @@ const ProjectPage = () => {
                 }
             />
             {pError || mError ? (
-                <Typography.Text type="danger">
-                    Data fetching failed, please try again later.
-                </Typography.Text>
+                <Alert
+                    description={microcopy.feedback.retryHint}
+                    showIcon
+                    style={{ marginBottom: 12 }}
+                    title="Data fetching failed, please try again later."
+                    type="error"
+                />
             ) : null}
             <ProjectList
                 dataSource={

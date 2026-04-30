@@ -183,15 +183,15 @@ describe("AiTaskAssistPanel", () => {
         );
     });
 
-    it("opens a similar task when its link is clicked", async () => {
+    it("opens a similar task when its button is clicked", async () => {
         const { onOpenSimilarTask } = mountPanel({
             values: { taskName: "Investigate flaky login bug" }
         });
         jest.advanceTimersByTime(1000);
-        const links = await screen.findAllByText(/Old login bug/);
-        const link = links.find((node) => node.tagName === "A");
-        expect(link).toBeTruthy();
-        fireEvent.click(link!);
+        const button = await screen.findByRole("button", {
+            name: /Old login bug/i
+        });
+        fireEvent.click(button);
         expect(onOpenSimilarTask).toHaveBeenCalledWith("t1");
     });
 

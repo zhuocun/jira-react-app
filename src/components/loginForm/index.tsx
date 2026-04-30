@@ -1,6 +1,9 @@
+import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
 import { Form, Input } from "antd";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 
+import { microcopy } from "../../constants/microcopy";
 import { AuthButton } from "../../layouts/authLayout";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 
@@ -8,6 +11,7 @@ const LoginForm: React.FC<{
     onError: React.Dispatch<React.SetStateAction<Error | IError | null>>;
 }> = ({ onError }) => {
     const navigate = useNavigate();
+    const [capsLockOn, setCapsLockOn] = useState(false);
     const { mutateAsync, isLoading } = useReactMutation<IUser>(
         "auth/login",
         "POST",
@@ -27,8 +31,9 @@ const LoginForm: React.FC<{
     };
 
     return (
-        <Form onFinish={handleSubmit}>
+        <Form layout="vertical" onFinish={handleSubmit}>
             <Form.Item
+                label={microcopy.fields.email}
                 name="email"
                 rules={[
                     { required: true, message: "Please enter an email" },
@@ -39,22 +44,49 @@ const LoginForm: React.FC<{
                 ]}
             >
                 <Input
+                    autoComplete="username"
+                    enterKeyHint="next"
+                    inputMode="email"
                     onChange={() => onError(null)}
                     placeholder="Email"
-                    type="text"
+                    type="email"
                     id="email"
                 />
             </Form.Item>
             <Form.Item
+                extra={
+                    capsLockOn ? (
+                        <span role="status">Caps Lock is on</span>
+                    ) : null
+                }
+                label={microcopy.fields.password}
                 name="password"
                 rules={[
                     { required: true, message: "Please enter your password" }
                 ]}
             >
-                <Input
+                <Input.Password
+                    autoComplete="current-password"
+                    enterKeyHint="go"
+                    iconRender={(visible) =>
+                        visible ? (
+                            <EyeOutlined
+                                aria-label={microcopy.actions.hidePassword}
+                            />
+                        ) : (
+                            <EyeInvisibleOutlined
+                                aria-label={microcopy.actions.showPassword}
+                            />
+                        )
+                    }
                     onChange={() => onError(null)}
+                    onKeyUp={(event) =>
+                        setCapsLockOn(
+                            "getModifierState" in event &&
+                                event.getModifierState("CapsLock")
+                        )
+                    }
                     placeholder="Password"
-                    type="password"
                     id="password"
                 />
             </Form.Item>
@@ -64,7 +96,7 @@ const LoginForm: React.FC<{
                     htmlType="submit"
                     type="primary"
                 >
-                    Log in
+                    {microcopy.actions.logIn}
                 </AuthButton>
             </Form.Item>
         </Form>

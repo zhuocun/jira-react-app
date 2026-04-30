@@ -1,7 +1,48 @@
-html {
-    font-size: 62.5%;
+/*
+ * Global styles. Intentionally minimal — typography and spacing live in the
+ * AntD theme tokens (see src/theme/antdTheme.ts) so components do not need
+ * to redeclare them.
+ */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
 }
 
-html body #root .App {
+body {
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+        Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
     min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/*
+ * Visible focus ring for keyboard users on every focusable control.
+ * Satisfies WCAG 2.4.7 / 2.4.13.
+ */
+:focus-visible {
+    outline: 2px solid var(--ant-color-primary, #2684ff);
+    outline-offset: 2px;
+}
+
+/*
+ * Honor user motion preference. Components opting in to motion read
+ * useReducedMotion() directly; this rule is a defense-in-depth.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+    }
 }

@@ -1,7 +1,15 @@
 import styled from "@emotion/styled";
-import { Button, Space, Spin, Switch, Tooltip, Typography } from "antd";
+import {
+    Button,
+    Skeleton,
+    Space,
+    Spin,
+    Switch,
+    Tooltip,
+    Typography
+} from "antd";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import AiChatDrawer from "../components/aiChatDrawer";
@@ -15,6 +23,7 @@ import PageContainer from "../components/pageContainer";
 import Row from "../components/row";
 import TaskModal from "../components/taskModal";
 import TaskSearchPanel from "../components/taskSearchPanel";
+import { space as themeSpace } from "../theme/tokens";
 import useAiEnabled from "../utils/hooks/useAiEnabled";
 import useAiProjectDisabled from "../utils/hooks/useAiProjectDisabled";
 import useDebounce from "../utils/hooks/useDebounce";
@@ -25,14 +34,40 @@ import useUrl from "../utils/hooks/useUrl";
 
 export const ColumnContainer = styled.div`
     display: flex;
+    flex: 1;
     min-height: 75%;
-    overflow-x: scroll;
+    overflow-x: auto;
+    padding-bottom: ${themeSpace.xs}px;
 `;
 
-const BoardSpin = styled(Spin)`
-    margin-left: calc(0.5 * (100vw - 16rem - 26.4rem));
-    margin-top: calc(0.5 * (100vh - 6rem - 40.7rem));
-    padding: 1rem;
+const BoardLoadingSkeleton = () => (
+    <ColumnContainer aria-label="Loading board">
+        {[0, 1, 2].map((i) => (
+            <div
+                key={i}
+                style={{
+                    background: "var(--ant-color-fill-quaternary, #f4f5f7)",
+                    borderRadius: 8,
+                    marginRight: themeSpace.md,
+                    minWidth: "29.5rem",
+                    padding: themeSpace.md
+                }}
+            >
+                <Skeleton active paragraph={{ rows: 4 }} title />
+            </div>
+        ))}
+        <Spin
+            aria-label="Loading board"
+            size="small"
+            style={{ alignSelf: "flex-start", marginLeft: themeSpace.md }}
+        />
+    </ColumnContainer>
+);
+
+const BoardHeader = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: ${themeSpace.xs}px;
 `;
 
 const BoardPage = () => {
@@ -72,6 +107,18 @@ const BoardPage = () => {
     const { onDragEnd, isColumnDragDisabled, isTaskDragDisabled } =
         useDragEnd();
     const visibleTasks = tasks ?? [];
+    const tasksByColumn = useMemo(() => {
+        const buckets = new Map<string, ITask[]>();
+        for (const t of visibleTasks) {
+            const list = buckets.get(t.columnId);
+            if (list) {
+                list.push(t);
+            } else {
+                buckets.set(t.columnId, [t]);
+            }
+        }
+        return buckets;
+    }, [visibleTasks]);
     const { enabled: aiEnabled } = useAiEnabled();
     const {
         disabled: aiDisabledForProject,
@@ -102,54 +149,54 @@ const BoardPage = () => {
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <PageContainer>
-                <Row between>
-                    <h1>
-                        {!pLoading
-                            ? `${currentProject?.projectName} Board`
-                            : "..."}
-                    </h1>
-                    {aiEnabled && (
-                        <Space align="center">
-                            <Tooltip title="Turn off to hide Board Copilot on this board and block AI requests for this project.">
-                                <Space size={4}>
-                                    <Switch
-                                        aria-label="Board Copilot for this project"
-                                        checked={!aiDisabledForProject}
-                                        onChange={(checked) =>
-                                            setProjectAiDisabled(!checked)
-                                        }
-                                    />
-                                    <Typography.Text
-                                        style={{ fontSize: "0.85rem" }}
-                                        type="secondary"
-                                    >
-                                        Project AI
-                                    </Typography.Text>
-                                </Space>
-                            </Tooltip>
-                            {boardAiOn && (
-                                <>
-                                    <Button
-                                        aria-label="Open Board Copilot brief"
-                                        icon={<AiSparkleIcon />}
-                                        onClick={() => setBriefOpen(true)}
-                                        type="default"
-                                    >
-                                        Brief
-                                    </Button>
-                                    <Button
-                                        aria-label="Ask Board Copilot"
-                                        icon={<AiSparkleIcon />}
-                                        onClick={() => setChatOpen(true)}
-                                        type="default"
-                                    >
-                                        Ask
-                                    </Button>
-                                </>
-                            )}
-                        </Space>
-                    )}
-                </Row>
+                <BoardHeader>
+                    <Row between>
+                        <h1 style={{ margin: 0 }}>
+                            {!pLoading
+                                ? `${currentProject?.projectName} Board`
+                                : "..."}
+                        </h1>
+                        {aiEnabled && (
+                            <Space align="center" size={themeSpace.sm}>
+                                <Tooltip title="Turn off to hide Board Copilot on this board and block AI requests for this project.">
+                                    <Space size={themeSpace.xxs}>
+                                        <Switch
+                                            aria-label="Board Copilot for this project"
+                                            checked={!aiDisabledForProject}
+                                            onChange={(checked) =>
+                                                setProjectAiDisabled(!checked)
+                                            }
+                                            size="small"
+                                        />
+                                        <Typography.Text type="secondary">
+                                            Project AI
+                                        </Typography.Text>
+                                    </Space>
+                                </Tooltip>
+                                {boardAiOn && (
+                                    <>
+                                        <Button
+                                            aria-label="Open Board Copilot brief"
+                                            icon={<AiSparkleIcon />}
+                                            onClick={() => setBriefOpen(true)}
+                                            type="default"
+                                        >
+                                            Brief
+                                        </Button>
+                                        <Button
+                                            aria-label="Ask Board Copilot"
+                                            icon={<AiSparkleIcon />}
+                                            onClick={() => setChatOpen(true)}
+                                            type="default"
+                                        >
+                                            Ask
+                                        </Button>
+                                    </>
+                                )}
+                            </Space>
+                        )}
+                    </Row>
+                </BoardHeader>
                 <TaskSearchPanel
                     tasks={visibleTasks}
                     param={param}
@@ -197,12 +244,13 @@ const BoardPage = () => {
                                     >
                                         <Column
                                             boardAiOn={boardAiOn}
-                                            tasks={visibleTasks.filter(
-                                                (task) =>
-                                                    task.columnId === column._id
-                                            )}
+                                            tasks={
+                                                tasksByColumn.get(column._id) ??
+                                                []
+                                            }
                                             key={column._id}
                                             column={column}
+                                            members={members ?? []}
                                             param={debouncedParam}
                                             isDragDisabled={isTaskDragDisabled}
                                         />
@@ -213,7 +261,7 @@ const BoardPage = () => {
                         <ColumnCreator />
                     </ColumnContainer>
                 ) : (
-                    <BoardSpin />
+                    <BoardLoadingSkeleton />
                 )}
                 <TaskModal boardAiOn={boardAiOn} tasks={visibleTasks} />
                 {boardAiOn && (

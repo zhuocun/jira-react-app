@@ -99,8 +99,6 @@ describe("RegisterPage", () => {
             token: "jwt-1"
         });
 
-        await waitFor(() =>
-            expect(window.location.pathname).toBe("/projects")
-        );
+        await waitFor(() => expect(window.location.pathname).toBe("/projects"));
     });
 });

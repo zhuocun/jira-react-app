@@ -156,7 +156,9 @@ describe("TaskModal", () => {
     it("opens from the URL, populates fields, and renders cached select options", async () => {
         renderModal();
 
-        expect(await screen.findByText("Edit Task")).toBeInTheDocument();
+        expect(
+            await screen.findByText(/edit task · build task/i)
+        ).toBeInTheDocument();
         expect(screen.getByDisplayValue("Build task")).toBeInTheDocument();
 
         fireEvent.mouseDown(screen.getAllByRole("combobox")[0]);
@@ -174,7 +176,7 @@ describe("TaskModal", () => {
         expect(
             await screen.findByDisplayValue("Build task")
         ).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+        fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
 
         await waitFor(() =>
             expect(screen.getByTestId("location")).toHaveTextContent("")
@@ -189,7 +191,7 @@ describe("TaskModal", () => {
         fireEvent.change(taskNameInput, {
             target: { value: "Build task details" }
         });
-        fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+        fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
 
         await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
         expect(fetchMock.mock.calls[0][0]).toContain("/api/v1/tasks");
@@ -238,13 +240,15 @@ describe("TaskModal", () => {
         expect(
             await screen.findByDisplayValue("Build task")
         ).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+        fireEvent.click(
+            screen.getByRole("button", { name: /^delete build task$/i })
+        );
 
         await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
         expect(confirmSpy).toHaveBeenCalledWith(
             expect.objectContaining({
-                content: "This action cannot be undone",
-                title: "Are you sure to delete this task?"
+                content: "This action cannot be undone.",
+                title: "Delete this task?"
             })
         );
         expect(fetchMock.mock.calls[0][0]).toContain(
@@ -263,7 +267,9 @@ describe("TaskModal", () => {
         expect(
             await screen.findByDisplayValue("Build task")
         ).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+        expect(
+            screen.getByRole("button", { name: /^delete build task$/i })
+        ).toBeDisabled();
 
         unmount();
         renderModal({
@@ -280,14 +286,18 @@ describe("TaskModal", () => {
         expect(
             await screen.findByDisplayValue("Optimistic")
         ).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+        expect(
+            screen.getByRole("button", { name: /^delete optimistic$/i })
+        ).toBeDisabled();
     });
 
     it("disables delete when the task list is unavailable", async () => {
         renderModal({ initialTasks: undefined });
 
-        expect(await screen.findByText("Edit Task")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+        expect(await screen.findByText(/edit task/i)).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /^delete$/i })
+        ).toBeDisabled();
     });
 
     it("hides the assist panel when board AI is off for the project", async () => {

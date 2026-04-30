@@ -38,17 +38,17 @@ If shared helpers are missing and many workers need them, implement the minimal 
 
 Prefer shards that map to independent source areas and co-located tests:
 
-| Shard | Typical Write Set | Good First Validation |
-| --- | --- | --- |
-| Pure utilities and optimistic callbacks | `src/utils/*.test.ts`, `src/utils/optimisticUpdate/*.test.ts` | targeted Jest on those files |
-| API and React Query hooks | `src/utils/hooks/useApi.test.tsx`, `useReactQuery.test.tsx`, `useReactMutation.test.tsx` | targeted hook tests |
-| Auth and provider hooks | `src/utils/hooks/useAuth.test.tsx`, `src/utils/authProvider.test.tsx`, `src/utils/authApis.test.ts` | targeted auth tests |
-| URL/modal/drag hooks | `useUrl`, `useTaskModal`, `useProjectModal`, `useDragEnd` tests | targeted hook tests |
-| Shared leaf components | `src/components/errorBox`, `status`, `row`, search panels, creators | targeted component tests |
-| Auth forms/pages | `loginForm`, `registerForm`, `login`, `register`, `home` tests | targeted RTL tests |
-| Project workflow | `project`, `projectList`, `projectModal`, `projectPopover` tests | targeted RTL tests |
-| Board workflow | `board`, `column`, `taskModal`, `taskSearchPanel`, DnD wrappers | targeted RTL/hook tests |
-| Entry/routes/mock backend | `App`, `index`, `routes`, `reportWebVitals`, mock middleware tests | targeted Jest tests |
+| Shard                                   | Typical Write Set                                                                                   | Good First Validation        |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Pure utilities and optimistic callbacks | `src/utils/*.test.ts`, `src/utils/optimisticUpdate/*.test.ts`                                       | targeted Jest on those files |
+| API and React Query hooks               | `src/utils/hooks/useApi.test.tsx`, `useReactQuery.test.tsx`, `useReactMutation.test.tsx`            | targeted hook tests          |
+| Auth and provider hooks                 | `src/utils/hooks/useAuth.test.tsx`, `src/utils/authProvider.test.tsx`, `src/utils/authApis.test.ts` | targeted auth tests          |
+| URL/modal/drag hooks                    | `useUrl`, `useTaskModal`, `useProjectModal`, `useDragEnd` tests                                     | targeted hook tests          |
+| Shared leaf components                  | `src/components/errorBox`, `status`, `row`, search panels, creators                                 | targeted component tests     |
+| Auth forms/pages                        | `loginForm`, `registerForm`, `login`, `register`, `home` tests                                      | targeted RTL tests           |
+| Project workflow                        | `project`, `projectList`, `projectModal`, `projectPopover` tests                                    | targeted RTL tests           |
+| Board workflow                          | `board`, `column`, `taskModal`, `taskSearchPanel`, DnD wrappers                                     | targeted RTL/hook tests      |
+| Entry/routes/mock backend               | `App`, `index`, `routes`, `reportWebVitals`, mock middleware tests                                  | targeted Jest tests          |
 
 Adjust shards from current coverage output. At high coverage, split by uncovered lines instead of broad feature areas.
 

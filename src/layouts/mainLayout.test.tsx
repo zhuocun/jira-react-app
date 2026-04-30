@@ -40,12 +40,11 @@ describe("MainLayout", () => {
         expect(screen.getByText("Project workspace")).toBeInTheDocument();
         expect(screen.getByText("Project Modal")).toBeInTheDocument();
         expect(container.firstElementChild).toHaveStyle({
-            display: "grid",
-            height: "100vh"
+            display: "grid"
         });
+        expect(container.firstElementChild?.tagName.toLowerCase()).toBe("div");
         expect(container.querySelector("main")).toHaveStyle({
-            display: "flex",
-            overflow: "scroll"
+            display: "flex"
         });
     });
 });

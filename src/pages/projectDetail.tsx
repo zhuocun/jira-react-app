@@ -1,46 +1,66 @@
 import styled from "@emotion/styled";
-import { Menu, MenuProps } from "antd";
+import { Breadcrumb, Tabs } from "antd";
 import { useEffect } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router";
-import { Link } from "react-router-dom";
+import {
+    Link,
+    Outlet,
+    useLocation,
+    useNavigate,
+    useParams
+} from "react-router-dom";
 
 import ProjectPopover from "../components/projectPopover";
-
-const Aside = styled.aside`
-    background-color: rgb(244, 245, 247);
-    display: flex;
-`;
-
-const Main = styled.div`
-    box-shadow: -5px 0 5 px -5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    overflow: hidden;
-`;
+import { space } from "../theme/tokens";
+import useReactQuery from "../utils/hooks/useReactQuery";
 
 const Container = styled.div`
-    display: grid;
-    grid-template-columns: 16rem 1fr;
-    overflow: hidden;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
 `;
 
+const TopBar = styled.div`
+    align-items: center;
+    background: var(--ant-color-bg-container, #fff);
+    border-bottom: 1px solid var(--ant-color-split, rgba(5, 5, 5, 0.06));
+    display: flex;
+    flex-wrap: wrap;
+    gap: ${space.md}px;
+    justify-content: space-between;
+    padding: ${space.sm}px ${space.lg}px 0;
+`;
+
+const TabsRow = styled(Tabs)`
+    && {
+        margin-bottom: -1px;
+    }
+`;
+
+const Body = styled.div`
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+`;
+
+const tabItems = [{ key: "board", label: <Link to="board">Board</Link> }];
+
+/**
+ * Replaces the previous duplicated grid + sidebar shell with a breadcrumb +
+ * tabs header (Phase 2.5). Also drops the broken `5 px` shadow rule.
+ */
 const ProjectDetailPage = () => {
     const { pathname } = useLocation();
-    const route = pathname.split("/");
+    const { projectId } = useParams<{ projectId: string }>();
     const navigate = useNavigate();
-    const items: MenuProps["items"] = [
-        {
-            key: "board",
-            label: (
-                <Link to="board" style={{ paddingLeft: "1rem" }}>
-                    Board
-                </Link>
-            )
-        },
-        {
-            key: "projects",
-            label: <ProjectPopover />
-        }
-    ];
+    const segments = pathname.split("/").filter(Boolean);
+    const activeTab = segments[segments.length - 1] || "board";
+
+    const { data: project } = useReactQuery<IProject>("projects", {
+        projectId
+    });
 
     useEffect(() => {
         if (!pathname.endsWith("/board")) {
@@ -50,16 +70,22 @@ const ProjectDetailPage = () => {
 
     return (
         <Container>
-            <Aside>
-                <Menu
-                    mode="inline"
-                    selectedKeys={[route[route.length - 1]]}
-                    items={items}
+            <TopBar>
+                <Breadcrumb
+                    items={[
+                        {
+                            title: <ProjectPopover />
+                        },
+                        {
+                            title: project?.projectName ?? "Project"
+                        }
+                    ]}
                 />
-            </Aside>
-            <Main>
+                <TabsRow activeKey={activeTab} items={tabItems} size="small" />
+            </TopBar>
+            <Body>
                 <Outlet />
-            </Main>
+            </Body>
         </Container>
     );
 };

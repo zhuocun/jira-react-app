@@ -193,7 +193,9 @@ describe("Column", () => {
         });
         expect(screen.getByText("Fix bug")).toBeInTheDocument();
         expect(screen.queryByText("Build task")).not.toBeInTheDocument();
-        expect(screen.getByAltText("Type icon")).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /open task fix bug/i })
+        ).toBeInTheDocument();
         expect(screen.getByTestId("task-creator")).toHaveAttribute(
             "data-disabled",
             "true"
@@ -255,12 +257,14 @@ describe("Column", () => {
             });
         renderColumn();
 
-        fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+        fireEvent.click(
+            screen.getByRole("button", { name: /^delete column todo$/i })
+        );
 
         expect(confirmSpy).toHaveBeenCalledWith(
             expect.objectContaining({
-                content: "This action cannot be undone",
-                title: "Are you sure to delete this column?"
+                content: "This action cannot be undone.",
+                title: "Delete this column?"
             })
         );
         expect(removeColumn).toHaveBeenCalledWith({ columnId: "column-1" });
@@ -282,10 +286,15 @@ describe("Column", () => {
 
     it("disables delete for the optimistic mock column", () => {
         const confirmSpy = jest.spyOn(Modal, "confirm");
-        renderColumn({ boardColumn: column({ _id: "mock" }) });
+        renderColumn({
+            boardColumn: column({ _id: "mock", columnName: "Mock" })
+        });
 
-        expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
-        fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+        const deleteButton = screen.getByRole("button", {
+            name: /^delete column mock$/i
+        });
+        expect(deleteButton).toBeDisabled();
+        fireEvent.click(deleteButton);
 
         expect(confirmSpy).not.toHaveBeenCalled();
         expect(removeColumn).not.toHaveBeenCalled();

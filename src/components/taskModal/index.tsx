@@ -4,12 +4,23 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { microcopy } from "../../constants/microcopy";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteTask";
 import AiTaskAssistPanel from "../aiTaskAssistPanel";
+
+const TYPE_OPTIONS = [
+    { label: "Task", value: "Task" },
+    { label: "Bug", value: "Bug" }
+];
+
+const STORY_POINT_OPTIONS = [1, 2, 3, 5, 8, 13].map((value) => ({
+    label: `${value}`,
+    value
+}));
 
 const TaskModal: React.FC<{
     tasks: ITask[] | undefined;
@@ -32,13 +43,6 @@ const TaskModal: React.FC<{
     );
     const editingTask = tasks?.filter((task) => task._id === editingTaskId)[0];
     const members = useCachedQueryData<IMember[]>(["users/members"]) ?? [];
-    const types: string[] = [];
-    tasks?.map((task) => {
-        if (!types.includes(task.type)) {
-            types.push(task.type);
-        }
-        return null;
-    });
 
     const onClose = () => {
         form.resetFields();
@@ -61,10 +65,11 @@ const TaskModal: React.FC<{
         onClose();
         Modal.confirm({
             centered: true,
-            okText: "Confirm",
-            cancelText: "Cancel",
-            title: "Are you sure to delete this task?",
-            content: "This action cannot be undone",
+            okText: microcopy.confirm.deleteTask.confirmLabel,
+            cancelText: microcopy.actions.cancel,
+            okButtonProps: { danger: true },
+            title: microcopy.confirm.deleteTask.title,
+            content: microcopy.confirm.deleteTask.description,
             onOk() {
                 remove({ taskId: editingTaskId });
             }
@@ -88,16 +93,51 @@ const TaskModal: React.FC<{
     })();
     void formTick;
 
+    const deleteDisabled = tasks
+        ? tasks.length < 2 || dLoading || editingTaskId === "mock"
+        : true;
+
+    const titleText = editingTask?.taskName
+        ? `Edit Task · ${editingTask.taskName}`
+        : "Edit Task";
+
     return (
         <Modal
             confirmLoading={uLoading}
             centered
             forceRender
-            okText="Submit"
+            okText={microcopy.actions.save}
             onOk={onOk}
-            cancelText="Cancel"
+            cancelText={microcopy.actions.cancel}
             onCancel={onClose}
-            title="Edit Task"
+            footer={(_originalFooter, { OkBtn, CancelBtn }) => (
+                <div
+                    style={{
+                        alignItems: "center",
+                        display: "flex",
+                        justifyContent: "space-between"
+                    }}
+                >
+                    <Button
+                        aria-label={
+                            editingTask?.taskName
+                                ? `Delete ${editingTask.taskName}`
+                                : microcopy.actions.delete
+                        }
+                        danger
+                        disabled={deleteDisabled}
+                        onClick={onDelete}
+                        type="text"
+                    >
+                        {microcopy.actions.delete}
+                    </Button>
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <CancelBtn />
+                        <OkBtn />
+                    </div>
+                </div>
+            )}
+            title={titleText}
             open={Boolean(editingTaskId)}
         >
             <Form
@@ -107,7 +147,7 @@ const TaskModal: React.FC<{
                 onValuesChange={() => setFormTick((tick) => tick + 1)}
             >
                 <Form.Item
-                    label="Task Name"
+                    label={microcopy.fields.taskName}
                     name="taskName"
                     rules={[
                         {
@@ -119,7 +159,7 @@ const TaskModal: React.FC<{
                     <Input />
                 </Form.Item>
                 <Form.Item
-                    label="Coordinator"
+                    label={microcopy.fields.coordinator}
                     name="coordinatorId"
                     rules={[
                         {
@@ -128,16 +168,16 @@ const TaskModal: React.FC<{
                         }
                     ]}
                 >
-                    <Select placeholder="Coordinators">
-                        {members?.map((member) => (
-                            <Select.Option value={member._id} key={member._id}>
-                                {member.username}
-                            </Select.Option>
-                        ))}
-                    </Select>
+                    <Select
+                        options={members.map((member) => ({
+                            label: member.username,
+                            value: member._id
+                        }))}
+                        placeholder="Coordinators"
+                    />
                 </Form.Item>
                 <Form.Item
-                    label="Type"
+                    label={microcopy.fields.type}
                     name="type"
                     rules={[
                         {
@@ -146,38 +186,21 @@ const TaskModal: React.FC<{
                         }
                     ]}
                 >
-                    <Select placeholder="Types">
-                        {types.length > 1 ? (
-                            types.map((type) => (
-                                <Select.Option value={type} key={type}>
-                                    {type}
-                                </Select.Option>
-                            ))
-                        ) : (
-                            <>
-                                <Select.Option value="Task" key="task">
-                                    Task
-                                </Select.Option>
-                                <Select.Option value="Bug" key="bug">
-                                    Bug
-                                </Select.Option>
-                            </>
-                        )}
-                    </Select>
+                    <Select options={TYPE_OPTIONS} placeholder="Types" />
                 </Form.Item>
-                <Form.Item label="Epic" name="epic">
+                <Form.Item label={microcopy.fields.epic} name="epic">
                     <Input placeholder="Epic" />
                 </Form.Item>
-                <Form.Item label="Story Points" name="storyPoints">
+                <Form.Item
+                    label={microcopy.fields.storyPoints}
+                    name="storyPoints"
+                >
                     <Select
-                        options={[1, 2, 3, 5, 8, 13].map((value) => ({
-                            label: `${value}`,
-                            value
-                        }))}
+                        options={STORY_POINT_OPTIONS}
                         placeholder="Story points"
                     />
                 </Form.Item>
-                <Form.Item label="Notes" name="note">
+                <Form.Item label={microcopy.fields.notes} name="note">
                     <Input.TextArea
                         placeholder="Notes / acceptance criteria"
                         rows={4}
@@ -210,24 +233,6 @@ const TaskModal: React.FC<{
                         values={liveValues}
                     />
                 )}
-            <div style={{ textAlign: "right" }}>
-                <Button
-                    danger
-                    type="dashed"
-                    onClick={onDelete}
-                    size="small"
-                    style={{ fontSize: "1.4rem" }}
-                    disabled={
-                        tasks
-                            ? tasks.length < 2 ||
-                              dLoading ||
-                              editingTaskId === "mock"
-                            : true
-                    }
-                >
-                    Delete
-                </Button>
-            </div>
         </Modal>
     );
 };
