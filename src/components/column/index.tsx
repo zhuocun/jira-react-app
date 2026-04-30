@@ -310,6 +310,7 @@ const Column = React.forwardRef<
                                     isDragDisabled={
                                         isDragDisabled || task._id === "mock"
                                     }
+                                    disableInteractiveElementBlocking
                                 >
                                     <TaskCard
                                         isMock={task._id === "mock"}
