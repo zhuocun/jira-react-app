@@ -81,6 +81,24 @@ export const ColumnContainer = styled.div`
     -webkit-overflow-scrolling: touch;
     scroll-padding-inline: ${themeSpace.md}px;
 
+    /* Subtle scrollbar on platforms that paint one (Firefox, desktop Linux,
+     * older Edge). Keeps the visual rhythm calm without going to a hidden
+     * scrollbar (which would remove the affordance entirely). */
+    scrollbar-width: thin;
+    scrollbar-color: var(--ant-color-fill-secondary, rgba(15, 23, 42, 0.08))
+        transparent;
+
+    &::-webkit-scrollbar {
+        height: 8px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--ant-color-fill-secondary, rgba(15, 23, 42, 0.08));
+        border-radius: ${radius.pill}px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.16));
+    }
+
     /*
      * On phone-sized viewports we show roughly one column at a time, so
      * snap horizontal swipes to each column for a Trello-style flick UX.
@@ -130,13 +148,19 @@ const BoardHeader = styled.div`
 const BoardTitle = styled(Typography.Title)`
     && {
         flex: 1 1 auto;
-        font-size: ${fontSize.xxl}px;
+        font-size: ${fontSize.xl}px;
         font-weight: ${fontWeight.semibold};
         letter-spacing: ${letterSpacing.tight};
         line-height: ${lineHeight.tight};
         margin: 0;
         min-width: 0;
         overflow-wrap: anywhere;
+    }
+
+    @media (min-width: ${breakpoints.md}px) {
+        && {
+            font-size: ${fontSize.xxl}px;
+        }
     }
 `;
 

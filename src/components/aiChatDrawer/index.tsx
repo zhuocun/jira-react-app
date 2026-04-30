@@ -164,7 +164,9 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 body: {
                     display: "flex",
                     flexDirection: "column",
-                    paddingBottom: `max(${space.xs}px, env(safe-area-inset-bottom))`
+                    paddingBottom: `max(${space.md}px, env(safe-area-inset-bottom))`,
+                    paddingInlineEnd: `max(${space.lg}px, env(safe-area-inset-right))`,
+                    paddingInlineStart: `max(${space.lg}px, env(safe-area-inset-left))`
                 }
             }}
             title={

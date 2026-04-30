@@ -1,4 +1,4 @@
-import { Form, Input, Modal, Select, Spin, Typography } from "antd";
+import { Form, Grid, Input, Modal, Select, Spin, Typography } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { useEffect } from "react";
 
@@ -22,6 +22,7 @@ const ProjectModal: React.FC = () => {
     const { isModalOpened, closeModal, editingProject, isLoading } =
         useProjectModal();
     const isEditing = Boolean(editingProject);
+    const screens = Grid.useBreakpoint();
 
     const createProjectMutation = useReactMutation<IProject>(
         "projects",
@@ -66,12 +67,22 @@ const ProjectModal: React.FC = () => {
             confirmLoading={mutateLoading}
             destroyOnHidden={false}
             forceRender
-            okButtonProps={{ disabled: isLoading, size: "large" }}
-            cancelButtonProps={{ size: "large" }}
+            okButtonProps={{
+                block: !screens.sm,
+                disabled: isLoading,
+                size: "large"
+            }}
+            cancelButtonProps={{ block: !screens.sm, size: "large" }}
             okText={okText}
             onCancel={onClose}
             onOk={submit}
             open={isModalOpened}
+            styles={{
+                body: {
+                    maxHeight: "calc(100dvh - 220px)",
+                    overflowY: "auto"
+                }
+            }}
             title={modalTitle}
             width="min(520px, calc(100vw - 32px))"
         >

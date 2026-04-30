@@ -7,6 +7,8 @@ import { microcopy } from "../../constants/microcopy";
 import { AuthButton } from "../../layouts/authLayout";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 
+const inputSize = "large" as const;
+
 const LoginForm: React.FC<{
     onError: React.Dispatch<React.SetStateAction<Error | IError | null>>;
 }> = ({ onError }) => {
@@ -52,6 +54,7 @@ const LoginForm: React.FC<{
                     inputMode="email"
                     onChange={() => onError(null)}
                     placeholder="name@example.com"
+                    size={inputSize}
                     type="email"
                     id="email"
                 />
@@ -97,6 +100,7 @@ const LoginForm: React.FC<{
                                 event.getModifierState("CapsLock")
                         )
                     }
+                    size={inputSize}
                     id="password"
                 />
             </Form.Item>

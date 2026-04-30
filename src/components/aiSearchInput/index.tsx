@@ -1,4 +1,4 @@
-import { Alert, Button, Input, Space, Spin } from "antd";
+import { Alert, Button, Input, Spin } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
 
 import environment from "../../constants/env";
@@ -145,14 +145,21 @@ const AiSearchInput: React.FC<Props> = (props) => {
 
     return (
         <div style={{ marginBottom: themeSpace.md }}>
-            <Space wrap align="start">
+            <div
+                style={{
+                    alignItems: "center",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: themeSpace.xs
+                }}
+            >
                 <Input
                     aria-label="Ask Board Copilot a question about tasks or projects"
                     disabled={busy}
                     onChange={(e) => setDraft(e.target.value)}
                     onPressEnter={() => void onSearch()}
                     placeholder="Ask Board Copilot a question…"
-                    style={{ width: "min(22rem, 100%)" }}
+                    style={{ flex: "1 1 14rem", minWidth: 0 }}
                     value={draft}
                 />
                 <Button
@@ -170,7 +177,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                         Clear AI search
                     </Button>
                 ) : null}
-            </Space>
+            </div>
             {busy ? (
                 <Spin
                     aria-label="Searching"

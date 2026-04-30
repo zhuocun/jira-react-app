@@ -3,7 +3,13 @@ import styled from "@emotion/styled";
 import { Avatar, List, Popover, Typography } from "antd";
 
 import { microcopy } from "../../constants/microcopy";
-import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
+import {
+    breakpoints,
+    fontSize,
+    fontWeight,
+    radius,
+    space
+} from "../../theme/tokens";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 import EmptyState from "../emptyState";
 
@@ -12,6 +18,12 @@ const ContentContainer = styled.div`
     max-width: min(30rem, calc(100vw - 32px));
     min-width: min(20rem, calc(100vw - 32px));
     overflow-y: auto;
+`;
+
+const TriggerLabel = styled.span`
+    @media (max-width: ${breakpoints.sm - 1}px) {
+        display: none;
+    }
 `;
 
 const SectionLabel = styled(Typography.Text)`
@@ -101,9 +113,7 @@ const MemberPopover: React.FC = () => {
                                     <Avatar
                                         size="small"
                                         style={{
-                                            backgroundImage: gradientFor(
-                                                member._id
-                                            ),
+                                            background: gradientFor(member._id),
                                             color: "#fff",
                                             fontSize: 11,
                                             fontWeight: 600
@@ -133,7 +143,7 @@ const MemberPopover: React.FC = () => {
         >
             <TriggerButton aria-label="View team members" type="button">
                 <TeamOutlined aria-hidden />
-                Members
+                <TriggerLabel>Members</TriggerLabel>
                 <CaretDownOutlined
                     aria-hidden
                     style={{ fontSize: 10, opacity: 0.6 }}

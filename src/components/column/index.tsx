@@ -48,18 +48,19 @@ export const ColumnContainer = styled.div`
 
     /*
      * On phone-sized viewports a full desktop column overflows the screen.
-     * Cap the column to the viewport width minus page padding so the user
-     * always sees one full column at a time, then horizontally swipes
-     * between them. Pair this rule with scroll-snap on the parent.
+     * BoardShell uses ${space.md}px horizontal padding on mobile (16 + 16 =
+     * 32). Subtract another ${space.md}px so the next column peeks past the
+     * edge — that's the affordance that hints "more columns this way" and
+     * pairs with scroll-snap on the parent to give a Trello-style flick UX.
      */
     @media (max-width: ${breakpoints.md - 1}px) {
         min-width: min(
             ${columnMinWidthRem}rem,
-            calc(100vw - ${space.xl + space.md}px)
+            calc(100vw - ${space.md * 2 + space.md}px)
         );
         width: min(
             ${columnMinWidthRem}rem,
-            calc(100vw - ${space.xl + space.md}px)
+            calc(100vw - ${space.md * 2 + space.md}px)
         );
     }
 `;
@@ -101,6 +102,19 @@ const TaskCardOuter = styled.button`
     &:disabled {
         cursor: default;
         opacity: 0.7;
+    }
+
+    /* On touch devices the hover lift feels janky and never triggers; skip
+     * it so finger taps don't get a stale outline. */
+    @media (hover: none) {
+        &:hover:not(:disabled) {
+            border-color: var(
+                --ant-color-border-secondary,
+                rgba(15, 23, 42, 0.06)
+            );
+            box-shadow: ${shadow.xs};
+            transform: none;
+        }
     }
 `;
 
@@ -316,7 +330,7 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                                 <Avatar
                                     size="small"
                                     style={{
-                                        backgroundImage:
+                                        background:
                                             "linear-gradient(135deg, #7C5CFF 0%, #5E6AD2 100%)",
                                         color: "#fff",
                                         fontSize: 11,
