@@ -8,8 +8,11 @@ import useUrl from "./useUrl";
 
 const useProjectModal = () => {
     const dispatch = useReduxDispatch();
-    const [{ modal }, setModal] = useUrl(["modal"]);
-    const [{ editingProjectId }, setEditingProjectId] = useUrl([
+    // Use a single useUrl so closeModal can clear both keys atomically. Two
+    // separate setSearchParams calls would each close over the same URL
+    // snapshot and the second would clobber the first.
+    const [{ modal, editingProjectId }, setUrl] = useUrl([
+        "modal",
         "editingProjectId"
     ]);
     const { data: editingProject, isLoading } = useReactQuery<IProject>(
@@ -22,14 +25,13 @@ const useProjectModal = () => {
     );
     const isModalOpened = useReduxSelector((s) => s.projectModal.isModalOpened);
     const openModal = () => {
-        setModal({ modal: "on" });
+        setUrl({ modal: "on" });
     };
     const closeModal = () => {
-        setModal({ modal: undefined });
-        setEditingProjectId({ editingProjectId: undefined });
+        setUrl({ modal: undefined, editingProjectId: undefined });
     };
     const startEditing = (id: string) => {
-        setEditingProjectId({ editingProjectId: id });
+        setUrl({ editingProjectId: id });
     };
 
     useEffect(() => {
