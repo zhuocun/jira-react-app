@@ -59,7 +59,9 @@ const MemberPopover: React.FC = () => {
                                 avatar={
                                     <Avatar
                                         size="small"
-                                        style={{ backgroundColor: brand.primary }}
+                                        style={{
+                                            backgroundColor: brand.primary
+                                        }}
                                     >
                                         {initialsOf(member.username)}
                                     </Avatar>

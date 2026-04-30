@@ -135,7 +135,9 @@ describe("Header", () => {
     it("resets to projects when the logo is clicked outside the projects list", () => {
         renderHeader("/projects/p1/board");
 
-        fireEvent.click(screen.getByRole("button", { name: /go to projects/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: /go to projects/i })
+        );
 
         expect(mockedResetRoute).toHaveBeenCalledTimes(1);
     });
@@ -143,7 +145,9 @@ describe("Header", () => {
     it("does not reset when already on the projects list", () => {
         renderHeader("/projects");
 
-        fireEvent.click(screen.getByRole("button", { name: /go to projects/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: /go to projects/i })
+        );
 
         expect(mockedResetRoute).not.toHaveBeenCalled();
     });

@@ -134,6 +134,7 @@ const renderList = ({
         user: currentUser
     });
     mockedUseProjectModal.mockReturnValue({
+        openModal: jest.fn(),
         startEditing
     });
     mockedUseReactMutation.mockImplementation((endpoint: string) =>
@@ -173,75 +174,69 @@ describe("ProjectList", () => {
     it("renders project rows with manager, fallback, date, and relative links", async () => {
         renderList();
 
-        expect(screen.getByRole("link", { name: "Roadmap" })).toHaveAttribute(
+        expect(screen.getByRole("link", { name: /Roadmap/i })).toHaveAttribute(
             "href",
             "/projects/project-1"
         );
         expect(screen.getByText("Product")).toBeInTheDocument();
         expect(screen.getByText("Alice")).toBeInTheDocument();
-        expect(screen.getByText("2026-04-25")).toBeInTheDocument();
+        expect(screen.getByText("Apr 25, 2026")).toBeInTheDocument();
         expect(screen.getByText("Design System")).toBeInTheDocument();
         expect(screen.getByText("unknown")).toBeInTheDocument();
         expect(screen.getByText("Null")).toBeInTheDocument();
         await waitFor(() => expect(refreshUser).toHaveBeenCalledTimes(1));
     });
 
-    it("shows the Ant Design empty table state", () => {
+    it("shows the empty state when there are no projects", () => {
         renderList({
             dataSource: [],
             loading: false
         });
 
-        expect(screen.getAllByText("No data").length).toBeGreaterThan(0);
+        expect(screen.getByText(/no projects yet/i)).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /create project/i })
+        ).toBeInTheDocument();
     });
 
-    it("calls the like mutation and flips the visible star while pending", async () => {
+    it("calls the like mutation and flips the visible heart while pending", async () => {
         likeProject.mockReturnValue(
             new Promise(() => {
-                // Keep the mutation pending so the optimistic star state remains visible.
+                // Keep the mutation pending so the optimistic heart state remains visible.
             })
         );
-        const { container } = renderList({
+        renderList({
             currentUser: user({ likedProjects: ["project-1"] })
         });
-        const firstProjectRate = container.querySelector(
-            ".ant-table-tbody .ant-rate"
-        );
 
-        expect(
-            firstProjectRate?.querySelector(".ant-rate-star-full")
-        ).toBeInTheDocument();
+        const unlikeButton = screen.getByRole("button", {
+            name: /unlike roadmap/i
+        });
+        expect(unlikeButton).toHaveAttribute("aria-pressed", "true");
 
-        fireEvent.click(
-            firstProjectRate?.querySelector(".ant-rate-star-first") as Element
-        );
+        fireEvent.click(unlikeButton);
 
         expect(likeProject).toHaveBeenCalledWith({ projectId: "project-1" });
         await waitFor(() => {
             expect(
-                firstProjectRate?.querySelector(".ant-rate-star-zero")
-            ).toBeInTheDocument();
+                screen.getByRole("button", { name: /like roadmap/i })
+            ).toHaveAttribute("aria-pressed", "false");
         });
     });
 
     it("clears the optimistic liked project when the like mutation resolves", async () => {
         likeProject.mockResolvedValue({});
-        const { container } = renderList();
-        const firstProjectRate = container.querySelector(
-            ".ant-table-tbody .ant-rate"
-        );
+        renderList();
+        const likeButton = screen.getByRole("button", {
+            name: /like roadmap/i
+        });
 
-        fireEvent.click(
-            firstProjectRate?.querySelector(".ant-rate-star-first") as Element
-        );
+        fireEvent.click(likeButton);
 
-        expect(
-            firstProjectRate?.querySelector(".ant-rate-star-full")
-        ).toBeInTheDocument();
         await waitFor(() => {
             expect(
-                firstProjectRate?.querySelector(".ant-rate-star-zero")
-            ).toBeInTheDocument();
+                screen.getByRole("button", { name: /like roadmap/i })
+            ).toHaveAttribute("aria-pressed", "false");
         });
     });
 
@@ -265,7 +260,9 @@ describe("ProjectList", () => {
     it("opens the edit flow from row actions", () => {
         renderList();
 
-        fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+        fireEvent.click(
+            screen.getByRole("button", { name: /^edit roadmap$/i })
+        );
 
         expect(startEditing).toHaveBeenCalledWith("project-1");
     });
@@ -282,12 +279,14 @@ describe("ProjectList", () => {
             });
         renderList();
 
-        fireEvent.click(screen.getAllByRole("button", { name: "Delete" })[0]);
+        fireEvent.click(
+            screen.getByRole("button", { name: /^delete roadmap$/i })
+        );
 
         expect(confirmSpy).toHaveBeenCalledWith(
             expect.objectContaining({
-                content: "This action cannot be undone",
-                title: "Are you sure to delete this project?"
+                content: "This action cannot be undone.",
+                title: "Delete this project?"
             })
         );
         expect(removeProject).toHaveBeenCalledWith({

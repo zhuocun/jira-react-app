@@ -230,9 +230,9 @@ describe("ProjectPage", () => {
         resolveProjects(response([]));
         resolveMembers(response([]));
 
-        expect((await screen.findAllByText("No data")).length).toBeGreaterThan(
-            0
-        );
+        expect(
+            await screen.findByText(/no projects yet/i)
+        ).toBeInTheDocument();
     });
 
     it("shows a shared error message when either query fails", async () => {
@@ -255,7 +255,7 @@ describe("ProjectPage", () => {
 
         expect(
             await screen.findByText(
-                "Data fetching failed, please try again later."
+                /data fetching failed, please try again later/i
             )
         ).toBeInTheDocument();
     });

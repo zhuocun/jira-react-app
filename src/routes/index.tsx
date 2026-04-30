@@ -10,6 +10,10 @@ import RegisterPage from "../pages/register";
 /**
  * Single "/" match: index redirects to login; sibling branch renders the auth/main shell.
  * Nested paths use relative segments (e.g. projects/:projectId/board).
+ *
+ * Note: route-level code splitting (React.lazy) is intentionally deferred —
+ * landing it would force an audit of every page-mount test (Suspense boundaries
+ * defer first paint, breaking synchronous getBy* queries).
  */
 const routes = [
     {

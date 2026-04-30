@@ -6,14 +6,7 @@ import {
     SunOutlined
 } from "@ant-design/icons";
 import styled from "@emotion/styled";
-import {
-    Avatar,
-    Dropdown,
-    MenuProps,
-    Space,
-    Switch,
-    Typography
-} from "antd";
+import { Avatar, Dropdown, MenuProps, Space, Switch, Typography } from "antd";
 import { useLocation } from "react-router";
 
 import Logo from "../../assets/logo-software.svg?react";
@@ -180,9 +173,7 @@ const Header: React.FC = () => {
                         >
                             {initialsOf(user?.username)}
                         </Avatar>
-                        <Typography.Text>
-                            Hi, {user?.username}
-                        </Typography.Text>
+                        <Typography.Text>Hi, {user?.username}</Typography.Text>
                         <DownOutlined style={{ fontSize: 10 }} />
                     </TriggerButton>
                 </Dropdown>
