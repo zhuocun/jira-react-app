@@ -79,8 +79,8 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
             {error && !isLoading && (
                 <Alert
                     description={error.message}
-                    message="Couldn't generate the brief"
                     showIcon
+                    title="Couldn't generate the brief"
                     type="warning"
                 />
             )}
@@ -89,9 +89,9 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                     <h3>{data.headline}</h3>
                     <Alert
                         description={data.recommendation}
-                        message="Recommended next step"
                         showIcon
                         style={{ marginBottom: 16 }}
+                        title="Recommended next step"
                         type="info"
                     />
                     <h4>Counts per column</h4>

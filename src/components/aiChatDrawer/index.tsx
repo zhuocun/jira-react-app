@@ -207,10 +207,10 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 <Alert
                     closable
                     description={error.message}
-                    message="Something went wrong"
                     onClose={dismissError}
                     showIcon
                     style={{ marginBottom: 8 }}
+                    title="Something went wrong"
                     type="warning"
                 />
             )}
