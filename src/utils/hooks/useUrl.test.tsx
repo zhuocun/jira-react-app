@@ -127,7 +127,9 @@ describe("useUrl", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "open modal" }));
         await waitFor(() =>
-            expect(screen.getByTestId("search")).toHaveTextContent("?extra=keep")
+            expect(screen.getByTestId("search")).toHaveTextContent(
+                "?extra=keep"
+            )
         );
 
         fireEvent.click(screen.getByRole("button", { name: "start editing" }));

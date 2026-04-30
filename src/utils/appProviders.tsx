@@ -29,7 +29,8 @@ const usePointerCoarse = () => {
             return;
         }
         const media = window.matchMedia("(pointer: coarse)");
-        const handler = (event: MediaQueryListEvent) => setCoarse(event.matches);
+        const handler = (event: MediaQueryListEvent) =>
+            setCoarse(event.matches);
         if (typeof media.addEventListener === "function") {
             media.addEventListener("change", handler);
             return () => media.removeEventListener("change", handler);

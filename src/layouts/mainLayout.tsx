@@ -6,17 +6,25 @@ import ProjectModal from "../components/projectModal";
 
 const Container = styled.div`
     display: grid;
-    grid-template-rows: 6rem 1fr;
-    height: 100vh;
-    max-height: 1440px;
-    min-width: 1024px;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+    min-height: 100dvh;
 `;
 
 const Main = styled.main`
     display: flex;
-    overflow: scroll;
+    min-height: 0;
 `;
 
+/**
+ * Application shell. Header + outlet + always-mounted ProjectModal drawer.
+ *
+ * The previous version hard-coded `min-width: 1024px`, `max-height: 1440px`,
+ * and `overflow: scroll` on `<main>`, which blocked mobile/tablet entirely
+ * and produced double scrollbars (the inner column container scrolls too).
+ * We now let the inner regions own scroll and let the page reflow at any
+ * width down to 320px (WCAG 1.4.10).
+ */
 const MainLayout = () => {
     return (
         <Container>

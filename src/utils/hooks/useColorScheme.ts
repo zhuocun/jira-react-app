@@ -53,7 +53,11 @@ const useColorScheme = (): {
         if (!isBrowser()) return;
         const handler = (event: Event) => {
             const detail = (event as CustomEvent<ColorSchemePreference>).detail;
-            if (detail === "light" || detail === "dark" || detail === "system") {
+            if (
+                detail === "light" ||
+                detail === "dark" ||
+                detail === "system"
+            ) {
                 setPreferenceState(detail);
             }
         };

@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { Button, Space, Spin, Switch, Tooltip, Typography } from "antd";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import AiChatDrawer from "../components/aiChatDrawer";
@@ -72,6 +72,18 @@ const BoardPage = () => {
     const { onDragEnd, isColumnDragDisabled, isTaskDragDisabled } =
         useDragEnd();
     const visibleTasks = tasks ?? [];
+    const tasksByColumn = useMemo(() => {
+        const buckets = new Map<string, ITask[]>();
+        for (const t of visibleTasks) {
+            const list = buckets.get(t.columnId);
+            if (list) {
+                list.push(t);
+            } else {
+                buckets.set(t.columnId, [t]);
+            }
+        }
+        return buckets;
+    }, [visibleTasks]);
     const { enabled: aiEnabled } = useAiEnabled();
     const {
         disabled: aiDisabledForProject,
@@ -197,10 +209,11 @@ const BoardPage = () => {
                                     >
                                         <Column
                                             boardAiOn={boardAiOn}
-                                            tasks={visibleTasks.filter(
-                                                (task) =>
-                                                    task.columnId === column._id
-                                            )}
+                                            tasks={
+                                                tasksByColumn.get(
+                                                    column._id
+                                                ) ?? []
+                                            }
                                             key={column._id}
                                             column={column}
                                             param={debouncedParam}

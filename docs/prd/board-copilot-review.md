@@ -2,12 +2,12 @@
 
 Companion to [`board-copilot.md`](board-copilot.md) (PRD) and [`board-copilot-progress.md`](board-copilot-progress.md) (progress log). This review reads the code currently on `main` and reports whether each PRD requirement is reflected, with file/line evidence and the deltas worth knowing.
 
-| Field | Value |
-| --- | --- |
-| Reviewer scope | Read-only review of `main` (commit chain through #13) against `docs/prd/board-copilot.md` |
-| Last updated | 2026-04-30 |
-| Reviewed against | PRD §3 – §13 |
-| Verdict | The implementation reflects the design across all five capabilities. Two material deviations and four small gaps are documented below. |
+| Field            | Value                                                                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Reviewer scope   | Read-only review of `main` (commit chain through #13) against `docs/prd/board-copilot.md`                                              |
+| Last updated     | 2026-04-30                                                                                                                             |
+| Reviewed against | PRD §3 – §13                                                                                                                           |
+| Verdict          | The implementation reflects the design across all five capabilities. Two material deviations and four small gaps are documented below. |
 
 ---
 
@@ -24,17 +24,17 @@ Companion to [`board-copilot.md`](board-copilot.md) (PRD) and [`board-copilot-pr
 
 ## 1. Capability A — Smart task drafting (PRD §5.1)
 
-| PRD requirement | Implementation | Verdict |
-| --- | --- | --- |
-| New affordance next to `+ Create task` | `src/components/taskCreator/index.tsx` mounts `Draft with AI` link gated by `useAiEnabled` | ✅ |
-| Free-text prompt up to 1k chars | `src/components/aiTaskDraftModal/index.tsx` `<TextArea maxLength={1000}>` | ✅ |
-| Structured output `IDraftTaskSuggestion` | `src/interfaces/ai.d.ts`; produced by `draftTask` in `src/utils/ai/engine.ts`; cross-checked by `validateDraft` in `src/utils/ai/validate.ts` | ✅ |
-| Suggestion populates the existing antd form | `aiTaskDraftModal` uses `form.setFieldsValue(suggestion)` after `useAi.run({ draft: ... })` | ✅ |
-| Submit goes through `useReactMutation("tasks", "POST", ["tasks", { projectId }], newTaskCallback)` | Same hook + same `newTaskCallback` from `src/utils/optimisticUpdate/createTask.ts` | ✅ |
-| `Break down` returns 2..6 child suggestions and posts each via the existing optimistic flow | `breakdownTask` (`engine.ts`); modal submits selected items sequentially via `createTask` | ✅ |
-| Unknown `columnId`/`coordinatorId` rejected and replaced with safe defaults | `validateDraft` swaps to `fallbackColumnId` / `fallbackCoordinatorId`, then to `context.columns[0]` / `context.members[0]` | ✅ |
-| Story points clamped to `1/2/3/5/8/13` | `clampToFibonacci` in `src/utils/ai/storyPoints.ts`, used inside `validateDraft` | ✅ |
-| Abort on close / unmount | `useAi.abort()` in `useAi.ts`, called from `controllerRef.current?.abort()` on unmount and on each new `run` | ✅ |
+| PRD requirement                                                                                    | Implementation                                                                                                                                | Verdict |
+| -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| New affordance next to `+ Create task`                                                             | `src/components/taskCreator/index.tsx` mounts `Draft with AI` link gated by `useAiEnabled`                                                    | ✅      |
+| Free-text prompt up to 1k chars                                                                    | `src/components/aiTaskDraftModal/index.tsx` `<TextArea maxLength={1000}>`                                                                     | ✅      |
+| Structured output `IDraftTaskSuggestion`                                                           | `src/interfaces/ai.d.ts`; produced by `draftTask` in `src/utils/ai/engine.ts`; cross-checked by `validateDraft` in `src/utils/ai/validate.ts` | ✅      |
+| Suggestion populates the existing antd form                                                        | `aiTaskDraftModal` uses `form.setFieldsValue(suggestion)` after `useAi.run({ draft: ... })`                                                   | ✅      |
+| Submit goes through `useReactMutation("tasks", "POST", ["tasks", { projectId }], newTaskCallback)` | Same hook + same `newTaskCallback` from `src/utils/optimisticUpdate/createTask.ts`                                                            | ✅      |
+| `Break down` returns 2..6 child suggestions and posts each via the existing optimistic flow        | `breakdownTask` (`engine.ts`); modal submits selected items sequentially via `createTask`                                                     | ✅      |
+| Unknown `columnId`/`coordinatorId` rejected and replaced with safe defaults                        | `validateDraft` swaps to `fallbackColumnId` / `fallbackCoordinatorId`, then to `context.columns[0]` / `context.members[0]`                    | ✅      |
+| Story points clamped to `1/2/3/5/8/13`                                                             | `clampToFibonacci` in `src/utils/ai/storyPoints.ts`, used inside `validateDraft`                                                              | ✅      |
+| Abort on close / unmount                                                                           | `useAi.abort()` in `useAi.ts`, called from `controllerRef.current?.abort()` on unmount and on each new `run`                                  | ✅      |
 
 **Acceptance criteria** AC-A1..A7 — all reflected.
 
@@ -42,18 +42,18 @@ Companion to [`board-copilot.md`](board-copilot.md) (PRD) and [`board-copilot-pr
 
 ## 2. Capability B — AI estimation + readiness (PRD §5.2)
 
-| PRD requirement | Implementation | Verdict |
-| --- | --- | --- |
-| Sidebar inside `TaskModal` with two cards | `src/components/aiTaskAssistPanel/index.tsx` (`Suggested story points` + `Readiness check`) | ✅ |
-| Mounted only for non-mock tasks when AI is on | `src/components/taskModal/index.tsx` mounts `AiTaskAssistPanel` only when `boardAiOn && editingTaskId !== "mock"` | ✅ |
-| Inputs use the React Query cache | `useCachedQueryData` and `useQueryClient().getQueryData` for `tasks`, `members`, `boards` | ✅ |
-| Debounced re-estimation (≈1000 ms via `useDebounce`) | `useDebounce(values, 600)` in `aiTaskAssistPanel` (note: 600 ms vs PRD's 1000 ms — see §6) | ⚠️ Minor delta |
-| Suggested points always in `{1,2,3,5,8,13}` | `clampToFibonacci` (`storyPoints.ts`) inside `validateEstimate` | ✅ |
-| `similar[]._id` validated against the project's `tasks` cache | `validateEstimate` filters via `taskIds.has(entry._id)` | ✅ |
-| `Apply suggestion` only fills the form, never submits | `taskModal` callback calls `form.setFieldsValue(...)`; submit still requires the user clicking the Submit button | ✅ |
-| Closing the modal mid-request aborts | `useAi.abort()` on unmount; `assistPanel`'s effect re-runs via debounced values | ✅ |
-| Readiness covers `taskName`, `note`, `epic`, `type`, `coordinatorId` | `readiness()` in `engine.ts`; field whitelist enforced in `validateReadiness` | ✅ |
-| `Apply` for the readiness `note` appends an `## Acceptance criteria` block | `taskModal` `onApplySuggestion` for `note` builds the appended markdown | ✅ |
+| PRD requirement                                                            | Implementation                                                                                                    | Verdict        |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------- |
+| Sidebar inside `TaskModal` with two cards                                  | `src/components/aiTaskAssistPanel/index.tsx` (`Suggested story points` + `Readiness check`)                       | ✅             |
+| Mounted only for non-mock tasks when AI is on                              | `src/components/taskModal/index.tsx` mounts `AiTaskAssistPanel` only when `boardAiOn && editingTaskId !== "mock"` | ✅             |
+| Inputs use the React Query cache                                           | `useCachedQueryData` and `useQueryClient().getQueryData` for `tasks`, `members`, `boards`                         | ✅             |
+| Debounced re-estimation (≈1000 ms via `useDebounce`)                       | `useDebounce(values, 600)` in `aiTaskAssistPanel` (note: 600 ms vs PRD's 1000 ms — see §6)                        | ⚠️ Minor delta |
+| Suggested points always in `{1,2,3,5,8,13}`                                | `clampToFibonacci` (`storyPoints.ts`) inside `validateEstimate`                                                   | ✅             |
+| `similar[]._id` validated against the project's `tasks` cache              | `validateEstimate` filters via `taskIds.has(entry._id)`                                                           | ✅             |
+| `Apply suggestion` only fills the form, never submits                      | `taskModal` callback calls `form.setFieldsValue(...)`; submit still requires the user clicking the Submit button  | ✅             |
+| Closing the modal mid-request aborts                                       | `useAi.abort()` on unmount; `assistPanel`'s effect re-runs via debounced values                                   | ✅             |
+| Readiness covers `taskName`, `note`, `epic`, `type`, `coordinatorId`       | `readiness()` in `engine.ts`; field whitelist enforced in `validateReadiness`                                     | ✅             |
+| `Apply` for the readiness `note` appends an `## Acceptance criteria` block | `taskModal` `onApplySuggestion` for `note` builds the appended markdown                                           | ✅             |
 
 **Acceptance criteria** AC-B1..B6 — all reflected.
 
@@ -61,15 +61,15 @@ Companion to [`board-copilot.md`](board-copilot.md) (PRD) and [`board-copilot-pr
 
 ## 3. Capability C — Board summary brief (PRD §5.3)
 
-| PRD requirement | Implementation | Verdict |
-| --- | --- | --- |
-| `Brief` button in board header gated by AI toggle | `src/pages/board.tsx` renders the button inside `aiEnabled && boardAiOn` block | ✅ |
-| Drawer contains headline / counts / largest unstarted / unowned / workload / recommendation | `src/components/boardBriefDrawer/index.tsx` matches all five blocks plus an `Alert` for the recommendation | ✅ |
-| Inputs read entirely from caches; no new server fetch | `BoardPage` passes `board`, `visibleTasks`, `members`, `currentProject` from existing `useReactQuery` results | ✅ |
-| Output `IBoardBrief` with all referenced ids validated | `boardBrief` in `engine.ts`; `validateBoardBrief` filters `counts`, `largestUnstarted`, `unowned`, `workload` by cache ids | ✅ |
-| Deep-link to existing task modal | `BoardBriefDrawer` calls `useTaskModal().startEditing(taskId)` and closes the drawer | ✅ |
-| Read-only — no mutation buttons inside the drawer | Verified by reading the file: only `List` items (clickable for deep-link) and a recommendation `Alert` | ✅ |
-| Drawer aborts the request on close | `BoardBriefDrawer`'s effect tears down via `useAi.reset()` cleanup (and `useAi`'s own unmount aborts) | ✅ |
+| PRD requirement                                                                             | Implementation                                                                                                             | Verdict |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `Brief` button in board header gated by AI toggle                                           | `src/pages/board.tsx` renders the button inside `aiEnabled && boardAiOn` block                                             | ✅      |
+| Drawer contains headline / counts / largest unstarted / unowned / workload / recommendation | `src/components/boardBriefDrawer/index.tsx` matches all five blocks plus an `Alert` for the recommendation                 | ✅      |
+| Inputs read entirely from caches; no new server fetch                                       | `BoardPage` passes `board`, `visibleTasks`, `members`, `currentProject` from existing `useReactQuery` results              | ✅      |
+| Output `IBoardBrief` with all referenced ids validated                                      | `boardBrief` in `engine.ts`; `validateBoardBrief` filters `counts`, `largestUnstarted`, `unowned`, `workload` by cache ids | ✅      |
+| Deep-link to existing task modal                                                            | `BoardBriefDrawer` calls `useTaskModal().startEditing(taskId)` and closes the drawer                                       | ✅      |
+| Read-only — no mutation buttons inside the drawer                                           | Verified by reading the file: only `List` items (clickable for deep-link) and a recommendation `Alert`                     | ✅      |
+| Drawer aborts the request on close                                                          | `BoardBriefDrawer`'s effect tears down via `useAi.reset()` cleanup (and `useAi`'s own unmount aborts)                      | ✅      |
 
 **Acceptance criteria** AC-C1..C5 — all reflected.
 
@@ -77,16 +77,16 @@ Companion to [`board-copilot.md`](board-copilot.md) (PRD) and [`board-copilot-pr
 
 ## 4. Capability D — Conversational assistant (PRD §5.4)
 
-| PRD requirement | Implementation | Verdict |
-| --- | --- | --- |
-| Right-edge drawer "Ask Board Copilot" on board and project pages | `src/components/aiChatDrawer/index.tsx` mounted from `pages/board.tsx` and `pages/project.tsx` (`Ask` button) | ✅ |
-| Streaming-style message UI with role separation | Drawer renders `user` / `assistant` / `tool` messages, with `Spin` and live tool-name marker (`streamingText`) | ✅ |
-| Tool definitions limited to read-only set | `src/utils/ai/chatTools.ts` whitelist: `listProjects`, `listMembers`, `getProject`, `listBoard`, `listTasks`, `getTask` | ✅ |
-| Tool calls executed client-side via `useApi` | `executeChatToolCall` in `chatTools.ts` calls into the `ApiCaller` injected by `useAiChat`, which uses `useApi` | ✅ |
-| Result ids validated against caches before being passed back | Each tool checks `ctx.knownProjectIds` / `knownTaskIds` / `knownMemberIds` / `knownColumnIds` before issuing the API call; `getTask` etc. return `{ error: ... }` instead of leaking | ✅ |
-| Conversation cleared on hard reload (no persistence) | `useAiChat` keeps `messages` in component `useState` only; no localStorage write | ✅ |
-| Closing the drawer aborts in-flight stream and tool calls | `AiChatDrawer.handleClose` calls `abort(); reset()`; `useAiChat`'s `AbortController` propagates into `executeChatToolCall(api, ctx, call, signal)` | ✅ |
-| Remote proxy contract via `${aiBaseUrl}/api/ai/chat` returning `{ kind: "text", text } \| { kind: "tool_calls", toolCalls }` | `remoteChatStep` in `useAiChat.ts` posts `{ messages, context }` and parses the response with `parseFetchBody` | ✅ |
+| PRD requirement                                                                                                              | Implementation                                                                                                                                                                       | Verdict |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| Right-edge drawer "Ask Board Copilot" on board and project pages                                                             | `src/components/aiChatDrawer/index.tsx` mounted from `pages/board.tsx` and `pages/project.tsx` (`Ask` button)                                                                        | ✅      |
+| Streaming-style message UI with role separation                                                                              | Drawer renders `user` / `assistant` / `tool` messages, with `Spin` and live tool-name marker (`streamingText`)                                                                       | ✅      |
+| Tool definitions limited to read-only set                                                                                    | `src/utils/ai/chatTools.ts` whitelist: `listProjects`, `listMembers`, `getProject`, `listBoard`, `listTasks`, `getTask`                                                              | ✅      |
+| Tool calls executed client-side via `useApi`                                                                                 | `executeChatToolCall` in `chatTools.ts` calls into the `ApiCaller` injected by `useAiChat`, which uses `useApi`                                                                      | ✅      |
+| Result ids validated against caches before being passed back                                                                 | Each tool checks `ctx.knownProjectIds` / `knownTaskIds` / `knownMemberIds` / `knownColumnIds` before issuing the API call; `getTask` etc. return `{ error: ... }` instead of leaking | ✅      |
+| Conversation cleared on hard reload (no persistence)                                                                         | `useAiChat` keeps `messages` in component `useState` only; no localStorage write                                                                                                     | ✅      |
+| Closing the drawer aborts in-flight stream and tool calls                                                                    | `AiChatDrawer.handleClose` calls `abort(); reset()`; `useAiChat`'s `AbortController` propagates into `executeChatToolCall(api, ctx, call, signal)`                                   | ✅      |
+| Remote proxy contract via `${aiBaseUrl}/api/ai/chat` returning `{ kind: "text", text } \| { kind: "tool_calls", toolCalls }` | `remoteChatStep` in `useAiChat.ts` posts `{ messages, context }` and parses the response with `parseFetchBody`                                                                       | ✅      |
 
 **Acceptance criteria** AC-D1..D4 — all reflected.
 
@@ -96,15 +96,15 @@ Companion to [`board-copilot.md`](board-copilot.md) (PRD) and [`board-copilot-pr
 
 ## 5. Capability E — Semantic search (PRD §5.5)
 
-| PRD requirement | Implementation | Verdict |
-| --- | --- | --- |
-| Surface in `taskSearchPanel` and `projectSearchPanel` | Both panels accept an optional `aiSearchSlot` prop and render `<AiSearchInput>` from the page | ✅ |
-| Calls `/api/ai/search` with `{ kind, query, projectId? }` and the cached items | `useAi.ts` `RunPayload.search` carries `kind`, `query`, `projectContext`/`projectsContext`; remote path posts to `${aiBaseUrl}/api/ai/search`; local path runs `semanticSearch` in `engine.ts` | ✅ |
-| `ISearchResult` validated, ids intersected with cache | `validateSearch` in `validate.ts`; called from both `useAi.validateResponse` and `AiSearchInput` direct local path | ✅ |
-| Empty result restores the unfiltered list and shows a hint | `AiSearchInput` clears `semanticIds` and renders an info `Alert` ("No semantic match…") | ✅ |
-| Clearing AI search restores the previous filter state | `Clear AI search` button calls `setSemanticIds(undefined)`; `taskSearchPanel.resetParams` also wipes `semanticIds`; `Column` only filters when `param.semanticIds` is set so the existing panel filters keep working | ✅ |
-| Project list narrowing | `pages/project.tsx` filters `projects` client-side by `param.semanticIds.split(",")` while keeping the original API result | ✅ |
-| Board narrowing | `Column` AND-filters tasks against `param.semanticIds` together with the existing `taskName` / `coordinatorId` / `type` filters | ✅ |
+| PRD requirement                                                                | Implementation                                                                                                                                                                                                       | Verdict |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Surface in `taskSearchPanel` and `projectSearchPanel`                          | Both panels accept an optional `aiSearchSlot` prop and render `<AiSearchInput>` from the page                                                                                                                        | ✅      |
+| Calls `/api/ai/search` with `{ kind, query, projectId? }` and the cached items | `useAi.ts` `RunPayload.search` carries `kind`, `query`, `projectContext`/`projectsContext`; remote path posts to `${aiBaseUrl}/api/ai/search`; local path runs `semanticSearch` in `engine.ts`                       | ✅      |
+| `ISearchResult` validated, ids intersected with cache                          | `validateSearch` in `validate.ts`; called from both `useAi.validateResponse` and `AiSearchInput` direct local path                                                                                                   | ✅      |
+| Empty result restores the unfiltered list and shows a hint                     | `AiSearchInput` clears `semanticIds` and renders an info `Alert` ("No semantic match…")                                                                                                                              | ✅      |
+| Clearing AI search restores the previous filter state                          | `Clear AI search` button calls `setSemanticIds(undefined)`; `taskSearchPanel.resetParams` also wipes `semanticIds`; `Column` only filters when `param.semanticIds` is set so the existing panel filters keep working | ✅      |
+| Project list narrowing                                                         | `pages/project.tsx` filters `projects` client-side by `param.semanticIds.split(",")` while keeping the original API result                                                                                           | ✅      |
+| Board narrowing                                                                | `Column` AND-filters tasks against `param.semanticIds` together with the existing `taskName` / `coordinatorId` / `type` filters                                                                                      | ✅      |
 
 **Acceptance criteria** AC-E1..E3 — all reflected.
 

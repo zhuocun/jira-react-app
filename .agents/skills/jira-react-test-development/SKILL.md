@@ -12,29 +12,29 @@ Use this skill to continue test development for the React Jira-style app from an
 ## First Moves
 
 1. Inspect the current state:
-   - `git status --short`
-   - `rg --files src __json_server_mock__ .agents/skills | sort`
-   - `rg --files -g '*test.*' -g '*spec.*' src __json_server_mock__`
-   - `sed -n '1,220p' package.json`
+    - `git status --short`
+    - `rg --files src __json_server_mock__ .agents/skills | sort`
+    - `rg --files -g '*test.*' -g '*spec.*' src __json_server_mock__`
+    - `sed -n '1,220p' package.json`
 2. Reconstruct the current test system before editing:
-   - Read `src/setupTests.ts` and any `src/test-utils*` or `src/**/test-utils*` files if they exist.
-   - Read existing tests relevant to the next likely area. Use `rg "describe\\(|it\\(|test\\(" src __json_server_mock__` to identify conventions and covered behavior.
-   - Note the current helper style, mocking style, provider wrappers, factories, module mocks, timer usage, and naming/location conventions.
-   - Identify source files that already have tests and source files with no direct tests.
+    - Read `src/setupTests.ts` and any `src/test-utils*` or `src/**/test-utils*` files if they exist.
+    - Read existing tests relevant to the next likely area. Use `rg "describe\\(|it\\(|test\\(" src __json_server_mock__` to identify conventions and covered behavior.
+    - Note the current helper style, mocking style, provider wrappers, factories, module mocks, timer usage, and naming/location conventions.
+    - Identify source files that already have tests and source files with no direct tests.
 3. Run the current test suite with coverage before editing:
-   - `CI=true npm test -- --watchAll=false --runInBand --coverage --coverageReporters=text --coverageReporters=json-summary --collectCoverageFrom='src/**/*.{ts,tsx}' --collectCoverageFrom='!src/**/*.d.ts' --collectCoverageFrom='__json_server_mock__/**/*.js'`
+    - `CI=true npm test -- --watchAll=false --runInBand --coverage --coverageReporters=text --coverageReporters=json-summary --collectCoverageFrom='src/**/*.{ts,tsx}' --collectCoverageFrom='!src/**/*.d.ts' --collectCoverageFrom='__json_server_mock__/**/*.js'`
 4. If the command fails because no tests exist, add the smallest infrastructure test first, then rerun.
 5. Build a short working map for yourself before adding tests:
-   - Existing test conventions to preserve.
-   - Current coverage percentage and files below 100%.
-   - The exact source file and behavior branch you will cover next.
-   - Any product defect or testability issue discovered while reading.
+    - Existing test conventions to preserve.
+    - Current coverage percentage and files below 100%.
+    - The exact source file and behavior branch you will cover next.
+    - Any product defect or testability issue discovered while reading.
 6. Read only the reference files needed for the next task:
-   - `references/project-map.md` for architecture, API contracts, known pitfalls, and current app behavior.
-   - `references/test-patterns.md` for recommended Jest/RTL helpers, provider wrappers, fetch mocks, router setup, and Ant Design handling.
-   - `references/test-inventory.md` for file-by-file coverage goals and scenario ideas.
-   - `references/coverage-workflow.md` for how to continue from 5%, 60%, 99%, or any other coverage state.
-   - `references/delegation-workflow.md` only when the user explicitly asks for subagents, delegation, or parallel test work.
+    - `references/project-map.md` for architecture, API contracts, known pitfalls, and current app behavior.
+    - `references/test-patterns.md` for recommended Jest/RTL helpers, provider wrappers, fetch mocks, router setup, and Ant Design handling.
+    - `references/test-inventory.md` for file-by-file coverage goals and scenario ideas.
+    - `references/coverage-workflow.md` for how to continue from 5%, 60%, 99%, or any other coverage state.
+    - `references/delegation-workflow.md` only when the user explicitly asks for subagents, delegation, or parallel test work.
 
 ## Quality Bar
 

@@ -34,7 +34,9 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     "data-testid": testId
 }) => (
     <Container data-testid={testId} role="status">
-        {illustration ?? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={null} />}
+        {illustration ?? (
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={null} />
+        )}
         <Typography.Title level={5} style={{ margin: 0 }}>
             {title}
         </Typography.Title>

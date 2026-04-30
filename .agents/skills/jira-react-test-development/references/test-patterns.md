@@ -209,7 +209,9 @@ Test query hooks through a tiny component:
 
 ```tsx
 const Probe = () => {
-    const result = useReactQuery<IProject[]>("projects", { projectName: "Road" });
+    const result = useReactQuery<IProject[]>("projects", {
+        projectName: "Road"
+    });
     if (result.isLoading) return <div>loading</div>;
     if (result.isError) return <div>error</div>;
     return <div>{result.data?.[0].projectName}</div>;

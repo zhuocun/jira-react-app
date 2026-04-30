@@ -49,10 +49,10 @@ Board Copilot has two backends:
 
 ### Environment variables
 
-| Variable                | Default | Effect                                                                        |
-| ----------------------- | ------- | ----------------------------------------------------------------------------- |
-| `REACT_APP_AI_ENABLED`  | `true`  | Set to `false` at build time to hide every AI surface and bypass the hook. Also supports `VITE_AI_ENABLED` (see Vite note below).    |
-| `REACT_APP_AI_BASE_URL` | empty   | When non-empty, AI calls go to `${...}/api/ai/<route>`. Empty = local engine. Also supports `VITE_AI_BASE_URL`. |
+| Variable                | Default | Effect                                                                                                                            |
+| ----------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `REACT_APP_AI_ENABLED`  | `true`  | Set to `false` at build time to hide every AI surface and bypass the hook. Also supports `VITE_AI_ENABLED` (see Vite note below). |
+| `REACT_APP_AI_BASE_URL` | empty   | When non-empty, AI calls go to `${...}/api/ai/<route>`. Empty = local engine. Also supports `VITE_AI_BASE_URL`.                   |
 
 Vite inlines `process.env.REACT_APP_*` at build time via `vite.config.ts`. You may use `VITE_AI_BASE_URL` / `VITE_AI_ENABLED` in `.env` files as aliases; they map to the same client bundle flags.
 

@@ -7,6 +7,10 @@ jest.mock("../components/projectPopover", () => ({
     __esModule: true,
     default: () => <span>Projects</span>
 }));
+jest.mock("../utils/hooks/useReactQuery", () => ({
+    __esModule: true,
+    default: () => ({ data: { _id: "project-1", projectName: "Atlas" } })
+}));
 
 const LocationProbe = () => {
     const location = useLocation();
@@ -72,7 +76,7 @@ describe("ProjectDetailPage", () => {
         expect(screen.getByText("Board outlet")).toBeInTheDocument();
     });
 
-    it("renders the board and projects menu entries with the current board selected", () => {
+    it("renders breadcrumb, project name, board tab as a link, and the outlet", () => {
         renderDetail("/projects/project-1/board");
 
         expect(screen.getByRole("link", { name: "Board" })).toHaveAttribute(
@@ -80,8 +84,7 @@ describe("ProjectDetailPage", () => {
             "/projects/project-1/board"
         );
         expect(screen.getByText("Projects")).toBeInTheDocument();
-        expect(screen.getByText("Board").closest(".ant-menu-item")).toHaveClass(
-            "ant-menu-item-selected"
-        );
+        expect(screen.getByText("Atlas")).toBeInTheDocument();
+        expect(screen.getByText("Board outlet")).toBeInTheDocument();
     });
 });

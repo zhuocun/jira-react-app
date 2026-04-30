@@ -49,10 +49,7 @@ class ErrorBoundary extends React.Component<
                 title="Something went wrong"
                 subTitle={error.message || microcopy.feedback.loadFailed}
                 extra={
-                    <Button
-                        onClick={this.handleRetry}
-                        type="primary"
-                    >
+                    <Button onClick={this.handleRetry} type="primary">
                         {microcopy.actions.retry}
                     </Button>
                 }
