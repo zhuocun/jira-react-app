@@ -230,9 +230,7 @@ describe("ProjectPage", () => {
         resolveProjects(response([]));
         resolveMembers(response([]));
 
-        expect(
-            await screen.findByText(/no projects yet/i)
-        ).toBeInTheDocument();
+        expect(await screen.findByText(/no projects yet/i)).toBeInTheDocument();
     });
 
     it("shows a shared error message when either query fails", async () => {

@@ -90,10 +90,13 @@ describe("TaskCreator", () => {
         fetchMock.mockRestore();
     });
 
+    const createButton = () =>
+        screen.getByRole("button", { name: /^create task$/i });
+
     it("starts in link mode, exits on blur, and clears draft text", () => {
         renderCreator();
 
-        fireEvent.click(screen.getByText("+ Create task"));
+        fireEvent.click(createButton());
         fireEvent.change(
             screen.getByPlaceholderText("What needs to be done?"),
             {
@@ -102,9 +105,9 @@ describe("TaskCreator", () => {
         );
         fireEvent.blur(screen.getByPlaceholderText("What needs to be done?"));
 
-        expect(screen.getByText("+ Create task")).toBeInTheDocument();
+        expect(createButton()).toBeInTheDocument();
 
-        fireEvent.click(screen.getByText("+ Create task"));
+        fireEvent.click(createButton());
 
         expect(
             screen.getByPlaceholderText("What needs to be done?")
@@ -114,7 +117,7 @@ describe("TaskCreator", () => {
     it("creates a task with route, column, current user, and default fields", async () => {
         renderCreator();
 
-        fireEvent.click(screen.getByText("+ Create task"));
+        fireEvent.click(createButton());
         fireEvent.change(
             screen.getByPlaceholderText("What needs to be done?"),
             {
@@ -145,17 +148,13 @@ describe("TaskCreator", () => {
         expect(fetchMock.mock.calls[0][1]).toEqual(
             expect.objectContaining({ method: "POST" })
         );
-        expect(screen.getByText("+ Create task")).toBeInTheDocument();
+        expect(createButton()).toBeInTheDocument();
     });
 
-    it("disables the input when the parent column is disabled", () => {
+    it("disables the create button when the parent column is disabled", () => {
         renderCreator({ disabled: true });
 
-        fireEvent.click(screen.getByText("+ Create task"));
-
-        expect(
-            screen.getByPlaceholderText("What needs to be done?")
-        ).toBeDisabled();
+        expect(createButton()).toBeDisabled();
     });
 
     it("hides Draft with AI when boardAiOn is false", () => {

@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Spin, Tag } from "antd";
+import { Alert, Button, Card, Spin, Tag, Typography } from "antd";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
@@ -155,9 +155,12 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                             Apply
                         </Button>
                     </div>
-                    <p style={{ color: "rgba(0,0,0,0.6)", margin: "6px 0" }}>
+                    <Typography.Paragraph
+                        style={{ margin: "6px 0" }}
+                        type="secondary"
+                    >
                         {estimateAi.data.rationale}
-                    </p>
+                    </Typography.Paragraph>
                     {estimateAi.data.similar.length > 0 && (
                         <div>
                             <strong>Similar tasks:</strong>
@@ -166,21 +169,22 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                                     const task = taskById(entry._id);
                                     return (
                                         <li key={entry._id}>
-                                            {/* eslint-disable-next-line */}
-                                            <a
+                                            <Button
                                                 onClick={() =>
                                                     onOpenSimilarTask(entry._id)
                                                 }
+                                                size="small"
+                                                style={{
+                                                    height: "auto",
+                                                    padding: 0
+                                                }}
+                                                type="link"
                                             >
                                                 {task?.taskName ?? entry._id}
-                                            </a>{" "}
-                                            <span
-                                                style={{
-                                                    color: "rgba(0,0,0,0.5)"
-                                                }}
-                                            >
+                                            </Button>{" "}
+                                            <Typography.Text type="secondary">
                                                 — {entry.reason}
-                                            </span>
+                                            </Typography.Text>
                                         </li>
                                     );
                                 })}

@@ -124,7 +124,12 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     const ListColumns: ColumnsType<ProjectIntro> = [
         {
             key: "Liked",
-            title: <HeartFilled aria-label="Liked" style={{ color: brand.primary }} />,
+            title: (
+                <HeartFilled
+                    aria-label="Liked"
+                    style={{ color: brand.primary }}
+                />
+            ),
             width: 56,
             render(_, data) {
                 const liked = isLiked(data._id);
