@@ -1,4 +1,13 @@
-import { Button, Form, Input, Modal, Select, Tag, Typography } from "antd";
+import {
+    Button,
+    Form,
+    Grid,
+    Input,
+    Modal,
+    Select,
+    Tag,
+    Typography
+} from "antd";
 import { useForm } from "antd/lib/form/Form";
 import _ from "lodash";
 import { useEffect, useState } from "react";
@@ -31,6 +40,7 @@ const TaskModal: React.FC<{
     const { projectId } = useParams<{ projectId: string }>();
     const { editingTaskId, startEditing, closeModal } = useTaskModal();
     const { enabled: aiEnabled } = useAiEnabled();
+    const screens = Grid.useBreakpoint();
     const [formTick, setFormTick] = useState(0);
     const { mutateAsync: update, isLoading: uLoading } = useReactMutation(
         "tasks",
@@ -139,8 +149,8 @@ const TaskModal: React.FC<{
             centered
             forceRender
             okText={microcopy.actions.save}
-            okButtonProps={{ size: "large" }}
-            cancelButtonProps={{ size: "large" }}
+            okButtonProps={{ size: "large", block: !screens.sm }}
+            cancelButtonProps={{ size: "large", block: !screens.sm }}
             onOk={onOk}
             cancelText={microcopy.actions.cancel}
             onCancel={onClose}
@@ -161,6 +171,7 @@ const TaskModal: React.FC<{
                                 ? `Delete ${editingTask.taskName}`
                                 : microcopy.actions.delete
                         }
+                        block={!screens.sm}
                         danger
                         disabled={deleteDisabled}
                         onClick={onDelete}
@@ -171,6 +182,7 @@ const TaskModal: React.FC<{
                     <div
                         style={{
                             display: "flex",
+                            flex: screens.sm ? "0 0 auto" : "1 1 100%",
                             flexWrap: "wrap",
                             gap: space.xs,
                             justifyContent: "flex-end"
@@ -183,6 +195,12 @@ const TaskModal: React.FC<{
             )}
             title={titleNode}
             open={Boolean(editingTaskId)}
+            styles={{
+                body: {
+                    maxHeight: "calc(100dvh - 220px)",
+                    overflowY: "auto"
+                }
+            }}
             width="min(640px, calc(100vw - 32px))"
         >
             <Form

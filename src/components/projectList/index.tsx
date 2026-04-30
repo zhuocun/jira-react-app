@@ -21,6 +21,7 @@ import { Link } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
 import {
+    breakpoints,
     fontSize,
     fontWeight,
     radius,
@@ -69,6 +70,37 @@ const ListSurface = styled.div`
 
     .ant-table-tbody > tr:last-child > td {
         border-bottom: none;
+    }
+
+    /*
+     * Scrollbar polish for the horizontal overflow region on phone widths,
+     * so the user sees a slim affordance rather than a hidden one. The
+     * table itself keeps scroll x:max-content so all columns remain
+     * accessible behind a horizontal pan.
+     */
+    .ant-table-content,
+    .ant-table-body {
+        scrollbar-width: thin;
+        scrollbar-color: var(--ant-color-fill-secondary, rgba(15, 23, 42, 0.08))
+            transparent;
+    }
+
+    .ant-table-content::-webkit-scrollbar,
+    .ant-table-body::-webkit-scrollbar {
+        height: 8px;
+    }
+    .ant-table-content::-webkit-scrollbar-thumb,
+    .ant-table-body::-webkit-scrollbar-thumb {
+        background: var(--ant-color-fill-secondary, rgba(15, 23, 42, 0.08));
+        border-radius: 999px;
+    }
+
+    /* Tighter cell padding so more content fits on phone. */
+    @media (max-width: ${breakpoints.sm - 1}px) {
+        .ant-table-tbody > tr > td,
+        .ant-table-thead > tr > th {
+            padding-inline: ${space.sm}px;
+        }
     }
 `;
 
@@ -319,7 +351,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                         <Avatar
                             size="small"
                             style={{
-                                backgroundImage: gradientFor(manager._id),
+                                background: gradientFor(manager._id),
                                 color: "#fff",
                                 fontSize: 11,
                                 fontWeight: 600

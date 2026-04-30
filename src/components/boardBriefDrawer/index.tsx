@@ -119,7 +119,9 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
             open={open}
             styles={{
                 body: {
-                    paddingBottom: `max(${space.lg}px, env(safe-area-inset-bottom))`
+                    paddingBottom: `max(${space.lg}px, env(safe-area-inset-bottom))`,
+                    paddingInlineEnd: `max(${space.lg}px, env(safe-area-inset-right))`,
+                    paddingInlineStart: `max(${space.lg}px, env(safe-area-inset-left))`
                 }
             }}
             title={

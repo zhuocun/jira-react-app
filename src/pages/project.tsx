@@ -1,6 +1,6 @@
 import { PlusOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
-import { Alert, Button, Space, Typography } from "antd";
+import { Alert, Button, Typography } from "antd";
 import { useMemo, useState } from "react";
 
 import AiChatDrawer from "../components/aiChatDrawer";
@@ -31,18 +31,28 @@ const PageHeader = styled.header`
     flex-wrap: wrap;
     gap: ${space.sm}px;
     justify-content: space-between;
-    margin-bottom: ${space.xl}px;
+    margin-bottom: ${space.lg}px;
     row-gap: ${space.xs}px;
+
+    @media (min-width: ${breakpoints.md}px) {
+        margin-bottom: ${space.xl}px;
+    }
 `;
 
 const PageHeading = styled(Typography.Title)`
     && {
-        font-size: ${fontSize.xxl}px;
+        font-size: ${fontSize.xl}px;
         font-weight: ${fontWeight.semibold};
         letter-spacing: ${letterSpacing.tight};
         line-height: ${lineHeight.tight};
         margin: 0;
         min-width: 0;
+    }
+
+    @media (min-width: ${breakpoints.md}px) {
+        && {
+            font-size: ${fontSize.xxl}px;
+        }
     }
 `;
 
@@ -62,18 +72,27 @@ const PageHeadingGroup = styled.div`
 const Toolbar = styled.div`
     align-items: center;
     display: flex;
+    flex-shrink: 0;
     flex-wrap: wrap;
     gap: ${space.xs}px;
+
+    @media (max-width: ${breakpoints.sm - 1}px) {
+        flex-basis: 100%;
+        > .ant-btn {
+            flex: 1 1 0;
+        }
+    }
 `;
 
 const StatRail = styled.div`
     display: grid;
-    gap: ${space.sm}px;
-    grid-template-columns: 1fr;
-    margin-bottom: ${space.lg}px;
+    gap: ${space.xs}px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: ${space.md}px;
 
     @media (min-width: ${breakpoints.sm}px) {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: ${space.sm}px;
+        margin-bottom: ${space.lg}px;
     }
 `;
 
@@ -84,8 +103,14 @@ const StatCard = styled.div`
     border-radius: 14px;
     display: flex;
     flex-direction: column;
-    gap: ${space.xxs}px;
-    padding: ${space.md}px ${space.lg}px;
+    gap: 2px;
+    min-width: 0;
+    padding: ${space.sm}px ${space.md}px;
+
+    @media (min-width: ${breakpoints.sm}px) {
+        gap: ${space.xxs}px;
+        padding: ${space.md}px ${space.lg}px;
+    }
 `;
 
 const StatLabel = styled.span`
@@ -93,14 +118,21 @@ const StatLabel = styled.span`
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
     letter-spacing: ${letterSpacing.wide};
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-transform: uppercase;
+    white-space: nowrap;
 `;
 
 const StatValue = styled.span`
     color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
-    font-size: ${fontSize.xl}px;
+    font-size: ${fontSize.lg}px;
     font-weight: ${fontWeight.semibold};
     letter-spacing: ${letterSpacing.tight};
+
+    @media (min-width: ${breakpoints.sm}px) {
+        font-size: ${fontSize.xl}px;
+    }
 `;
 
 const ProjectPage = () => {
@@ -162,7 +194,7 @@ const ProjectPage = () => {
                             onClick={() => setChatOpen(true)}
                             type="default"
                         >
-                            <Space size={6}>Ask</Space>
+                            Ask
                         </Button>
                     )}
                     <Button

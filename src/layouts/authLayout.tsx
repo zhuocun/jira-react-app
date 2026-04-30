@@ -166,12 +166,20 @@ const Canvas = styled.div`
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: ${space.lg}px;
-    padding-block-start: max(${space.xl}px, env(safe-area-inset-top));
-    padding-block-end: max(${space.lg}px, env(safe-area-inset-bottom));
-    padding-inline-start: max(${space.lg}px, env(safe-area-inset-left));
-    padding-inline-end: max(${space.lg}px, env(safe-area-inset-right));
+    padding: ${space.md}px;
+    padding-block-start: max(${space.lg}px, env(safe-area-inset-top));
+    padding-block-end: max(${space.md}px, env(safe-area-inset-bottom));
+    padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
+    padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
     width: 100%;
+
+    @media (min-width: ${breakpoints.sm}px) {
+        padding: ${space.lg}px;
+        padding-block-start: max(${space.xl}px, env(safe-area-inset-top));
+        padding-block-end: max(${space.lg}px, env(safe-area-inset-bottom));
+        padding-inline-start: max(${space.lg}px, env(safe-area-inset-left));
+        padding-inline-end: max(${space.lg}px, env(safe-area-inset-right));
+    }
 `;
 
 const BrandHeader = styled.header`
@@ -212,12 +220,16 @@ const BrandWordmark = styled.span`
  */
 export const AuthTitle = styled.h1`
     color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
-    font-size: ${fontSize.xl}px;
+    font-size: ${fontSize.lg}px;
     font-weight: ${fontWeight.semibold};
     letter-spacing: ${letterSpacing.tight};
     line-height: ${lineHeight.snug};
     margin: 0 0 ${space.xxs}px;
     text-align: left;
+
+    @media (min-width: ${breakpoints.sm}px) {
+        font-size: ${fontSize.xl}px;
+    }
 `;
 
 /**
@@ -251,7 +263,7 @@ const FormCard = styled(Card)`
     }
 
     && .ant-card-body {
-        padding: ${space.xl}px;
+        padding: ${space.lg}px;
 
         @media (min-width: ${breakpoints.sm}px) {
             padding: ${space.xxl}px;

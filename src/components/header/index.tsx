@@ -39,13 +39,19 @@ const PageHeader = styled.header`
     display: flex;
     justify-content: space-between;
     gap: ${space.xs}px;
-    padding: ${space.xs}px ${space.md}px;
+    padding: ${space.xs}px ${space.sm}px;
     padding-block-start: max(${space.xs}px, env(safe-area-inset-top));
-    padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
-    padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
+    padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
+    padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
     position: sticky;
     top: 0;
     z-index: 10;
+
+    @media (min-width: ${breakpoints.sm}px) {
+        padding-inline: ${space.md}px;
+        padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
+        padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
+    }
 
     @media (min-width: ${breakpoints.md}px) {
         padding-inline: ${space.lg}px;
@@ -58,8 +64,12 @@ const LeftCluster = styled.div`
     align-items: center;
     display: flex;
     flex: 1 1 auto;
-    gap: ${space.md}px;
+    gap: ${space.xs}px;
     min-width: 0;
+
+    @media (min-width: ${breakpoints.md}px) {
+        gap: ${space.md}px;
+    }
 `;
 
 const RightCluster = styled.div`
@@ -86,16 +96,21 @@ const PillTrigger = styled.button`
     color: inherit;
     cursor: pointer;
     display: inline-flex;
+    flex: 0 0 auto;
     font: inherit;
     gap: ${space.xs}px;
     height: 36px;
-    padding: 0 ${space.sm}px;
+    padding: 0 ${space.xs}px;
     transition:
         background-color 120ms ease-out,
         color 120ms ease-out;
 
     &:hover {
         background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.05));
+    }
+
+    @media (min-width: ${breakpoints.sm}px) {
+        padding: 0 ${space.sm}px;
     }
 
     @media (pointer: coarse) {
@@ -308,7 +323,7 @@ const Header: React.FC = () => {
                         <Avatar
                             size="small"
                             style={{
-                                backgroundImage:
+                                background:
                                     "linear-gradient(135deg, #7C5CFF 0%, #5E6AD2 100%)",
                                 color: "#fff",
                                 fontWeight: 600

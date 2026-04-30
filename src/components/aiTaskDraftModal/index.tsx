@@ -161,6 +161,12 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
             footer={null}
             onCancel={onClose}
             open={open}
+            styles={{
+                body: {
+                    maxHeight: "calc(100dvh - 220px)",
+                    overflowY: "auto"
+                }
+            }}
             title={
                 <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />

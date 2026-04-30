@@ -5,16 +5,27 @@ import type { InputRef } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { fontWeight, motion, radius, space } from "../../theme/tokens";
+import {
+    breakpoints,
+    fontWeight,
+    motion,
+    radius,
+    space
+} from "../../theme/tokens";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import newColumnCallback from "../../utils/optimisticUpdate/createColumn";
 
 const Slot = styled.div`
     align-self: flex-start;
     display: flex;
+    flex: 0 0 auto;
     margin-right: ${space.md}px;
-    min-width: 16rem;
+    min-width: min(16rem, calc(100vw - ${space.md * 3}px));
     padding: ${space.xs}px 0;
+
+    @media (min-width: ${breakpoints.md}px) {
+        min-width: 16rem;
+    }
 `;
 
 const AddColumnButton = styled.button`

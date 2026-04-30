@@ -28,11 +28,18 @@ const TopBar = styled.div`
         var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
     display: flex;
     flex-wrap: wrap;
-    gap: ${space.xs}px;
+    gap: ${space.xxs}px;
     justify-content: space-between;
-    padding: ${space.sm}px ${space.md}px 0;
-    padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
-    padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
+    padding: ${space.xs}px ${space.sm}px 0;
+    padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
+    padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
+
+    @media (min-width: ${breakpoints.sm}px) {
+        gap: ${space.xs}px;
+        padding: ${space.sm}px ${space.md}px 0;
+        padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
+        padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
+    }
 
     @media (min-width: ${breakpoints.md}px) {
         gap: ${space.md}px;

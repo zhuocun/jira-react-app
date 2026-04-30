@@ -18,6 +18,14 @@ body {
     overflow-x: hidden;
 }
 
+/* Block-level images and embeds default to filling their container so
+ * they never overflow on small viewports. */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 body {
     font-family:
         "Inter",
@@ -128,5 +136,21 @@ video {
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
         transition-duration: 0.001ms !important;
+    }
+}
+
+/*
+ * Forced-colors / High-contrast mode (Windows). Ensure interactive
+ * surfaces still have visible borders rather than relying on subtle
+ * tints that get filtered out.
+ */
+@media (forced-colors: active) {
+    .ant-btn,
+    .ant-input,
+    .ant-select-selector,
+    .ant-card,
+    .ant-modal-content,
+    .ant-drawer-content {
+        border: 1px solid CanvasText;
     }
 }

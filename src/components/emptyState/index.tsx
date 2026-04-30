@@ -18,8 +18,12 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     gap: ${space.sm}px;
-    padding: ${space.xxl}px ${space.lg}px;
+    padding: ${space.xl}px ${space.md}px;
     text-align: center;
+
+    @media (min-width: 480px) {
+        padding: ${space.xxl}px ${space.lg}px;
+    }
 `;
 
 const StyledEmpty = styled(Empty)`
