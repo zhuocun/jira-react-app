@@ -152,14 +152,7 @@ type TaskCardProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
     (
-        {
-            task,
-            members,
-            onOpen,
-            isMock,
-            "aria-label": ariaLabel,
-            ...rest
-        },
+        { task, members, onOpen, isMock, "aria-label": ariaLabel, ...rest },
         ref
     ) => {
         const coordinator = members.find((m) => m._id === task.coordinatorId);
@@ -173,46 +166,60 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                 type="button"
                 {...rest}
             >
-            {task.epic ? (
-                <Tag
-                    color={isBug ? "red" : "blue"}
-                    style={{ marginBottom: space.xs }}
-                >
-                    {task.epic}
-                </Tag>
-            ) : null}
-            <CardTitle>{task.taskName}</CardTitle>
-            <CardFooter>
-                <Tooltip title={isBug ? "Bug" : "Task"}>
-                    <span style={{ alignItems: "center", display: "inline-flex", gap: space.xxs }}>
-                        <img
-                            alt=""
-                            aria-hidden
-                            src={isBug ? bugIcon : taskIcon}
-                            style={{ height: 14, width: 14 }}
-                        />
-                        <span>{isBug ? "Bug" : "Task"}</span>
-                    </span>
-                </Tooltip>
-                <span style={{ alignItems: "center", display: "inline-flex", gap: space.xs }}>
-                    {typeof task.storyPoints === "number" ? (
-                        <Tag style={{ margin: 0 }}>{task.storyPoints} pts</Tag>
-                    ) : null}
-                    {coordinator ? (
-                        <Tooltip
-                            title={`Assigned to ${coordinator.username}`}
+                {task.epic ? (
+                    <Tag
+                        color={isBug ? "red" : "blue"}
+                        style={{ marginBottom: space.xs }}
+                    >
+                        {task.epic}
+                    </Tag>
+                ) : null}
+                <CardTitle>{task.taskName}</CardTitle>
+                <CardFooter>
+                    <Tooltip title={isBug ? "Bug" : "Task"}>
+                        <span
+                            style={{
+                                alignItems: "center",
+                                display: "inline-flex",
+                                gap: space.xxs
+                            }}
                         >
-                            <Avatar
-                                size="small"
-                                style={{ backgroundColor: brand.primary }}
+                            <img
+                                alt=""
+                                aria-hidden
+                                src={isBug ? bugIcon : taskIcon}
+                                style={{ height: 14, width: 14 }}
+                            />
+                            <span>{isBug ? "Bug" : "Task"}</span>
+                        </span>
+                    </Tooltip>
+                    <span
+                        style={{
+                            alignItems: "center",
+                            display: "inline-flex",
+                            gap: space.xs
+                        }}
+                    >
+                        {typeof task.storyPoints === "number" ? (
+                            <Tag style={{ margin: 0 }}>
+                                {task.storyPoints} pts
+                            </Tag>
+                        ) : null}
+                        {coordinator ? (
+                            <Tooltip
+                                title={`Assigned to ${coordinator.username}`}
                             >
-                                {initialsOf(coordinator.username)}
-                            </Avatar>
-                        </Tooltip>
-                    ) : null}
-                </span>
-            </CardFooter>
-        </TaskCardOuter>
+                                <Avatar
+                                    size="small"
+                                    style={{ backgroundColor: brand.primary }}
+                                >
+                                    {initialsOf(coordinator.username)}
+                                </Avatar>
+                            </Tooltip>
+                        ) : null}
+                    </span>
+                </CardFooter>
+            </TaskCardOuter>
         );
     }
 );
@@ -258,7 +265,13 @@ const Column = React.forwardRef<
         return (
             <ColumnContainer {...props} ref={ref}>
                 <ColumnHeader between marginBottom={1.5}>
-                    <span style={{ alignItems: "center", display: "inline-flex", gap: space.xs }}>
+                    <span
+                        style={{
+                            alignItems: "center",
+                            display: "inline-flex",
+                            gap: space.xs
+                        }}
+                    >
                         <h4
                             style={{
                                 margin: 0,
@@ -271,7 +284,10 @@ const Column = React.forwardRef<
                             color="default"
                             count={filteredTasks.length}
                             showZero
-                            style={{ backgroundColor: "rgba(9, 30, 66, 0.08)", color: "rgba(9, 30, 66, 0.7)" }}
+                            style={{
+                                backgroundColor: "rgba(9, 30, 66, 0.08)",
+                                color: "rgba(9, 30, 66, 0.7)"
+                            }}
                         />
                     </span>
                     <DeleteDropDown
