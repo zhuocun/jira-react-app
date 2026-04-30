@@ -7,6 +7,7 @@ import {
     AiSearchProjectsContext,
     semanticSearch
 } from "../../utils/ai/engine";
+import { isProjectAiDisabled } from "../../utils/ai/projectAiStorage";
 import { validateSearch } from "../../utils/ai/validate";
 import useAi, {
     assertRunPayloadProjectsAiAllowed
@@ -77,14 +78,25 @@ const AiSearchInput: React.FC<Props> = (props) => {
                               .projectContext
                       }
                   }
-                : {
-                      search: {
-                          kind: "projects" as const,
-                          query,
-                          projectsContext: (props as ProjectSearchProps)
-                              .projectsContext
-                      }
-                  };
+                : (() => {
+                      // Per-project AI off (PRD §8): silently drop those
+                      // projects from the projects-list semantic search so a
+                      // single opt-out doesn't break global discovery.
+                      const ctx = (props as ProjectSearchProps).projectsContext;
+                      const filtered: AiSearchProjectsContext = {
+                          ...ctx,
+                          projects: ctx.projects.filter(
+                              (p) => !isProjectAiDisabled(p._id)
+                          )
+                      };
+                      return {
+                          search: {
+                              kind: "projects" as const,
+                              query,
+                              projectsContext: filtered
+                          }
+                      };
+                  })();
         try {
             assertRunPayloadProjectsAiAllowed(searchPayload);
         } catch {
@@ -107,9 +119,13 @@ const AiSearchInput: React.FC<Props> = (props) => {
             const valid = new Set(ctx.tasks.map((t) => t._id));
             applyResult(validateSearch(raw, valid));
         } else {
-            const ctx = (props as ProjectSearchProps).projectsContext;
-            raw = semanticSearch("projects", query, ctx);
-            const valid = new Set(ctx.projects.map((p) => p._id));
+            // Use the same filtered context the remote payload would use.
+            const projectsCtx =
+                searchPayload.search.kind === "projects"
+                    ? searchPayload.search.projectsContext!
+                    : (props as ProjectSearchProps).projectsContext;
+            raw = semanticSearch("projects", query, projectsCtx);
+            const valid = new Set(projectsCtx.projects.map((p) => p._id));
             applyResult(validateSearch(raw, valid));
         }
     };
