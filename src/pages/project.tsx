@@ -1,5 +1,5 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Alert, Button, Space } from "antd";
+import { Alert, Button, Space, Typography } from "antd";
 import { useState } from "react";
 
 import AiChatDrawer from "../components/aiChatDrawer";
@@ -18,7 +18,7 @@ import useTitle from "../utils/hooks/useTitle";
 import useUrl from "../utils/hooks/useUrl";
 
 const ProjectPage = () => {
-    useTitle("Project List", false);
+    useTitle("Projects", false);
     const { openModal } = useProjectModal();
     const { enabled: aiEnabled } = useAiEnabled();
     const [chatOpen, setChatOpen] = useState(false);
@@ -44,7 +44,9 @@ const ProjectPage = () => {
     return (
         <PageContainer>
             <Row marginBottom={2} between>
-                <h1>Project List</h1>
+                <Typography.Title level={1} style={{ margin: 0 }}>
+                    Projects
+                </Typography.Title>
                 <Space>
                     {aiEnabled && (
                         <Button
@@ -57,12 +59,12 @@ const ProjectPage = () => {
                         </Button>
                     )}
                     <Button
-                        aria-label="Create Project"
+                        aria-label="Create project"
                         icon={<PlusOutlined aria-hidden />}
                         onClick={openModal}
                         type="primary"
                     >
-                        Create Project
+                        Create project
                     </Button>
                 </Space>
             </Row>

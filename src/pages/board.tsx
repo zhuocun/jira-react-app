@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import {
+    Alert,
     Button,
     Skeleton,
     Space,
@@ -23,6 +24,7 @@ import PageContainer from "../components/pageContainer";
 import Row from "../components/row";
 import TaskModal from "../components/taskModal";
 import TaskSearchPanel from "../components/taskSearchPanel";
+import { microcopy } from "../constants/microcopy";
 import { space as themeSpace } from "../theme/tokens";
 import useAiEnabled from "../utils/hooks/useAiEnabled";
 import useAiProjectDisabled from "../utils/hooks/useAiProjectDisabled";
@@ -84,16 +86,23 @@ const BoardPage = () => {
         useReactQuery<IProject>("projects", {
             projectId
         });
-    const { data: board, isLoading: bLoading } = useReactQuery<IColumn[]>(
-        "boards",
-        {
-            projectId
-        }
-    );
+    const {
+        data: board,
+        isLoading: bLoading,
+        error: bError,
+        refetch: refetchBoard
+    } = useReactQuery<IColumn[]>("boards", {
+        projectId
+    });
     const { isLoading: mLoading, data: members } =
         useReactQuery<IMember[]>("users/members");
 
-    const { data: tasks, isLoading: tLoading } = useReactQuery<ITask[]>(
+    const {
+        data: tasks,
+        isLoading: tLoading,
+        error: tError,
+        refetch: refetchTasks
+    } = useReactQuery<ITask[]>(
         "tasks",
         {
             projectId
@@ -151,11 +160,22 @@ const BoardPage = () => {
             <PageContainer>
                 <BoardHeader>
                     <Row between>
-                        <h1 style={{ margin: 0 }}>
-                            {!pLoading
-                                ? `${currentProject?.projectName} Board`
-                                : "..."}
-                        </h1>
+                        {pLoading ? (
+                            <span
+                                aria-label="Loading project name"
+                                role="status"
+                            >
+                                <Skeleton.Input
+                                    active
+                                    size="large"
+                                    style={{ width: 240 }}
+                                />
+                            </span>
+                        ) : (
+                            <Typography.Title level={1} style={{ margin: 0 }}>
+                                {currentProject?.projectName} board
+                            </Typography.Title>
+                        )}
                         {aiEnabled && (
                             <Space align="center" size={themeSpace.sm}>
                                 <Tooltip title="Turn off to hide Board Copilot on this board and block AI requests for this project.">
@@ -223,6 +243,27 @@ const BoardPage = () => {
                         ) : undefined
                     }
                 />
+                {bError || tError ? (
+                    <Alert
+                        action={
+                            <Button
+                                onClick={() => {
+                                    if (bError) refetchBoard();
+                                    if (tError) refetchTasks();
+                                }}
+                                size="small"
+                                type="primary"
+                            >
+                                {microcopy.actions.retry}
+                            </Button>
+                        }
+                        description={microcopy.feedback.retryHint}
+                        message={microcopy.feedback.loadFailed}
+                        showIcon
+                        style={{ marginBottom: themeSpace.md }}
+                        type="error"
+                    />
+                ) : null}
                 {!(bLoading || tLoading) ? (
                     <ColumnContainer>
                         <Drop

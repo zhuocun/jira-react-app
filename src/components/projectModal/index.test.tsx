@@ -179,8 +179,12 @@ describe("ProjectModal", () => {
     it("validates required create fields", async () => {
         renderProjectModal("/projects?modal=on");
 
-        expect(await screen.findByText("Create Project")).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+        expect(
+            await screen.findByRole("dialog", { name: "Create project" })
+        ).toBeInTheDocument();
+        fireEvent.click(
+            screen.getByRole("button", { name: "Create project" })
+        );
 
         expect(
             await screen.findByText("Please enter the project name")
@@ -194,8 +198,10 @@ describe("ProjectModal", () => {
     it("creates a project and clears modal URL state on success", async () => {
         renderProjectModal("/projects?modal=on");
 
-        expect(await screen.findByText("Create Project")).toBeInTheDocument();
-        fireEvent.change(screen.getByPlaceholderText("Project Name"), {
+        expect(
+            await screen.findByRole("dialog", { name: "Create project" })
+        ).toBeInTheDocument();
+        fireEvent.change(screen.getByPlaceholderText("Project name"), {
             target: { value: "Billing" }
         });
         fireEvent.change(screen.getByPlaceholderText("Organization"), {
@@ -203,7 +209,9 @@ describe("ProjectModal", () => {
         });
         fireEvent.mouseDown(screen.getByRole("combobox"));
         fireEvent.click(await screen.findByText("Alice"));
-        fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Create project" })
+        );
 
         await waitFor(() =>
             expect(
@@ -216,34 +224,30 @@ describe("ProjectModal", () => {
                 )
             ).toBe(true)
         );
-        expect(
-            screen.getByRole("button", { name: "Submit" })
-        ).toBeInTheDocument();
     });
 
-    it("closes and resets the drawer from the close button", async () => {
+    it("closes and resets the modal from the cancel button", async () => {
         renderProjectModal("/projects?modal=on");
 
-        expect(await screen.findByText("Create Project")).toBeInTheDocument();
-        fireEvent.change(screen.getByPlaceholderText("Project Name"), {
+        expect(
+            await screen.findByRole("dialog", { name: "Create project" })
+        ).toBeInTheDocument();
+        fireEvent.change(screen.getByPlaceholderText("Project name"), {
             target: { value: "Draft" }
         });
-        fireEvent.click(screen.getByRole("button", { name: "Close" }));
+        fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-        // Closing clears the URL params so the modal hides.
         await waitFor(() =>
             expect(screen.getByTestId("location")).toHaveTextContent("")
         );
-        // The form is kept mounted via Drawer's `forceRender` but moves out of
-        // the accessibility tree; pass `hidden: true` to confirm the Submit
-        // button is still in the DOM.
+        // Modal stays force-rendered; the input still exists in the DOM but
+        // its value has been reset by the cancel handler.
         expect(
-            screen.getByRole("button", { hidden: true, name: "Submit" })
-        ).toBeInTheDocument();
-        // The form was reset.
-        expect(
-            (screen.getByPlaceholderText("Project Name") as HTMLInputElement)
-                .value
+            (
+                screen.getByPlaceholderText(
+                    "Project name"
+                ) as HTMLInputElement
+            ).value
         ).toBe("");
     });
 
@@ -278,7 +282,9 @@ describe("ProjectModal", () => {
             resolveProject(response(project()));
         });
 
-        expect(await screen.findByText("Edit Project")).toBeInTheDocument();
+        expect(
+            await screen.findByRole("dialog", { name: "Edit project" })
+        ).toBeInTheDocument();
         expect(screen.getByDisplayValue("Roadmap")).toBeInTheDocument();
         await act(async () => {
             fireEvent.change(screen.getByDisplayValue("Product"), {
@@ -286,7 +292,7 @@ describe("ProjectModal", () => {
             });
         });
         await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+            fireEvent.click(screen.getByRole("button", { name: "Save" }));
         });
 
         await waitFor(() =>
