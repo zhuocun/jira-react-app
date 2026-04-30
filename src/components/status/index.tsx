@@ -5,8 +5,11 @@ const FullPage = styled.div`
     align-items: center;
     display: flex;
     height: 100vh;
+    height: 100dvh;
     justify-content: center;
-    width: 100vw;
+    padding: 1rem;
+    text-align: center;
+    width: 100%;
 `;
 
 const PageSpin: React.FC = () => {

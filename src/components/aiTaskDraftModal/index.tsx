@@ -184,6 +184,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
             <div
                 style={{
                     display: "flex",
+                    flexWrap: "wrap",
                     gap: space.xs,
                     marginBottom: space.md
                 }}
@@ -295,11 +296,15 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                     <Form.Item label={microcopy.fields.notes} name="note">
                         <TextArea rows={4} />
                     </Form.Item>
-                    <div style={{ textAlign: "right" }}>
-                        <Button
-                            onClick={onClose}
-                            style={{ marginRight: space.xs }}
-                        >
+                    <div
+                        style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: space.xs,
+                            justifyContent: "flex-end"
+                        }}
+                    >
+                        <Button onClick={onClose}>
                             {microcopy.actions.cancel}
                         </Button>
                         <Button
@@ -327,6 +332,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             style={{
                                 alignItems: "center",
                                 display: "flex",
+                                flexWrap: "wrap",
                                 gap: space.xs,
                                 marginBottom: space.xs
                             }}
@@ -340,23 +346,36 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                                     setBreakdownChecked(next);
                                 }}
                             />
-                            <span style={{ flex: 1 }}>{item.taskName}</span>
-                            <Tag>{item.storyPoints} pts</Tag>
-                            <Tag color={item.type === "Bug" ? "red" : "blue"}>
+                            <span
+                                style={{
+                                    flex: "1 1 12rem",
+                                    minWidth: 0,
+                                    overflowWrap: "anywhere"
+                                }}
+                            >
+                                {item.taskName}
+                            </span>
+                            <Tag style={{ marginInlineEnd: 0 }}>
+                                {item.storyPoints} pts
+                            </Tag>
+                            <Tag
+                                color={item.type === "Bug" ? "red" : "blue"}
+                                style={{ marginInlineEnd: 0 }}
+                            >
                                 {item.type}
                             </Tag>
                         </div>
                     ))}
                     <div
                         style={{
-                            textAlign: "right",
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: space.xs,
+                            justifyContent: "flex-end",
                             marginTop: space.sm
                         }}
                     >
-                        <Button
-                            onClick={onClose}
-                            style={{ marginRight: space.xs }}
-                        >
+                        <Button onClick={onClose}>
                             {microcopy.actions.cancel}
                         </Button>
                         <Button

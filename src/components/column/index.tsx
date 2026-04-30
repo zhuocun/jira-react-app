@@ -42,10 +42,20 @@ export const ColumnContainer = styled.div`
     min-width: ${columnMinWidthRem}rem;
     padding: ${space.xs}px;
 
-    @media (max-width: ${breakpoints.md}px) {
+    /*
+     * On phone-sized viewports a full desktop column (about 472 px) overflows
+     * the screen. Cap the column to the viewport width minus page padding so
+     * the user always sees one full column at a time, then horizontally
+     * swipes between them. Pair this rule with scroll-snap on the parent.
+     */
+    @media (max-width: ${breakpoints.md - 1}px) {
         min-width: min(
             ${columnMinWidthRem}rem,
-            calc(100vw - ${space.lg * 2}px)
+            calc(100vw - ${space.xl + space.md}px)
+        );
+        width: min(
+            ${columnMinWidthRem}rem,
+            calc(100vw - ${space.xl + space.md}px)
         );
     }
 `;

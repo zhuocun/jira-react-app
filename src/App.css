@@ -8,6 +8,11 @@ html,
 body {
     margin: 0;
     padding: 0;
+    /* Prevent horizontal page scroll on small screens when an overflowing
+     * element briefly stretches the viewport (e.g. an AntD modal during
+     * its open transition or a long token in user content). The board's
+     * column container handles its own horizontal overflow. */
+    overflow-x: hidden;
 }
 
 body {
@@ -16,11 +21,33 @@ body {
         Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Suppress the default grey tap highlight on iOS; we render our own
+     * hover/active states via AntD tokens. */
+    -webkit-tap-highlight-color: transparent;
+    /* Disable iOS auto-zoom on Form inputs without forcing 16 px font on
+     * desktop; AntD tokens decide font-size per-control. */
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
 }
 
 #root {
     min-height: 100vh;
     min-height: 100dvh;
+}
+
+/*
+ * Long URLs / unbroken tokens in user content (notes, chat) must wrap rather
+ * than overflow their container on mobile.
+ */
+p,
+li {
+    overflow-wrap: anywhere;
+}
+
+img,
+svg,
+video {
+    max-width: 100%;
 }
 
 /*

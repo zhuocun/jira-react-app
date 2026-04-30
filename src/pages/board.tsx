@@ -27,6 +27,7 @@ import TaskModal from "../components/taskModal";
 import TaskSearchPanel from "../components/taskSearchPanel";
 import { microcopy } from "../constants/microcopy";
 import {
+    breakpoints,
     columnMinWidthRem,
     radius,
     space as themeSpace
@@ -44,7 +45,26 @@ export const ColumnContainer = styled.div`
     flex: 1;
     min-height: 75%;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     padding-bottom: ${themeSpace.xs}px;
+    /* Native, momentum-based scrolling on iOS so swiping between columns feels
+     * fluid; the DnD library still catches long-press gestures separately. */
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: ${themeSpace.md}px;
+
+    /*
+     * On phone-sized viewports we show roughly one column at a time, so
+     * snap horizontal swipes to each column for a Trello-style flick UX.
+     * The DnD library still controls drag-and-drop; native scrolling only
+     * kicks in on swipes that don't engage the drag handle.
+     */
+    @media (max-width: ${breakpoints.md - 1}px) {
+        scroll-snap-type: x mandatory;
+
+        > * {
+            scroll-snap-align: start;
+        }
+    }
 `;
 
 const BoardLoadingSkeleton = () => (
@@ -164,7 +184,14 @@ const BoardPage = () => {
         <DragDropContext onDragEnd={onDragEnd}>
             <PageContainer>
                 <BoardHeader>
-                    <Row between>
+                    <Row
+                        between
+                        style={{
+                            flexWrap: "wrap",
+                            gap: themeSpace.sm,
+                            rowGap: themeSpace.xs
+                        }}
+                    >
                         {pLoading ? (
                             <span
                                 aria-label="Loading project name"
@@ -173,11 +200,19 @@ const BoardPage = () => {
                                 <Skeleton.Input
                                     active
                                     size="large"
-                                    style={{ width: 240 }}
+                                    style={{ maxWidth: "100%", width: 240 }}
                                 />
                             </span>
                         ) : (
-                            <Typography.Title level={1} style={{ margin: 0 }}>
+                            <Typography.Title
+                                level={1}
+                                style={{
+                                    flex: "1 1 auto",
+                                    margin: 0,
+                                    minWidth: 0,
+                                    overflowWrap: "anywhere"
+                                }}
+                            >
                                 {currentProject?.projectName} board
                             </Typography.Title>
                         )}
