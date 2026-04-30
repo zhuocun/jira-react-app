@@ -4,7 +4,7 @@ import { Button, Input } from "antd";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { radius, space } from "../../theme/tokens";
+import { fontWeight, radius, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -12,20 +12,35 @@ import newTaskCallback from "../../utils/optimisticUpdate/createTask";
 import AiSparkleIcon from "../aiSparkleIcon";
 import AiTaskDraftModal from "../aiTaskDraftModal";
 
+const CreatorRow = styled.div`
+    align-items: center;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: ${space.xxs}px;
+    margin-top: ${space.xxs}px;
+    padding: 0 ${space.xs}px;
+`;
+
 const CreateLink = styled.button`
+    align-items: center;
     background: transparent;
     border: 1px dashed transparent;
     border-radius: ${radius.md}px;
-    color: var(--ant-color-link, #1677ff);
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.6));
     cursor: pointer;
     display: inline-flex;
-    align-items: center;
-    gap: ${space.xxs}px;
     font: inherit;
-    padding: ${space.xxs}px ${space.xs}px;
+    font-weight: ${fontWeight.medium};
+    gap: ${space.xxs}px;
+    padding: ${space.xs}px ${space.sm}px;
+    transition:
+        background-color 120ms ease-out,
+        color 120ms ease-out,
+        border-color 120ms ease-out;
 
     &:hover:not(:disabled) {
-        background: var(--ant-color-bg-text-hover, rgba(0, 0, 0, 0.04));
+        background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.06));
+        color: var(--ant-color-primary, #5e6ad2);
     }
 
     &:disabled {
@@ -76,13 +91,7 @@ const TaskCreator: React.FC<{
 
     if (!inputMode) {
         return (
-            <span
-                style={{
-                    alignItems: "center",
-                    display: "inline-flex",
-                    paddingLeft: space.xs
-                }}
-            >
+            <CreatorRow>
                 <CreateLink
                     aria-label="Create task"
                     disabled={disabled}
@@ -93,15 +102,6 @@ const TaskCreator: React.FC<{
                 </CreateLink>
                 {aiEnabled && boardAiOn && (
                     <>
-                        <span
-                            aria-hidden
-                            style={{
-                                color: "var(--ant-color-text-quaternary)",
-                                margin: `0 ${space.xs}px`
-                            }}
-                        >
-                            ·
-                        </span>
                         <Button
                             aria-label="Draft a task with Board Copilot"
                             disabled={disabled}
@@ -121,7 +121,7 @@ const TaskCreator: React.FC<{
                         )}
                     </>
                 )}
-            </span>
+            </CreatorRow>
         );
     }
     return (
@@ -141,6 +141,7 @@ const TaskCreator: React.FC<{
             onChange={(e) => {
                 setTaskName(e.target.value);
             }}
+            style={{ marginTop: space.xxs }}
         />
     );
 };

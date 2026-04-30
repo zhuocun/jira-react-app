@@ -199,7 +199,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                         marginTop: themeSpace.sm,
                         maxWidth: "40rem"
                     }}
-                    message="AI semantic search"
+                    title="AI semantic search"
                     type="info"
                 />
             ) : null}
@@ -220,7 +220,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                         marginTop: themeSpace.sm,
                         maxWidth: "40rem"
                     }}
-                    message={
+                    title={
                         searchAi.error.message || microcopy.feedback.loadFailed
                     }
                     type="warning"

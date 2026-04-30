@@ -1,8 +1,11 @@
 /*
- * Global styles. Intentionally minimal — typography and spacing live in the
- * AntD theme tokens (see src/theme/antdTheme.ts) so components do not need
- * to redeclare them.
+ * Global styles. Most typography and spacing live in the AntD theme tokens
+ * (see src/theme/antdTheme.ts) so components do not need to redeclare them.
+ * This file owns the document-level resets, the page background, the focus
+ * ring, and the reduced-motion safety net.
  */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 html,
 body {
@@ -17,8 +20,22 @@ body {
 
 body {
     font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-        Arial, sans-serif;
+        "Inter",
+        "Inter Variable",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+    /* Inter looks crisper with these OpenType features turned on: contextual
+     * alternates ("calt"), case-sensitive forms ("case"), and disambiguation
+     * stylistic sets. */
+    font-feature-settings:
+        "cv11" on,
+        "ss01" on,
+        "ss03" on;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Suppress the default grey tap highlight on iOS; we render our own
@@ -28,11 +45,30 @@ body {
      * desktop; AntD tokens decide font-size per-control. */
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
+    background: var(--ant-color-bg-layout, #f7f8fb);
 }
 
 #root {
     min-height: 100vh;
     min-height: 100dvh;
+}
+
+/*
+ * Numeric columns (badges, story-point chips, tags, table numbers) read
+ * better with tabular figures so digits don't shift width as values change.
+ * Re-enable proportional figures inside flowing prose so the body stays
+ * comfortable to read.
+ */
+.ant-badge-count,
+.ant-tag,
+.ant-table {
+    font-variant-numeric: tabular-nums;
+}
+
+.ant-typography p,
+.ant-typography li,
+.ant-typography blockquote {
+    font-variant-numeric: normal;
 }
 
 /*
@@ -52,10 +88,12 @@ video {
 
 /*
  * Visible focus ring for keyboard users on every focusable control.
- * Satisfies WCAG 2.4.7 / 2.4.13.
+ * Satisfies WCAG 2.4.7 / 2.4.13. AntD's own controls already render a
+ * focus ring through `controlOutline`; this rule covers everything else
+ * (custom buttons, links, list items with role="button").
  */
 :focus-visible {
-    outline: 2px solid var(--ant-color-primary, #2684ff);
+    outline: 2px solid var(--ant-color-primary, #5e6ad2);
     outline-offset: 2px;
 }
 
@@ -67,6 +105,15 @@ video {
         outline-width: 3px;
         outline-offset: 3px;
     }
+}
+
+/*
+ * Selection color matches the brand so selected text feels intentional
+ * rather than the OS default sky blue.
+ */
+::selection {
+    background: rgba(94, 106, 210, 0.22);
+    color: inherit;
 }
 
 /*

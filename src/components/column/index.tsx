@@ -17,11 +17,13 @@ import bugIcon from "../../assets/bug.svg";
 import taskIcon from "../../assets/task.svg";
 import { microcopy } from "../../constants/microcopy";
 import {
-    brand,
     breakpoints,
     columnMinWidthRem,
     fontSize,
+    fontWeight,
+    letterSpacing,
     radius,
+    shadow,
     space
 } from "../../theme/tokens";
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -34,19 +36,21 @@ import TaskCreator from "../taskCreator";
 import { TaskSearchParam } from "../taskSearchPanel";
 
 export const ColumnContainer = styled.div`
-    background-color: var(--ant-color-fill-quaternary, rgb(244, 245, 247));
+    background: var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
+    border: 1px solid transparent;
     border-radius: ${radius.lg}px;
     display: flex;
     flex-direction: column;
     margin-right: ${space.md}px;
     min-width: ${columnMinWidthRem}rem;
-    padding: ${space.xs}px;
+    padding: ${space.sm}px;
+    transition: background-color 200ms ease-out;
 
     /*
-     * On phone-sized viewports a full desktop column (about 472 px) overflows
-     * the screen. Cap the column to the viewport width minus page padding so
-     * the user always sees one full column at a time, then horizontally
-     * swipes between them. Pair this rule with scroll-snap on the parent.
+     * On phone-sized viewports a full desktop column overflows the screen.
+     * Cap the column to the viewport width minus page padding so the user
+     * always sees one full column at a time, then horizontally swipes
+     * between them. Pair this rule with scroll-snap on the parent.
      */
     @media (max-width: ${breakpoints.md - 1}px) {
         min-width: min(
@@ -61,40 +65,50 @@ export const ColumnContainer = styled.div`
 `;
 
 const TaskContainer = styled.div`
+    display: flex;
     flex: 1;
+    flex-direction: column;
+    gap: ${space.xs}px;
     overflow-y: auto;
+    padding-bottom: ${space.xs}px;
 `;
 
 const TaskCardOuter = styled.button`
     background: var(--ant-color-bg-container, #fff);
-    border: 1px solid transparent;
+    border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
     border-radius: ${radius.md}px;
-    box-shadow: 0 1px 0 rgba(9, 30, 66, 0.08);
+    box-shadow: ${shadow.xs};
     cursor: pointer;
     display: block;
-    margin-bottom: ${space.xs}px;
-    padding: ${space.sm}px ${space.sm}px;
+    padding: ${space.sm}px ${space.md}px;
     text-align: left;
     transition:
-        border-color 100ms ease-out,
-        box-shadow 100ms ease-out;
+        border-color 120ms ease-out,
+        box-shadow 120ms ease-out,
+        transform 120ms ease-out;
     width: 100%;
 
     &:hover:not(:disabled) {
-        border-color: var(--ant-color-primary, ${brand.primary});
-        box-shadow: 0 2px 6px rgba(9, 30, 66, 0.16);
+        border-color: var(--ant-color-primary-border, rgba(94, 106, 210, 0.4));
+        box-shadow: ${shadow.md};
+        transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
     }
 
     &:disabled {
         cursor: default;
-        opacity: 0.85;
+        opacity: 0.7;
     }
 `;
 
 const CardTitle = styled.div`
-    color: var(--ant-color-text, rgba(0, 0, 0, 0.88));
+    color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
     display: -webkit-box;
-    font-weight: 500;
+    font-size: ${fontSize.base}px;
+    font-weight: ${fontWeight.medium};
     line-height: 1.4;
     margin-bottom: ${space.xs}px;
     overflow: hidden;
@@ -104,7 +118,7 @@ const CardTitle = styled.div`
 
 const CardFooter = styled.div`
     align-items: center;
-    color: var(--ant-color-text-secondary, rgba(0, 0, 0, 0.6));
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.55));
     display: flex;
     font-size: ${fontSize.xs}px;
     gap: ${space.xs}px;
@@ -112,8 +126,50 @@ const CardFooter = styled.div`
 `;
 
 const ColumnHeader = styled(Row)`
-    padding: ${space.xxs}px ${space.xs}px ${space.xs}px;
+    align-items: center;
+    margin-bottom: ${space.sm}px;
+    padding: ${space.xxs}px ${space.xs}px;
 `;
+
+const ColumnTitle = styled(Typography.Title)`
+    && {
+        color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.65));
+        font-size: ${fontSize.xs}px;
+        font-weight: ${fontWeight.semibold};
+        letter-spacing: ${letterSpacing.wider};
+        margin: 0;
+        text-transform: uppercase;
+    }
+`;
+
+const ColumnDot = styled.span<{ statusColor: string }>`
+    background: ${(props) => props.statusColor};
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px ${(props) => `${props.statusColor}33`};
+    display: inline-block;
+    flex: 0 0 auto;
+    height: 8px;
+    width: 8px;
+`;
+
+const STATUS_PALETTE = [
+    "#94A3B8",
+    "#5E6AD2",
+    "#7C5CFF",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#3B82F6",
+    "#F472B6"
+] as const;
+
+const dotForColumn = (id: string): string => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i += 1) {
+        hash = (hash * 31 + id.charCodeAt(i)) | 0;
+    }
+    return STATUS_PALETTE[Math.abs(hash) % STATUS_PALETTE.length];
+};
 
 const initialsOf = (username: string | undefined): string => {
     if (!username) return "?";
@@ -201,8 +257,14 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
             >
                 {task.epic ? (
                     <Tag
-                        color={isBug ? "red" : "blue"}
-                        style={{ marginBottom: space.xs }}
+                        variant="filled"
+                        color={isBug ? "magenta" : "geekblue"}
+                        style={{
+                            fontSize: fontSize.xs,
+                            fontWeight: 500,
+                            marginBottom: space.xs,
+                            paddingInline: space.xs
+                        }}
                     >
                         {task.epic}
                     </Tag>
@@ -213,7 +275,9 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                         <span
                             style={{
                                 alignItems: "center",
+                                color: isBug ? "#DB2777" : "#5E6AD2",
                                 display: "inline-flex",
+                                fontWeight: 500,
                                 gap: space.xxs
                             }}
                         >
@@ -234,7 +298,14 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                         }}
                     >
                         {typeof task.storyPoints === "number" ? (
-                            <Tag style={{ margin: 0 }}>
+                            <Tag
+                                variant="filled"
+                                style={{
+                                    margin: 0,
+                                    fontWeight: 600,
+                                    fontVariantNumeric: "tabular-nums"
+                                }}
+                            >
                                 {task.storyPoints} pts
                             </Tag>
                         ) : null}
@@ -244,7 +315,13 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                             >
                                 <Avatar
                                     size="small"
-                                    style={{ backgroundColor: brand.primary }}
+                                    style={{
+                                        backgroundImage:
+                                            "linear-gradient(135deg, #7C5CFF 0%, #5E6AD2 100%)",
+                                        color: "#fff",
+                                        fontSize: 11,
+                                        fontWeight: 600
+                                    }}
                                 >
                                     {initialsOf(coordinator.username)}
                                 </Avatar>
@@ -297,26 +374,20 @@ const Column = React.forwardRef<
         );
         return (
             <ColumnContainer {...props} ref={ref}>
-                <ColumnHeader between marginBottom={1.5}>
+                <ColumnHeader between>
                     <span
                         style={{
                             alignItems: "center",
                             display: "inline-flex",
-                            gap: space.xs
+                            gap: space.xs,
+                            minWidth: 0
                         }}
                     >
-                        <Typography.Title
-                            level={4}
-                            style={{
-                                fontSize: fontSize.sm,
-                                fontWeight: 600,
-                                letterSpacing: "0.04em",
-                                margin: 0,
-                                textTransform: "uppercase"
-                            }}
-                        >
-                            {column.columnName}
-                        </Typography.Title>
+                        <ColumnDot
+                            aria-hidden
+                            statusColor={dotForColumn(column._id)}
+                        />
+                        <ColumnTitle level={4}>{column.columnName}</ColumnTitle>
                         <Badge
                             aria-label={`${filteredTasks.length} tasks in ${column.columnName}`}
                             color="default"
@@ -324,8 +395,9 @@ const Column = React.forwardRef<
                             showZero
                             style={{
                                 backgroundColor:
-                                    "var(--ant-color-fill-secondary, rgba(9, 30, 66, 0.08))",
-                                color: "var(--ant-color-text-secondary, rgba(9, 30, 66, 0.7))"
+                                    "var(--ant-color-fill-secondary, rgba(15, 23, 42, 0.06))",
+                                color: "var(--ant-color-text-secondary, rgba(15, 23, 42, 0.55))",
+                                fontWeight: 600
                             }}
                         />
                     </span>

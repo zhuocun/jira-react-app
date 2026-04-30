@@ -123,11 +123,12 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                 }
             }}
             title={
-                <Space align="center" size={space.xs}>
+                <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />
-                    <span>Board Copilot brief</span>
+                    <span style={{ fontWeight: 600 }}>Board Copilot brief</span>
                     <Tag
-                        color="processing"
+                        variant="filled"
+                        color="purple"
                         style={{ marginInlineStart: space.xs }}
                     >
                         {microcopy.a11y.aiBadge}
@@ -151,7 +152,7 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                 <Alert
                     description={error.message}
                     showIcon
-                    message="Couldn't generate the brief"
+                    title="Couldn't generate the brief"
                     type="warning"
                 />
             )}
@@ -164,7 +165,7 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                         description={data.recommendation}
                         showIcon
                         style={{ marginBottom: space.md }}
-                        message={`${microcopy.a11y.aiSuggestion}: Recommended next step`}
+                        title={`${microcopy.a11y.aiSuggestion}: Recommended next step`}
                         type="info"
                     />
                     <SectionHeading>Counts per column</SectionHeading>

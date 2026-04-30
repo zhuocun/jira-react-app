@@ -11,17 +11,22 @@ import {
     Dropdown,
     MenuProps,
     Modal,
-    Space,
     Table,
     TableProps,
     Typography
 } from "antd";
 import { ColumnsType } from "antd/lib/table";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
-import { brand, space } from "../../theme/tokens";
+import {
+    fontSize,
+    fontWeight,
+    radius,
+    semantic,
+    space
+} from "../../theme/tokens";
 import useAuth from "../../utils/hooks/useAuth";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -40,12 +45,115 @@ export const NoPaddingButton = styled(Button)`
     padding: 0;
 `;
 
-const initialsOf = (username: string | undefined): string => {
-    if (!username) return "?";
-    const parts = username.trim().split(/\s+/);
+const ListSurface = styled.div`
+    background: var(--ant-color-bg-container, #fff);
+    border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+    border-radius: ${radius.lg}px;
+    overflow: hidden;
+
+    .ant-table {
+        background: transparent;
+    }
+
+    .ant-table-thead > tr > th {
+        font-weight: ${fontWeight.medium};
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: ${fontSize.xs}px;
+    }
+
+    .ant-table-tbody > tr > td {
+        border-bottom: 1px solid
+            var(--ant-color-border-secondary, rgba(15, 23, 42, 0.05));
+    }
+
+    .ant-table-tbody > tr:last-child > td {
+        border-bottom: none;
+    }
+`;
+
+const ProjectCell = styled.div`
+    align-items: center;
+    display: flex;
+    gap: ${space.sm}px;
+    min-width: 0;
+`;
+
+const ProjectMeta = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    a {
+        color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
+        font-weight: ${fontWeight.semibold};
+        line-height: 1.3;
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: var(--ant-color-primary, #5e6ad2);
+    }
+
+    small {
+        color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
+        font-size: ${fontSize.xs}px;
+    }
+`;
+
+/**
+ * Deterministic per-project gradient. Hashing the project id gives every
+ * board its own visual identity in the list while staying inside the
+ * brand-aligned hue range (200° to 280°, indigo / violet / pink).
+ */
+const PROJECT_AVATAR_GRADIENTS = [
+    "linear-gradient(135deg, #7C5CFF 0%, #5E6AD2 100%)",
+    "linear-gradient(135deg, #C084FC 0%, #6366F1 100%)",
+    "linear-gradient(135deg, #F472B6 0%, #7C5CFF 100%)",
+    "linear-gradient(135deg, #38BDF8 0%, #5E6AD2 100%)",
+    "linear-gradient(135deg, #34D399 0%, #5E6AD2 100%)",
+    "linear-gradient(135deg, #FB923C 0%, #C084FC 100%)"
+] as const;
+
+const gradientFor = (id: string): string => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i += 1) {
+        hash = (hash * 31 + id.charCodeAt(i)) | 0;
+    }
+    const index = Math.abs(hash) % PROJECT_AVATAR_GRADIENTS.length;
+    return PROJECT_AVATAR_GRADIENTS[index];
+};
+
+const ProjectAvatar = styled.span<{ background: string }>`
+    align-items: center;
+    background: ${(props) => props.background};
+    border-radius: ${radius.md}px;
+    color: #fff;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: ${fontSize.sm}px;
+    font-weight: ${fontWeight.semibold};
+    height: 36px;
+    justify-content: center;
+    letter-spacing: 0.02em;
+    width: 36px;
+`;
+
+const ManagerPill = styled.span`
+    align-items: center;
+    color: var(--ant-color-text, rgba(15, 23, 42, 0.85));
+    display: inline-flex;
+    gap: ${space.xs}px;
+    min-width: 0;
+`;
+
+const initialsOf = (name: string | undefined): string => {
+    if (!name) return "?";
+    const parts = name.trim().split(/\s+/);
     const head = parts[0]?.[0] ?? "";
     const tail = parts.length > 1 ? parts[parts.length - 1][0] : "";
-    return (head + tail).toUpperCase() || username[0].toUpperCase();
+    return (head + tail).toUpperCase() || name[0].toUpperCase();
 };
 
 const formatDate = (raw?: string): string => {
@@ -82,11 +190,13 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         refreshUser();
     }, [refreshUser]);
 
-    const dataSource: ProjectIntro[] | undefined = props.dataSource?.map(
-        (p, index) => ({
-            ...p,
-            key: index
-        })
+    const dataSource: ProjectIntro[] | undefined = useMemo(
+        () =>
+            props.dataSource?.map((p, index) => ({
+                ...p,
+                key: index
+            })),
+        [props.dataSource]
     );
 
     const onLike = useCallback(
@@ -125,10 +235,11 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
         {
             key: "Liked",
             title: (
-                <HeartFilled
-                    aria-label="Liked"
-                    style={{ color: brand.primary }}
-                />
+                <span aria-label="Liked" role="img">
+                    <HeartFilled
+                        style={{ color: semantic.favorite, fontSize: 14 }}
+                    />
+                </span>
             ),
             width: 56,
             render(_, data) {
@@ -143,7 +254,9 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                         aria-pressed={liked}
                         icon={
                             liked ? (
-                                <HeartFilled style={{ color: "#eb2f96" }} />
+                                <HeartFilled
+                                    style={{ color: semantic.favorite }}
+                                />
                             ) : (
                                 <HeartOutlined />
                             )
@@ -161,18 +274,31 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             sorter: (a, b) => a.projectName.localeCompare(b.projectName),
             render(_, data) {
                 return (
-                    <Link to={`${data._id}`}>
-                        <Typography.Text strong>
-                            {data.projectName}
-                        </Typography.Text>
-                    </Link>
+                    <ProjectCell>
+                        <ProjectAvatar
+                            aria-hidden
+                            background={gradientFor(data._id)}
+                        >
+                            {initialsOf(data.projectName)}
+                        </ProjectAvatar>
+                        <ProjectMeta>
+                            <Link to={`${data._id}`}>{data.projectName}</Link>
+                        </ProjectMeta>
+                    </ProjectCell>
                 );
             }
         },
         {
             key: "Organization",
             title: "Organization",
-            dataIndex: "organization"
+            dataIndex: "organization",
+            render(_, data) {
+                return (
+                    <Typography.Text type="secondary">
+                        {data.organization}
+                    </Typography.Text>
+                );
+            }
         },
         {
             key: "Manager",
@@ -189,15 +315,20 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                     );
                 }
                 return (
-                    <Space size={space.xs}>
+                    <ManagerPill>
                         <Avatar
                             size="small"
-                            style={{ backgroundColor: brand.primary }}
+                            style={{
+                                backgroundImage: gradientFor(manager._id),
+                                color: "#fff",
+                                fontSize: 11,
+                                fontWeight: 600
+                            }}
                         >
                             {initialsOf(manager.username)}
                         </Avatar>
                         <span>{manager.username}</span>
-                    </Space>
+                    </ManagerPill>
                 );
             }
         },
@@ -210,7 +341,11 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                         <Typography.Text type="secondary">Null</Typography.Text>
                     );
                 }
-                return <span>{formatDate(data.createdAt)}</span>;
+                return (
+                    <Typography.Text type="secondary">
+                        {formatDate(data.createdAt)}
+                    </Typography.Text>
+                );
             }
         },
         {
@@ -260,30 +395,32 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
     ];
 
     return (
-        <Table<ProjectIntro>
-            {...props}
-            pagination={{ pageSize: 10, hideOnSinglePage: true }}
-            columns={ListColumns}
-            dataSource={dataSource}
-            scroll={{ x: "max-content" }}
-            locale={{
-                emptyText: (
-                    <EmptyState
-                        title={microcopy.empty.projects.title}
-                        description={microcopy.empty.projects.description}
-                        cta={
-                            <Button
-                                icon={<PlusOutlined />}
-                                onClick={openModal}
-                                type="primary"
-                            >
-                                {microcopy.actions.create} project
-                            </Button>
-                        }
-                    />
-                )
-            }}
-        />
+        <ListSurface>
+            <Table<ProjectIntro>
+                {...props}
+                pagination={{ pageSize: 10, hideOnSinglePage: true }}
+                columns={ListColumns}
+                dataSource={dataSource}
+                scroll={{ x: "max-content" }}
+                locale={{
+                    emptyText: (
+                        <EmptyState
+                            title={microcopy.empty.projects.title}
+                            description={microcopy.empty.projects.description}
+                            cta={
+                                <Button
+                                    icon={<PlusOutlined />}
+                                    onClick={openModal}
+                                    type="primary"
+                                >
+                                    {microcopy.actions.create} project
+                                </Button>
+                            }
+                        />
+                    )
+                }}
+            />
+        </ListSurface>
     );
 };
 

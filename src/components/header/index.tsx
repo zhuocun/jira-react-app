@@ -11,21 +11,36 @@ import { useLocation } from "react-router";
 
 import Logo from "../../assets/logo-software.svg?react";
 import { microcopy } from "../../constants/microcopy";
-import { brand, breakpoints, space } from "../../theme/tokens";
+import {
+    breakpoints,
+    fontSize,
+    fontWeight,
+    letterSpacing,
+    radius,
+    space
+} from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useColorScheme from "../../utils/hooks/useColorScheme";
 import resetRoute from "../../utils/resetRoute";
 import MemberPopover from "../memberPopover";
 import { NoPaddingButton } from "../projectList";
-import Row from "../row";
 
-const PageHeader = styled(Row)`
-    background: var(--ant-color-bg-container, #fff);
-    border-bottom: 1px solid var(--ant-color-split, rgba(5, 5, 5, 0.06));
+const PageHeader = styled.header`
+    align-items: center;
+    backdrop-filter: saturate(180%) blur(12px);
+    background: color-mix(
+        in srgb,
+        var(--ant-color-bg-container, #fff) 86%,
+        transparent
+    );
+    border-bottom: 1px solid
+        var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+    display: flex;
+    justify-content: space-between;
     gap: ${space.xs}px;
-    padding: ${space.sm}px ${space.md}px;
-    padding-block: max(${space.sm}px, env(safe-area-inset-top));
+    padding: ${space.xs}px ${space.md}px;
+    padding-block-start: max(${space.xs}px, env(safe-area-inset-top));
     padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
     padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
     position: sticky;
@@ -39,40 +54,83 @@ const PageHeader = styled(Row)`
     }
 `;
 
-const LeftHeader = styled(Row)`
+const LeftCluster = styled.div`
+    align-items: center;
+    display: flex;
     flex: 1 1 auto;
+    gap: ${space.md}px;
     min-width: 0;
 `;
 
-const RightHeader = styled.div`
+const RightCluster = styled.div`
     align-items: center;
     display: flex;
     flex: 0 0 auto;
-    gap: ${space.xs}px;
+    gap: ${space.xxs}px;
 
     @media (min-width: ${breakpoints.md}px) {
-        gap: ${space.md}px;
+        gap: ${space.xs}px;
     }
 `;
 
-const TriggerButton = styled.button`
+/**
+ * Soft pill-shaped trigger used for the account dropdown and the inline
+ * theme toggle. Stays at 36 px on desktop / 44 px on coarse pointers so
+ * touch users get an honest WCAG 2.5.8 target.
+ */
+const PillTrigger = styled.button`
     align-items: center;
     background: transparent;
     border: none;
-    border-radius: 999px;
+    border-radius: ${radius.pill}px;
     color: inherit;
     cursor: pointer;
     display: inline-flex;
+    font: inherit;
     gap: ${space.xs}px;
-    min-height: 32px;
-    padding: ${space.xxs}px ${space.xs}px;
+    height: 36px;
+    padding: 0 ${space.sm}px;
+    transition:
+        background-color 120ms ease-out,
+        color 120ms ease-out;
 
     &:hover {
-        background: var(--ant-color-bg-text-hover, rgba(0, 0, 0, 0.04));
+        background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.05));
     }
 
     @media (pointer: coarse) {
-        min-height: 44px;
+        height: 44px;
+    }
+`;
+
+/**
+ * Square icon button (used for the inline theme toggle and other tertiary
+ * controls). Keeps a single visual rhythm with the pill trigger.
+ */
+const IconButton = styled.button`
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: ${radius.md}px;
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.65));
+    cursor: pointer;
+    display: inline-flex;
+    height: 36px;
+    justify-content: center;
+    padding: 0;
+    transition:
+        background-color 120ms ease-out,
+        color 120ms ease-out;
+    width: 36px;
+
+    &:hover {
+        background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.05));
+        color: var(--ant-color-text, rgba(15, 23, 42, 0.9));
+    }
+
+    @media (pointer: coarse) {
+        height: 44px;
+        width: 44px;
     }
 `;
 
@@ -82,24 +140,43 @@ const HiddenOnNarrow = styled.span`
     }
 `;
 
-const LogoButton = styled(NoPaddingButton)`
+const HiddenOnTiny = styled.span`
+    @media (max-width: ${breakpoints.sm - 1}px) {
+        display: none;
+    }
+`;
+
+/**
+ * Brand cluster — the icon-only logo (loaded from the SVG asset so the
+ * existing test mock keeps working) plus the wordmark rendered in Inter
+ * for crisp letterforms at every density.
+ */
+const BrandLink = styled(NoPaddingButton)`
+    align-items: center;
+    display: inline-flex;
     flex: 0 1 auto;
+    gap: ${space.xs}px;
     min-width: 0;
 
-    /*
-     * Shrink the logo on narrow viewports so the member popover and avatar
-     * dropdown still fit without overflowing the header. The SVG keeps its
-     * aspect ratio because we don't constrain the height.
-     */
-    svg {
-        max-width: 100%;
-        width: 7.5rem;
+    && {
+        height: 36px;
+        padding: 0;
     }
 
-    @media (min-width: ${breakpoints.sm}px) {
-        svg {
-            width: 10rem;
-        }
+    svg {
+        height: 28px;
+        width: 28px;
+    }
+`;
+
+const Wordmark = styled.span`
+    font-size: ${fontSize.md}px;
+    font-weight: ${fontWeight.semibold};
+    letter-spacing: ${letterSpacing.tight};
+    line-height: 1;
+
+    @media (max-width: ${breakpoints.sm - 1}px) {
+        display: none;
     }
 `;
 
@@ -192,9 +269,9 @@ const Header: React.FC = () => {
     ];
 
     return (
-        <PageHeader between>
-            <LeftHeader gap>
-                <LogoButton
+        <PageHeader>
+            <LeftCluster>
+                <BrandLink
                     aria-label="Go to projects"
                     type="link"
                     onClick={
@@ -203,32 +280,59 @@ const Header: React.FC = () => {
                             : undefined
                     }
                 >
-                    <Logo color={brand.primary} />
-                </LogoButton>
+                    <Logo aria-hidden />
+                    <Wordmark>Pulse</Wordmark>
+                </BrandLink>
                 <MemberPopover />
-            </LeftHeader>
-            <RightHeader>
+            </LeftCluster>
+            <RightCluster>
+                <IconButton
+                    aria-label={
+                        scheme === "dark"
+                            ? "Switch to light mode"
+                            : "Switch to dark mode"
+                    }
+                    onClick={() =>
+                        setPreference(scheme === "dark" ? "light" : "dark")
+                    }
+                    type="button"
+                >
+                    {scheme === "dark" ? <SunOutlined /> : <MoonOutlined />}
+                </IconButton>
                 <Dropdown menu={{ items }} trigger={["click", "hover"]}>
-                    <TriggerButton
+                    <PillTrigger
                         aria-label={`${microcopy.a11y.accountMenu} for ${user?.username ?? "user"}`}
                         onClick={(event) => event.preventDefault()}
                         type="button"
                     >
                         <Avatar
                             size="small"
-                            style={{ backgroundColor: brand.primary }}
+                            style={{
+                                backgroundImage:
+                                    "linear-gradient(135deg, #7C5CFF 0%, #5E6AD2 100%)",
+                                color: "#fff",
+                                fontWeight: 600
+                            }}
                         >
                             {initialsOf(user?.username)}
                         </Avatar>
-                        <HiddenOnNarrow>
-                            <Typography.Text>
+                        <HiddenOnTiny>
+                            <Typography.Text style={{ fontWeight: 500 }}>
                                 Hi, {user?.username}
                             </Typography.Text>
+                        </HiddenOnTiny>
+                        <HiddenOnNarrow>
+                            <DownOutlined
+                                aria-hidden
+                                style={{
+                                    color: "var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.45))",
+                                    fontSize: 10
+                                }}
+                            />
                         </HiddenOnNarrow>
-                        <DownOutlined aria-hidden style={{ fontSize: 10 }} />
-                    </TriggerButton>
+                    </PillTrigger>
                 </Dropdown>
-            </RightHeader>
+            </RightCluster>
         </PageHeader>
     );
 };

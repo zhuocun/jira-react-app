@@ -1,26 +1,53 @@
+import { CaretDownOutlined, FolderOpenOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import { Divider, Popover, Typography } from "antd";
 import { useNavigate } from "react-router";
 
 import { microcopy } from "../../constants/microcopy";
-import { space } from "../../theme/tokens";
+import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 import { NoPaddingButton } from "../projectList";
 
 const ContentContainer = styled.div`
     max-height: 60vh;
-    max-width: min(20rem, calc(100vw - 32px));
-    min-width: min(16rem, calc(100vw - 32px));
+    max-width: min(22rem, calc(100vw - 32px));
+    min-width: min(18rem, calc(100vw - 32px));
     overflow-y: auto;
 `;
 
-const ProjectList = styled.div`
-    padding-top: ${space.xs}px;
+const SectionLabel = styled(Typography.Text)`
+    && {
+        color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
+        font-size: ${fontSize.xs}px;
+        font-weight: ${fontWeight.semibold};
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
 `;
 
-const ProjectItem = styled.div`
-    padding: ${space.xs}px 0;
+const ProjectListWrapper = styled.div`
+    display: grid;
+    gap: 2px;
+    margin-top: ${space.xs}px;
+`;
+
+const ProjectItemButton = styled(NoPaddingButton)`
+    && {
+        align-items: center;
+        border-radius: ${radius.sm}px;
+        display: flex;
+        font-weight: ${fontWeight.medium};
+        height: auto;
+        justify-content: flex-start;
+        padding: ${space.xs}px ${space.sm}px;
+        text-align: left;
+        width: 100%;
+    }
+
+    &&:hover {
+        background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.04));
+    }
 `;
 
 /**
@@ -31,19 +58,24 @@ const ProjectItem = styled.div`
  * defaults to `bottom` so it does not clip on narrow viewports.
  */
 const TriggerButton = styled.button`
+    align-items: center;
     background: transparent;
     border: none;
-    border-radius: ${space.xs}px;
-    color: inherit;
+    border-radius: ${radius.md}px;
+    color: var(--ant-color-text, rgba(15, 23, 42, 0.85));
     cursor: pointer;
+    display: inline-flex;
     font: inherit;
+    font-weight: ${fontWeight.medium};
+    gap: ${space.xs}px;
     min-height: 32px;
-    padding: ${space.xxs}px ${space.xs}px;
+    padding: ${space.xxs}px ${space.sm}px;
+    transition: background-color 120ms ease-out;
     white-space: nowrap;
 
     &:hover,
     &:focus-visible {
-        background: var(--ant-color-bg-text-hover, rgba(0, 0, 0, 0.04));
+        background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.04));
     }
 
     @media (pointer: coarse) {
@@ -58,20 +90,18 @@ const ProjectPopover: React.FC = () => {
 
     const content = (
         <ContentContainer>
-            <Typography.Text type="secondary">Projects</Typography.Text>
-            <ProjectList>
+            <SectionLabel>Projects</SectionLabel>
+            <ProjectListWrapper>
                 {projects?.map((project) => (
-                    <ProjectItem key={project._id}>
-                        <NoPaddingButton
-                            type="text"
-                            key={project._id}
-                            onClick={() => navigate(`/projects/${project._id}`)}
-                        >
-                            {project.projectName}
-                        </NoPaddingButton>
-                    </ProjectItem>
+                    <ProjectItemButton
+                        key={project._id}
+                        onClick={() => navigate(`/projects/${project._id}`)}
+                        type="text"
+                    >
+                        {project.projectName}
+                    </ProjectItemButton>
                 ))}
-            </ProjectList>
+            </ProjectListWrapper>
             <Divider style={{ margin: `${space.sm}px 0` }} />
             <NoPaddingButton onClick={openModal} type="link">
                 {microcopy.actions.createProject}
@@ -80,13 +110,18 @@ const ProjectPopover: React.FC = () => {
     );
 
     return (
-        <Popover content={content} placement="bottom">
+        <Popover content={content} placement="bottomLeft">
             <TriggerButton
                 aria-haspopup="menu"
                 aria-label="Switch project"
                 type="button"
             >
+                <FolderOpenOutlined aria-hidden />
                 Projects
+                <CaretDownOutlined
+                    aria-hidden
+                    style={{ fontSize: 10, opacity: 0.6 }}
+                />
             </TriggerButton>
         </Popover>
     );

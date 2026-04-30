@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 
 import ProjectPopover from "../components/projectPopover";
-import { breakpoints, space } from "../theme/tokens";
+import { breakpoints, fontSize, fontWeight, space } from "../theme/tokens";
 import useReactQuery from "../utils/hooks/useReactQuery";
 
 const Container = styled.div`
@@ -24,7 +24,8 @@ const Container = styled.div`
 const TopBar = styled.div`
     align-items: center;
     background: var(--ant-color-bg-container, #fff);
-    border-bottom: 1px solid var(--ant-color-split, rgba(5, 5, 5, 0.06));
+    border-bottom: 1px solid
+        var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
     display: flex;
     flex-wrap: wrap;
     gap: ${space.xs}px;
@@ -41,15 +42,33 @@ const TopBar = styled.div`
     }
 `;
 
+const BreadcrumbWrapper = styled.div`
+    && .ant-breadcrumb {
+        font-size: ${fontSize.sm}px;
+    }
+    && .ant-breadcrumb li:last-child {
+        color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
+        font-weight: ${fontWeight.semibold};
+    }
+`;
+
 const TabsRow = styled(Tabs)`
     && {
         margin-bottom: -1px;
+    }
+    && .ant-tabs-tab {
+        font-weight: ${fontWeight.medium};
+        padding: ${space.xs}px ${space.sm}px;
+    }
+    && .ant-tabs-ink-bar {
+        height: 2px;
     }
 `;
 
 const Body = styled.div`
     display: flex;
     flex: 1;
+    flex-direction: column;
     min-height: 0;
     overflow: auto;
 `;
@@ -81,25 +100,27 @@ const ProjectDetailPage = () => {
     return (
         <Container>
             <TopBar>
-                <Breadcrumb
-                    items={[
-                        {
-                            title: <ProjectPopover />
-                        },
-                        {
-                            title:
-                                pLoading && !project ? (
-                                    <Skeleton.Input
-                                        active
-                                        size="small"
-                                        style={{ width: 160 }}
-                                    />
-                                ) : (
-                                    (project?.projectName ?? "Project")
-                                )
-                        }
-                    ]}
-                />
+                <BreadcrumbWrapper>
+                    <Breadcrumb
+                        items={[
+                            {
+                                title: <ProjectPopover />
+                            },
+                            {
+                                title:
+                                    pLoading && !project ? (
+                                        <Skeleton.Input
+                                            active
+                                            size="small"
+                                            style={{ width: 160 }}
+                                        />
+                                    ) : (
+                                        (project?.projectName ?? "Project")
+                                    )
+                            }
+                        ]}
+                    />
+                </BreadcrumbWrapper>
                 <TabsRow activeKey={activeTab} items={tabItems} size="small" />
             </TopBar>
             <Body>

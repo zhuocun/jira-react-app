@@ -2,104 +2,329 @@ import styled from "@emotion/styled";
 import { Button, Card } from "antd";
 import { Outlet } from "react-router";
 
-import left from "../assets/left.svg";
-import logo from "../assets/logo.svg";
-import right from "../assets/right.svg";
-import { breakpoints, space } from "../theme/tokens";
+import {
+    breakpoints,
+    fontSize,
+    fontWeight,
+    letterSpacing,
+    lineHeight,
+    radius,
+    shadow,
+    space
+} from "../theme/tokens";
 
-const Container = styled.div`
-    align-items: center;
-    display: flex;
-    flex-direction: column;
+const Page = styled.div`
+    display: grid;
+    grid-template-columns: 1fr;
     min-height: 100vh;
     min-height: 100dvh;
-    padding: ${space.sm}px;
-    padding-block-start: max(${space.sm}px, env(safe-area-inset-top));
-    padding-block-end: max(${space.sm}px, env(safe-area-inset-bottom));
-    padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
-    padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
+    background:
+        radial-gradient(
+            1200px 600px at 0% 0%,
+            rgba(124, 92, 255, 0.18),
+            transparent 60%
+        ),
+        radial-gradient(
+            900px 500px at 100% 100%,
+            rgba(94, 106, 210, 0.18),
+            transparent 60%
+        ),
+        var(--ant-color-bg-layout, #f7f8fb);
 
-    @media (min-width: ${breakpoints.sm}px) {
-        padding: ${space.md}px;
-        padding-block-start: max(${space.md}px, env(safe-area-inset-top));
-        padding-block-end: max(${space.md}px, env(safe-area-inset-bottom));
-        padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
-        padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
+    @media (min-width: ${breakpoints.lg}px) {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
     }
 `;
 
 /**
+ * Marketing rail. Sits on the left at desktop widths and disappears below
+ * `lg` so the auth card has the full viewport. The visual treatment is a
+ * soft indigo gradient with a subtle dot pattern overlay — no heavy
+ * decorative SVGs, no raster images, just CSS so it scales perfectly.
+ */
+const HeroRail = styled.aside`
+    display: none;
+
+    @media (min-width: ${breakpoints.lg}px) {
+        align-items: center;
+        background:
+            radial-gradient(
+                700px 700px at 30% 30%,
+                rgba(124, 92, 255, 0.35),
+                transparent 70%
+            ),
+            radial-gradient(
+                500px 500px at 80% 80%,
+                rgba(94, 106, 210, 0.35),
+                transparent 70%
+            ),
+            #1c1f3d;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        padding: ${space.xxxl}px ${space.xxl}px;
+        position: relative;
+    }
+
+    /* Subtle grid texture so the gradient does not feel empty. */
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+            linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.04) 1px,
+                transparent 1px
+            );
+        background-size: 32px 32px;
+        mask-image: radial-gradient(closest-side, black 0%, transparent 100%);
+        pointer-events: none;
+    }
+`;
+
+const HeroInner = styled.div`
+    max-width: 32rem;
+    position: relative;
+    z-index: 1;
+    text-align: left;
+`;
+
+const HeroBadge = styled.div`
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: ${radius.pill}px;
+    color: rgba(255, 255, 255, 0.9);
+    display: inline-flex;
+    font-size: ${fontSize.sm}px;
+    font-weight: ${fontWeight.medium};
+    gap: ${space.xs}px;
+    padding: ${space.xxs}px ${space.sm}px;
+`;
+
+const HeroBadgeDot = styled.span`
+    background: #7c5cff;
+    border-radius: 50%;
+    box-shadow: 0 0 12px #7c5cff;
+    display: inline-block;
+    height: 6px;
+    width: 6px;
+`;
+
+const HeroTitle = styled.h2`
+    color: #fff;
+    font-size: 40px;
+    font-weight: ${fontWeight.semibold};
+    letter-spacing: ${letterSpacing.tight};
+    line-height: 1.1;
+    margin: ${space.lg}px 0 ${space.md}px;
+`;
+
+const HeroSubtitle = styled.p`
+    color: rgba(255, 255, 255, 0.72);
+    font-size: ${fontSize.md}px;
+    line-height: ${lineHeight.relaxed};
+    margin: 0 0 ${space.xl}px;
+    max-width: 28rem;
+`;
+
+const HeroFeatureList = styled.ul`
+    display: grid;
+    gap: ${space.md}px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+`;
+
+const HeroFeature = styled.li`
+    align-items: center;
+    color: rgba(255, 255, 255, 0.92);
+    display: flex;
+    font-size: ${fontSize.base}px;
+    gap: ${space.sm}px;
+`;
+
+const HeroFeatureIcon = styled.span`
+    align-items: center;
+    background: rgba(124, 92, 255, 0.22);
+    border-radius: ${radius.md}px;
+    color: #c084fc;
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+`;
+
+/**
+ * Main auth canvas. Holds the brand mark and the form card.
+ */
+const Canvas = styled.div`
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: ${space.lg}px;
+    padding-block-start: max(${space.xl}px, env(safe-area-inset-top));
+    padding-block-end: max(${space.lg}px, env(safe-area-inset-bottom));
+    padding-inline-start: max(${space.lg}px, env(safe-area-inset-left));
+    padding-inline-end: max(${space.lg}px, env(safe-area-inset-right));
+    width: 100%;
+`;
+
+const BrandHeader = styled.header`
+    align-items: center;
+    color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
+    display: inline-flex;
+    gap: ${space.sm}px;
+    margin-bottom: ${space.xl}px;
+`;
+
+const BrandIcon = styled.span`
+    align-items: center;
+    background: linear-gradient(135deg, #7c5cff 0%, #5e6ad2 100%);
+    border-radius: ${radius.md}px;
+    box-shadow: ${shadow.md};
+    color: #fff;
+    display: inline-flex;
+    height: 36px;
+    justify-content: center;
+    width: 36px;
+
+    svg {
+        height: 20px;
+        width: 20px;
+    }
+`;
+
+const BrandWordmark = styled.span`
+    font-size: ${fontSize.lg}px;
+    font-weight: ${fontWeight.semibold};
+    letter-spacing: ${letterSpacing.tight};
+`;
+
+/**
  * Page-level heading for auth screens. Rendered as an `h1` for correct
- * document outline (login/register are top-level pages); kept visually at
- * the existing "h3" size to preserve the layout.
+ * document outline (login/register are top-level pages); we override
+ * AntD typography here for closer kerning and a heavier weight.
  */
 export const AuthTitle = styled.h1`
-    color: var(--ant-color-text, rgba(0, 0, 0, 0.88));
-    font-size: 1.17em;
-    font-weight: 600;
-    margin-bottom: ${space.lg}px;
-    margin-top: 0;
+    color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
+    font-size: ${fontSize.xl}px;
+    font-weight: ${fontWeight.semibold};
+    letter-spacing: ${letterSpacing.tight};
+    line-height: ${lineHeight.snug};
+    margin: 0 0 ${space.xxs}px;
+    text-align: left;
 `;
 
-const Header = styled.header`
-    background: url(${logo}) no-repeat center;
-    background-size: 6rem;
-    padding: ${space.lg}px 0 ${space.md}px;
-    width: 100%;
+/**
+ * Subhead under the auth title. Optional — pages that don't render one
+ * still have AuthTitle take the full available height.
+ */
+export const AuthSubtitle = styled.p`
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.6));
+    font-size: ${fontSize.base}px;
+    line-height: ${lineHeight.normal};
+    margin: 0 0 ${space.lg}px;
+    text-align: left;
+`;
 
-    @media (min-width: ${breakpoints.sm}px) {
-        background-size: 8rem;
-        padding: ${space.xl}px 0 ${space.lg}px;
+/**
+ * AntD `Card` is retained as the form shell so the existing test contract
+ * (`.ant-card` selector) keeps passing while we deliver a refined surface
+ * treatment via the `box-shadow` / `border` / `border-radius` overrides.
+ */
+const FormCard = styled(Card)`
+    && {
+        background: var(--ant-color-bg-container, #fff);
+        border: 1px solid
+            var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+        border-radius: ${radius.lg}px;
+        box-shadow: ${shadow.lg};
+        box-sizing: border-box;
+        max-width: 28rem;
+        text-align: left;
+        width: 100%;
+    }
+
+    && .ant-card-body {
+        padding: ${space.xl}px;
+
+        @media (min-width: ${breakpoints.sm}px) {
+            padding: ${space.xxl}px;
+        }
     }
 `;
 
-const Background = styled.div`
-    background-attachment: fixed;
-    background-image: url(${left}), url(${right});
-    background-position:
-        left bottom,
-        right bottom;
-    background-repeat: no-repeat;
-    background-size: min(40vw, 32rem), min(40vw, 32rem), cover;
-    height: 100%;
-    pointer-events: none;
-    position: absolute;
-    width: 100%;
-    z-index: -1;
-
-    @media (max-width: 720px) {
-        display: none;
-    }
-`;
-
-const ShadowCard = styled(Card)`
-    border-radius: 8px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0 0 10px;
-    box-sizing: border-box;
-    max-width: 40rem;
-    padding: ${space.md}px;
-    text-align: center;
-    width: 100%;
-
-    @media (min-width: ${breakpoints.sm}px) {
-        padding: ${space.lg}px ${space.xl}px;
-        width: min(40rem, 100% - ${space.xl}px);
-    }
-`;
-
+/**
+ * Auth submit button. Full width on mobile (single dominant CTA),
+ * with the same minimum height for predictable alignment with the
+ * rest of the form.
+ */
 export const AuthButton = styled(Button)`
-    width: 100%;
+    && {
+        font-weight: 500;
+        height: 44px;
+        width: 100%;
+    }
 `;
 
 const AuthLayout = () => {
     return (
-        <Container>
-            <Header aria-hidden="true" />
-            <Background aria-hidden="true" />
-            <ShadowCard>
-                <Outlet />
-            </ShadowCard>
-        </Container>
+        <Page>
+            <HeroRail aria-hidden="true">
+                <HeroInner>
+                    <HeroBadge>
+                        <HeroBadgeDot />
+                        New: Board Copilot
+                    </HeroBadge>
+                    <HeroTitle>Ship work with calm focus.</HeroTitle>
+                    <HeroSubtitle>
+                        A focused project board that turns work into momentum.
+                        Drag, drop, draft with AI, and keep your team in flow.
+                    </HeroSubtitle>
+                    <HeroFeatureList>
+                        <HeroFeature>
+                            <HeroFeatureIcon aria-hidden>✦</HeroFeatureIcon>
+                            Draft tasks and standup briefs with AI.
+                        </HeroFeature>
+                        <HeroFeature>
+                            <HeroFeatureIcon aria-hidden>↹</HeroFeatureIcon>
+                            Drag-and-drop columns and cards.
+                        </HeroFeature>
+                        <HeroFeature>
+                            <HeroFeatureIcon aria-hidden>◐</HeroFeatureIcon>
+                            Light, dark, and system color modes.
+                        </HeroFeature>
+                    </HeroFeatureList>
+                </HeroInner>
+            </HeroRail>
+            <Canvas>
+                <BrandHeader>
+                    <BrandIcon aria-hidden>
+                        <svg
+                            viewBox="0 0 32 32"
+                            xmlns="http://www.w3.org/2000/svg"
+                            focusable="false"
+                        >
+                            <path
+                                d="M9 10.5 L9 21.5 M14 14.5 L14 17.5 M19 10.5 L19 21.5 M24 14.5 L24 17.5"
+                                stroke="#FFFFFF"
+                                strokeWidth="2.4"
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                    </BrandIcon>
+                    <BrandWordmark>Pulse</BrandWordmark>
+                </BrandHeader>
+                <FormCard>
+                    <Outlet />
+                </FormCard>
+            </Canvas>
+        </Page>
     );
 };
 

@@ -14,7 +14,7 @@ import type { TextAreaRef } from "antd/es/input/TextArea";
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 
 import { microcopy } from "../../constants/microcopy";
-import { fontSize, space } from "../../theme/tokens";
+import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
 import useAiChat from "../../utils/hooks/useAiChat";
 import AiSparkleIcon from "../aiSparkleIcon";
 
@@ -168,10 +168,14 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 }
             }}
             title={
-                <Space align="center" size={space.xs}>
+                <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />
-                    <span>Ask Board Copilot</span>
-                    <Tag color="processing">{microcopy.a11y.aiBadge}</Tag>
+                    <span style={{ fontWeight: fontWeight.semibold }}>
+                        Ask Board Copilot
+                    </span>
+                    <Tag variant="filled" color="purple">
+                        {microcopy.a11y.aiBadge}
+                    </Tag>
                 </Space>
             }
         >
@@ -196,13 +200,18 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                             Ask about this board, tasks, or your projects.
                             Answers use read-only data from the app.
                         </Text>
-                        <Space size={space.xxs} wrap>
+                        <Space size={space.xs} wrap>
                             {SAMPLE_PROMPTS.map((prompt) => (
                                 <Tag.CheckableTag
                                     aria-label={`Try sample prompt: ${prompt}`}
                                     checked={false}
                                     key={prompt}
                                     onChange={() => dispatch(prompt)}
+                                    style={{
+                                        borderRadius: radius.pill,
+                                        fontWeight: 500,
+                                        padding: `4px 12px`
+                                    }}
                                 >
                                     {prompt}
                                 </Tag.CheckableTag>
@@ -250,13 +259,13 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                             <Paragraph
                                 style={{
                                     background: isUser
-                                        ? "var(--ant-color-primary-bg, rgba(22, 119, 255, 0.08))"
-                                        : "var(--ant-color-fill-tertiary, rgba(0, 0, 0, 0.04))",
-                                    borderRadius: space.xs,
+                                        ? "var(--ant-color-primary-bg, rgba(94, 106, 210, 0.10))"
+                                        : "var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.04))",
+                                    borderRadius: radius.md,
                                     color: "var(--ant-color-text, inherit)",
                                     display: "inline-block",
                                     marginBottom: 0,
-                                    maxWidth: "100%",
+                                    maxWidth: "min(100%, 36rem)",
                                     padding: `${space.xs}px ${space.sm}px`,
                                     textAlign: "left",
                                     whiteSpace: "pre-wrap"
@@ -285,7 +294,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 <Alert
                     closable
                     description={error.message}
-                    message="Something went wrong"
+                    title="Something went wrong"
                     onClose={dismissError}
                     showIcon
                     style={{ marginBottom: space.xs }}

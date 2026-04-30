@@ -5,6 +5,8 @@ import Header from "../components/header";
 import ProjectModal from "../components/projectModal";
 
 const Container = styled.div`
+    background: var(--ant-color-bg-layout, #f7f8fb);
+    color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
     display: grid;
     grid-template-rows: auto 1fr;
     min-height: 100vh;
@@ -13,6 +15,7 @@ const Container = styled.div`
 
 const Main = styled.main`
     display: flex;
+    flex-direction: column;
     min-height: 0;
 `;
 

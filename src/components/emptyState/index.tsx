@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 import { Empty, Typography } from "antd";
 import React from "react";
 
-import { space } from "../../theme/tokens";
+import { fontSize, fontWeight, lineHeight, space } from "../../theme/tokens";
 
 interface EmptyStateProps {
     title: string;
@@ -14,11 +14,65 @@ interface EmptyStateProps {
 
 const Container = styled.div`
     align-items: center;
+    color: var(--ant-color-text, rgba(15, 23, 42, 0.85));
     display: flex;
     flex-direction: column;
     gap: ${space.sm}px;
-    padding: ${space.xl}px ${space.md}px;
+    padding: ${space.xxl}px ${space.lg}px;
     text-align: center;
+`;
+
+const StyledEmpty = styled(Empty)`
+    && {
+        margin: 0;
+    }
+
+    && .ant-empty-image {
+        align-items: center;
+        background:
+            radial-gradient(
+                circle at 30% 30%,
+                rgba(124, 92, 255, 0.18),
+                transparent 65%
+            ),
+            radial-gradient(
+                circle at 70% 70%,
+                rgba(94, 106, 210, 0.16),
+                transparent 60%
+            ),
+            var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
+        border: 1px solid
+            var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+        border-radius: 999px;
+        color: var(--ant-color-primary, #5e6ad2);
+        display: inline-flex;
+        height: 72px;
+        justify-content: center;
+        margin-bottom: 0;
+        width: 72px;
+    }
+
+    && .ant-empty-image svg {
+        height: 32px;
+        width: 32px;
+    }
+`;
+
+const Title = styled(Typography.Title)`
+    && {
+        font-size: ${fontSize.md}px;
+        font-weight: ${fontWeight.semibold};
+        line-height: ${lineHeight.snug};
+        margin: 0;
+    }
+`;
+
+const Description = styled(Typography.Text)`
+    && {
+        color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.6));
+        line-height: ${lineHeight.normal};
+        max-width: 36rem;
+    }
 `;
 
 /**
@@ -35,14 +89,13 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 }) => (
     <Container data-testid={testId} role="status">
         {illustration ?? (
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={null} />
+            <StyledEmpty
+                description={null}
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
         )}
-        <Typography.Title level={5} style={{ margin: 0 }}>
-            {title}
-        </Typography.Title>
-        {description ? (
-            <Typography.Text type="secondary">{description}</Typography.Text>
-        ) : null}
+        <Title level={5}>{title}</Title>
+        {description ? <Description>{description}</Description> : null}
         {cta ? <div style={{ marginTop: space.xs }}>{cta}</div> : null}
     </Container>
 );

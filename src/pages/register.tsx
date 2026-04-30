@@ -1,12 +1,20 @@
-import { Divider } from "antd";
+import styled from "@emotion/styled";
 import { useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate } from "react-router";
 
 import ErrorBox from "../components/errorBox";
 import { NoPaddingButton } from "../components/projectList";
 import RegisterForm from "../components/registerForm";
-import { AuthTitle } from "../layouts/authLayout";
+import { AuthSubtitle, AuthTitle } from "../layouts/authLayout";
+import { fontSize, space } from "../theme/tokens";
 import useAuth from "../utils/hooks/useAuth";
+
+const SwitchRow = styled.p`
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.6));
+    font-size: ${fontSize.sm}px;
+    margin: ${space.lg}px 0 0;
+    text-align: center;
+`;
 
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -29,12 +37,17 @@ const RegisterPage = () => {
     return (
         <>
             <AuthTitle>Register for an account</AuthTitle>
+            <AuthSubtitle>
+                Create your account to start tracking work.
+            </AuthSubtitle>
             <ErrorBox error={error} ref={errorRef} />
             <RegisterForm onError={setError} />
-            <Divider />
-            <NoPaddingButton onClick={handleSwitch} type="link">
-                Log in to your account
-            </NoPaddingButton>
+            <SwitchRow>
+                Already have an account?{" "}
+                <NoPaddingButton onClick={handleSwitch} type="link">
+                    Log in to your account
+                </NoPaddingButton>
+            </SwitchRow>
         </>
     );
 };
