@@ -181,6 +181,12 @@ describe("ProjectPage with Board Copilot enabled", () => {
         fireEvent.click(screen.getByRole("button", { name: /send message/i }));
 
         await waitFor(() => {
+            expect(
+                screen.getByLabelText("Show tool details")
+            ).toBeInTheDocument();
+        });
+        fireEvent.click(screen.getByLabelText("Show tool details"));
+        await waitFor(() => {
             expect(screen.getByText("listProjects")).toBeInTheDocument();
         });
 

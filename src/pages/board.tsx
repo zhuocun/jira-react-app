@@ -1,12 +1,13 @@
+import { SettingOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import {
     Alert,
     Button,
+    Popover,
     Skeleton,
     Space,
     Spin,
     Switch,
-    Tooltip,
     Typography
 } from "antd";
 import { DragDropContext } from "@hello-pangea/dnd";
@@ -177,24 +178,13 @@ const BoardPage = () => {
                             </Typography.Title>
                         )}
                         {aiEnabled && (
-                            <Space align="center" size={themeSpace.sm}>
-                                <Tooltip title="Turn off to hide Board Copilot on this board and block AI requests for this project.">
-                                    <Space size={themeSpace.xxs}>
-                                        <Switch
-                                            aria-label="Board Copilot for this project"
-                                            checked={!aiDisabledForProject}
-                                            onChange={(checked) =>
-                                                setProjectAiDisabled(!checked)
-                                            }
-                                            size="small"
-                                        />
-                                        <Typography.Text type="secondary">
-                                            Project AI
-                                        </Typography.Text>
-                                    </Space>
-                                </Tooltip>
+                            <Space
+                                align="center"
+                                size={themeSpace.xs}
+                                wrap
+                            >
                                 {boardAiOn && (
-                                    <>
+                                    <Space.Compact>
                                         <Button
                                             aria-label="Open Board Copilot brief"
                                             icon={<AiSparkleIcon />}
@@ -211,8 +201,60 @@ const BoardPage = () => {
                                         >
                                             Ask
                                         </Button>
-                                    </>
+                                    </Space.Compact>
                                 )}
+                                <Popover
+                                    content={
+                                        <Space
+                                            orientation="vertical"
+                                            size={themeSpace.xs}
+                                            style={{ minWidth: 240 }}
+                                        >
+                                            <Typography.Text type="secondary">
+                                                Board Copilot
+                                            </Typography.Text>
+                                            <div
+                                                style={{
+                                                    alignItems: "center",
+                                                    display: "flex",
+                                                    gap: themeSpace.sm,
+                                                    justifyContent:
+                                                        "space-between"
+                                                }}
+                                            >
+                                                <span>Enable on this board</span>
+                                                <Switch
+                                                    aria-label="Board Copilot for this project"
+                                                    checked={
+                                                        !aiDisabledForProject
+                                                    }
+                                                    onChange={(checked) =>
+                                                        setProjectAiDisabled(
+                                                            !checked
+                                                        )
+                                                    }
+                                                    size="small"
+                                                />
+                                            </div>
+                                            <Typography.Text
+                                                style={{ fontSize: 12 }}
+                                                type="secondary"
+                                            >
+                                                Hides Board Copilot on this
+                                                board and blocks AI requests
+                                                for this project.
+                                            </Typography.Text>
+                                        </Space>
+                                    }
+                                    placement="bottomRight"
+                                    trigger={["click"]}
+                                >
+                                    <Button
+                                        aria-label="Board Copilot settings"
+                                        icon={<SettingOutlined />}
+                                        type="text"
+                                    />
+                                </Popover>
                             </Space>
                         )}
                     </Row>

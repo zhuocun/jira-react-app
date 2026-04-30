@@ -1,7 +1,7 @@
 import { ReactElement } from "react";
-import { Navigate, Outlet } from "react-router";
+import { Outlet } from "react-router";
 
-import routes from ".";
+import routes, { RootRedirect } from ".";
 
 jest.mock("../pages/home", () => ({
     __esModule: true,
@@ -32,7 +32,7 @@ const element = <Props,>(route: { element?: unknown }) =>
     route.element as ReactElement<Props>;
 
 describe("routes", () => {
-    it("wraps the app in an outlet with an index redirect to login", () => {
+    it("wraps the app in an outlet with an auth-aware index redirect", () => {
         const root = routes[0];
         expect(root.path).toBe("/");
         expect(element(root).type).toBe(Outlet);
@@ -41,13 +41,12 @@ describe("routes", () => {
         expect(
             indexRedirect && "index" in indexRedirect && indexRedirect.index
         ).toBe(true);
-        expect(
-            element<{ to: string }>(indexRedirect as { element?: unknown }).type
-        ).toBe(Navigate);
-        expect(
-            element<{ to: string }>(indexRedirect as { element?: unknown })
-                .props.to
-        ).toBe("/login");
+        // The index renders <RootRedirect/>, which decides at runtime whether
+        // to send the visitor to /login or /projects. The previous test that
+        // hard-coded `/login` no longer applies.
+        expect(element(indexRedirect as { element?: unknown }).type).toBe(
+            RootRedirect
+        );
     });
 
     it("contains auth and project child routes under the home shell", () => {

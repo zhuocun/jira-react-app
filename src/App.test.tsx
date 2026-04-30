@@ -1,5 +1,6 @@
 /* eslint-disable global-require */
 import { render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
@@ -67,13 +68,22 @@ jest.mock("./pages/board", () => {
 
 const renderAppAt = (path: string) => {
     window.history.pushState({}, "App", path);
+    const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } }
+    });
 
     render(
-        <BrowserRouter>
-            <App />
-        </BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+                <App />
+            </BrowserRouter>
+        </QueryClientProvider>
     );
 };
+
+beforeEach(() => {
+    localStorage.clear();
+});
 
 describe("App", () => {
     it("redirects the root route to login", async () => {

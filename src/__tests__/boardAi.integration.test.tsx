@@ -275,7 +275,10 @@ describe("Board AI integration (App + local engine)", () => {
         ).toBeInTheDocument();
 
         await user.click(
-            screen.getByRole("switch", {
+            screen.getByRole("button", { name: /board copilot settings/i })
+        );
+        await user.click(
+            await screen.findByRole("switch", {
                 name: /board copilot for this project/i
             })
         );

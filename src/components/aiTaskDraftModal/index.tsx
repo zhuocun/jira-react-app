@@ -1,4 +1,14 @@
-import { Alert, Button, Form, Input, Modal, Select, Spin, Tag } from "antd";
+import {
+    Alert,
+    Button,
+    Checkbox,
+    Form,
+    Input,
+    Modal,
+    Select,
+    Spin,
+    Tag
+} from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -277,7 +287,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             loading={creating}
                             type="primary"
                         >
-                            Submit
+                            Create task
                         </Button>
                     </div>
                 </Form>
@@ -301,7 +311,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                                 marginBottom: 8
                             }}
                         >
-                            <input
+                            <Checkbox
                                 aria-label={`Include subtask ${item.taskName}`}
                                 checked={breakdownChecked[index]}
                                 onChange={(event) => {
@@ -309,7 +319,6 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                                     next[index] = event.target.checked;
                                     setBreakdownChecked(next);
                                 }}
-                                type="checkbox"
                             />
                             <span style={{ flex: 1 }}>{item.taskName}</span>
                             <Tag>{item.storyPoints} pts</Tag>

@@ -170,7 +170,7 @@ describe("AiChatDrawer", () => {
         expect(screen.getByText(/ask about this board/i)).toBeInTheDocument();
     });
 
-    it("renders tool output when the assistant requests listProjects", async () => {
+    it("renders tool output behind a Show details toggle when the assistant requests listProjects", async () => {
         mockApi.mockImplementation(async (endpoint: string) => {
             if (endpoint === "projects") {
                 return [{ _id: "p1", projectName: "Roadmap" }];
@@ -182,6 +182,17 @@ describe("AiChatDrawer", () => {
             target: { value: "List all projects" }
         });
         fireEvent.click(screen.getByLabelText("Send message"));
+
+        // Tool details are hidden by default to keep internal ids out of the
+        // user-visible thread; the toggle reveals them.
+        await waitFor(() => {
+            expect(
+                screen.getByLabelText("Show tool details")
+            ).toBeInTheDocument();
+        });
+        expect(screen.queryByText("listProjects")).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByLabelText("Show tool details"));
         await waitFor(() => {
             expect(screen.getByText("listProjects")).toBeInTheDocument();
         });
@@ -189,5 +200,17 @@ describe("AiChatDrawer", () => {
             "projects",
             expect.objectContaining({ method: "GET" })
         );
+    });
+
+    it("sends a sample prompt when its chip is activated", async () => {
+        renderDrawer(true);
+        const chip = screen.getByLabelText(
+            /Try sample prompt: What's at risk\?/
+        );
+        fireEvent.click(chip);
+
+        await waitFor(() => {
+            expect(screen.getByText(/task on the board/i)).toBeInTheDocument();
+        });
     });
 });

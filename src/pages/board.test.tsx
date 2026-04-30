@@ -287,8 +287,11 @@ describe("BoardPage", () => {
         expect(
             screen.queryByRole("button", { name: /Ask Board Copilot/i })
         ).not.toBeInTheDocument();
+        fireEvent.click(
+            screen.getByRole("button", { name: /Board Copilot settings/i })
+        );
         expect(
-            screen.getByRole("switch", {
+            await screen.findByRole("switch", {
                 name: /Board Copilot for this project/i
             })
         ).not.toBeChecked();
@@ -316,7 +319,10 @@ describe("BoardPage", () => {
 
         expect(await screen.findByText("Roadmap board")).toBeInTheDocument();
         fireEvent.click(
-            screen.getByRole("switch", {
+            screen.getByRole("button", { name: /Board Copilot settings/i })
+        );
+        fireEvent.click(
+            await screen.findByRole("switch", {
                 name: /Board Copilot for this project/i
             })
         );
