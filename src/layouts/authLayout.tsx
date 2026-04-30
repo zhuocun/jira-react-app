@@ -5,23 +5,27 @@ import { Outlet } from "react-router";
 import left from "../assets/left.svg";
 import logo from "../assets/logo.svg";
 import right from "../assets/right.svg";
+import { space } from "../theme/tokens";
 
 const Container = styled.div`
     align-items: center;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    min-height: 100dvh;
+    padding: ${space.md}px;
+    padding-block-start: max(${space.md}px, env(safe-area-inset-top));
 `;
 
 export const AuthTitle = styled.h3`
-    color: rgb(94, 108, 132);
-    margin-bottom: 2.4rem;
+    color: var(--ant-color-text-secondary, rgb(94, 108, 132));
+    margin-bottom: ${space.lg}px;
 `;
 
 const Header = styled.header`
     background: url(${logo}) no-repeat center;
     background-size: 8rem;
-    padding: 5rem 0;
+    padding: ${space.xl}px 0 ${space.lg}px;
     width: 100%;
 `;
 
@@ -33,21 +37,28 @@ const Background = styled.div`
         right bottom;
     background-repeat: no-repeat;
     background-size:
-        calc(((100vw - 40rem) / 2) - 3.2rem),
-        calc(((100vw - 40rem) / 2) - 3.2rem), cover;
+        min(40vw, 32rem),
+        min(40vw, 32rem),
+        cover;
     height: 100%;
+    pointer-events: none;
     position: absolute;
     width: 100%;
+    z-index: -1;
+
+    @media (max-width: 720px) {
+        display: none;
+    }
 `;
 
 const ShadowCard = styled(Card)`
-    border-radius: 0.3rem;
+    border-radius: 8px;
     box-shadow: rgba(0, 0, 0, 0.1) 0 0 10px;
     box-sizing: border-box;
-    min-height: 56rem;
-    padding: 3.2rem 4rem;
+    max-width: 40rem;
+    padding: ${space.lg}px ${space.xl}px;
     text-align: center;
-    width: 40rem;
+    width: min(40rem, 100% - ${space.xl}px);
 `;
 
 export const AuthButton = styled(Button)`
