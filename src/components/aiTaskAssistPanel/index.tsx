@@ -7,6 +7,12 @@ import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useDebounce from "../../utils/hooks/useDebounce";
 import AiSparkleIcon from "../aiSparkleIcon";
 
+// Stable fallbacks: avoid producing a new `[]` reference on every render, which
+// otherwise re-fires the suggestion effect endlessly when the cache is empty.
+const EMPTY_TASKS: ITask[] = [];
+const EMPTY_MEMBERS: IMember[] = [];
+const EMPTY_COLUMNS: IColumn[] = [];
+
 interface AiTaskAssistPanelProps {
     values: {
         taskName?: string;
@@ -33,10 +39,13 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
     onOpenSimilarTask
 }) => {
     const { projectId } = useParams<{ projectId: string }>();
-    const tasks = useCachedQueryData<ITask[]>(["tasks", { projectId }]) ?? [];
-    const members = useCachedQueryData<IMember[]>(["users/members"]) ?? [];
+    const tasks =
+        useCachedQueryData<ITask[]>(["tasks", { projectId }]) ?? EMPTY_TASKS;
+    const members =
+        useCachedQueryData<IMember[]>(["users/members"]) ?? EMPTY_MEMBERS;
     const columns =
-        useCachedQueryData<IColumn[]>(["boards", { projectId }]) ?? [];
+        useCachedQueryData<IColumn[]>(["boards", { projectId }]) ??
+        EMPTY_COLUMNS;
 
     const debouncedValues = useDebounce(values, 600);
     const taskName = debouncedValues.taskName ?? "";
@@ -49,22 +58,21 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
     useEffect(() => {
         if (!taskName.trim()) return;
         runEstimate({
-                estimate: {
-                    taskName,
-                    note: debouncedValues.note,
-                    epic: debouncedValues.epic,
-                    type: debouncedValues.type,
+            estimate: {
+                taskName,
+                note: debouncedValues.note,
+                epic: debouncedValues.epic,
+                type: debouncedValues.type,
+                tasks,
+                excludeTaskId,
+                context: {
+                    project: { _id: projectId ?? "", projectName: "" },
+                    columns,
                     tasks,
-                    excludeTaskId,
-                    context: {
-                        project: { _id: projectId ?? "", projectName: "" },
-                        columns,
-                        tasks,
-                        members
-                    }
+                    members
                 }
-            })
-            .catch(() => undefined);
+            }
+        }).catch(() => undefined);
         runReadiness({
             readiness: {
                 taskName,
@@ -79,8 +87,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                     members
                 }
             }
-        })
-            .catch(() => undefined);
+        }).catch(() => undefined);
     }, [
         taskName,
         debouncedValues.note,
@@ -113,9 +120,11 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
             {estimateAi.isLoading && !estimateAi.data && <Spin size="small" />}
             {estimateAi.error && (
                 <Alert
-                    message={estimateAi.error.message || "Failed to estimate task"}
                     showIcon
                     style={{ marginBottom: 8 }}
+                    title={
+                        estimateAi.error.message || "Failed to estimate task"
+                    }
                     type="warning"
                 />
             )}
@@ -187,19 +196,19 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
             )}
             {readinessAi.error && (
                 <Alert
-                    message={
+                    showIcon
+                    style={{ marginBottom: 8 }}
+                    title={
                         readinessAi.error.message ||
                         "Failed to run readiness check"
                     }
-                    showIcon
-                    style={{ marginBottom: 8 }}
                     type="warning"
                 />
             )}
             {readinessAi.data && readinessAi.data.issues.length === 0 && (
                 <Alert
-                    message="Looks ready to work on."
                     showIcon
+                    title="Looks ready to work on."
                     type="success"
                 />
             )}
@@ -225,9 +234,9 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                         }
                         description={issue.suggestion}
                         key={`${issue.field}-${issue.message}`}
-                        message={issue.message}
                         showIcon
                         style={{ marginBottom: 6 }}
+                        title={issue.message}
                         type={
                             issue.severity === "error"
                                 ? "error"
