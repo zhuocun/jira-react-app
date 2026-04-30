@@ -7,22 +7,22 @@ describe("getError", () => {
         expect(getError(error)).toBe(error);
     });
 
-    it("wraps string errors with Object", () => {
+    it("wraps string errors in Error instances", () => {
         const error = getError("Not allowed");
 
-        expect(error).toBeInstanceOf(String);
-        expect(Object.prototype.toString.call(error)).toBe("[object String]");
-        expect(error.valueOf()).toBe("Not allowed");
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toBe("Not allowed");
     });
 
-    it("returns object errors through Object without cloning them", () => {
-        const error = { error: "Project missing" };
+    it("extracts nested API error messages", () => {
+        const error = getError({ error: "Project missing" });
 
-        expect(getError(error)).toBe(error);
+        expect(error).toBeInstanceOf(Error);
+        expect(error.message).toBe("Project missing");
     });
 
-    it("wraps null and undefined as empty objects", () => {
-        expect(getError(null)).toEqual({});
-        expect(getError(undefined)).toEqual({});
+    it("falls back to a generic message for null and undefined", () => {
+        expect(getError(null).message).toBe("Operation failed");
+        expect(getError(undefined).message).toBe("Operation failed");
     });
 });

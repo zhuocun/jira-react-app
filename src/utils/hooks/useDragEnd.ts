@@ -46,12 +46,17 @@ const useDragEnd = () => {
             if (type === "ROW") {
                 const fromColumnId = source.droppableId;
                 const referenceColumnId = destination.droppableId;
-                const fromTask = tasks?.filter(
+                const fromColumnTasks = tasks?.filter(
                     (t) => t.columnId === fromColumnId
-                )[source.index];
-                const referenceTask = tasks?.filter(
+                );
+                const referenceColumnTasks = tasks?.filter(
                     (t) => t.columnId === referenceColumnId
-                )[destination.index];
+                );
+                const fromTask = fromColumnTasks?.[source.index];
+                const referenceTask = referenceColumnTasks?.[destination.index];
+                if (!fromTask?._id) {
+                    return;
+                }
                 if (fromTask?._id === referenceTask?._id) {
                     return;
                 }

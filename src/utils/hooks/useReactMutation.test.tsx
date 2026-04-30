@@ -253,7 +253,8 @@ describe("useReactMutation", () => {
         });
 
         await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
-        expect(onError.mock.calls[0][0].valueOf()).toBe("mutation failed");
+        expect(onError.mock.calls[0][0]).toBeInstanceOf(Error);
+        expect(onError.mock.calls[0][0].message).toBe("mutation failed");
     });
 
     it("supports omitted query keys by invalidating the default query scope", async () => {

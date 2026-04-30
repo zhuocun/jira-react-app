@@ -37,6 +37,12 @@ describe("ErrorBox", () => {
         expect(screen.getByText("Operation failed")).toBeInTheDocument();
     });
 
+    it("falls back safely when the API error payload is malformed", () => {
+        render(<ErrorBox error={{ error: [{}] } as unknown as IError} />);
+
+        expect(screen.getByText("Operation failed")).toBeInTheDocument();
+    });
+
     it("renders nothing when no supported error is present", () => {
         const { container, rerender } = render(<ErrorBox error={null} />);
 
