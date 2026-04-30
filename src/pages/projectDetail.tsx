@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 
 import ProjectPopover from "../components/projectPopover";
-import { space } from "../theme/tokens";
+import { breakpoints, space } from "../theme/tokens";
 import useReactQuery from "../utils/hooks/useReactQuery";
 
 const Container = styled.div`
@@ -27,9 +27,18 @@ const TopBar = styled.div`
     border-bottom: 1px solid var(--ant-color-split, rgba(5, 5, 5, 0.06));
     display: flex;
     flex-wrap: wrap;
-    gap: ${space.md}px;
+    gap: ${space.xs}px;
     justify-content: space-between;
-    padding: ${space.sm}px ${space.lg}px 0;
+    padding: ${space.sm}px ${space.md}px 0;
+    padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
+    padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
+
+    @media (min-width: ${breakpoints.md}px) {
+        gap: ${space.md}px;
+        padding: ${space.sm}px ${space.lg}px 0;
+        padding-inline-start: max(${space.lg}px, env(safe-area-inset-left));
+        padding-inline-end: max(${space.lg}px, env(safe-area-inset-right));
+    }
 `;
 
 const TabsRow = styled(Tabs)`

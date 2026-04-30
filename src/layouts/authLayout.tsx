@@ -5,7 +5,7 @@ import { Outlet } from "react-router";
 import left from "../assets/left.svg";
 import logo from "../assets/logo.svg";
 import right from "../assets/right.svg";
-import { space } from "../theme/tokens";
+import { breakpoints, space } from "../theme/tokens";
 
 const Container = styled.div`
     align-items: center;
@@ -13,8 +13,19 @@ const Container = styled.div`
     flex-direction: column;
     min-height: 100vh;
     min-height: 100dvh;
-    padding: ${space.md}px;
-    padding-block-start: max(${space.md}px, env(safe-area-inset-top));
+    padding: ${space.sm}px;
+    padding-block-start: max(${space.sm}px, env(safe-area-inset-top));
+    padding-block-end: max(${space.sm}px, env(safe-area-inset-bottom));
+    padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
+    padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
+
+    @media (min-width: ${breakpoints.sm}px) {
+        padding: ${space.md}px;
+        padding-block-start: max(${space.md}px, env(safe-area-inset-top));
+        padding-block-end: max(${space.md}px, env(safe-area-inset-bottom));
+        padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
+        padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
+    }
 `;
 
 /**
@@ -32,9 +43,14 @@ export const AuthTitle = styled.h1`
 
 const Header = styled.header`
     background: url(${logo}) no-repeat center;
-    background-size: 8rem;
-    padding: ${space.xl}px 0 ${space.lg}px;
+    background-size: 6rem;
+    padding: ${space.lg}px 0 ${space.md}px;
     width: 100%;
+
+    @media (min-width: ${breakpoints.sm}px) {
+        background-size: 8rem;
+        padding: ${space.xl}px 0 ${space.lg}px;
+    }
 `;
 
 const Background = styled.div`
@@ -61,9 +77,14 @@ const ShadowCard = styled(Card)`
     box-shadow: rgba(0, 0, 0, 0.1) 0 0 10px;
     box-sizing: border-box;
     max-width: 40rem;
-    padding: ${space.lg}px ${space.xl}px;
+    padding: ${space.md}px;
     text-align: center;
-    width: min(40rem, 100% - ${space.xl}px);
+    width: 100%;
+
+    @media (min-width: ${breakpoints.sm}px) {
+        padding: ${space.lg}px ${space.xl}px;
+        width: min(40rem, 100% - ${space.xl}px);
+    }
 `;
 
 export const AuthButton = styled(Button)`

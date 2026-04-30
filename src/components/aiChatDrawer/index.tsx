@@ -3,6 +3,7 @@ import {
     Button,
     Drawer,
     Flex,
+    Grid,
     Input,
     Space,
     Spin,
@@ -49,6 +50,11 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     const [input, setInput] = useState("");
     const [showToolDetails, setShowToolDetails] = useState(false);
     const inputRef = useRef<TextAreaRef | null>(null);
+    const screens = Grid.useBreakpoint();
+    // Below 768 px the chat fills the viewport so the on-screen keyboard does
+    // not push the input below the fold; on tablet/desktop we keep a 400 px
+    // side panel so the board stays partially visible.
+    const drawerWidth = screens.md ? 400 : "100%";
 
     useEffect(() => {
         if (!open) {
@@ -153,12 +159,12 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
             }
             onClose={handleClose}
             open={open}
-            size={400}
+            size={drawerWidth}
             styles={{
                 body: {
                     display: "flex",
                     flexDirection: "column",
-                    paddingBottom: space.xs
+                    paddingBottom: `max(${space.xs}px, env(safe-area-inset-bottom))`
                 }
             }}
             title={
@@ -173,11 +179,11 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 aria-busy={isLoading}
                 aria-live="polite"
                 style={{
-                    flex: 1,
+                    flex: "1 1 auto",
                     marginBottom: space.sm,
-                    maxHeight: "calc(100vh - 220px)",
-                    minHeight: 200,
-                    overflowY: "auto"
+                    minHeight: 0,
+                    overflowY: "auto",
+                    overscrollBehavior: "contain"
                 }}
             >
                 {messages.length === 0 && !isLoading && (

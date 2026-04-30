@@ -43,11 +43,18 @@ const ProjectPage = () => {
 
     return (
         <PageContainer>
-            <Row marginBottom={2} between>
-                <Typography.Title level={1} style={{ margin: 0 }}>
+            <Row
+                marginBottom={2}
+                between
+                style={{ flexWrap: "wrap", gap: 12, rowGap: 8 }}
+            >
+                <Typography.Title
+                    level={1}
+                    style={{ margin: 0, minWidth: 0, flex: "1 1 auto" }}
+                >
                     Projects
                 </Typography.Title>
-                <Space>
+                <Space wrap>
                     {aiEnabled && (
                         <Button
                             aria-label="Ask Board Copilot"

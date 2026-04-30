@@ -1,6 +1,7 @@
 import {
     Alert,
     Drawer,
+    Grid,
     List,
     Skeleton,
     Space,
@@ -80,6 +81,8 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
     const { run, data, error, isLoading, reset } = useAi<IBoardBrief>({
         route: "board-brief"
     });
+    const screens = Grid.useBreakpoint();
+    const drawerWidth = screens.md ? 420 : "100%";
 
     useEffect(() => {
         if (!open) {
@@ -114,6 +117,11 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
             destroyOnHidden
             onClose={onClose}
             open={open}
+            styles={{
+                body: {
+                    paddingBottom: `max(${space.lg}px, env(safe-area-inset-bottom))`
+                }
+            }}
             title={
                 <Space align="center" size={space.xs}>
                     <AiSparkleIcon aria-hidden />
@@ -126,7 +134,7 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                     </Tag>
                 </Space>
             }
-            size="default"
+            size={drawerWidth}
         >
             {isLoading && (
                 <div aria-label="Generating brief" aria-busy="true">
@@ -245,11 +253,29 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                         <List
                             dataSource={data.workload}
                             renderItem={(item) => (
-                                <List.Item>
-                                    <span>{item.username}</span>
-                                    <span>
-                                        <Tag>{item.openTasks} open</Tag>
-                                        <Tag color="blue">
+                                <List.Item
+                                    style={{
+                                        flexWrap: "wrap",
+                                        gap: space.xs
+                                    }}
+                                >
+                                    <span style={{ flex: "1 1 auto" }}>
+                                        {item.username}
+                                    </span>
+                                    <span
+                                        style={{
+                                            display: "inline-flex",
+                                            flexWrap: "wrap",
+                                            gap: space.xxs
+                                        }}
+                                    >
+                                        <Tag style={{ marginInlineEnd: 0 }}>
+                                            {item.openTasks} open
+                                        </Tag>
+                                        <Tag
+                                            color="blue"
+                                            style={{ marginInlineEnd: 0 }}
+                                        >
                                             {item.openPoints} pts
                                         </Tag>
                                     </span>

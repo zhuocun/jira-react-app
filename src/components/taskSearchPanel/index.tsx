@@ -57,6 +57,27 @@ const FlexSelect = styled.div`
     }
 `;
 
+/*
+ * "Reset filters" should sit outside the per-field flex grid because it acts on
+ * all of them. On phone widths it stretches full width below the inputs; on
+ * tablet+ it shrinks to its natural width and aligns with the filter fields.
+ */
+const ResetButtonSlot = styled.div`
+    display: flex;
+
+    > .ant-btn {
+        width: 100%;
+    }
+
+    @media (min-width: 768px) {
+        flex: 0 0 auto;
+
+        > .ant-btn {
+            width: auto;
+        }
+    }
+`;
+
 const TaskSearchPanel: React.FC<Props> = ({
     tasks,
     param,
@@ -167,9 +188,11 @@ const TaskSearchPanel: React.FC<Props> = ({
                         ))}
                     </Select>
                 </FlexSelect>
-                <Button onClick={resetParams}>
-                    {microcopy.actions.resetFilters}
-                </Button>
+                <ResetButtonSlot>
+                    <Button onClick={resetParams}>
+                        {microcopy.actions.resetFilters}
+                    </Button>
+                </ResetButtonSlot>
             </FilterRow>
         </div>
     );

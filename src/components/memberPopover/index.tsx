@@ -7,7 +7,10 @@ import EmptyState from "../emptyState";
 import { microcopy } from "../../constants/microcopy";
 
 const ContentContainer = styled.div`
-    min-width: min(30rem, 90vw);
+    max-height: 60vh;
+    max-width: min(30rem, calc(100vw - 32px));
+    min-width: min(20rem, calc(100vw - 32px));
+    overflow-y: auto;
 `;
 
 const TriggerButton = styled.button`
@@ -20,10 +23,16 @@ const TriggerButton = styled.button`
     display: inline-flex;
     font: inherit;
     gap: ${space.xs}px;
+    min-height: 32px;
     padding: ${space.xxs}px ${space.xs}px;
+    white-space: nowrap;
 
     &:hover {
         background: var(--ant-color-bg-text-hover, rgba(0, 0, 0, 0.04));
+    }
+
+    @media (pointer: coarse) {
+        min-height: 44px;
     }
 `;
 

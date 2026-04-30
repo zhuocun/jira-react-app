@@ -265,6 +265,7 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             pagination={{ pageSize: 10, hideOnSinglePage: true }}
             columns={ListColumns}
             dataSource={dataSource}
+            scroll={{ x: "max-content" }}
             locale={{
                 emptyText: (
                     <EmptyState

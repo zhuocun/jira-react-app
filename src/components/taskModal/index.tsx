@@ -116,7 +116,10 @@ const TaskModal: React.FC<{
                     style={{
                         alignItems: "center",
                         display: "flex",
-                        justifyContent: "space-between"
+                        flexWrap: "wrap",
+                        gap: space.xs,
+                        justifyContent: "space-between",
+                        rowGap: space.xs
                     }}
                 >
                     <Button
@@ -132,7 +135,14 @@ const TaskModal: React.FC<{
                     >
                         {microcopy.actions.delete}
                     </Button>
-                    <div style={{ display: "flex", gap: space.xs }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: space.xs,
+                            justifyContent: "flex-end"
+                        }}
+                    >
                         <CancelBtn />
                         <OkBtn />
                     </div>
