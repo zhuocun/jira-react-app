@@ -133,9 +133,12 @@ describe("ProjectPage with Board Copilot enabled", () => {
             await screen.findByLabelText("Message Board Copilot")
         ).toBeInTheDocument();
 
-        fireEvent.change(screen.getByLabelText("Ask in natural language"), {
-            target: { value: "billing finance" }
-        });
+        fireEvent.change(
+            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            {
+                target: { value: "billing finance" }
+            }
+        );
         fireEvent.click(
             screen.getByRole("button", { name: /run natural language search/i })
         );

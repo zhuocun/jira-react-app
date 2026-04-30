@@ -87,3 +87,19 @@ export const touchTargetCoarse = 44;
  * messages, brief descriptions, modal notes.
  */
 export const maxLineLengthCh = 75;
+
+/**
+ * Standard board column width (in rem). Reused by the board page skeleton so
+ * the loading layout matches the real columns.
+ */
+export const columnMinWidthRem = 29.5;
+
+/**
+ * Breakpoints (CSS px). Keep this list short — anything more granular should
+ * be a one-off in the affected component.
+ */
+export const breakpoints = {
+    sm: 480,
+    md: 768,
+    lg: 1024
+} as const;

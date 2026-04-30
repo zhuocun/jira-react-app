@@ -199,10 +199,10 @@ describe("ProjectModal", () => {
         expect(
             await screen.findByRole("dialog", { name: "Create project" })
         ).toBeInTheDocument();
-        fireEvent.change(screen.getByPlaceholderText("Project name"), {
+        fireEvent.change(screen.getByLabelText("Project name"), {
             target: { value: "Billing" }
         });
-        fireEvent.change(screen.getByPlaceholderText("Organization"), {
+        fireEvent.change(screen.getByLabelText("Organization"), {
             target: { value: "Finance" }
         });
         fireEvent.mouseDown(screen.getByRole("combobox"));
@@ -228,7 +228,7 @@ describe("ProjectModal", () => {
         expect(
             await screen.findByRole("dialog", { name: "Create project" })
         ).toBeInTheDocument();
-        fireEvent.change(screen.getByPlaceholderText("Project name"), {
+        fireEvent.change(screen.getByLabelText("Project name"), {
             target: { value: "Draft" }
         });
         fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -239,8 +239,7 @@ describe("ProjectModal", () => {
         // Modal stays force-rendered; the input still exists in the DOM but
         // its value has been reset by the cancel handler.
         expect(
-            (screen.getByPlaceholderText("Project name") as HTMLInputElement)
-                .value
+            (screen.getByLabelText("Project name") as HTMLInputElement).value
         ).toBe("");
     });
 

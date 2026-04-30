@@ -17,9 +17,17 @@ const Container = styled.div`
     padding-block-start: max(${space.md}px, env(safe-area-inset-top));
 `;
 
-export const AuthTitle = styled.h3`
-    color: var(--ant-color-text-secondary, rgb(94, 108, 132));
+/**
+ * Page-level heading for auth screens. Rendered as an `h1` for correct
+ * document outline (login/register are top-level pages); kept visually at
+ * the existing "h3" size to preserve the layout.
+ */
+export const AuthTitle = styled.h1`
+    color: var(--ant-color-text, rgba(0, 0, 0, 0.88));
+    font-size: 1.17em;
+    font-weight: 600;
     margin-bottom: ${space.lg}px;
+    margin-top: 0;
 `;
 
 const Header = styled.header`
@@ -65,8 +73,8 @@ export const AuthButton = styled(Button)`
 const AuthLayout = () => {
     return (
         <Container>
-            <Header />
-            <Background />
+            <Header aria-hidden="true" />
+            <Background aria-hidden="true" />
             <ShadowCard>
                 <Outlet />
             </ShadowCard>

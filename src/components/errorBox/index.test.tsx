@@ -43,13 +43,16 @@ describe("ErrorBox", () => {
         expect(screen.getByText("Operation failed")).toBeInTheDocument();
     });
 
-    it("renders nothing when no supported error is present", () => {
-        const { container, rerender } = render(<ErrorBox error={null} />);
+    it("renders an empty live region placeholder when no error is present", () => {
+        const { rerender } = render(<ErrorBox error={null} />);
 
-        expect(container).toBeEmptyDOMElement();
+        // Placeholder div remains in the DOM so the surrounding layout
+        // doesn't shift when an error appears, and the live region is
+        // already attached for screen readers.
+        expect(screen.getByRole("alert")).toBeEmptyDOMElement();
 
         rerender(<ErrorBox error={{} as unknown} />);
 
-        expect(container).toBeEmptyDOMElement();
+        expect(screen.getByRole("alert")).toBeEmptyDOMElement();
     });
 });

@@ -123,9 +123,12 @@ describe("AiSearchInput", () => {
             />
         );
 
-        fireEvent.change(screen.getByLabelText("Ask in natural language"), {
-            target: { value: "login token flaky" }
-        });
+        fireEvent.change(
+            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            {
+                target: { value: "login token flaky" }
+            }
+        );
         fireEvent.click(screen.getByLabelText("Run natural language search"));
 
         await waitFor(() => {
@@ -147,9 +150,12 @@ describe("AiSearchInput", () => {
             />
         );
 
-        fireEvent.change(screen.getByLabelText("Ask in natural language"), {
-            target: { value: "login token flaky" }
-        });
+        fireEvent.change(
+            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            {
+                target: { value: "login token flaky" }
+            }
+        );
         fireEvent.click(screen.getByLabelText("Run natural language search"));
 
         await waitFor(() => {
@@ -170,13 +176,19 @@ describe("AiSearchInput", () => {
             />
         );
 
-        fireEvent.change(screen.getByLabelText("Ask in natural language"), {
-            target: { value: "login token flaky" }
-        });
-        fireEvent.keyDown(screen.getByLabelText("Ask in natural language"), {
-            key: "Enter",
-            code: "Enter"
-        });
+        fireEvent.change(
+            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            {
+                target: { value: "login token flaky" }
+            }
+        );
+        fireEvent.keyDown(
+            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            {
+                key: "Enter",
+                code: "Enter"
+            }
+        );
 
         await waitFor(() => {
             expect(setSemanticIds).toHaveBeenCalled();
@@ -194,9 +206,12 @@ describe("AiSearchInput", () => {
             />
         );
 
-        fireEvent.change(screen.getByLabelText("Ask in natural language"), {
-            target: { value: "quantum entanglement" }
-        });
+        fireEvent.change(
+            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            {
+                target: { value: "quantum entanglement" }
+            }
+        );
         fireEvent.click(screen.getByLabelText("Run natural language search"));
 
         await waitFor(() => {

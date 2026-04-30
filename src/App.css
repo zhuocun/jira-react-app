@@ -33,6 +33,16 @@ body {
 }
 
 /*
+ * Touch / coarse pointers benefit from a thicker focus ring per WCAG 2.5.5.
+ */
+@media (pointer: coarse) {
+    :focus-visible {
+        outline-width: 3px;
+        outline-offset: 3px;
+    }
+}
+
+/*
  * Honor user motion preference. Components opting in to motion read
  * useReducedMotion() directly; this rule is a defense-in-depth.
  */

@@ -1,13 +1,29 @@
 import { MoreOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
-import { Avatar, Badge, Dropdown, MenuProps, Modal, Tag, Tooltip } from "antd";
+import {
+    Avatar,
+    Badge,
+    Dropdown,
+    MenuProps,
+    Modal,
+    Tag,
+    Tooltip,
+    Typography
+} from "antd";
 import React from "react";
 import { useParams } from "react-router-dom";
 
 import bugIcon from "../../assets/bug.svg";
 import taskIcon from "../../assets/task.svg";
 import { microcopy } from "../../constants/microcopy";
-import { brand, radius, space } from "../../theme/tokens";
+import {
+    brand,
+    breakpoints,
+    columnMinWidthRem,
+    fontSize,
+    radius,
+    space
+} from "../../theme/tokens";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import deleteColumnCallback from "../../utils/optimisticUpdate/deleteColumn";
@@ -23,8 +39,15 @@ export const ColumnContainer = styled.div`
     display: flex;
     flex-direction: column;
     margin-right: ${space.md}px;
-    min-width: 29.5rem;
+    min-width: ${columnMinWidthRem}rem;
     padding: ${space.xs}px;
+
+    @media (max-width: ${breakpoints.md}px) {
+        min-width: min(
+            ${columnMinWidthRem}rem,
+            calc(100vw - ${space.lg * 2}px)
+        );
+    }
 `;
 
 const TaskContainer = styled.div`
@@ -73,7 +96,7 @@ const CardFooter = styled.div`
     align-items: center;
     color: var(--ant-color-text-secondary, rgba(0, 0, 0, 0.6));
     display: flex;
-    font-size: 12px;
+    font-size: ${fontSize.xs}px;
     gap: ${space.xs}px;
     justify-content: space-between;
 `;
@@ -272,21 +295,27 @@ const Column = React.forwardRef<
                             gap: space.xs
                         }}
                     >
-                        <h4
+                        <Typography.Title
+                            level={4}
                             style={{
+                                fontSize: fontSize.sm,
+                                fontWeight: 600,
+                                letterSpacing: "0.04em",
                                 margin: 0,
                                 textTransform: "uppercase"
                             }}
                         >
                             {column.columnName}
-                        </h4>
+                        </Typography.Title>
                         <Badge
+                            aria-label={`${filteredTasks.length} tasks in ${column.columnName}`}
                             color="default"
                             count={filteredTasks.length}
                             showZero
                             style={{
-                                backgroundColor: "rgba(9, 30, 66, 0.08)",
-                                color: "rgba(9, 30, 66, 0.7)"
+                                backgroundColor:
+                                    "var(--ant-color-fill-secondary, rgba(9, 30, 66, 0.08))",
+                                color: "var(--ant-color-text-secondary, rgba(9, 30, 66, 0.7))"
                             }}
                         />
                     </span>

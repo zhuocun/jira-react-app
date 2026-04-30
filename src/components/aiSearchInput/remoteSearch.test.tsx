@@ -66,9 +66,12 @@ describe("AiSearchInput remote search transport", () => {
             />
         );
 
-        fireEvent.change(screen.getByLabelText("Ask in natural language"), {
-            target: { value: "login flaky" }
-        });
+        fireEvent.change(
+            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            {
+                target: { value: "login flaky" }
+            }
+        );
         fireEvent.click(screen.getByLabelText("Run natural language search"));
 
         await waitFor(() => {
@@ -90,9 +93,12 @@ describe("AiSearchInput remote search transport", () => {
             />
         );
 
-        fireEvent.change(screen.getByLabelText("Ask in natural language"), {
-            target: { value: "login" }
-        });
+        fireEvent.change(
+            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            {
+                target: { value: "login" }
+            }
+        );
         fireEvent.click(screen.getByLabelText("Run natural language search"));
 
         await waitFor(() => {

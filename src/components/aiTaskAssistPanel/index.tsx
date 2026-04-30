@@ -1,7 +1,18 @@
-import { Alert, Button, Card, Spin, Tag, Typography } from "antd";
+import {
+    Alert,
+    Button,
+    Card,
+    Skeleton,
+    Space,
+    Tag,
+    Tooltip,
+    Typography
+} from "antd";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
+import { microcopy } from "../../constants/microcopy";
+import { fontSize, space } from "../../theme/tokens";
 import useAi from "../../utils/hooks/useAi";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useDebounce from "../../utils/hooks/useDebounce";
@@ -128,24 +139,47 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
 
     const taskById = (id: string) => tasks.find((task) => task._id === id);
 
+    const SectionHeading: React.FC<{ children: React.ReactNode }> = ({
+        children
+    }) => (
+        <Typography.Title
+            level={5}
+            style={{
+                fontSize: fontSize.base,
+                marginBottom: space.xxs,
+                marginTop: 0
+            }}
+        >
+            {children}
+        </Typography.Title>
+    );
+
     return (
         <Card
             size="small"
-            style={{ marginTop: 16 }}
+            style={{ marginTop: space.md }}
             title={
-                <span>
-                    <AiSparkleIcon style={{ marginRight: 8 }} />
-                    Board Copilot
-                </span>
+                <Space align="center" size={space.xs}>
+                    <AiSparkleIcon aria-hidden />
+                    <span>Board Copilot</span>
+                    <Tag color="processing">{microcopy.a11y.aiBadge}</Tag>
+                </Space>
             }
         >
-            <h4 style={{ marginBottom: 4 }}>Suggested story points</h4>
-            {showEstimateSpinner && <Spin size="small" />}
+            <SectionHeading>Suggested story points</SectionHeading>
+            {showEstimateSpinner && (
+                <Skeleton
+                    active
+                    aria-label="Estimating story points"
+                    paragraph={{ rows: 2 }}
+                    title={false}
+                />
+            )}
             {estimateAi.error && (
                 <Alert
                     showIcon
-                    style={{ marginBottom: 8 }}
-                    title={
+                    style={{ marginBottom: space.xs }}
+                    message={
                         estimateAi.error.message || "Failed to estimate task"
                     }
                     type="warning"
@@ -157,16 +191,28 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                         style={{
                             alignItems: "center",
                             display: "flex",
-                            gap: 8
+                            gap: space.xs,
+                            flexWrap: "wrap"
                         }}
                     >
-                        <span style={{ fontSize: "2rem", fontWeight: 600 }}>
+                        <span
+                            aria-label={`Suggested story points: ${estimateAi.data.storyPoints}`}
+                            style={{
+                                fontSize: fontSize.xxl,
+                                fontWeight: 600
+                            }}
+                        >
                             {estimateAi.data.storyPoints}
                         </span>
-                        <Tag color="blue">
-                            {confidenceBand(estimateAi.data.confidence)} ·{" "}
-                            {(estimateAi.data.confidence * 100).toFixed(0)}%
-                        </Tag>
+                        <Tooltip title="Board Copilot's confidence in this estimate, based on similar tasks on this board.">
+                            <Tag color="blue">
+                                {`AI confidence: ${confidenceBand(
+                                    estimateAi.data.confidence
+                                )} (${(
+                                    estimateAi.data.confidence * 100
+                                ).toFixed(0)}%)`}
+                            </Tag>
+                        </Tooltip>
                         <Button
                             aria-label="Apply suggested story points"
                             onClick={() =>
@@ -175,11 +221,11 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                             size="small"
                             type="primary"
                         >
-                            Apply
+                            {microcopy.actions.apply}
                         </Button>
                     </div>
                     <Typography.Paragraph
-                        style={{ margin: "6px 0" }}
+                        style={{ margin: `${space.xxs}px 0` }}
                         type="secondary"
                     >
                         {estimateAi.data.rationale}
@@ -187,7 +233,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                     {estimateAi.data.similar.length > 0 && (
                         <div>
                             <strong>Similar tasks:</strong>
-                            <ul style={{ paddingLeft: 18 }}>
+                            <ul style={{ paddingLeft: space.lg }}>
                                 {estimateAi.data.similar.map((entry) => {
                                     const task = taskById(entry._id);
                                     return (
@@ -217,13 +263,22 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                 </div>
             )}
 
-            <h4 style={{ marginBottom: 4, marginTop: 16 }}>Readiness check</h4>
-            {showReadinessSpinner && <Spin size="small" />}
+            <div style={{ marginTop: space.md }}>
+                <SectionHeading>Readiness check</SectionHeading>
+            </div>
+            {showReadinessSpinner && (
+                <Skeleton
+                    active
+                    aria-label="Running readiness check"
+                    paragraph={{ rows: 1 }}
+                    title={false}
+                />
+            )}
             {readinessAi.error && (
                 <Alert
                     showIcon
-                    style={{ marginBottom: 8 }}
-                    title={
+                    style={{ marginBottom: space.xs }}
+                    message={
                         readinessAi.error.message ||
                         "Failed to run readiness check"
                     }
@@ -233,7 +288,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
             {readinessAi.data && readinessAi.data.issues.length === 0 && (
                 <Alert
                     showIcon
-                    title="Looks ready to work on."
+                    message="Looks ready to work on."
                     type="success"
                 />
             )}
@@ -253,15 +308,15 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                                     size="small"
                                     type="link"
                                 >
-                                    Apply
+                                    {microcopy.actions.apply}
                                 </Button>
                             ) : null
                         }
                         description={issue.suggestion}
                         key={`${issue.field}-${issue.message}`}
                         showIcon
-                        style={{ marginBottom: 6 }}
-                        title={issue.message}
+                        style={{ marginBottom: space.xxs }}
+                        message={`${microcopy.a11y.aiSuggestion}: ${issue.message}`}
                         type={
                             issue.severity === "error"
                                 ? "error"

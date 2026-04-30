@@ -58,9 +58,9 @@ const renderRegisterForm = ({
     return { onError };
 };
 
-const changeField = async (placeholder: string, value: string) => {
+const changeField = async (label: RegExp, value: string) => {
     await act(async () => {
-        fireEvent.change(screen.getByPlaceholderText(placeholder), {
+        fireEvent.change(screen.getByLabelText(label), {
             target: { value }
         });
     });
@@ -103,13 +103,13 @@ describe("RegisterForm", () => {
         await submitRegister();
 
         expect(
-            await screen.findByText("Please enter an email")
+            await screen.findByText("Please enter your email")
         ).toBeInTheDocument();
         expect(
-            await screen.findByText("Enter your username")
+            await screen.findByText("Please enter your username")
         ).toBeInTheDocument();
         expect(
-            await screen.findByText("Enter your password")
+            await screen.findByText("Please enter your password")
         ).toBeInTheDocument();
         expect(mutateAsync).not.toHaveBeenCalled();
     });
@@ -117,9 +117,9 @@ describe("RegisterForm", () => {
     it("validates email format", async () => {
         renderRegisterForm();
 
-        await changeField("Email", "not-an-email");
-        await changeField("Username", "Alice");
-        await changeField("Password", "secret");
+        await changeField(/^email$/i, "not-an-email");
+        await changeField(/^username$/i, "Alice");
+        await changeField(/^password$/i, "secret");
         await submitRegister();
 
         expect(
@@ -131,9 +131,9 @@ describe("RegisterForm", () => {
     it("clears the parent error as fields change", async () => {
         const { onError } = renderRegisterForm();
 
-        await changeField("Email", "alice@example.com");
-        await changeField("Username", "Alice");
-        await changeField("Password", "secret");
+        await changeField(/^email$/i, "alice@example.com");
+        await changeField(/^username$/i, "Alice");
+        await changeField(/^password$/i, "secret");
 
         expect(onError).toHaveBeenCalledTimes(3);
         expect(onError).toHaveBeenCalledWith(null);
@@ -142,9 +142,9 @@ describe("RegisterForm", () => {
     it("submits registration data and navigates to login", async () => {
         renderRegisterForm();
 
-        await changeField("Email", "alice@example.com");
-        await changeField("Username", "Alice");
-        await changeField("Password", "secret");
+        await changeField(/^email$/i, "alice@example.com");
+        await changeField(/^username$/i, "Alice");
+        await changeField(/^password$/i, "secret");
         await submitRegister();
 
         await waitFor(() => {
@@ -163,9 +163,9 @@ describe("RegisterForm", () => {
         mutateAsync.mockRejectedValue(new Error("Register failed"));
         renderRegisterForm();
 
-        await changeField("Email", "alice@example.com");
-        await changeField("Username", "Alice");
-        await changeField("Password", "secret");
+        await changeField(/^email$/i, "alice@example.com");
+        await changeField(/^username$/i, "Alice");
+        await changeField(/^password$/i, "secret");
         await submitRegister();
 
         await waitFor(() => {
@@ -181,8 +181,8 @@ describe("RegisterForm", () => {
     it("shows the submitting state from the mutation", () => {
         renderRegisterForm({ isLoading: true });
 
-        expect(screen.getByRole("button", { name: /sign up/i })).toHaveClass(
-            "ant-btn-loading"
-        );
+        expect(
+            screen.getByRole("button", { name: /sign(ing)? up/i })
+        ).toHaveClass("ant-btn-loading");
     });
 });

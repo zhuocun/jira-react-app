@@ -17,6 +17,7 @@ export const microcopy = {
         delete: "Delete",
         edit: "Edit",
         logIn: "Log in",
+        loggingIn: "Logging in…",
         logOut: "Log out",
         registerCta: "Register for an account",
         loginCta: "Already have an account? Log in",
@@ -27,7 +28,28 @@ export const microcopy = {
         showPassword: "Show password",
         hidePassword: "Hide password",
         signUp: "Sign up",
+        signingUp: "Signing up…",
+        stop: "Stop",
         undo: "Undo"
+    },
+    validation: {
+        emailRequired: "Please enter your email",
+        emailInvalid: "Please enter a valid email address",
+        passwordRequired: "Please enter your password",
+        usernameRequired: "Please enter your username",
+        projectNameRequired: "Please enter the project name",
+        organizationRequired: "Please enter the organization",
+        managerRequired: "Please select a manager"
+    },
+    a11y: {
+        capsLockOn: "Caps Lock is on",
+        loadingProject: "Loading project",
+        loadingProjectName: "Loading project name",
+        loadingBoard: "Loading board",
+        accountMenu: "Account menu",
+        boardCopilot: "Board Copilot",
+        aiSuggestion: "AI suggestion",
+        aiBadge: "AI · review before using"
     },
     fields: {
         coordinator: "Coordinator",
@@ -63,7 +85,7 @@ export const microcopy = {
     feedback: {
         loadFailed: "Couldn't load. Please try again.",
         saveFailed: "Couldn't save. Please try again.",
-        operationFailed: "Operation failed.",
+        operationFailed: "Operation failed",
         retryHint: "Check your connection or retry."
     },
     empty: {

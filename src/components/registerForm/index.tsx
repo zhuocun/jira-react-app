@@ -38,10 +38,13 @@ const RegisterForm: React.FC<{
                 label={microcopy.fields.email}
                 name="email"
                 rules={[
-                    { required: true, message: "Please enter an email" },
+                    {
+                        required: true,
+                        message: microcopy.validation.emailRequired
+                    },
                     {
                         type: "email",
-                        message: "Please enter a valid email address"
+                        message: microcopy.validation.emailInvalid
                     }
                 ]}
             >
@@ -50,7 +53,7 @@ const RegisterForm: React.FC<{
                     enterKeyHint="next"
                     inputMode="email"
                     onChange={() => onError(null)}
-                    placeholder="Email"
+                    placeholder="name@example.com"
                     type="email"
                     id="email"
                 />
@@ -58,26 +61,40 @@ const RegisterForm: React.FC<{
             <Form.Item
                 label={microcopy.fields.username}
                 name="username"
-                rules={[{ required: true, message: "Enter your username" }]}
+                rules={[
+                    {
+                        required: true,
+                        message: microcopy.validation.usernameRequired
+                    }
+                ]}
             >
                 <Input
                     autoComplete="username"
                     enterKeyHint="next"
                     onChange={() => onError(null)}
-                    placeholder="Username"
                     type="text"
                     id="username"
                 />
             </Form.Item>
             <Form.Item
                 extra={
-                    capsLockOn ? (
-                        <span role="status">Caps Lock is on</span>
-                    ) : null
+                    <span
+                        aria-atomic="true"
+                        aria-live="polite"
+                        role="status"
+                        style={{ minHeight: "1.25em", display: "inline-block" }}
+                    >
+                        {capsLockOn ? microcopy.a11y.capsLockOn : ""}
+                    </span>
                 }
                 label={microcopy.fields.password}
                 name="password"
-                rules={[{ required: true, message: "Enter your password" }]}
+                rules={[
+                    {
+                        required: true,
+                        message: microcopy.validation.passwordRequired
+                    }
+                ]}
             >
                 <Input.Password
                     autoComplete="new-password"
@@ -100,7 +117,6 @@ const RegisterForm: React.FC<{
                                 event.getModifierState("CapsLock")
                         )
                     }
-                    placeholder="Password"
                     id="password"
                 />
             </Form.Item>
@@ -110,7 +126,9 @@ const RegisterForm: React.FC<{
                     htmlType="submit"
                     type="primary"
                 >
-                    {microcopy.actions.signUp}
+                    {isLoading
+                        ? microcopy.actions.signingUp
+                        : microcopy.actions.signUp}
                 </AuthButton>
             </Form.Item>
         </Form>

@@ -67,9 +67,9 @@ const renderLoginForm = ({
     return { onError };
 };
 
-const changeField = async (placeholder: string, value: string) => {
+const changeField = async (label: RegExp, value: string) => {
     await act(async () => {
-        fireEvent.change(screen.getByPlaceholderText(placeholder), {
+        fireEvent.change(screen.getByLabelText(label), {
             target: { value }
         });
     });
@@ -113,7 +113,7 @@ describe("LoginForm", () => {
         await submitLogin();
 
         expect(
-            await screen.findByText("Please enter an email")
+            await screen.findByText("Please enter your email")
         ).toBeInTheDocument();
         expect(
             await screen.findByText("Please enter your password")
@@ -124,8 +124,8 @@ describe("LoginForm", () => {
     it("validates email format", async () => {
         renderLoginForm();
 
-        await changeField("Email", "not-an-email");
-        await changeField("Password", "secret");
+        await changeField(/^email$/i, "not-an-email");
+        await changeField(/^password$/i, "secret");
         await submitLogin();
 
         expect(
@@ -137,8 +137,8 @@ describe("LoginForm", () => {
     it("clears the parent error as fields change", async () => {
         const { onError } = renderLoginForm();
 
-        await changeField("Email", "alice@example.com");
-        await changeField("Password", "secret");
+        await changeField(/^email$/i, "alice@example.com");
+        await changeField(/^password$/i, "secret");
 
         expect(onError).toHaveBeenCalledTimes(2);
         expect(onError).toHaveBeenCalledWith(null);
@@ -148,8 +148,8 @@ describe("LoginForm", () => {
         mutateAsync.mockResolvedValue(user({ jwt: "jwt-login" }));
         renderLoginForm();
 
-        await changeField("Email", "alice@example.com");
-        await changeField("Password", "secret");
+        await changeField(/^email$/i, "alice@example.com");
+        await changeField(/^password$/i, "secret");
         await submitLogin();
 
         await waitFor(() => {
@@ -168,8 +168,8 @@ describe("LoginForm", () => {
         mutateAsync.mockRejectedValue(new Error("Invalid credentials"));
         renderLoginForm();
 
-        await changeField("Email", "alice@example.com");
-        await changeField("Password", "wrong");
+        await changeField(/^email$/i, "alice@example.com");
+        await changeField(/^password$/i, "wrong");
         await submitLogin();
 
         await waitFor(() => {
@@ -185,8 +185,8 @@ describe("LoginForm", () => {
     it("shows the submitting state from the mutation", () => {
         renderLoginForm({ isLoading: true });
 
-        expect(screen.getByRole("button", { name: /log in/i })).toHaveClass(
-            "ant-btn-loading"
-        );
+        expect(
+            screen.getByRole("button", { name: /log(ging)? in/i })
+        ).toHaveClass("ant-btn-loading");
     });
 });
