@@ -1,13 +1,67 @@
+import { PlusOutlined } from "@ant-design/icons";
+import styled from "@emotion/styled";
 import { Input } from "antd";
-import { useState } from "react";
+import type { InputRef } from "antd";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { radius, space } from "../../theme/tokens";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import newColumnCallback from "../../utils/optimisticUpdate/createColumn";
-import { ColumnContainer } from "../column";
 
+const Slot = styled.div`
+    align-self: flex-start;
+    display: flex;
+    margin-right: ${space.md}px;
+    min-width: 16rem;
+    padding: ${space.xs}px;
+`;
+
+const AddColumnButton = styled.button`
+    align-items: center;
+    background: var(--ant-color-fill-quaternary, rgb(244, 245, 247));
+    border: 1px dashed transparent;
+    border-radius: ${radius.lg}px;
+    color: var(--ant-color-text-secondary, rgba(0, 0, 0, 0.6));
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    gap: ${space.xs}px;
+    height: 100%;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: ${space.sm}px ${space.md}px;
+    transition:
+        background-color 100ms ease-out,
+        border-color 100ms ease-out,
+        color 100ms ease-out;
+    width: 100%;
+
+    &:hover:not(:disabled) {
+        background: var(--ant-color-fill-tertiary, rgb(232, 234, 240));
+        border-color: var(--ant-color-primary, #2684ff);
+        color: var(--ant-color-text, rgba(0, 0, 0, 0.88));
+    }
+
+    &:disabled {
+        cursor: default;
+        opacity: 0.6;
+    }
+`;
+
+/**
+ * Adds a new column to the current board.
+ *
+ * Replaces the previous always-on faux column (an `Input` styled to look
+ * like an empty column) with a collapsed-button affordance: the canvas is
+ * only "polluted" once the user opts in. Pressing Esc, blurring, or
+ * submitting an empty value collapses the input back to the button
+ * without firing the mutation.
+ */
 const ColumnCreator: React.FC = () => {
     const [columnName, setColumnName] = useState("");
+    const [editing, setEditing] = useState(false);
+    const inputRef = useRef<InputRef>(null);
     const { projectId } = useParams<{ projectId: string }>();
     const { mutateAsync, isLoading } = useReactMutation(
         "boards",
@@ -15,26 +69,64 @@ const ColumnCreator: React.FC = () => {
         ["boards", { projectId }],
         newColumnCallback
     );
-    const submit = async (name: string) => {
+
+    const collapse = useCallback(() => {
+        setEditing(false);
         setColumnName("");
-        await mutateAsync({ columnName: name, projectId });
+    }, []);
+
+    const submit = async () => {
+        const trimmed = columnName.trim();
+        if (!trimmed) {
+            collapse();
+            return;
+        }
+        setColumnName("");
+        await mutateAsync({ columnName: trimmed, projectId });
+        setEditing(false);
     };
+
+    useEffect(() => {
+        if (editing) {
+            inputRef.current?.focus();
+        }
+    }, [editing]);
+
+    if (!editing) {
+        return (
+            <Slot>
+                <AddColumnButton
+                    aria-label="Add column"
+                    disabled={isLoading}
+                    onClick={() => setEditing(true)}
+                    type="button"
+                >
+                    <PlusOutlined aria-hidden /> Add column
+                </AddColumnButton>
+            </Slot>
+        );
+    }
+
     return (
-        <ColumnContainer>
+        <Slot>
             <Input
+                aria-label="New column name"
                 disabled={isLoading}
-                style={{
-                    height: "3.6rem",
-                    marginTop: "0.4rem",
-                    width: "28rem"
-                }}
-                size="large"
-                placeholder=" + Create column"
-                onPressEnter={() => submit(columnName)}
-                value={columnName}
+                onBlur={submit}
                 onChange={(e) => setColumnName(e.target.value)}
+                onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                        event.preventDefault();
+                        collapse();
+                    }
+                }}
+                onPressEnter={submit}
+                placeholder=" + Create column"
+                ref={inputRef}
+                size="large"
+                value={columnName}
             />
-        </ColumnContainer>
+        </Slot>
     );
 };
 

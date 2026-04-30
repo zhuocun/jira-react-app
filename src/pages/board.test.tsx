@@ -376,7 +376,7 @@ describe("BoardPage", () => {
         expect(screen.getByText("Fix bug")).toBeInTheDocument();
         expect(screen.getByText("Optimistic task")).toBeInTheDocument();
         expect(
-            screen.getByPlaceholderText(/Create column/)
+            screen.getByRole("button", { name: "Add column" })
         ).toBeInTheDocument();
 
         const headings = screen
@@ -438,7 +438,7 @@ describe("BoardPage", () => {
 
         expect(await screen.findByText("Roadmap board")).toBeInTheDocument();
         expect(
-            screen.getByPlaceholderText(/Create column/)
+            screen.getByRole("button", { name: "Add column" })
         ).toBeInTheDocument();
         expect(
             screen.queryByRole("heading", { level: 4 })

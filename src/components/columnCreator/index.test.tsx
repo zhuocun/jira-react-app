@@ -52,9 +52,27 @@ describe("ColumnCreator", () => {
         fetchMock.mockRestore();
     });
 
+    const expandIntoInput = async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Add column" }));
+        return screen.findByPlaceholderText(/Create column/);
+    };
+
+    it("starts collapsed and reveals the input on click", async () => {
+        renderCreator();
+        expect(
+            screen.getByRole("button", { name: "Add column" })
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByPlaceholderText(/Create column/)
+        ).not.toBeInTheDocument();
+
+        const input = await expandIntoInput();
+        expect(input).toBeInTheDocument();
+    });
+
     it("creates a column for the current project and clears the input", async () => {
         renderCreator();
-        const input = screen.getByPlaceholderText(/Create column/);
+        const input = await expandIntoInput();
 
         fireEvent.change(input, { target: { value: "QA" } });
         fireEvent.keyDown(input, {
@@ -74,7 +92,11 @@ describe("ColumnCreator", () => {
                 method: "POST"
             })
         );
-        expect(input).toHaveValue("");
+        await waitFor(() =>
+            expect(
+                screen.getByRole("button", { name: "Add column" })
+            ).toBeInTheDocument()
+        );
     });
 
     it("disables the input while the create mutation is pending", async () => {
@@ -85,7 +107,7 @@ describe("ColumnCreator", () => {
             })
         );
         renderCreator();
-        const input = screen.getByPlaceholderText(/Create column/);
+        const input = await expandIntoInput();
 
         fireEvent.change(input, { target: { value: "Doing" } });
         fireEvent.keyDown(input, {
@@ -96,6 +118,23 @@ describe("ColumnCreator", () => {
 
         await waitFor(() => expect(input).toBeDisabled());
         resolveFetch(response({ _id: "column-2", columnName: "Doing" }));
-        await waitFor(() => expect(input).not.toBeDisabled());
+        await waitFor(() =>
+            expect(
+                screen.getByRole("button", { name: "Add column" })
+            ).toBeInTheDocument()
+        );
+    });
+
+    it("ignores blank submissions and collapses on Escape", async () => {
+        renderCreator();
+        const input = await expandIntoInput();
+
+        fireEvent.keyDown(input, { key: "Escape" });
+        await waitFor(() =>
+            expect(
+                screen.getByRole("button", { name: "Add column" })
+            ).toBeInTheDocument()
+        );
+        expect(fetchMock).not.toHaveBeenCalled();
     });
 });

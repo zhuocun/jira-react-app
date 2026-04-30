@@ -120,7 +120,7 @@ describe("ProjectSearchPanel", () => {
         });
     });
 
-    it("shows the default label and loading state while managers load", () => {
+    it("shows the placeholder and loading state while managers load", () => {
         const { container } = render(
             <ProjectSearchPanel
                 loading
@@ -130,7 +130,7 @@ describe("ProjectSearchPanel", () => {
             />
         );
 
-        expect(screen.getByText("Managers")).toBeInTheDocument();
+        expect(screen.getByLabelText("Filter by manager")).toBeInTheDocument();
         expect(
             container.querySelector(".ant-select-loading")
         ).toBeInTheDocument();
