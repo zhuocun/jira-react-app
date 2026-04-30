@@ -310,6 +310,8 @@ const Column = React.forwardRef<
                                     isDragDisabled={
                                         isDragDisabled || task._id === "mock"
                                     }
+                                    // TaskCard renders a <button>, which @hello-pangea/dnd
+                                    // refuses to drag from by default; opt out of that block.
                                     disableInteractiveElementBlocking
                                 >
                                     <TaskCard
