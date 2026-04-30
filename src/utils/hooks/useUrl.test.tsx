@@ -71,6 +71,7 @@ describe("useUrl", () => {
             "projectName=Billing"
         );
         expect(screen.getByTestId("search")).toHaveTextContent("managerId=u2");
+        expect(screen.getByTestId("search")).toHaveTextContent("extra=keep");
     });
 
     it("removes void params before writing the URL", async () => {
@@ -83,5 +84,62 @@ describe("useUrl", () => {
         );
         expect(screen.getByTestId("managerId")).toHaveTextContent("u2");
         expect(screen.getByTestId("search")).toHaveTextContent("?managerId=u2");
+    });
+
+    it("preserves unrelated search params when multiple useUrl hooks update independently", async () => {
+        const MultiHookProbe = () => {
+            const [{ modal }, setModal] = useUrl(["modal"]);
+            const [{ editingProjectId }, setEditingProjectId] = useUrl([
+                "editingProjectId"
+            ]);
+            const location = useLocation();
+
+            return (
+                <div>
+                    <span data-testid="modal">{modal ?? "null"}</span>
+                    <span data-testid="editingProjectId">
+                        {editingProjectId ?? "null"}
+                    </span>
+                    <span data-testid="search">{location.search}</span>
+                    <button
+                        type="button"
+                        onClick={() => setModal({ modal: "on" })}
+                    >
+                        open modal
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setEditingProjectId({ editingProjectId: "p2" })
+                        }
+                    >
+                        start editing
+                    </button>
+                </div>
+            );
+        };
+
+        render(
+            <MemoryRouter initialEntries={["/projects?extra=keep"]}>
+                <MultiHookProbe />
+            </MemoryRouter>
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "open modal" }));
+        await waitFor(() =>
+            expect(screen.getByTestId("search")).toHaveTextContent("?extra=keep")
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "start editing" }));
+
+        await waitFor(() =>
+            expect(screen.getByTestId("modal")).toHaveTextContent("on")
+        );
+        expect(screen.getByTestId("editingProjectId")).toHaveTextContent("p2");
+        expect(screen.getByTestId("search")).toHaveTextContent("modal=on");
+        expect(screen.getByTestId("search")).toHaveTextContent(
+            "editingProjectId=p2"
+        );
+        expect(screen.getByTestId("search")).toHaveTextContent("extra=keep");
     });
 });

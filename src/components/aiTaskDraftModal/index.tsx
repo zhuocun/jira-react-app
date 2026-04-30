@@ -1,11 +1,11 @@
 import { Alert, Button, Form, Input, Modal, Select, Spin, Tag } from "antd";
 import { useForm } from "antd/lib/form/Form";
-import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import useAi from "../../utils/hooks/useAi";
 import useAuth from "../../utils/hooks/useAuth";
+import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
 import AiSparkleIcon from "../aiSparkleIcon";
@@ -25,13 +25,10 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
 }) => {
     const { user } = useAuth();
     const { projectId } = useParams<{ projectId: string }>();
-    const queryClient = useQueryClient();
     const columns =
-        queryClient.getQueryData<IColumn[]>(["boards", { projectId }]) ?? [];
-    const tasks =
-        queryClient.getQueryData<ITask[]>(["tasks", { projectId }]) ?? [];
-    const members =
-        queryClient.getQueryData<IMember[]>(["users/members"]) ?? [];
+        useCachedQueryData<IColumn[]>(["boards", { projectId }]) ?? [];
+    const tasks = useCachedQueryData<ITask[]>(["tasks", { projectId }]) ?? [];
+    const members = useCachedQueryData<IMember[]>(["users/members"]) ?? [];
 
     const [prompt, setPrompt] = useState("");
     const [breakdownMode, setBreakdownMode] = useState(false);
@@ -53,19 +50,21 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
         newTaskCallback
     );
 
-    const reset = () => {
+    const resetDraftAi = draftAi.reset;
+    const resetBreakdownAi = breakdownAi.reset;
+    const reset = useCallback(() => {
         setPrompt("");
         setBreakdownMode(false);
         setBreakdownItems([]);
         setBreakdownChecked([]);
         form.resetFields();
-        draftAi.reset();
-        breakdownAi.reset();
-    };
+        resetDraftAi();
+        resetBreakdownAi();
+    }, [form, resetBreakdownAi, resetDraftAi]);
 
     useEffect(() => {
         if (!open) reset();
-    }, [open]);
+    }, [open, reset]);
 
     const aiContext = {
         project: { _id: projectId ?? "", projectName: "" },

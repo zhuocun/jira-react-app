@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { URLSearchParamsInit, useSearchParams } from "react-router-dom";
 
 import filterRequest from "../filterRequest";
@@ -6,6 +6,19 @@ import filterRequest from "../filterRequest";
 const useUrl = <K extends string>(keys: K[]) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [stateKeys] = useState(keys);
+    const setUrlParams = useCallback(
+        (params: Partial<{ [key in K]: unknown }>) => {
+            setSearchParams((prev) => {
+                const obj = filterRequest({
+                    ...Object.fromEntries(prev.entries()),
+                    ...params
+                }) as URLSearchParamsInit;
+                return obj;
+            });
+        },
+        [setSearchParams]
+    );
+
     return [
         useMemo(
             () =>
@@ -17,13 +30,7 @@ const useUrl = <K extends string>(keys: K[]) => {
                 ),
             [searchParams, stateKeys]
         ),
-        (params: Partial<{ [key in K]: unknown }>) => {
-            const obj = filterRequest({
-                ...searchParams,
-                ...params
-            }) as URLSearchParamsInit;
-            setSearchParams(obj);
-        }
+        setUrlParams
     ] as const;
 };
 

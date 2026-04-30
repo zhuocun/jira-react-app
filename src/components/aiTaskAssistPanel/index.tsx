@@ -1,9 +1,9 @@
 import { Alert, Button, Card, Spin, Tag } from "antd";
 import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 
 import useAi from "../../utils/hooks/useAi";
+import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useDebounce from "../../utils/hooks/useDebounce";
 import AiSparkleIcon from "../aiSparkleIcon";
 
@@ -33,24 +33,22 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
     onOpenSimilarTask
 }) => {
     const { projectId } = useParams<{ projectId: string }>();
-    const queryClient = useQueryClient();
-    const tasks =
-        queryClient.getQueryData<ITask[]>(["tasks", { projectId }]) ?? [];
-    const members =
-        queryClient.getQueryData<IMember[]>(["users/members"]) ?? [];
+    const tasks = useCachedQueryData<ITask[]>(["tasks", { projectId }]) ?? [];
+    const members = useCachedQueryData<IMember[]>(["users/members"]) ?? [];
     const columns =
-        queryClient.getQueryData<IColumn[]>(["boards", { projectId }]) ?? [];
+        useCachedQueryData<IColumn[]>(["boards", { projectId }]) ?? [];
 
     const debouncedValues = useDebounce(values, 600);
     const taskName = debouncedValues.taskName ?? "";
 
     const estimateAi = useAi<IEstimateSuggestion>({ route: "estimate" });
     const readinessAi = useAi<IReadinessReport>({ route: "readiness" });
+    const runEstimate = estimateAi.run;
+    const runReadiness = readinessAi.run;
 
     useEffect(() => {
         if (!taskName.trim()) return;
-        estimateAi
-            .run({
+        runEstimate({
                 estimate: {
                     taskName,
                     note: debouncedValues.note,
@@ -67,22 +65,21 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                 }
             })
             .catch(() => undefined);
-        readinessAi
-            .run({
-                readiness: {
-                    taskName,
-                    note: debouncedValues.note,
-                    epic: debouncedValues.epic,
-                    type: debouncedValues.type,
-                    coordinatorId: debouncedValues.coordinatorId,
-                    context: {
-                        project: { _id: projectId ?? "", projectName: "" },
-                        columns,
-                        tasks,
-                        members
-                    }
+        runReadiness({
+            readiness: {
+                taskName,
+                note: debouncedValues.note,
+                epic: debouncedValues.epic,
+                type: debouncedValues.type,
+                coordinatorId: debouncedValues.coordinatorId,
+                context: {
+                    project: { _id: projectId ?? "", projectName: "" },
+                    columns,
+                    tasks,
+                    members
                 }
-            })
+            }
+        })
             .catch(() => undefined);
     }, [
         taskName,
@@ -90,7 +87,13 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
         debouncedValues.epic,
         debouncedValues.type,
         debouncedValues.coordinatorId,
-        excludeTaskId
+        excludeTaskId,
+        projectId,
+        columns,
+        tasks,
+        members,
+        runEstimate,
+        runReadiness
     ]);
 
     const taskById = (id: string) => tasks.find((task) => task._id === id);
@@ -108,6 +111,14 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
         >
             <h4 style={{ marginBottom: 4 }}>Suggested story points</h4>
             {estimateAi.isLoading && !estimateAi.data && <Spin size="small" />}
+            {estimateAi.error && (
+                <Alert
+                    message={estimateAi.error.message || "Failed to estimate task"}
+                    showIcon
+                    style={{ marginBottom: 8 }}
+                    type="warning"
+                />
+            )}
             {estimateAi.data && (
                 <div>
                     <div
@@ -173,6 +184,17 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
             <h4 style={{ marginBottom: 4, marginTop: 16 }}>Readiness check</h4>
             {readinessAi.isLoading && !readinessAi.data && (
                 <Spin size="small" />
+            )}
+            {readinessAi.error && (
+                <Alert
+                    message={
+                        readinessAi.error.message ||
+                        "Failed to run readiness check"
+                    }
+                    showIcon
+                    style={{ marginBottom: 8 }}
+                    type="warning"
+                />
             )}
             {readinessAi.data && readinessAi.data.issues.length === 0 && (
                 <Alert

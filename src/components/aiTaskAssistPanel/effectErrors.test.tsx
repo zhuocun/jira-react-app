@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
@@ -47,7 +47,7 @@ describe("AiTaskAssistPanel effect error handling", () => {
         jest.useRealTimers();
     });
 
-    it("swallows estimate and readiness failures from the effect", async () => {
+    it("keeps the effect resilient and surfaces warnings when estimate and readiness fail", async () => {
         const queryClient = new QueryClient();
         queryClient.setQueryData(
             ["users/members"],
@@ -83,5 +83,6 @@ describe("AiTaskAssistPanel effect error handling", () => {
         await waitFor(() => {
             expect(mockedUseAi).toHaveBeenCalled();
         });
+        expect(screen.getAllByText("offline")).toHaveLength(2);
     });
 });

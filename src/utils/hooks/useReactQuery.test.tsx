@@ -192,6 +192,6 @@ describe("useReactQuery", () => {
         );
 
         await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
-        expect(onError.mock.calls[0][0].valueOf()).toBe("plain failure");
+        expect(onError).toHaveBeenCalledWith(new Error("plain failure"));
     });
 });

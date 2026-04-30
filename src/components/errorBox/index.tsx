@@ -1,9 +1,22 @@
 import { Typography } from "antd";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ErrorBox: React.FC<{ error: Error | IError | null | any }> = ({
-    error
-}) => {
+const getApiErrorMessage = (error: IError["error"] | string | unknown): string => {
+    if (typeof error === "string") {
+        return error || "Operation failed";
+    }
+
+    if (Array.isArray(error)) {
+        const message = error.find(
+            (item): item is { msg?: string } =>
+                Boolean(item) && typeof item === "object"
+        )?.msg;
+        return message || "Operation failed";
+    }
+
+    return "Operation failed";
+};
+
+const ErrorBox: React.FC<{ error: Error | IError | null }> = ({ error }) => {
     if (error instanceof Error) {
         return (
             <Typography.Text type="danger">
@@ -12,14 +25,9 @@ const ErrorBox: React.FC<{ error: Error | IError | null | any }> = ({
         );
     }
     if (error?.error != null) {
-        if (typeof error.error === "string") {
-            return (
-                <Typography.Text type="danger">{error.error}</Typography.Text>
-            );
-        }
         return (
             <Typography.Text type="danger">
-                {error.error[0].msg || "Operation failed"}
+                {getApiErrorMessage(error.error)}
             </Typography.Text>
         );
     }

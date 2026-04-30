@@ -128,7 +128,7 @@ describe("useProjectModal", () => {
         );
     });
 
-    it("writes modal and editing params and removes them on close", async () => {
+    it("writes modal and editing params without dropping existing query state, then removes them on close", async () => {
         renderProjectModalProbe("/projects");
 
         fireEvent.click(screen.getByRole("button", { name: "open" }));
@@ -141,7 +141,7 @@ describe("useProjectModal", () => {
 
         await waitFor(() =>
             expect(screen.getByTestId("search")).toHaveTextContent(
-                "?editingProjectId=p2"
+                "?modal=on&editingProjectId=p2"
             )
         );
 

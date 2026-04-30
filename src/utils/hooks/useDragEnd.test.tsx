@@ -240,6 +240,17 @@ describe("useDragEnd", () => {
         });
     });
 
+    it("ignores task drags when the source task cannot be resolved", () => {
+        renderProbe({ tasks: defaultTasks.slice(1) });
+
+        drop(
+            { droppableId: "column-1", index: 1 },
+            { droppableId: "column-2", index: 0 }
+        );
+
+        expect(reorderTask).not.toHaveBeenCalled();
+    });
+
     it("ignores dragging a task onto itself", () => {
         renderProbe();
 

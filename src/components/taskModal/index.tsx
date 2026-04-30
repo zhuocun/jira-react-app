@@ -2,10 +2,10 @@ import { Button, Form, Input, Modal, Select } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import _ from "lodash";
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
+import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteTask";
@@ -31,7 +31,7 @@ const TaskModal: React.FC<{
         deleteTaskCallback
     );
     const editingTask = tasks?.filter((task) => task._id === editingTaskId)[0];
-    const members = useQueryClient().getQueryData<IMember[]>(["users/members"]);
+    const members = useCachedQueryData<IMember[]>(["users/members"]) ?? [];
     const types: string[] = [];
     tasks?.map((task) => {
         if (!types.includes(task.type)) {
