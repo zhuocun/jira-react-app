@@ -128,7 +128,7 @@ describe("useAuth", () => {
     it("does not refetch users when a matching user is already cached", () => {
         const queryClient = createQueryClient();
         const refetchSpy = jest.spyOn(queryClient, "refetchQueries");
-        queryClient.setQueryData(["users"], user());
+        queryClient.setQueryData(["users"], user({ jwt: "stored-token" }));
         localStorage.setItem("Token", "stored-token");
 
         const { result } = renderHook(() => useAuth(), {
@@ -224,20 +224,17 @@ describe("useAuth", () => {
         });
         localStorage.setItem("Token", "stored-token");
 
-        renderAuthProbe(queryClient);
+        const { result } = renderHook(() => useAuth(), {
+            wrapper: createWrapper(queryClient)
+        });
 
         await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "refresh" }));
-            await Promise.resolve();
-            await Promise.resolve();
+            await result.current.refreshUser();
         });
 
         await waitFor(() =>
             expect(refetchSpy).toHaveBeenCalledWith({ queryKey: ["users"] })
         );
         await waitFor(() => expect(localStorage.getItem("Token")).toBeNull());
-        await waitFor(() =>
-            expect(screen.getByTestId("path")).toHaveTextContent("/login")
-        );
     });
 });

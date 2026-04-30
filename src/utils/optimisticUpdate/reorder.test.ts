@@ -214,7 +214,8 @@ describe("taskCallback", () => {
             tasks
         );
 
-        expect(result).toEqual(tasks);
+        expect(ids(result)).toEqual(ids(tasks));
+        expect(result.map((item) => item.index)).toEqual([0, 1, 2]);
         expect(result).not.toBe(tasks);
     });
 

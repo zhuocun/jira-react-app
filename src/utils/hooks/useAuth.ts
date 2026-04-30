@@ -19,10 +19,13 @@ const useAuth = () => {
         if (token && (!user || user.jwt !== token)) {
             try {
                 await queryClient.refetchQueries({ queryKey: userQueryKey });
-                const queryState = queryClient.getQueryState<IUser>(userQueryKey);
+                const queryState =
+                    queryClient.getQueryState<IUser>(userQueryKey);
                 const refreshed = queryClient.getQueryData<IUser>(userQueryKey);
                 if (queryState?.status === "error" || !refreshed) {
-                    throw queryState?.error ?? new Error("Failed to refresh user");
+                    throw (
+                        queryState?.error ?? new Error("Failed to refresh user")
+                    );
                 }
                 queryClient.setQueryData<IUser>(userQueryKey, {
                     ...refreshed,

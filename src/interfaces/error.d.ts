@@ -1,5 +1,3 @@
 interface IError {
-    error: {
-        msg: string;
-    }[];
+    error: { msg: string }[] | string;
 }

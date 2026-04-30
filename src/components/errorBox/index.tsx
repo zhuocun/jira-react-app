@@ -1,6 +1,11 @@
 import { Typography } from "antd";
 
-const getApiErrorMessage = (error: IError["error"] | string | unknown): string => {
+const isErrorPayload = (error: unknown): error is IError =>
+    error !== null && typeof error === "object" && "error" in error;
+
+const getApiErrorMessage = (
+    error: IError["error"] | string | unknown
+): string => {
     if (typeof error === "string") {
         return error || "Operation failed";
     }
@@ -16,7 +21,7 @@ const getApiErrorMessage = (error: IError["error"] | string | unknown): string =
     return "Operation failed";
 };
 
-const ErrorBox: React.FC<{ error: Error | IError | null }> = ({ error }) => {
+const ErrorBox: React.FC<{ error: Error | IError | unknown }> = ({ error }) => {
     if (error instanceof Error) {
         return (
             <Typography.Text type="danger">
@@ -24,7 +29,7 @@ const ErrorBox: React.FC<{ error: Error | IError | null }> = ({ error }) => {
             </Typography.Text>
         );
     }
-    if (error?.error != null) {
+    if (isErrorPayload(error) && error.error != null) {
         return (
             <Typography.Text type="danger">
                 {getApiErrorMessage(error.error)}

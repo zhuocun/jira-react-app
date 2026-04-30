@@ -21,16 +21,15 @@ const ProjectModal: React.FC = () => {
         useProjectModal();
     const isEditing = Boolean(editingProject);
 
-    const createProjectMutation = useReactMutation("projects", "POST");
-    const updateProjectMutation = useReactMutation("projects", "PUT");
+    const createProjectMutation = useReactMutation<IProject>(
+        "projects",
+        "POST"
+    );
+    const updateProjectMutation = useReactMutation<IProject>("projects", "PUT");
     const activeMutation = isEditing
         ? updateProjectMutation
         : createProjectMutation;
-    const {
-        mutateAsync,
-        error,
-        isLoading: mutateLoading
-    } = activeMutation;
+    const { mutateAsync, error, isLoading: mutateLoading } = activeMutation;
 
     const [form] = useForm();
     const onClose = () => {
