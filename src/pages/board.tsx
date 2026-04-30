@@ -210,9 +210,8 @@ const BoardPage = () => {
                                         <Column
                                             boardAiOn={boardAiOn}
                                             tasks={
-                                                tasksByColumn.get(
-                                                    column._id
-                                                ) ?? []
+                                                tasksByColumn.get(column._id) ??
+                                                []
                                             }
                                             key={column._id}
                                             column={column}

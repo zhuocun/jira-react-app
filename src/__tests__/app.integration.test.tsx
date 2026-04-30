@@ -303,10 +303,14 @@ describe("App integration (full providers + routes)", () => {
         });
 
         await user.click(
-            await screen.findByRole("button", { name: /hi, alice/i })
+            await screen.findByRole("button", {
+                name: /account menu for alice/i
+            })
         );
 
-        await user.click(await screen.findByText("Logout"));
+        await user.click(
+            await screen.findByRole("button", { name: /^log out$/i })
+        );
 
         await waitFor(() => {
             expect(window.location.pathname).toBe("/login");
