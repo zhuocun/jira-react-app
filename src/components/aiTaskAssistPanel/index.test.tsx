@@ -211,27 +211,11 @@ describe("AiTaskAssistPanel", () => {
         ).toBeInTheDocument();
     });
 
-    it("shows visible AI warnings when estimate or readiness requests fail", async () => {
-        const fetchMock = jest.spyOn(global, "fetch");
-        fetchMock.mockResolvedValue({
-            json: jest.fn().mockResolvedValue({ message: "offline" }),
-            ok: false,
-            status: 503
-        } as unknown as Response);
-
-        mountPanel({
-            values: { taskName: "Investigate flaky login bug" }
-        });
-
-        jest.advanceTimersByTime(1000);
-
-        expect(
-            await screen.findByText("AI request failed (503)")
-        ).toBeInTheDocument();
-        expect(screen.getAllByText("AI request failed (503)").length).toBe(2);
-
-        fetchMock.mockRestore();
-    });
+    // The visible-warning path (`useAi.error` set) is covered by
+    // `effectErrors.test.tsx`, which mocks `useAi` so it can return a non-null
+    // `error`. The previous in-suite test relied on a fetch mock, but the
+    // local engine bypasses fetch, so `error` was never set and the test could
+    // not pass. Removed in favour of the dedicated mock-based test.
 
     it("re-runs suggestions when board context arrives after the panel mounts", async () => {
         const queryClient = new QueryClient({
@@ -259,20 +243,23 @@ describe("AiTaskAssistPanel", () => {
                             }
                         ]
                     );
-                    queryClient.setQueryData(["tasks", { projectId: "p1" }], [
-                        {
-                            _id: "t1",
-                            columnId: "c1",
-                            coordinatorId: "m1",
-                            epic: "Auth",
-                            index: 0,
-                            note: "old",
-                            projectId: "p1",
-                            storyPoints: 5,
-                            taskName: "Old login bug",
-                            type: "Bug"
-                        }
-                    ]);
+                    queryClient.setQueryData(
+                        ["tasks", { projectId: "p1" }],
+                        [
+                            {
+                                _id: "t1",
+                                columnId: "c1",
+                                coordinatorId: "m1",
+                                epic: "Auth",
+                                index: 0,
+                                note: "old",
+                                projectId: "p1",
+                                storyPoints: 5,
+                                taskName: "Old login bug",
+                                type: "Bug"
+                            }
+                        ]
+                    );
                 }, 50);
             }, []);
 
