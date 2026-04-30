@@ -20,8 +20,15 @@ body {
 
 body {
     font-family:
-        "Inter", "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI",
-        Roboto, "Helvetica Neue", Arial, sans-serif;
+        "Inter",
+        "Inter Variable",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
     /* Inter looks crisper with these OpenType features turned on: contextual
      * alternates ("calt"), case-sensitive forms ("case"), and disambiguation
      * stylistic sets. */
