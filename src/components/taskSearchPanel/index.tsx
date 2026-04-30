@@ -1,8 +1,10 @@
 import { SearchOutlined } from "@ant-design/icons";
-import { Button, Form, Input, Select } from "antd";
-import { FormInstance } from "antd/lib/form/Form";
-import React, { useRef } from "react";
+import styled from "@emotion/styled";
+import { Button, Input, Select } from "antd";
+import React, { useMemo } from "react";
 
+import { microcopy } from "../../constants/microcopy";
+import { space } from "../../theme/tokens";
 import useAuth from "../../utils/hooks/useAuth";
 
 export interface TaskSearchParam {
@@ -21,6 +23,40 @@ interface Props {
     aiSearchSlot?: React.ReactNode;
 }
 
+const FILTER_FORM_GAP = `${space.sm}px ${space.sm}px`;
+
+const FilterRow = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: ${space.sm}px;
+    margin-bottom: ${space.lg}px;
+
+    @media (min-width: 768px) {
+        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: ${FILTER_FORM_GAP};
+    }
+`;
+
+const FlexInput = styled.div`
+    flex: 1 1 14rem;
+    min-width: 0;
+
+    @media (min-width: 768px) {
+        max-width: 22rem;
+    }
+`;
+
+const FlexSelect = styled.div`
+    flex: 1 1 12rem;
+    min-width: 0;
+
+    @media (min-width: 768px) {
+        max-width: 14rem;
+    }
+`;
+
 const TaskSearchPanel: React.FC<Props> = ({
     tasks,
     param,
@@ -30,25 +66,32 @@ const TaskSearchPanel: React.FC<Props> = ({
     aiSearchSlot
 }) => {
     const { user } = useAuth();
-    const types: string[] = [];
-    const coordinators: IMember[] = [];
-    tasks?.map((task) => {
-        if (!types.includes(task.type)) types.push(task.type);
-        const coordinator = members?.filter(
-            (member) => member._id === task.coordinatorId
-        )[0];
-        if (coordinator && !coordinators.includes(coordinator)) {
-            coordinators.push(coordinator);
+    const coordinators = useMemo(() => {
+        const result: IMember[] = [];
+        const seen = new Set<string>();
+        for (const t of tasks ?? []) {
+            const member = (members ?? []).find(
+                (m) => m._id === t.coordinatorId
+            );
+            if (member && !seen.has(member._id)) {
+                seen.add(member._id);
+                result.push(member);
+            }
         }
-        return null;
-    });
+        if (result.length === 0 && user) {
+            result.push(user);
+        }
+        return result;
+    }, [tasks, members, user]);
 
-    if (user) {
-        if (!coordinators.length) {
-            coordinators.push(user);
+    const types = useMemo(() => {
+        const observed: string[] = [];
+        for (const t of tasks ?? []) {
+            if (!observed.includes(t.type)) observed.push(t.type);
         }
-    }
-    const formRef = useRef<FormInstance>(null);
+        return observed.length > 1 ? observed : ["Task", "Bug"];
+    }, [tasks]);
+
     const resetParams = () => {
         setParam({
             taskName: undefined,
@@ -56,88 +99,79 @@ const TaskSearchPanel: React.FC<Props> = ({
             type: undefined,
             semanticIds: undefined
         });
-        formRef.current?.setFieldsValue({
-            taskName: null,
-            coordinators: "Coordinators",
-            types: "Types"
-        });
     };
 
     return (
-        <Form ref={formRef} style={{ marginBottom: "2rem" }} layout="inline">
+        <div>
             {aiSearchSlot}
-            <Form.Item name="taskName">
-                <Input
-                    style={{ width: "20rem" }}
-                    value={param.taskName}
-                    placeholder="Search this board"
-                    type="text"
-                    onChange={(e) =>
-                        setParam({
-                            ...param,
-                            taskName: e.target.value
-                        })
-                    }
-                    suffix={<SearchOutlined />}
-                />
-            </Form.Item>
-            <Form.Item
-                name="coordinators"
-                initialValue={
-                    coordinators.filter((c) => c._id === param.coordinatorId)[0]
-                        ?.username || "Coordinators"
-                }
-            >
-                <Select
-                    loading={loading}
-                    onChange={(value) =>
-                        setParam({
-                            ...param,
-                            coordinatorId: value
-                        })
-                    }
-                    style={{ width: "14rem" }}
-                >
-                    <Select.Option value="">Coordinators</Select.Option>
-                    {coordinators.map((member) => (
-                        <Select.Option value={member._id} key={member._id}>
-                            {member.username}
-                        </Select.Option>
-                    ))}
-                </Select>
-            </Form.Item>
-            <Form.Item name="types" initialValue={param.type || "Types"}>
-                <Select
-                    loading={loading}
-                    onChange={(value) =>
-                        setParam({
-                            ...param,
-                            type: value
-                        })
-                    }
-                    style={{ width: "12rem" }}
-                >
-                    <Select.Option value="">Types</Select.Option>
-                    {types.length > 1 ? (
-                        types.map((type) => (
+            <FilterRow role="search" aria-label="Filter tasks">
+                <FlexInput>
+                    <Input
+                        aria-label="Search tasks by name"
+                        allowClear
+                        onChange={(e) =>
+                            setParam({
+                                ...param,
+                                taskName: e.target.value
+                            })
+                        }
+                        placeholder="Search this board"
+                        suffix={<SearchOutlined aria-hidden />}
+                        type="search"
+                        value={param.taskName}
+                    />
+                </FlexInput>
+                <FlexSelect>
+                    <Select
+                        allowClear
+                        aria-label="Filter by coordinator"
+                        loading={loading}
+                        onChange={(value) =>
+                            setParam({
+                                ...param,
+                                coordinatorId: value ?? ""
+                            })
+                        }
+                        placeholder="Coordinator"
+                        style={{ width: "100%" }}
+                        value={param.coordinatorId || undefined}
+                    >
+                        <Select.Option value="">Coordinators</Select.Option>
+                        {coordinators.map((member) => (
+                            <Select.Option value={member._id} key={member._id}>
+                                {member.username}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </FlexSelect>
+                <FlexSelect>
+                    <Select
+                        allowClear
+                        aria-label="Filter by type"
+                        loading={loading}
+                        onChange={(value) =>
+                            setParam({
+                                ...param,
+                                type: value ?? ""
+                            })
+                        }
+                        placeholder="Type"
+                        style={{ width: "100%" }}
+                        value={param.type || undefined}
+                    >
+                        <Select.Option value="">Types</Select.Option>
+                        {types.map((type) => (
                             <Select.Option value={type} key={type}>
                                 {type}
                             </Select.Option>
-                        ))
-                    ) : (
-                        <>
-                            <Select.Option value="Task" key="task">
-                                Task
-                            </Select.Option>
-                            <Select.Option value="Bug" key="bug">
-                                Bug
-                            </Select.Option>
-                        </>
-                    )}
-                </Select>
-            </Form.Item>
-            <Button onClick={resetParams}>Reset filter</Button>
-        </Form>
+                        ))}
+                    </Select>
+                </FlexSelect>
+                <Button onClick={resetParams}>
+                    {microcopy.actions.resetFilters}
+                </Button>
+            </FilterRow>
+        </div>
     );
 };
 

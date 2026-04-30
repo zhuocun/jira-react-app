@@ -185,7 +185,7 @@ describe("ProjectPage", () => {
             "/projects?projectName=Road&managerId=member-1"
         );
 
-        expect(document.title).toBe("Project List");
+        expect(document.title).toBe("Projects");
         expect(await screen.findByText("Roadmap")).toBeInTheDocument();
         expect(screen.getByText("Billing")).toBeInTheDocument();
         expect(screen.getAllByText("Alice").length).toBeGreaterThan(0);
@@ -262,7 +262,7 @@ describe("ProjectPage", () => {
         renderPage();
 
         expect(await screen.findByText("Roadmap")).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "Create Project" }));
+        fireEvent.click(screen.getByRole("button", { name: "Create project" }));
 
         await waitFor(() =>
             expect(screen.getByTestId("location")).toHaveTextContent("modal=on")

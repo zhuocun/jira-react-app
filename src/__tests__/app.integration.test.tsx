@@ -231,7 +231,7 @@ describe("App integration (full providers + routes)", () => {
 
         await waitFor(() => {
             expect(
-                screen.getByRole("heading", { name: /project list/i })
+                screen.getByRole("heading", { name: /^projects$/i, level: 1 })
             ).toBeInTheDocument();
         });
 

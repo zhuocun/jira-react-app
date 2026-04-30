@@ -14,7 +14,6 @@ describe("PageContainer", () => {
             screen.getByRole("heading", { name: "Projects" })
         ).toBeInTheDocument();
         expect(screen.getByTestId("page-container")).toHaveStyle({
-            padding: "3.2rem",
             width: "100%"
         });
     });

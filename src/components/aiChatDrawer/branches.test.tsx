@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 
@@ -124,12 +124,14 @@ describe("AiChatDrawer UI branches (mocked chat hook)", () => {
         expect(screen.getByText("Working…")).toBeInTheDocument();
     });
 
-    it("renders tool rows without an explicit tool name", () => {
+    it("renders tool rows without an explicit tool name once details are revealed", () => {
         mockedUseAiChat.mockReturnValue({
             ...baseChat(),
             messages: [{ role: "tool", content: "payload" }]
         });
         renderDrawer();
+        expect(screen.queryByText("tool")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByLabelText("Show tool details"));
         expect(screen.getByText("tool")).toBeInTheDocument();
         expect(screen.getByText("payload")).toBeInTheDocument();
     });

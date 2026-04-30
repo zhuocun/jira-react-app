@@ -1,11 +1,13 @@
+import { SettingOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import {
+    Alert,
     Button,
+    Popover,
     Skeleton,
     Space,
     Spin,
     Switch,
-    Tooltip,
     Typography
 } from "antd";
 import { DragDropContext } from "@hello-pangea/dnd";
@@ -23,6 +25,7 @@ import PageContainer from "../components/pageContainer";
 import Row from "../components/row";
 import TaskModal from "../components/taskModal";
 import TaskSearchPanel from "../components/taskSearchPanel";
+import { microcopy } from "../constants/microcopy";
 import { space as themeSpace } from "../theme/tokens";
 import useAiEnabled from "../utils/hooks/useAiEnabled";
 import useAiProjectDisabled from "../utils/hooks/useAiProjectDisabled";
@@ -84,16 +87,23 @@ const BoardPage = () => {
         useReactQuery<IProject>("projects", {
             projectId
         });
-    const { data: board, isLoading: bLoading } = useReactQuery<IColumn[]>(
-        "boards",
-        {
-            projectId
-        }
-    );
+    const {
+        data: board,
+        isLoading: bLoading,
+        error: bError,
+        refetch: refetchBoard
+    } = useReactQuery<IColumn[]>("boards", {
+        projectId
+    });
     const { isLoading: mLoading, data: members } =
         useReactQuery<IMember[]>("users/members");
 
-    const { data: tasks, isLoading: tLoading } = useReactQuery<ITask[]>(
+    const {
+        data: tasks,
+        isLoading: tLoading,
+        error: tError,
+        refetch: refetchTasks
+    } = useReactQuery<ITask[]>(
         "tasks",
         {
             projectId
@@ -151,30 +161,30 @@ const BoardPage = () => {
             <PageContainer>
                 <BoardHeader>
                     <Row between>
-                        <h1 style={{ margin: 0 }}>
-                            {!pLoading
-                                ? `${currentProject?.projectName} Board`
-                                : "..."}
-                        </h1>
+                        {pLoading ? (
+                            <span
+                                aria-label="Loading project name"
+                                role="status"
+                            >
+                                <Skeleton.Input
+                                    active
+                                    size="large"
+                                    style={{ width: 240 }}
+                                />
+                            </span>
+                        ) : (
+                            <Typography.Title level={1} style={{ margin: 0 }}>
+                                {currentProject?.projectName} board
+                            </Typography.Title>
+                        )}
                         {aiEnabled && (
-                            <Space align="center" size={themeSpace.sm}>
-                                <Tooltip title="Turn off to hide Board Copilot on this board and block AI requests for this project.">
-                                    <Space size={themeSpace.xxs}>
-                                        <Switch
-                                            aria-label="Board Copilot for this project"
-                                            checked={!aiDisabledForProject}
-                                            onChange={(checked) =>
-                                                setProjectAiDisabled(!checked)
-                                            }
-                                            size="small"
-                                        />
-                                        <Typography.Text type="secondary">
-                                            Project AI
-                                        </Typography.Text>
-                                    </Space>
-                                </Tooltip>
+                            <Space
+                                align="center"
+                                size={themeSpace.xs}
+                                wrap
+                            >
                                 {boardAiOn && (
-                                    <>
+                                    <Space.Compact>
                                         <Button
                                             aria-label="Open Board Copilot brief"
                                             icon={<AiSparkleIcon />}
@@ -191,8 +201,60 @@ const BoardPage = () => {
                                         >
                                             Ask
                                         </Button>
-                                    </>
+                                    </Space.Compact>
                                 )}
+                                <Popover
+                                    content={
+                                        <Space
+                                            orientation="vertical"
+                                            size={themeSpace.xs}
+                                            style={{ minWidth: 240 }}
+                                        >
+                                            <Typography.Text type="secondary">
+                                                Board Copilot
+                                            </Typography.Text>
+                                            <div
+                                                style={{
+                                                    alignItems: "center",
+                                                    display: "flex",
+                                                    gap: themeSpace.sm,
+                                                    justifyContent:
+                                                        "space-between"
+                                                }}
+                                            >
+                                                <span>Enable on this board</span>
+                                                <Switch
+                                                    aria-label="Board Copilot for this project"
+                                                    checked={
+                                                        !aiDisabledForProject
+                                                    }
+                                                    onChange={(checked) =>
+                                                        setProjectAiDisabled(
+                                                            !checked
+                                                        )
+                                                    }
+                                                    size="small"
+                                                />
+                                            </div>
+                                            <Typography.Text
+                                                style={{ fontSize: 12 }}
+                                                type="secondary"
+                                            >
+                                                Hides Board Copilot on this
+                                                board and blocks AI requests
+                                                for this project.
+                                            </Typography.Text>
+                                        </Space>
+                                    }
+                                    placement="bottomRight"
+                                    trigger={["click"]}
+                                >
+                                    <Button
+                                        aria-label="Board Copilot settings"
+                                        icon={<SettingOutlined />}
+                                        type="text"
+                                    />
+                                </Popover>
                             </Space>
                         )}
                     </Row>
@@ -223,6 +285,27 @@ const BoardPage = () => {
                         ) : undefined
                     }
                 />
+                {bError || tError ? (
+                    <Alert
+                        action={
+                            <Button
+                                onClick={() => {
+                                    if (bError) refetchBoard();
+                                    if (tError) refetchTasks();
+                                }}
+                                size="small"
+                                type="primary"
+                            >
+                                {microcopy.actions.retry}
+                            </Button>
+                        }
+                        description={microcopy.feedback.retryHint}
+                        message={microcopy.feedback.loadFailed}
+                        showIcon
+                        style={{ marginBottom: themeSpace.md }}
+                        type="error"
+                    />
+                ) : null}
                 {!(bLoading || tLoading) ? (
                     <ColumnContainer>
                         <Drop

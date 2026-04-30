@@ -112,7 +112,9 @@ describe("AiTaskDraftModal", () => {
         });
         fireEvent.click(screen.getByLabelText("Draft task with Copilot"));
 
-        const submit = await screen.findByRole("button", { name: /submit/i });
+        const submit = await screen.findByRole("button", {
+            name: /create task/i
+        });
         fireEvent.click(submit);
         await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
         expect(fetchMock).toHaveBeenCalled();

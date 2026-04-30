@@ -167,6 +167,7 @@ describe("TaskSearchPanel", () => {
 
         expect(setParam).toHaveBeenLastCalledWith({
             coordinatorId: undefined,
+            semanticIds: undefined,
             taskName: undefined,
             type: undefined
         });

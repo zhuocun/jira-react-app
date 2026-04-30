@@ -6,14 +6,22 @@ import {
     Input,
     Space,
     Spin,
+    Tag,
     Typography
 } from "antd";
-import { startTransition, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 
+import { space } from "../../theme/tokens";
 import useAiChat from "../../utils/hooks/useAiChat";
 import AiSparkleIcon from "../aiSparkleIcon";
 
 const { Text, Paragraph } = Typography;
+
+const SAMPLE_PROMPTS = [
+    "What's at risk?",
+    "Who has the most open tasks?",
+    "Summarize this board"
+];
 
 export interface AiChatDrawerProps {
     open: boolean;
@@ -37,6 +45,11 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     knownProjectIds
 }) => {
     const [input, setInput] = useState("");
+    const [showToolDetails, setShowToolDetails] = useState(false);
+
+    useEffect(() => {
+        if (!open) setShowToolDetails(false);
+    }, [open]);
 
     const chatCtx = useMemo(() => {
         const knownProjectSet = new Set(knownProjectIds);
@@ -81,28 +94,51 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
         onClose();
     };
 
-    const handleSend = () => {
-        const text = input.trim();
-        if (!text) return;
+    const dispatch = (text: string) => {
+        const trimmed = text.trim();
+        if (!trimmed) return;
         setInput("");
         startTransition(() => {
-            void send(text);
+            void send(trimmed);
         });
     };
+
+    const handleSend = () => {
+        dispatch(input);
+    };
+
+    const hasToolMessages = messages.some((m) => m.role === "tool");
 
     return (
         <Drawer
             destroyOnHidden
             extra={
-                <Button
-                    aria-label="Clear Board Copilot chat"
-                    disabled={messages.length === 0 || isLoading}
-                    onClick={() => reset()}
-                    size="small"
-                    type="link"
-                >
-                    Clear
-                </Button>
+                <Space size={space.xs}>
+                    {hasToolMessages ? (
+                        <Button
+                            aria-label={
+                                showToolDetails
+                                    ? "Hide tool details"
+                                    : "Show tool details"
+                            }
+                            aria-pressed={showToolDetails}
+                            onClick={() => setShowToolDetails((v) => !v)}
+                            size="small"
+                            type="text"
+                        >
+                            {showToolDetails ? "Hide details" : "Show details"}
+                        </Button>
+                    ) : null}
+                    <Button
+                        aria-label="Clear Board Copilot chat"
+                        disabled={messages.length === 0 || isLoading}
+                        onClick={() => reset()}
+                        size="small"
+                        type="link"
+                    >
+                        Clear
+                    </Button>
+                </Space>
             }
             onClose={handleClose}
             open={open}
@@ -111,12 +147,12 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 body: {
                     display: "flex",
                     flexDirection: "column",
-                    paddingBottom: 8
+                    paddingBottom: space.xs
                 }
             }}
             title={
                 <span>
-                    <AiSparkleIcon style={{ marginRight: 8 }} />
+                    <AiSparkleIcon style={{ marginRight: space.xs }} />
                     Ask Board Copilot
                 </span>
             }
@@ -125,26 +161,45 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 aria-live="polite"
                 style={{
                     flex: 1,
-                    marginBottom: 12,
+                    marginBottom: space.sm,
                     maxHeight: "calc(100vh - 220px)",
                     minHeight: 200,
                     overflowY: "auto"
                 }}
             >
                 {messages.length === 0 && !isLoading && (
-                    <Text type="secondary">
-                        Ask about this board, tasks, or your projects. Answers
-                        use read-only data from the app.
-                    </Text>
+                    <Space
+                        orientation="vertical"
+                        size={space.sm}
+                        style={{ width: "100%" }}
+                    >
+                        <Text type="secondary">
+                            Ask about this board, tasks, or your projects.
+                            Answers use read-only data from the app.
+                        </Text>
+                        <Space size={space.xxs} wrap>
+                            {SAMPLE_PROMPTS.map((prompt) => (
+                                <Tag.CheckableTag
+                                    aria-label={`Try sample prompt: ${prompt}`}
+                                    checked={false}
+                                    key={prompt}
+                                    onChange={() => dispatch(prompt)}
+                                >
+                                    {prompt}
+                                </Tag.CheckableTag>
+                            ))}
+                        </Space>
+                    </Space>
                 )}
                 {messages.map((m, index) => {
                     if (m.role === "tool") {
+                        if (!showToolDetails) return null;
                         return (
                             <div
                                 key={`tool-${m.toolCallId ?? index}`}
                                 style={{
                                     fontSize: 12,
-                                    marginBottom: 8,
+                                    marginBottom: space.xs,
                                     opacity: 0.75
                                 }}
                             >
@@ -154,7 +209,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                 <pre
                                     style={{
                                         fontSize: 11,
-                                        margin: "4px 0 0",
+                                        margin: `${space.xxs}px 0 0`,
                                         whiteSpace: "pre-wrap",
                                         wordBreak: "break-word"
                                     }}
@@ -169,21 +224,21 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                         <div
                             key={`msg-${index}`}
                             style={{
-                                marginBottom: 10,
-                                opacity: isUser ? 1 : 0.92,
+                                marginBottom: space.sm,
                                 textAlign: isUser ? "right" : "left"
                             }}
                         >
                             <Paragraph
                                 style={{
                                     background: isUser
-                                        ? "rgba(22, 119, 255, 0.08)"
-                                        : "rgba(0, 0, 0, 0.04)",
-                                    borderRadius: 8,
+                                        ? "var(--ant-color-primary-bg, rgba(22, 119, 255, 0.08))"
+                                        : "var(--ant-color-fill-tertiary, rgba(0, 0, 0, 0.04))",
+                                    borderRadius: space.xs,
+                                    color: "var(--ant-color-text, inherit)",
                                     display: "inline-block",
                                     marginBottom: 0,
                                     maxWidth: "100%",
-                                    padding: "8px 12px",
+                                    padding: `${space.xs}px ${space.sm}px`,
                                     textAlign: "left",
                                     whiteSpace: "pre-wrap"
                                 }}
@@ -194,7 +249,11 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                     );
                 })}
                 {isLoading && (
-                    <Flex align="center" gap={8} style={{ marginTop: 8 }}>
+                    <Flex
+                        align="center"
+                        gap={space.xs}
+                        style={{ marginTop: space.xs }}
+                    >
                         <Spin size="small" />
                         {streamingText ? (
                             <Text type="secondary">{streamingText}</Text>
@@ -207,10 +266,10 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 <Alert
                     closable
                     description={error.message}
+                    message="Something went wrong"
                     onClose={dismissError}
                     showIcon
-                    style={{ marginBottom: 8 }}
-                    title="Something went wrong"
+                    style={{ marginBottom: space.xs }}
                     type="warning"
                 />
             )}

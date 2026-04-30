@@ -5,7 +5,19 @@ import { useParams } from "react-router-dom";
 import useAi from "../../utils/hooks/useAi";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useDebounce from "../../utils/hooks/useDebounce";
+import useDelayedFlag from "../../utils/hooks/useDelayedFlag";
 import AiSparkleIcon from "../aiSparkleIcon";
+
+/**
+ * Map a 0–1 confidence to a plain-language band. Threshold values mirror
+ * standard product-analytics buckets and are paired with the percentage
+ * so users without a probability intuition can still act.
+ */
+const confidenceBand = (confidence: number): "Low" | "Moderate" | "High" => {
+    if (confidence >= 0.75) return "High";
+    if (confidence >= 0.45) return "Moderate";
+    return "Low";
+};
 
 // Stable fallbacks: avoid producing a new `[]` reference on every render, which
 // otherwise re-fires the suggestion effect endlessly when the cache is empty.
@@ -54,6 +66,17 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
     const readinessAi = useAi<IReadinessReport>({ route: "readiness" });
     const runEstimate = estimateAi.run;
     const runReadiness = readinessAi.run;
+    // Throttle the spinner — local-engine responses resolve in <250ms and a
+    // bare Spin causes a visible flash. useDelayedFlag suppresses it unless
+    // the request is actually slow.
+    const showEstimateSpinner = useDelayedFlag(
+        estimateAi.isLoading && !estimateAi.data,
+        250
+    );
+    const showReadinessSpinner = useDelayedFlag(
+        readinessAi.isLoading && !readinessAi.data,
+        250
+    );
 
     useEffect(() => {
         if (!taskName.trim()) return;
@@ -117,7 +140,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
             }
         >
             <h4 style={{ marginBottom: 4 }}>Suggested story points</h4>
-            {estimateAi.isLoading && !estimateAi.data && <Spin size="small" />}
+            {showEstimateSpinner && <Spin size="small" />}
             {estimateAi.error && (
                 <Alert
                     showIcon
@@ -141,8 +164,8 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                             {estimateAi.data.storyPoints}
                         </span>
                         <Tag color="blue">
+                            {confidenceBand(estimateAi.data.confidence)} ·{" "}
                             {(estimateAi.data.confidence * 100).toFixed(0)}%
-                            confidence
                         </Tag>
                         <Button
                             aria-label="Apply suggested story points"
@@ -195,9 +218,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
             )}
 
             <h4 style={{ marginBottom: 4, marginTop: 16 }}>Readiness check</h4>
-            {readinessAi.isLoading && !readinessAi.data && (
-                <Spin size="small" />
-            )}
+            {showReadinessSpinner && <Spin size="small" />}
             {readinessAi.error && (
                 <Alert
                     showIcon

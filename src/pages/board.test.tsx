@@ -278,7 +278,7 @@ describe("BoardPage", () => {
         );
         renderBoard();
 
-        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(await screen.findByText("Roadmap board")).toBeInTheDocument();
         expect(
             screen.queryByRole("button", {
                 name: /Open Board Copilot brief/i
@@ -287,8 +287,11 @@ describe("BoardPage", () => {
         expect(
             screen.queryByRole("button", { name: /Ask Board Copilot/i })
         ).not.toBeInTheDocument();
+        fireEvent.click(
+            screen.getByRole("button", { name: /Board Copilot settings/i })
+        );
         expect(
-            screen.getByRole("switch", {
+            await screen.findByRole("switch", {
                 name: /Board Copilot for this project/i
             })
         ).not.toBeChecked();
@@ -301,7 +304,7 @@ describe("BoardPage", () => {
         );
         renderBoard("/projects/project-1/board?semanticIds=task-1");
 
-        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(await screen.findByText("Roadmap board")).toBeInTheDocument();
         await waitFor(() => {
             expect(screen.getByText("Fix bug")).toBeInTheDocument();
         });
@@ -314,9 +317,12 @@ describe("BoardPage", () => {
         );
         renderBoard();
 
-        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(await screen.findByText("Roadmap board")).toBeInTheDocument();
         fireEvent.click(
-            screen.getByRole("switch", {
+            screen.getByRole("button", { name: /Board Copilot settings/i })
+        );
+        fireEvent.click(
+            await screen.findByRole("switch", {
                 name: /Board Copilot for this project/i
             })
         );
@@ -363,7 +369,7 @@ describe("BoardPage", () => {
 
         expect(document.title).toBe("Board");
         expect(
-            screen.getByRole("heading", { name: "..." })
+            screen.getByLabelText("Loading project name")
         ).toBeInTheDocument();
         expect(container.querySelector(".ant-spin")).toBeInTheDocument();
 
@@ -371,12 +377,12 @@ describe("BoardPage", () => {
         resolveBoards(response(defaultColumns));
         resolveTasks(response(defaultTasks));
 
-        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(await screen.findByText("Roadmap board")).toBeInTheDocument();
         expect(screen.getByText("Build task")).toBeInTheDocument();
         expect(screen.getByText("Fix bug")).toBeInTheDocument();
         expect(screen.getByText("Optimistic task")).toBeInTheDocument();
         expect(
-            screen.getByPlaceholderText(/Create column/)
+            screen.getByRole("button", { name: "Add column" })
         ).toBeInTheDocument();
 
         const headings = screen
@@ -398,7 +404,7 @@ describe("BoardPage", () => {
             "/projects/project-1/board?taskName=Fix&type=Bug&coordinatorId=member-2"
         );
 
-        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(await screen.findByText("Roadmap board")).toBeInTheDocument();
         expect(screen.getByText("Fix bug")).toBeInTheDocument();
         expect(screen.queryByText("Build task")).not.toBeInTheDocument();
         expect(
@@ -409,7 +415,7 @@ describe("BoardPage", () => {
     it("opens the task modal from the editingTaskId URL param", async () => {
         renderBoard("/projects/project-1/board?editingTaskId=task-1");
 
-        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(await screen.findByText("Roadmap board")).toBeInTheDocument();
         expect(
             await screen.findByDisplayValue("Build task")
         ).toBeInTheDocument();
@@ -436,9 +442,9 @@ describe("BoardPage", () => {
         });
         renderBoard();
 
-        expect(await screen.findByText("Roadmap Board")).toBeInTheDocument();
+        expect(await screen.findByText("Roadmap board")).toBeInTheDocument();
         expect(
-            screen.getByPlaceholderText(/Create column/)
+            screen.getByRole("button", { name: "Add column" })
         ).toBeInTheDocument();
         expect(
             screen.queryByRole("heading", { level: 4 })

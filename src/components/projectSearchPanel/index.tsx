@@ -1,6 +1,9 @@
 import { SearchOutlined } from "@ant-design/icons";
-import { Form, Input, Select } from "antd";
+import styled from "@emotion/styled";
+import { Input, Select } from "antd";
 import React from "react";
+
+import { space } from "../../theme/tokens";
 
 export interface ProjectSearchParam {
     projectName: string;
@@ -16,6 +19,37 @@ interface Props {
     aiSearchSlot?: React.ReactNode;
 }
 
+const FilterRow = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: ${space.sm}px;
+    margin-bottom: ${space.lg}px;
+
+    @media (min-width: 768px) {
+        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+`;
+
+const FlexInput = styled.div`
+    flex: 1 1 14rem;
+    min-width: 0;
+
+    @media (min-width: 768px) {
+        max-width: 22rem;
+    }
+`;
+
+const FlexSelect = styled.div`
+    flex: 1 1 12rem;
+    min-width: 0;
+
+    @media (min-width: 768px) {
+        max-width: 14rem;
+    }
+`;
+
 const ProjectSearchPanel: React.FC<Props> = ({
     param,
     setParam,
@@ -23,49 +57,57 @@ const ProjectSearchPanel: React.FC<Props> = ({
     loading,
     aiSearchSlot
 }) => {
-    const defaultUser = members.filter((u) => u._id === param.managerId)[0];
+    const defaultUser = members.find((u) => u._id === param.managerId);
+
     return (
-        <Form style={{ marginBottom: "2rem" }} layout="inline">
+        <div>
             {aiSearchSlot}
-            <Form.Item>
-                <Input
-                    value={param.projectName}
-                    placeholder="Search this list"
-                    type="text"
-                    onChange={(e) =>
-                        setParam({
-                            ...param,
-                            projectName: e.target.value
-                        })
-                    }
-                    suffix={<SearchOutlined />}
-                />
-            </Form.Item>
-            <Form.Item>
-                <Select
-                    loading={loading}
-                    value={
-                        loading
-                            ? "Managers"
-                            : defaultUser?.username || "Managers"
-                    }
-                    onChange={(value) =>
-                        setParam({
-                            ...param,
-                            managerId: value
-                        })
-                    }
-                    style={{ width: "12rem" }}
-                >
-                    <Select.Option value="">Managers</Select.Option>
-                    {members.map((user) => (
-                        <Select.Option value={user._id} key={user._id}>
-                            {user.username}
-                        </Select.Option>
-                    ))}
-                </Select>
-            </Form.Item>
-        </Form>
+            <FilterRow role="search" aria-label="Filter projects">
+                <FlexInput>
+                    <Input
+                        aria-label="Search projects by name"
+                        allowClear
+                        onChange={(e) =>
+                            setParam({
+                                ...param,
+                                projectName: e.target.value
+                            })
+                        }
+                        placeholder="Search this list"
+                        suffix={<SearchOutlined aria-hidden />}
+                        type="search"
+                        value={param.projectName}
+                    />
+                </FlexInput>
+                <FlexSelect>
+                    <Select
+                        allowClear
+                        aria-label="Filter by manager"
+                        loading={loading}
+                        onChange={(value) =>
+                            setParam({
+                                ...param,
+                                managerId: value ?? ""
+                            })
+                        }
+                        placeholder="Manager"
+                        style={{ width: "100%" }}
+                        value={
+                            loading
+                                ? undefined
+                                : (defaultUser?.username ?? undefined)
+                        }
+                    >
+                        <Select.Option value="">Managers</Select.Option>
+                        {members.map((user) => (
+                            <Select.Option value={user._id} key={user._id}>
+                                {user.username}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </FlexSelect>
+            </FilterRow>
+        </div>
     );
 };
 
