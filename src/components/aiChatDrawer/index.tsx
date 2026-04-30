@@ -9,9 +9,11 @@ import {
     Tag,
     Typography
 } from "antd";
-import { startTransition, useEffect, useMemo, useState } from "react";
+import type { TextAreaRef } from "antd/es/input/TextArea";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 
-import { space } from "../../theme/tokens";
+import { microcopy } from "../../constants/microcopy";
+import { fontSize, space } from "../../theme/tokens";
 import useAiChat from "../../utils/hooks/useAiChat";
 import AiSparkleIcon from "../aiSparkleIcon";
 
@@ -46,9 +48,18 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
 }) => {
     const [input, setInput] = useState("");
     const [showToolDetails, setShowToolDetails] = useState(false);
+    const inputRef = useRef<TextAreaRef | null>(null);
 
     useEffect(() => {
-        if (!open) setShowToolDetails(false);
+        if (!open) {
+            setShowToolDetails(false);
+            return;
+        }
+        // Move focus into the chat input when the drawer opens.
+        const handle = window.setTimeout(() => {
+            inputRef.current?.focus({ cursor: "end" });
+        }, 0);
+        return () => window.clearTimeout(handle);
     }, [open]);
 
     const chatCtx = useMemo(() => {
@@ -151,13 +162,15 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 }
             }}
             title={
-                <span>
-                    <AiSparkleIcon style={{ marginRight: space.xs }} />
-                    Ask Board Copilot
-                </span>
+                <Space align="center" size={space.xs}>
+                    <AiSparkleIcon aria-hidden />
+                    <span>Ask Board Copilot</span>
+                    <Tag color="processing">{microcopy.a11y.aiBadge}</Tag>
+                </Space>
             }
         >
             <div
+                aria-busy={isLoading}
                 aria-live="polite"
                 style={{
                     flex: 1,
@@ -198,7 +211,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                             <div
                                 key={`tool-${m.toolCallId ?? index}`}
                                 style={{
-                                    fontSize: 12,
+                                    fontSize: fontSize.xs,
                                     marginBottom: space.xs,
                                     opacity: 0.75
                                 }}
@@ -208,7 +221,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                 </Text>
                                 <pre
                                     style={{
-                                        fontSize: 11,
+                                        fontSize: fontSize.xs - 1,
                                         margin: `${space.xxs}px 0 0`,
                                         whiteSpace: "pre-wrap",
                                         wordBreak: "break-word"
@@ -286,17 +299,29 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                             handleSend();
                         }
                     }}
-                    placeholder="Ask a question…"
+                    placeholder="Ask a question… (Shift+Enter for a new line)"
+                    ref={inputRef}
                     value={input}
                 />
-                <Button
-                    aria-label="Send message"
-                    disabled={isLoading || !input.trim()}
-                    onClick={handleSend}
-                    type="primary"
-                >
-                    Send
-                </Button>
+                {isLoading ? (
+                    <Button
+                        aria-label="Stop response"
+                        danger
+                        onClick={() => abort()}
+                        type="default"
+                    >
+                        {microcopy.actions.stop}
+                    </Button>
+                ) : (
+                    <Button
+                        aria-label="Send message"
+                        disabled={!input.trim()}
+                        onClick={handleSend}
+                        type="primary"
+                    >
+                        {microcopy.actions.send}
+                    </Button>
+                )}
             </Space.Compact>
         </Drawer>
     );

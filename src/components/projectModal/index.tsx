@@ -72,9 +72,12 @@ const ProjectModal: React.FC = () => {
             onOk={submit}
             open={isModalOpened}
             title={modalTitle}
-            width={520}
+            width="min(520px, calc(100vw - 32px))"
         >
-            <Spin aria-label="Loading project" spinning={isLoading}>
+            <Spin
+                aria-label={microcopy.a11y.loadingProject}
+                spinning={isLoading}
+            >
                 <Form
                     form={form}
                     layout="vertical"
@@ -85,41 +88,39 @@ const ProjectModal: React.FC = () => {
                     <Form.Item
                         label={microcopy.fields.projectName}
                         name="projectName"
+                        required
                         rules={[
                             {
                                 required: true,
-                                message: "Please enter the project name"
+                                message:
+                                    microcopy.validation.projectNameRequired
                             }
                         ]}
                     >
-                        <Input
-                            autoComplete="off"
-                            autoFocus
-                            placeholder={microcopy.fields.projectName}
-                        />
+                        <Input autoComplete="off" autoFocus />
                     </Form.Item>
                     <Form.Item
                         label={microcopy.fields.organization}
                         name="organization"
+                        required
                         rules={[
                             {
                                 required: true,
-                                message: "Please enter the organization"
+                                message:
+                                    microcopy.validation.organizationRequired
                             }
                         ]}
                     >
-                        <Input
-                            autoComplete="organization"
-                            placeholder={microcopy.fields.organization}
-                        />
+                        <Input autoComplete="organization" />
                     </Form.Item>
                     <Form.Item
                         label={microcopy.fields.manager}
                         name="managerId"
+                        required
                         rules={[
                             {
                                 required: true,
-                                message: "Please select a manager"
+                                message: microcopy.validation.managerRequired
                             }
                         ]}
                     >

@@ -1,4 +1,7 @@
 import { Typography } from "antd";
+import React from "react";
+
+import { microcopy } from "../../constants/microcopy";
 
 const isErrorPayload = (error: unknown): error is IError =>
     error !== null && typeof error === "object" && "error" in error;
@@ -7,7 +10,7 @@ const getApiErrorMessage = (
     error: IError["error"] | string | unknown
 ): string => {
     if (typeof error === "string") {
-        return error || "Operation failed";
+        return error || microcopy.feedback.operationFailed;
     }
 
     if (Array.isArray(error)) {
@@ -15,28 +18,48 @@ const getApiErrorMessage = (
             (item): item is { msg?: string } =>
                 Boolean(item) && typeof item === "object"
         )?.msg;
-        return message || "Operation failed";
+        return message || microcopy.feedback.operationFailed;
     }
 
-    return "Operation failed";
+    return microcopy.feedback.operationFailed;
 };
 
-const ErrorBox: React.FC<{ error: Error | IError | unknown }> = ({ error }) => {
+const resolveMessage = (error: Error | IError | unknown): string | null => {
     if (error instanceof Error) {
-        return (
-            <Typography.Text type="danger">
-                {error.message || "Operation failed"}
-            </Typography.Text>
-        );
+        return error.message || microcopy.feedback.operationFailed;
     }
     if (isErrorPayload(error) && error.error != null) {
-        return (
-            <Typography.Text type="danger">
-                {getApiErrorMessage(error.error)}
-            </Typography.Text>
-        );
+        return getApiErrorMessage(error.error);
     }
     return null;
 };
+
+/**
+ * Displays the most recent error from a form submission. Renders an empty
+ * placeholder when no error is set so the surrounding layout doesn't shift,
+ * and exposes the message to screen readers via `role="alert"`.
+ */
+const ErrorBox = React.forwardRef<
+    HTMLDivElement,
+    { error: Error | IError | unknown }
+>(({ error }, ref) => {
+    const message = resolveMessage(error);
+    return (
+        <div
+            aria-atomic="true"
+            aria-live="assertive"
+            ref={ref}
+            role="alert"
+            style={{ minHeight: "1.5em" }}
+            tabIndex={message ? -1 : undefined}
+        >
+            {message ? (
+                <Typography.Text type="danger">{message}</Typography.Text>
+            ) : null}
+        </div>
+    );
+});
+
+ErrorBox.displayName = "ErrorBox";
 
 export default ErrorBox;

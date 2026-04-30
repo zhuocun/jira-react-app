@@ -11,7 +11,7 @@ import { useLocation } from "react-router";
 
 import Logo from "../../assets/logo-software.svg?react";
 import { microcopy } from "../../constants/microcopy";
-import { brand, space } from "../../theme/tokens";
+import { brand, breakpoints, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useColorScheme from "../../utils/hooks/useColorScheme";
@@ -53,6 +53,12 @@ const TriggerButton = styled.button`
 
     &:hover {
         background: var(--ant-color-bg-text-hover, rgba(0, 0, 0, 0.04));
+    }
+`;
+
+const HiddenOnNarrow = styled.span`
+    @media (max-width: ${breakpoints.sm}px) {
+        display: none;
     }
 `;
 
@@ -163,7 +169,7 @@ const Header: React.FC = () => {
             <RightHeader>
                 <Dropdown menu={{ items }} trigger={["click", "hover"]}>
                     <TriggerButton
-                        aria-label={`Account menu for ${user?.username ?? "user"}`}
+                        aria-label={`${microcopy.a11y.accountMenu} for ${user?.username ?? "user"}`}
                         onClick={(event) => event.preventDefault()}
                         type="button"
                     >
@@ -173,8 +179,12 @@ const Header: React.FC = () => {
                         >
                             {initialsOf(user?.username)}
                         </Avatar>
-                        <Typography.Text>Hi, {user?.username}</Typography.Text>
-                        <DownOutlined style={{ fontSize: 10 }} />
+                        <HiddenOnNarrow>
+                            <Typography.Text>
+                                Hi, {user?.username}
+                            </Typography.Text>
+                        </HiddenOnNarrow>
+                        <DownOutlined aria-hidden style={{ fontSize: 10 }} />
                     </TriggerButton>
                 </Dropdown>
             </RightHeader>

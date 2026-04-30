@@ -7,7 +7,7 @@ import EmptyState from "../emptyState";
 import { microcopy } from "../../constants/microcopy";
 
 const ContentContainer = styled.div`
-    min-width: 30rem;
+    min-width: min(30rem, 90vw);
 `;
 
 const TriggerButton = styled.button`

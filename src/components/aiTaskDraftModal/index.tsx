@@ -6,6 +6,7 @@ import {
     Input,
     Modal,
     Select,
+    Space,
     Spin,
     Tag
 } from "antd";
@@ -13,6 +14,8 @@ import { useForm } from "antd/lib/form/Form";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { microcopy } from "../../constants/microcopy";
+import { space } from "../../theme/tokens";
 import useAi from "../../utils/hooks/useAi";
 import useAuth from "../../utils/hooks/useAuth";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
@@ -159,12 +162,13 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
             onCancel={onClose}
             open={open}
             title={
-                <span>
-                    <AiSparkleIcon style={{ marginRight: 8 }} />
-                    Draft a task with Board Copilot
-                </span>
+                <Space align="center" size={space.xs}>
+                    <AiSparkleIcon aria-hidden />
+                    <span>Draft a task with Board Copilot</span>
+                    <Tag color="processing">{microcopy.a11y.aiBadge}</Tag>
+                </Space>
             }
-            width={640}
+            width="min(640px, calc(100vw - 32px))"
         >
             <Form.Item label="Describe the work in your own words">
                 <TextArea
@@ -177,7 +181,13 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                     value={prompt}
                 />
             </Form.Item>
-            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            <div
+                style={{
+                    display: "flex",
+                    gap: space.xs,
+                    marginBottom: space.md
+                }}
+            >
                 <Button
                     aria-label="Draft task with Copilot"
                     disabled={!prompt.trim() || draftAi.isLoading}
@@ -202,8 +212,8 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
             {(draftAi.error || breakdownAi.error) && (
                 <Alert
                     showIcon
-                    style={{ marginBottom: 16 }}
-                    title={
+                    style={{ marginBottom: space.md }}
+                    message={
                         (draftAi.error ?? breakdownAi.error)?.message ??
                         "Couldn't draft this time."
                     }
@@ -215,32 +225,33 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 <Form
                     form={form}
                     initialValues={suggestion}
-                    labelCol={{ span: 6 }}
+                    layout="vertical"
                     onFinish={onSubmitSingle}
                 >
                     <Alert
                         description={suggestion.rationale}
                         showIcon
-                        style={{ marginBottom: 12 }}
-                        title={
+                        style={{ marginBottom: space.sm }}
+                        message={
                             <span>
-                                Suggested with{" "}
-                                <Tag>
+                                {`${microcopy.a11y.aiSuggestion} · review and edit before creating`}{" "}
+                                <Tag style={{ marginInlineStart: space.xs }}>
                                     {(suggestion.confidence * 100).toFixed(0)}%
-                                </Tag>{" "}
-                                confidence
+                                    confidence
+                                </Tag>
                             </span>
                         }
                         type="info"
                     />
                     <Form.Item
-                        label="Task Name"
+                        label={microcopy.fields.taskName}
                         name="taskName"
+                        required
                         rules={[{ required: true }]}
                     >
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Type" name="type">
+                    <Form.Item label={microcopy.fields.type} name="type">
                         <Select
                             options={[
                                 { label: "Task", value: "Task" },
@@ -248,10 +259,13 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             ]}
                         />
                     </Form.Item>
-                    <Form.Item label="Epic" name="epic">
+                    <Form.Item label={microcopy.fields.epic} name="epic">
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Story Points" name="storyPoints">
+                    <Form.Item
+                        label={microcopy.fields.storyPoints}
+                        name="storyPoints"
+                    >
                         <Select
                             options={[1, 2, 3, 5, 8, 13].map((value) => ({
                                 label: `${value}`,
@@ -267,7 +281,10 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             }))}
                         />
                     </Form.Item>
-                    <Form.Item label="Coordinator" name="coordinatorId">
+                    <Form.Item
+                        label={microcopy.fields.coordinator}
+                        name="coordinatorId"
+                    >
                         <Select
                             options={members.map((member) => ({
                                 label: member.username,
@@ -275,19 +292,22 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             }))}
                         />
                     </Form.Item>
-                    <Form.Item label="Notes" name="note">
+                    <Form.Item label={microcopy.fields.notes} name="note">
                         <TextArea rows={4} />
                     </Form.Item>
                     <div style={{ textAlign: "right" }}>
-                        <Button onClick={onClose} style={{ marginRight: 8 }}>
-                            Cancel
+                        <Button
+                            onClick={onClose}
+                            style={{ marginRight: space.xs }}
+                        >
+                            {microcopy.actions.cancel}
                         </Button>
                         <Button
                             htmlType="submit"
                             loading={creating}
                             type="primary"
                         >
-                            Create task
+                            {`${microcopy.actions.create} task`}
                         </Button>
                     </div>
                 </Form>
@@ -297,8 +317,8 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 <div aria-label="Subtask breakdown">
                     <Alert
                         showIcon
-                        style={{ marginBottom: 12 }}
-                        title="Pick the subtasks you want to create"
+                        style={{ marginBottom: space.sm }}
+                        message={`${microcopy.a11y.aiSuggestion}: pick the subtasks you want to create`}
                         type="info"
                     />
                     {breakdownItems.map((item, index) => (
@@ -307,8 +327,8 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             style={{
                                 alignItems: "center",
                                 display: "flex",
-                                gap: 8,
-                                marginBottom: 8
+                                gap: space.xs,
+                                marginBottom: space.xs
                             }}
                         >
                             <Checkbox
@@ -327,9 +347,17 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             </Tag>
                         </div>
                     ))}
-                    <div style={{ textAlign: "right", marginTop: 12 }}>
-                        <Button onClick={onClose} style={{ marginRight: 8 }}>
-                            Cancel
+                    <div
+                        style={{
+                            textAlign: "right",
+                            marginTop: space.sm
+                        }}
+                    >
+                        <Button
+                            onClick={onClose}
+                            style={{ marginRight: space.xs }}
+                        >
+                            {microcopy.actions.cancel}
                         </Button>
                         <Button
                             disabled={breakdownChecked.every((value) => !value)}

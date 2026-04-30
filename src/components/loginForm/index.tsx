@@ -36,33 +36,44 @@ const LoginForm: React.FC<{
                 label={microcopy.fields.email}
                 name="email"
                 rules={[
-                    { required: true, message: "Please enter an email" },
+                    {
+                        required: true,
+                        message: microcopy.validation.emailRequired
+                    },
                     {
                         type: "email",
-                        message: "Please enter a valid email address"
+                        message: microcopy.validation.emailInvalid
                     }
                 ]}
             >
                 <Input
-                    autoComplete="username"
+                    autoComplete="email"
                     enterKeyHint="next"
                     inputMode="email"
                     onChange={() => onError(null)}
-                    placeholder="Email"
+                    placeholder="name@example.com"
                     type="email"
                     id="email"
                 />
             </Form.Item>
             <Form.Item
                 extra={
-                    capsLockOn ? (
-                        <span role="status">Caps Lock is on</span>
-                    ) : null
+                    <span
+                        aria-atomic="true"
+                        aria-live="polite"
+                        role="status"
+                        style={{ minHeight: "1.25em", display: "inline-block" }}
+                    >
+                        {capsLockOn ? microcopy.a11y.capsLockOn : ""}
+                    </span>
                 }
                 label={microcopy.fields.password}
                 name="password"
                 rules={[
-                    { required: true, message: "Please enter your password" }
+                    {
+                        required: true,
+                        message: microcopy.validation.passwordRequired
+                    }
                 ]}
             >
                 <Input.Password
@@ -86,7 +97,6 @@ const LoginForm: React.FC<{
                                 event.getModifierState("CapsLock")
                         )
                     }
-                    placeholder="Password"
                     id="password"
                 />
             </Form.Item>
@@ -96,7 +106,9 @@ const LoginForm: React.FC<{
                     htmlType="submit"
                     type="primary"
                 >
-                    {microcopy.actions.logIn}
+                    {isLoading
+                        ? microcopy.actions.loggingIn
+                        : microcopy.actions.logIn}
                 </AuthButton>
             </Form.Item>
         </Form>

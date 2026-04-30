@@ -1,6 +1,17 @@
-import { Alert, Drawer, List, Spin, Table, Tag } from "antd";
+import {
+    Alert,
+    Drawer,
+    List,
+    Skeleton,
+    Space,
+    Table,
+    Tag,
+    Typography
+} from "antd";
 import { useEffect } from "react";
 
+import { microcopy } from "../../constants/microcopy";
+import { fontSize, space } from "../../theme/tokens";
 import useAi from "../../utils/hooks/useAi";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import AiSparkleIcon from "../aiSparkleIcon";
@@ -13,6 +24,49 @@ interface BoardBriefDrawerProps {
     tasks: ITask[];
     members: IMember[];
 }
+
+const SectionHeading: React.FC<{ children: React.ReactNode }> = ({
+    children
+}) => (
+    <Typography.Title
+        level={4}
+        style={{
+            fontSize: fontSize.base,
+            marginBottom: space.xs,
+            marginTop: space.md
+        }}
+    >
+        {children}
+    </Typography.Title>
+);
+
+interface ClickableListItemProps {
+    onActivate: () => void;
+    children: React.ReactNode;
+}
+
+const ClickableListItem: React.FC<ClickableListItemProps> = ({
+    onActivate,
+    children
+}) => {
+    const handleKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onActivate();
+        }
+    };
+    return (
+        <List.Item
+            onClick={onActivate}
+            onKeyDown={handleKey}
+            role="button"
+            style={{ cursor: "pointer" }}
+            tabIndex={0}
+        >
+            {children}
+        </List.Item>
+    );
+};
 
 const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
     open,
@@ -61,40 +115,51 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
             onClose={onClose}
             open={open}
             title={
-                <span>
-                    <AiSparkleIcon style={{ marginRight: 8 }} />
-                    Board Copilot brief
-                </span>
+                <Space align="center" size={space.xs}>
+                    <AiSparkleIcon aria-hidden />
+                    <span>Board Copilot brief</span>
+                    <Tag
+                        color="processing"
+                        style={{ marginInlineStart: space.xs }}
+                    >
+                        {microcopy.a11y.aiBadge}
+                    </Tag>
+                </Space>
             }
             size="default"
         >
             {isLoading && (
-                <div
-                    aria-label="Generating brief"
-                    style={{ padding: "2rem", textAlign: "center" }}
-                >
-                    <Spin />
+                <div aria-label="Generating brief" aria-busy="true">
+                    <Skeleton active paragraph={{ rows: 2 }} title />
+                    <Skeleton
+                        active
+                        paragraph={{ rows: 4 }}
+                        style={{ marginTop: space.lg }}
+                        title={false}
+                    />
                 </div>
             )}
             {error && !isLoading && (
                 <Alert
                     description={error.message}
                     showIcon
-                    title="Couldn't generate the brief"
+                    message="Couldn't generate the brief"
                     type="warning"
                 />
             )}
             {data && !isLoading && (
                 <div aria-label="Board brief content">
-                    <h3>{data.headline}</h3>
+                    <Typography.Title level={3} style={{ marginTop: 0 }}>
+                        {data.headline}
+                    </Typography.Title>
                     <Alert
                         description={data.recommendation}
                         showIcon
-                        style={{ marginBottom: 16 }}
-                        title="Recommended next step"
+                        style={{ marginBottom: space.md }}
+                        message={`${microcopy.a11y.aiSuggestion}: Recommended next step`}
                         type="info"
                     />
-                    <h4>Counts per column</h4>
+                    <SectionHeading>Counts per column</SectionHeading>
                     <Table
                         columns={[
                             {
@@ -115,21 +180,22 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                         }))}
                         pagination={false}
                         size="small"
-                        style={{ marginBottom: 16 }}
+                        style={{ marginBottom: space.md }}
                     />
 
-                    <h4>Largest unstarted</h4>
+                    <SectionHeading>Largest unstarted</SectionHeading>
                     {data.largestUnstarted.length === 0 ? (
-                        <p>No unstarted tasks. Nice.</p>
+                        <Typography.Text type="secondary">
+                            No unstarted tasks. Nice.
+                        </Typography.Text>
                     ) : (
                         <List
                             dataSource={data.largestUnstarted}
                             renderItem={(item) => (
-                                <List.Item
-                                    onClick={() =>
+                                <ClickableListItem
+                                    onActivate={() =>
                                         openTaskFromBrief(item.taskId)
                                     }
-                                    style={{ cursor: "pointer" }}
                                 >
                                     <List.Item.Meta
                                         description={
@@ -141,37 +207,40 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                                         }
                                         title={item.taskName}
                                     />
-                                </List.Item>
+                                </ClickableListItem>
                             )}
                             size="small"
-                            style={{ marginBottom: 16 }}
+                            style={{ marginBottom: space.md }}
                         />
                     )}
 
-                    <h4>Unowned tasks</h4>
+                    <SectionHeading>Unowned tasks</SectionHeading>
                     {data.unowned.length === 0 ? (
-                        <p>All tasks have an owner.</p>
+                        <Typography.Text type="secondary">
+                            All tasks have an owner.
+                        </Typography.Text>
                     ) : (
                         <List
                             dataSource={data.unowned}
                             renderItem={(item) => (
-                                <List.Item
-                                    onClick={() =>
+                                <ClickableListItem
+                                    onActivate={() =>
                                         openTaskFromBrief(item.taskId)
                                     }
-                                    style={{ cursor: "pointer" }}
                                 >
                                     {item.taskName}
-                                </List.Item>
+                                </ClickableListItem>
                             )}
                             size="small"
-                            style={{ marginBottom: 16 }}
+                            style={{ marginBottom: space.md }}
                         />
                     )}
 
-                    <h4>Workload</h4>
+                    <SectionHeading>Workload</SectionHeading>
                     {data.workload.length === 0 ? (
-                        <p>No active tasks per member.</p>
+                        <Typography.Text type="secondary">
+                            No active tasks per member.
+                        </Typography.Text>
                     ) : (
                         <List
                             dataSource={data.workload}

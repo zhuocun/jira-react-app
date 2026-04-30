@@ -2,6 +2,8 @@ import { Alert, Button, Input, Space, Spin } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
 
 import environment from "../../constants/env";
+import { microcopy } from "../../constants/microcopy";
+import { space as themeSpace } from "../../theme/tokens";
 import {
     AiContextProject,
     AiSearchProjectsContext,
@@ -142,15 +144,15 @@ const AiSearchInput: React.FC<Props> = (props) => {
     const busy = searchAi.isLoading;
 
     return (
-        <div style={{ marginBottom: "1rem" }}>
+        <div style={{ marginBottom: themeSpace.md }}>
             <Space wrap align="start">
                 <Input
-                    aria-label="Ask in natural language"
+                    aria-label="Ask Board Copilot a question about tasks or projects"
                     disabled={busy}
                     onChange={(e) => setDraft(e.target.value)}
                     onPressEnter={() => void onSearch()}
-                    placeholder="Ask in natural language"
-                    style={{ width: "22rem" }}
+                    placeholder="Ask Board Copilot a question…"
+                    style={{ width: "min(22rem, 100%)" }}
                     value={draft}
                 />
                 <Button
@@ -170,25 +172,57 @@ const AiSearchInput: React.FC<Props> = (props) => {
                 ) : null}
             </Space>
             {busy ? (
-                <Spin style={{ display: "block", marginTop: "0.75rem" }} />
+                <Spin
+                    aria-label="Searching"
+                    style={{
+                        display: "block",
+                        marginTop: themeSpace.sm
+                    }}
+                />
             ) : null}
             {noMatchHint ? (
                 <Alert
+                    action={
+                        <Button
+                            onClick={() => void onSearch()}
+                            size="small"
+                            type="link"
+                        >
+                            {microcopy.actions.retry}
+                        </Button>
+                    }
                     closable
                     description={noMatchHint}
                     onClose={() => setNoMatchHint(null)}
                     showIcon
-                    style={{ marginTop: "0.75rem", maxWidth: "40rem" }}
-                    title="Semantic search"
+                    style={{
+                        marginTop: themeSpace.sm,
+                        maxWidth: "40rem"
+                    }}
+                    message="AI semantic search"
                     type="info"
                 />
             ) : null}
             {searchAi.error ? (
                 <Alert
+                    action={
+                        <Button
+                            onClick={() => void onSearch()}
+                            size="small"
+                            type="link"
+                        >
+                            {microcopy.actions.retry}
+                        </Button>
+                    }
                     closable
                     onClose={() => searchAi.reset()}
-                    style={{ marginTop: "0.75rem", maxWidth: "40rem" }}
-                    title={searchAi.error.message}
+                    style={{
+                        marginTop: themeSpace.sm,
+                        maxWidth: "40rem"
+                    }}
+                    message={
+                        searchAi.error.message || microcopy.feedback.loadFailed
+                    }
                     type="warning"
                 />
             ) : null}

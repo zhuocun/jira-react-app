@@ -90,6 +90,13 @@ const ProjectSearchPanel: React.FC<Props> = ({
                                 managerId: value ?? ""
                             })
                         }
+                        options={[
+                            { label: "Managers", value: "" },
+                            ...members.map((user) => ({
+                                label: user.username,
+                                value: user._id
+                            }))
+                        ]}
                         placeholder="Manager"
                         style={{ width: "100%" }}
                         value={
@@ -97,14 +104,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                                 ? undefined
                                 : (defaultUser?.username ?? undefined)
                         }
-                    >
-                        <Select.Option value="">Managers</Select.Option>
-                        {members.map((user) => (
-                            <Select.Option value={user._id} key={user._id}>
-                                {user.username}
-                            </Select.Option>
-                        ))}
-                    </Select>
+                    />
                 </FlexSelect>
             </FilterRow>
         </div>

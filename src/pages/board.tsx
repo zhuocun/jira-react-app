@@ -26,7 +26,11 @@ import Row from "../components/row";
 import TaskModal from "../components/taskModal";
 import TaskSearchPanel from "../components/taskSearchPanel";
 import { microcopy } from "../constants/microcopy";
-import { space as themeSpace } from "../theme/tokens";
+import {
+    columnMinWidthRem,
+    radius,
+    space as themeSpace
+} from "../theme/tokens";
 import useAiEnabled from "../utils/hooks/useAiEnabled";
 import useAiProjectDisabled from "../utils/hooks/useAiProjectDisabled";
 import useDebounce from "../utils/hooks/useDebounce";
@@ -44,15 +48,15 @@ export const ColumnContainer = styled.div`
 `;
 
 const BoardLoadingSkeleton = () => (
-    <ColumnContainer aria-label="Loading board">
+    <ColumnContainer aria-busy="true" aria-label={microcopy.a11y.loadingBoard}>
         {[0, 1, 2].map((i) => (
             <div
                 key={i}
                 style={{
                     background: "var(--ant-color-fill-quaternary, #f4f5f7)",
-                    borderRadius: 8,
+                    borderRadius: radius.lg,
                     marginRight: themeSpace.md,
-                    minWidth: "29.5rem",
+                    minWidth: `${columnMinWidthRem}rem`,
                     padding: themeSpace.md
                 }}
             >
@@ -60,7 +64,7 @@ const BoardLoadingSkeleton = () => (
             </div>
         ))}
         <Spin
-            aria-label="Loading board"
+            aria-label={microcopy.a11y.loadingBoard}
             size="small"
             style={{ alignSelf: "flex-start", marginLeft: themeSpace.md }}
         />
@@ -178,11 +182,7 @@ const BoardPage = () => {
                             </Typography.Title>
                         )}
                         {aiEnabled && (
-                            <Space
-                                align="center"
-                                size={themeSpace.xs}
-                                wrap
-                            >
+                            <Space align="center" size={themeSpace.xs} wrap>
                                 {boardAiOn && (
                                     <Space.Compact>
                                         <Button
@@ -222,7 +222,9 @@ const BoardPage = () => {
                                                         "space-between"
                                                 }}
                                             >
-                                                <span>Enable on this board</span>
+                                                <span>
+                                                    Enable on this board
+                                                </span>
                                                 <Switch
                                                     aria-label="Board Copilot for this project"
                                                     checked={
@@ -241,8 +243,8 @@ const BoardPage = () => {
                                                 type="secondary"
                                             >
                                                 Hides Board Copilot on this
-                                                board and blocks AI requests
-                                                for this project.
+                                                board and blocks AI requests for
+                                                this project.
                                             </Typography.Text>
                                         </Space>
                                     }

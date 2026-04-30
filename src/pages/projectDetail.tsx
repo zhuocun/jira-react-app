@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Breadcrumb, Tabs } from "antd";
+import { Breadcrumb, Skeleton, Tabs } from "antd";
 import { useEffect } from "react";
 import {
     Link,
@@ -58,9 +58,10 @@ const ProjectDetailPage = () => {
     const segments = pathname.split("/").filter(Boolean);
     const activeTab = segments[segments.length - 1] || "board";
 
-    const { data: project } = useReactQuery<IProject>("projects", {
-        projectId
-    });
+    const { data: project, isLoading: pLoading } = useReactQuery<IProject>(
+        "projects",
+        { projectId }
+    );
 
     useEffect(() => {
         if (!pathname.endsWith("/board")) {
@@ -77,7 +78,16 @@ const ProjectDetailPage = () => {
                             title: <ProjectPopover />
                         },
                         {
-                            title: project?.projectName ?? "Project"
+                            title:
+                                pLoading && !project ? (
+                                    <Skeleton.Input
+                                        active
+                                        size="small"
+                                        style={{ width: 160 }}
+                                    />
+                                ) : (
+                                    (project?.projectName ?? "Project")
+                                )
                         }
                     ]}
                 />

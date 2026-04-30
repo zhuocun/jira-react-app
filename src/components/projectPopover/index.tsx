@@ -2,13 +2,14 @@ import styled from "@emotion/styled";
 import { Divider, Popover, Typography } from "antd";
 import { useNavigate } from "react-router";
 
+import { microcopy } from "../../constants/microcopy";
 import { space } from "../../theme/tokens";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 import { NoPaddingButton } from "../projectList";
 
 const ContentContainer = styled.div`
-    min-width: 16rem;
+    min-width: min(16rem, 90vw);
 `;
 
 const ProjectList = styled.div`
@@ -64,7 +65,7 @@ const ProjectPopover: React.FC = () => {
             </ProjectList>
             <Divider style={{ margin: `${space.sm}px 0` }} />
             <NoPaddingButton onClick={openModal} type="link">
-                Create project
+                {microcopy.actions.createProject}
             </NoPaddingButton>
         </ContentContainer>
     );

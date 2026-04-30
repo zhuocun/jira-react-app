@@ -4,7 +4,7 @@ import { Button, Input } from "antd";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { space } from "../../theme/tokens";
+import { radius, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -15,12 +15,12 @@ import AiTaskDraftModal from "../aiTaskDraftModal";
 const CreateLink = styled.button`
     background: transparent;
     border: 1px dashed transparent;
-    border-radius: 6px;
+    border-radius: ${radius.md}px;
     color: var(--ant-color-link, #1677ff);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: ${space.xxs}px;
     font: inherit;
     padding: ${space.xxs}px ${space.xs}px;
 
@@ -93,7 +93,15 @@ const TaskCreator: React.FC<{
                 </CreateLink>
                 {aiEnabled && boardAiOn && (
                     <>
-                        <span style={{ margin: "0 0.4rem" }}>·</span>
+                        <span
+                            aria-hidden
+                            style={{
+                                color: "var(--ant-color-text-quaternary)",
+                                margin: `0 ${space.xs}px`
+                            }}
+                        >
+                            ·
+                        </span>
                         <Button
                             aria-label="Draft a task with Board Copilot"
                             disabled={disabled}
@@ -118,11 +126,17 @@ const TaskCreator: React.FC<{
     }
     return (
         <Input
+            aria-label="New task name"
             disabled={isLoading || disabled}
             onBlur={toggle}
             placeholder="What needs to be done?"
             autoFocus
             onPressEnter={submit}
+            onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                    setInputMode(false);
+                }
+            }}
             value={taskName}
             onChange={(e) => {
                 setTaskName(e.target.value);

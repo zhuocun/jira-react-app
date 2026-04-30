@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
+import { space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -131,7 +132,7 @@ const TaskModal: React.FC<{
                     >
                         {microcopy.actions.delete}
                     </Button>
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ display: "flex", gap: space.xs }}>
                         <CancelBtn />
                         <OkBtn />
                     </div>
@@ -139,16 +140,18 @@ const TaskModal: React.FC<{
             )}
             title={titleText}
             open={Boolean(editingTaskId)}
+            width="min(640px, calc(100vw - 32px))"
         >
             <Form
-                labelCol={{ span: 6 }}
                 form={form}
                 initialValues={editingTask}
+                layout="vertical"
                 onValuesChange={() => setFormTick((tick) => tick + 1)}
             >
                 <Form.Item
                     label={microcopy.fields.taskName}
                     name="taskName"
+                    required
                     rules={[
                         {
                             required: true,
@@ -156,11 +159,12 @@ const TaskModal: React.FC<{
                         }
                     ]}
                 >
-                    <Input />
+                    <Input autoFocus />
                 </Form.Item>
                 <Form.Item
                     label={microcopy.fields.coordinator}
                     name="coordinatorId"
+                    required
                     rules={[
                         {
                             required: true,
@@ -173,12 +177,13 @@ const TaskModal: React.FC<{
                             label: member.username,
                             value: member._id
                         }))}
-                        placeholder="Coordinators"
+                        placeholder={`Select a ${microcopy.fields.coordinator.toLowerCase()}`}
                     />
                 </Form.Item>
                 <Form.Item
                     label={microcopy.fields.type}
                     name="type"
+                    required
                     rules={[
                         {
                             required: true,
@@ -186,10 +191,13 @@ const TaskModal: React.FC<{
                         }
                     ]}
                 >
-                    <Select options={TYPE_OPTIONS} placeholder="Types" />
+                    <Select
+                        options={TYPE_OPTIONS}
+                        placeholder={`Select a ${microcopy.fields.type.toLowerCase()}`}
+                    />
                 </Form.Item>
                 <Form.Item label={microcopy.fields.epic} name="epic">
-                    <Input placeholder="Epic" />
+                    <Input />
                 </Form.Item>
                 <Form.Item
                     label={microcopy.fields.storyPoints}
@@ -197,7 +205,7 @@ const TaskModal: React.FC<{
                 >
                     <Select
                         options={STORY_POINT_OPTIONS}
-                        placeholder="Story points"
+                        placeholder={`Select ${microcopy.fields.storyPoints.toLowerCase()}`}
                     />
                 </Form.Item>
                 <Form.Item label={microcopy.fields.notes} name="note">

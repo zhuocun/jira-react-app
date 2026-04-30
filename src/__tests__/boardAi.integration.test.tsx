@@ -203,11 +203,8 @@ describe("Board AI integration (App + local engine)", () => {
         const user = userEvent.setup();
         renderAppAt("/login");
 
-        await user.type(
-            screen.getByPlaceholderText("Email"),
-            "alice@example.com"
-        );
-        await user.type(screen.getByPlaceholderText("Password"), "secret");
+        await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
+        await user.type(screen.getByLabelText(/^password$/i), "secret");
         await user.click(screen.getByRole("button", { name: /^log in$/i }));
 
         await waitFor(() => {
@@ -256,7 +253,9 @@ describe("Board AI integration (App + local engine)", () => {
     it("runs natural language task search and filters the task list", async () => {
         const user = await loginAndOpenBoard();
 
-        const nlInput = screen.getByLabelText("Ask in natural language");
+        const nlInput = screen.getByRole("textbox", {
+            name: /Ask Board Copilot/i
+        });
         await user.type(nlInput, "first task");
         await user.click(
             screen.getByRole("button", { name: /run natural language search/i })
@@ -271,7 +270,7 @@ describe("Board AI integration (App + local engine)", () => {
         const user = await loginAndOpenBoard();
 
         expect(
-            screen.getByLabelText("Ask in natural language")
+            screen.getByRole("textbox", { name: /Ask Board Copilot/i })
         ).toBeInTheDocument();
 
         await user.click(
@@ -285,7 +284,7 @@ describe("Board AI integration (App + local engine)", () => {
 
         await waitFor(() => {
             expect(
-                screen.queryByLabelText("Ask in natural language")
+                screen.queryByRole("textbox", { name: /Ask Board Copilot/i })
             ).not.toBeInTheDocument();
         });
     });

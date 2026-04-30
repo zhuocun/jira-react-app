@@ -216,11 +216,8 @@ describe("App integration (full providers + routes)", () => {
         const user = userEvent.setup();
         renderAppAt("/login");
 
-        await user.type(
-            screen.getByPlaceholderText("Email"),
-            "alice@example.com"
-        );
-        await user.type(screen.getByPlaceholderText("Password"), "secret");
+        await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
+        await user.type(screen.getByLabelText(/^password$/i), "secret");
         await user.click(screen.getByRole("button", { name: /^log in$/i }));
 
         await waitFor(() => {
@@ -254,11 +251,8 @@ describe("App integration (full providers + routes)", () => {
         const user = userEvent.setup();
         renderAppAt("/login");
 
-        await user.type(
-            screen.getByPlaceholderText("Email"),
-            "alice@example.com"
-        );
-        await user.type(screen.getByPlaceholderText("Password"), "secret");
+        await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
+        await user.type(screen.getByLabelText(/^password$/i), "secret");
         await user.click(screen.getByRole("button", { name: /^log in$/i }));
 
         await waitFor(() => {
@@ -291,11 +285,8 @@ describe("App integration (full providers + routes)", () => {
         const user = userEvent.setup();
         renderAppAt("/login");
 
-        await user.type(
-            screen.getByPlaceholderText("Email"),
-            "alice@example.com"
-        );
-        await user.type(screen.getByPlaceholderText("Password"), "secret");
+        await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
+        await user.type(screen.getByLabelText(/^password$/i), "secret");
         await user.click(screen.getByRole("button", { name: /^log in$/i }));
 
         await waitFor(() => {
