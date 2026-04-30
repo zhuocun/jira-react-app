@@ -30,28 +30,28 @@ import {
     PROJECT_AI_DISABLED_MESSAGE
 } from "../ai/projectAiStorage";
 
-/** Throws if any project in the payload has per-project AI disabled (PRD §8). */
+/**
+ * Throws if a board-scoped payload targets a project the user has opted out
+ * of via per-project disable (PRD §8). The projects-list semantic search is
+ * intentionally not blocked here: a single disabled project must not break a
+ * global search; callers should filter the projects context themselves.
+ */
 export const assertRunPayloadProjectsAiAllowed = (payload: RunPayload) => {
-    const blocked = new Set<string>();
+    const blocked: string[] = [];
     if (payload.draft?.context.project._id) {
-        blocked.add(payload.draft.context.project._id);
+        blocked.push(payload.draft.context.project._id);
     }
     if (payload.estimate?.context.project._id) {
-        blocked.add(payload.estimate.context.project._id);
+        blocked.push(payload.estimate.context.project._id);
     }
     if (payload.readiness?.context.project._id) {
-        blocked.add(payload.readiness.context.project._id);
+        blocked.push(payload.readiness.context.project._id);
     }
     if (payload.brief?.context.project._id) {
-        blocked.add(payload.brief.context.project._id);
+        blocked.push(payload.brief.context.project._id);
     }
     if (payload.search?.kind === "tasks" && payload.search.projectContext) {
-        blocked.add(payload.search.projectContext.project._id);
-    }
-    if (payload.search?.kind === "projects" && payload.search.projectsContext) {
-        for (const p of payload.search.projectsContext.projects) {
-            blocked.add(p._id);
-        }
+        blocked.push(payload.search.projectContext.project._id);
     }
     for (const id of blocked) {
         if (isProjectAiDisabled(id)) {

@@ -230,9 +230,21 @@ describe("ProjectModal", () => {
         });
         fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
+        // Closing clears the URL params so the modal hides.
+        await waitFor(() =>
+            expect(screen.getByTestId("location")).toHaveTextContent("")
+        );
+        // The form is kept mounted via Drawer's `forceRender` but moves out of
+        // the accessibility tree; pass `hidden: true` to confirm the Submit
+        // button is still in the DOM.
         expect(
-            screen.getByRole("button", { name: "Submit" })
+            screen.getByRole("button", { hidden: true, name: "Submit" })
         ).toBeInTheDocument();
+        // The form was reset.
+        expect(
+            (screen.getByPlaceholderText("Project Name") as HTMLInputElement)
+                .value
+        ).toBe("");
     });
 
     it("shows edit loading, populates the form, and updates the project", async () => {

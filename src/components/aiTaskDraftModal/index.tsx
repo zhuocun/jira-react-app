@@ -191,12 +191,12 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
 
             {(draftAi.error || breakdownAi.error) && (
                 <Alert
-                    message={
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                    title={
                         (draftAi.error ?? breakdownAi.error)?.message ??
                         "Couldn't draft this time."
                     }
-                    showIcon
-                    style={{ marginBottom: 16 }}
                     type="warning"
                 />
             )}
@@ -210,7 +210,9 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 >
                     <Alert
                         description={suggestion.rationale}
-                        message={
+                        showIcon
+                        style={{ marginBottom: 12 }}
+                        title={
                             <span>
                                 Suggested with{" "}
                                 <Tag>
@@ -219,8 +221,6 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                                 confidence
                             </span>
                         }
-                        showIcon
-                        style={{ marginBottom: 12 }}
                         type="info"
                     />
                     <Form.Item
@@ -286,9 +286,9 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
             {breakdownMode && breakdownItems.length > 0 && (
                 <div aria-label="Subtask breakdown">
                     <Alert
-                        message="Pick the subtasks you want to create"
                         showIcon
                         style={{ marginBottom: 12 }}
+                        title="Pick the subtasks you want to create"
                         type="info"
                     />
                     {breakdownItems.map((item, index) => (

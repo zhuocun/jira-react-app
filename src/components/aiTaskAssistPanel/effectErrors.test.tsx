@@ -33,10 +33,12 @@ describe("AiTaskAssistPanel effect error handling", () => {
 
     beforeEach(() => {
         jest.useFakeTimers();
+        // The component renders a warning Alert when `useAi.error` is set, not
+        // when `run()` rejects. Mock both so the assertion can see the text.
         mockedUseAi.mockImplementation(() => ({
             abort: jest.fn(),
             data: undefined,
-            error: null,
+            error: new Error("offline"),
             isLoading: false,
             reset: jest.fn(),
             run: jest.fn().mockRejectedValue(new Error("offline"))
