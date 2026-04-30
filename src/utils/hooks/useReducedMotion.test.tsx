@@ -7,16 +7,10 @@ type MediaListener = (event: MediaQueryListEvent) => void;
 const installMatchMedia = (initiallyReduced: boolean) => {
     const listeners = new Set<MediaListener>();
     const matchMedia = jest.fn((query: string) => ({
-        addEventListener: (
-            _type: "change",
-            listener: MediaListener
-        ) => {
+        addEventListener: (_type: "change", listener: MediaListener) => {
             listeners.add(listener);
         },
-        removeEventListener: (
-            _type: "change",
-            listener: MediaListener
-        ) => {
+        removeEventListener: (_type: "change", listener: MediaListener) => {
             listeners.delete(listener);
         },
         addListener: (listener: MediaListener) => {

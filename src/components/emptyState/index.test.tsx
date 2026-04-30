@@ -33,10 +33,7 @@ describe("EmptyState", () => {
 
     it("has no axe-detectable accessibility violations", async () => {
         const { container } = render(
-            <EmptyState
-                description="Try again later."
-                title="No tasks"
-            />
+            <EmptyState description="Try again later." title="No tasks" />
         );
         const results = await axe(container);
         expect(results).toHaveNoViolations();

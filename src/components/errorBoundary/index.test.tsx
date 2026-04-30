@@ -57,9 +57,7 @@ describe("ErrorBoundary", () => {
             </ErrorBoundary>
         );
 
-        expect(
-            screen.getByText(/something went wrong/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
         expect(screen.getByText(/network down/i)).toBeInTheDocument();
         expect(
             screen.getByRole("button", { name: /retry/i })
@@ -67,13 +65,11 @@ describe("ErrorBoundary", () => {
     });
 
     it("calls a custom fallback when provided", () => {
-        const fallback = jest.fn(
-            (error: Error, retry: () => void) => (
-                <button onClick={retry} type="button">
-                    custom: {error.message}
-                </button>
-            )
-        );
+        const fallback = jest.fn((error: Error, retry: () => void) => (
+            <button onClick={retry} type="button">
+                custom: {error.message}
+            </button>
+        ));
 
         render(
             <ErrorBoundary fallback={fallback}>

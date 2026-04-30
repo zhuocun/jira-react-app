@@ -27,11 +27,10 @@ class ErrorBoundary extends React.Component<
         return { error };
     }
 
-    componentDidCatch(error: Error) {
-        if (typeof console !== "undefined" && console.error) {
-            // eslint-disable-next-line no-console
-            console.error("[ErrorBoundary]", error);
-        }
+    componentDidCatch(_error: Error) {
+        // Intentionally silent. Production telemetry should be wired in
+        // via a context-injected logger, not via console (which the
+        // linter forbids and which floods test output).
     }
 
     handleRetry = () => {
