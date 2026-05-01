@@ -439,9 +439,7 @@ describe("UI quality :: Esc collapses inline editors", () => {
             </QueryClientProvider>
         );
 
-        fireEvent.click(
-            screen.getByRole("button", { name: /^create task$/i })
-        );
+        fireEvent.click(screen.getByRole("button", { name: /^create task$/i }));
         const input = screen.getByPlaceholderText("What needs to be done?");
 
         act(() => {
@@ -518,8 +516,7 @@ describe("UI quality :: ProjectModal keyboard contract", () => {
         const cancelBtn = Array.from(
             dialog.querySelectorAll<HTMLButtonElement>("button")
         ).find(
-            (btn) =>
-                (btn.textContent ?? "").trim().toLowerCase() === "cancel"
+            (btn) => (btn.textContent ?? "").trim().toLowerCase() === "cancel"
         );
         expect(cancelBtn).toBeTruthy();
     });

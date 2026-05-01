@@ -106,11 +106,13 @@ const stubMutation = () =>
         mutateAsync: jest.fn().mockResolvedValue({})
     }) as unknown as ReturnType<typeof useReactMutation<unknown>>;
 
-const stubQuery = (overrides: Partial<{
-    data: unknown;
-    error: unknown;
-    isLoading: boolean;
-}>) =>
+const stubQuery = (
+    overrides: Partial<{
+        data: unknown;
+        error: unknown;
+        isLoading: boolean;
+    }>
+) =>
     ({
         data: overrides.data ?? undefined,
         error: overrides.error ?? null,
@@ -228,9 +230,7 @@ describe("UI quality :: Board loading skeleton", () => {
             </ProvidersWrap>
         );
 
-        const busy = document.querySelector(
-            "[aria-busy='true'][aria-label]"
-        );
+        const busy = document.querySelector("[aria-busy='true'][aria-label]");
         expect(busy).not.toBeNull();
         if (busy) {
             const label = busy.getAttribute("aria-label") ?? "";
@@ -448,7 +448,9 @@ describe("UI quality :: ErrorBoundary fallback", () => {
             );
             // The fallback ships a heading bearing the microcopy text.
             expect(
-                screen.getByText(new RegExp(microcopy.feedback.renderFailed, "i"))
+                screen.getByText(
+                    new RegExp(microcopy.feedback.renderFailed, "i")
+                )
             ).toBeInTheDocument();
         } finally {
             spy.mockRestore();
