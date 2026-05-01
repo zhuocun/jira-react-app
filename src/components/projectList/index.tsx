@@ -41,6 +41,13 @@ interface ProjectIntro extends IProject {
 
 interface Props extends TableProps<ProjectIntro> {
     members: IMember[];
+    /**
+     * When the upstream query failed, the page renders an Alert with retry
+     * above the table. Hide the in-table "No projects yet" empty state in
+     * that case so the user is not told the list is empty when we simply
+     * couldn't load it.
+     */
+    error?: boolean;
 }
 
 export const NoPaddingButton = styled(Button)`
@@ -205,7 +212,7 @@ const formatDate = (raw?: string): string => {
     }).format(date);
 };
 
-const ProjectList: React.FC<Props> = ({ members, ...props }) => {
+const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
     const { user, refreshUser } = useAuth();
     const [pendingLikeId, setPendingLikeId] = useState("");
     const { mutateAsync: update } = useReactMutation(
@@ -437,7 +444,9 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                 dataSource={dataSource}
                 scroll={{ x: "max-content" }}
                 locale={{
-                    emptyText: (
+                    emptyText: error ? (
+                        <span />
+                    ) : (
                         <EmptyState
                             title={microcopy.empty.projects.title}
                             description={microcopy.empty.projects.description}

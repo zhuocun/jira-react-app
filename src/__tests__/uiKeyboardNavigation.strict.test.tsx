@@ -310,16 +310,13 @@ describe("UI quality :: LoginForm tab order", () => {
             </BrowserRouter>
         );
 
+        // AntD's password eye toggle is rendered as a span, not a button,
+        // so it's already excluded by the form-focusable selector below.
         const focusable = Array.from(
             document.querySelectorAll<HTMLElement>(
                 "form input, form button, form a, form [tabindex]:not([tabindex='-1'])"
             )
-        ).filter((el) => {
-            // AntD's password eye toggle is rendered as a span, not a
-            // button — skip it for this assertion. We only care that
-            // the submit `<button>` is the last *button*.
-            return true;
-        });
+        );
         const last = focusable[focusable.length - 1];
         expect(last.tagName.toLowerCase()).toBe("button");
         expect((last.textContent ?? "").trim().toLowerCase()).toBe("log in");

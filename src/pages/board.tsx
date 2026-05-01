@@ -614,7 +614,7 @@ const BoardPage = () => {
                 </span>
                 {!(bLoading || tLoading) ? (
                     <>
-                        {(board?.length ?? 0) === 0 ? (
+                        {(board?.length ?? 0) === 0 && !(bError || tError) ? (
                             <EmptyState
                                 title={microcopy.empty.board.title}
                                 description={microcopy.empty.board.description}
