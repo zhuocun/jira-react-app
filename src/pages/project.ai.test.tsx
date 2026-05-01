@@ -192,9 +192,7 @@ describe("ProjectPage with Board Copilot enabled", () => {
         expect(summaryEl).toBeTruthy();
         fireEvent.click(summaryEl!);
         await waitFor(() => {
-            expect(
-                screen.getByText(/listProjects/i)
-            ).toBeInTheDocument();
+            expect(screen.getByText(/listProjects/i)).toBeInTheDocument();
         });
 
         const drawerClose = document.querySelector(
