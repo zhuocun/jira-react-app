@@ -154,17 +154,8 @@ const TaskModal: React.FC<{
             onOk={onOk}
             cancelText={microcopy.actions.cancel}
             onCancel={onClose}
-            footer={(_originalFooter, { OkBtn, CancelBtn }) => (
-                <div
-                    style={{
-                        alignItems: "center",
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: space.xs,
-                        justifyContent: "space-between",
-                        rowGap: space.xs
-                    }}
-                >
+            footer={(_originalFooter, { OkBtn, CancelBtn }) => {
+                const deleteButton = (
                     <Button
                         aria-label={
                             editingTask?.taskName
@@ -179,20 +170,58 @@ const TaskModal: React.FC<{
                     >
                         {microcopy.actions.delete}
                     </Button>
+                );
+                /*
+                 * On phone widths the buttons stack full-width. The visual
+                 * order is Save (primary) → Cancel → Delete (destructive last)
+                 * so users do not accidentally tap the destructive control
+                 * with a thumb reaching for the primary action. On tablet+
+                 * we keep the conventional Delete-left, Cancel/Save-right
+                 * arrangement that matches the rest of the app's modal
+                 * footers.
+                 */
+                if (!screens.sm) {
+                    return (
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: space.xs
+                            }}
+                        >
+                            <OkBtn />
+                            <CancelBtn />
+                            {deleteButton}
+                        </div>
+                    );
+                }
+                return (
                     <div
                         style={{
+                            alignItems: "center",
                             display: "flex",
-                            flex: screens.sm ? "0 0 auto" : "1 1 100%",
                             flexWrap: "wrap",
                             gap: space.xs,
-                            justifyContent: "flex-end"
+                            justifyContent: "space-between",
+                            rowGap: space.xs
                         }}
                     >
-                        <CancelBtn />
-                        <OkBtn />
+                        {deleteButton}
+                        <div
+                            style={{
+                                display: "flex",
+                                flex: "0 0 auto",
+                                flexWrap: "wrap",
+                                gap: space.xs,
+                                justifyContent: "flex-end"
+                            }}
+                        >
+                            <CancelBtn />
+                            <OkBtn />
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            }}
             title={titleNode}
             open={Boolean(editingTaskId)}
             styles={{

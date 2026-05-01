@@ -21,6 +21,7 @@ import BoardBriefDrawer from "../components/boardBriefDrawer";
 import Column from "../components/column";
 import ColumnCreator from "../components/columnCreator";
 import { Drag, Drop, DropChild } from "../components/dragAndDrop";
+import EmptyState from "../components/emptyState";
 import Row from "../components/row";
 import TaskModal from "../components/taskModal";
 import TaskSearchPanel from "../components/taskSearchPanel";
@@ -114,6 +115,76 @@ export const ColumnContainer = styled.div`
     }
 `;
 
+/**
+ * Wrapper that paints subtle gradient fades at the left and right edges so
+ * users can see — without scrolling — that more columns exist beyond the
+ * viewport. The fades use `pointer-events: none` so they never block clicks
+ * or drag-and-drop on the columns underneath.
+ */
+const ColumnsViewport = styled.div`
+    flex: 1;
+    min-height: 0;
+    position: relative;
+
+    &::before,
+    &::after {
+        content: "";
+        bottom: 0;
+        pointer-events: none;
+        position: absolute;
+        top: 0;
+        width: ${themeSpace.lg}px;
+        z-index: 1;
+    }
+
+    &::before {
+        background: linear-gradient(
+            to right,
+            var(--ant-color-bg-layout, #f7f8fb),
+            transparent
+        );
+        left: 0;
+    }
+
+    &::after {
+        background: linear-gradient(
+            to left,
+            var(--ant-color-bg-layout, #f7f8fb),
+            transparent
+        );
+        right: 0;
+    }
+
+    /* Hide the fades in forced-colors / high-contrast mode where gradients
+     * are filtered out and would just paint as solid blocks. */
+    @media (forced-colors: active) {
+        &::before,
+        &::after {
+            display: none;
+        }
+    }
+`;
+
+/**
+ * Hint shown on phone-sized viewports the first time the board is loaded
+ * with multiple columns, advising the user to swipe horizontally. Hidden
+ * on tablet+ where columns are visible side-by-side.
+ */
+const SwipeHint = styled.div`
+    align-items: center;
+    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
+    display: none;
+    font-size: ${fontSize.xs}px;
+    gap: ${themeSpace.xxs}px;
+    justify-content: center;
+    margin-bottom: ${themeSpace.xs}px;
+    text-align: center;
+
+    @media (max-width: ${breakpoints.md - 1}px) {
+        display: flex;
+    }
+`;
+
 const BoardLoadingSkeleton = () => (
     <ColumnContainer aria-busy="true" aria-label={microcopy.a11y.loadingBoard}>
         {[0, 1, 2].map((i) => (
@@ -160,6 +231,33 @@ const BoardTitle = styled(Typography.Title)`
     @media (min-width: ${breakpoints.md}px) {
         && {
             font-size: ${fontSize.xxl}px;
+        }
+    }
+`;
+
+/**
+ * Action cluster on the board header. Stretches full-width below the title
+ * on phone-sized viewports so the Brief / Ask buttons get a usable target
+ * size and do not crowd the project name.
+ */
+const BoardActions = styled.div`
+    align-items: center;
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: ${themeSpace.xs}px;
+
+    .ant-space-compact {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    @media (min-width: ${breakpoints.md}px) {
+        flex: 0 0 auto;
+        justify-content: flex-end;
+
+        .ant-space-compact {
+            flex: 0 0 auto;
         }
     }
 `;
@@ -254,6 +352,7 @@ const BoardPage = () => {
                     <Row
                         between
                         style={{
+                            alignItems: "flex-start",
                             flexWrap: "wrap",
                             gap: themeSpace.sm,
                             rowGap: themeSpace.xs
@@ -263,6 +362,7 @@ const BoardPage = () => {
                             <span
                                 aria-label="Loading project name"
                                 role="status"
+                                style={{ flex: "1 1 auto", minWidth: 0 }}
                             >
                                 <Skeleton.Input
                                     active
@@ -276,9 +376,9 @@ const BoardPage = () => {
                             </BoardTitle>
                         )}
                         {aiEnabled && (
-                            <Space align="center" size={themeSpace.xs} wrap>
+                            <BoardActions>
                                 {boardAiOn && (
-                                    <Space.Compact>
+                                    <Space.Compact block>
                                         <Button
                                             aria-label="Open Board Copilot brief"
                                             icon={<AiSparkleIcon />}
@@ -302,7 +402,7 @@ const BoardPage = () => {
                                         <Space
                                             orientation="vertical"
                                             size={themeSpace.xs}
-                                            style={{ minWidth: 240 }}
+                                            style={{ maxWidth: 280 }}
                                         >
                                             <Typography.Text type="secondary">
                                                 Board Copilot
@@ -333,7 +433,9 @@ const BoardPage = () => {
                                                 />
                                             </div>
                                             <Typography.Text
-                                                style={{ fontSize: 12 }}
+                                                style={{
+                                                    fontSize: fontSize.xs
+                                                }}
                                                 type="secondary"
                                             >
                                                 Hides Board Copilot on this
@@ -351,7 +453,7 @@ const BoardPage = () => {
                                         type="text"
                                     />
                                 </Popover>
-                            </Space>
+                            </BoardActions>
                         )}
                     </Row>
                 </BoardHeader>
@@ -403,42 +505,60 @@ const BoardPage = () => {
                     />
                 ) : null}
                 {!(bLoading || tLoading) ? (
-                    <ColumnContainer>
-                        <Drop
-                            droppableId="column"
-                            type="COLUMN"
-                            direction="horizontal"
-                        >
-                            <DropChild style={{ display: "flex" }}>
-                                {board?.map((column, index) => (
-                                    <Drag
-                                        key={column._id}
-                                        draggableId={`column${column._id}`}
-                                        index={index}
-                                        isDragDisabled={
-                                            isColumnDragDisabled ||
-                                            isTaskDragDisabled ||
-                                            column._id === "mock"
-                                        }
-                                    >
-                                        <Column
-                                            boardAiOn={boardAiOn}
-                                            tasks={
-                                                tasksByColumn.get(column._id) ??
-                                                []
-                                            }
-                                            key={column._id}
-                                            column={column}
-                                            members={members ?? []}
-                                            param={debouncedParam}
-                                            isDragDisabled={isTaskDragDisabled}
-                                        />
-                                    </Drag>
-                                ))}
-                            </DropChild>
-                        </Drop>
-                        <ColumnCreator />
-                    </ColumnContainer>
+                    <>
+                        {(board?.length ?? 0) === 0 ? (
+                            <EmptyState
+                                title={microcopy.empty.board.title}
+                                description={microcopy.empty.board.description}
+                            />
+                        ) : null}
+                        {(board?.length ?? 0) > 1 && (
+                            <SwipeHint aria-hidden>
+                                <span>← swipe to see more columns →</span>
+                            </SwipeHint>
+                        )}
+                        <ColumnsViewport>
+                            <ColumnContainer>
+                                <Drop
+                                    droppableId="column"
+                                    type="COLUMN"
+                                    direction="horizontal"
+                                >
+                                    <DropChild style={{ display: "flex" }}>
+                                        {board?.map((column, index) => (
+                                            <Drag
+                                                key={column._id}
+                                                draggableId={`column${column._id}`}
+                                                index={index}
+                                                isDragDisabled={
+                                                    isColumnDragDisabled ||
+                                                    isTaskDragDisabled ||
+                                                    column._id === "mock"
+                                                }
+                                            >
+                                                <Column
+                                                    boardAiOn={boardAiOn}
+                                                    tasks={
+                                                        tasksByColumn.get(
+                                                            column._id
+                                                        ) ?? []
+                                                    }
+                                                    key={column._id}
+                                                    column={column}
+                                                    members={members ?? []}
+                                                    param={debouncedParam}
+                                                    isDragDisabled={
+                                                        isTaskDragDisabled
+                                                    }
+                                                />
+                                            </Drag>
+                                        ))}
+                                    </DropChild>
+                                </Drop>
+                                <ColumnCreator />
+                            </ColumnContainer>
+                        </ColumnsViewport>
+                    </>
                 ) : (
                     <BoardLoadingSkeleton />
                 )}

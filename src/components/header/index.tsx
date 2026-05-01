@@ -87,6 +87,10 @@ const RightCluster = styled.div`
  * Soft pill-shaped trigger used for the account dropdown and the inline
  * theme toggle. Stays at 36 px on desktop / 44 px on coarse pointers so
  * touch users get an honest WCAG 2.5.8 target.
+ *
+ * The trigger limits itself to half of the available right-cluster width on
+ * narrow viewports so a long username does not push the chevron / icon
+ * buttons off-screen. The username text inside truncates with ellipsis.
  */
 const PillTrigger = styled.button`
     align-items: center;
@@ -96,10 +100,12 @@ const PillTrigger = styled.button`
     color: inherit;
     cursor: pointer;
     display: inline-flex;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     font: inherit;
     gap: ${space.xs}px;
     height: 36px;
+    max-width: 100%;
+    min-width: 0;
     padding: 0 ${space.xs}px;
     transition:
         background-color 120ms ease-out,
@@ -115,6 +121,22 @@ const PillTrigger = styled.button`
 
     @media (pointer: coarse) {
         height: 44px;
+    }
+`;
+
+/**
+ * Truncated username inside the account pill. `min-width: 0` lets it shrink
+ * inside the flex parent, and `max-width` keeps it from monopolising the
+ * row when the user has a long name (e.g. `Constance van der Linden`).
+ */
+const Greeting = styled(Typography.Text)`
+    && {
+        font-weight: 500;
+        max-width: 14ch;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 `;
 
@@ -332,9 +354,7 @@ const Header: React.FC = () => {
                             {initialsOf(user?.username)}
                         </Avatar>
                         <HiddenOnTiny>
-                            <Typography.Text style={{ fontWeight: 500 }}>
-                                Hi, {user?.username}
-                            </Typography.Text>
+                            <Greeting>Hi, {user?.username}</Greeting>
                         </HiddenOnTiny>
                         <HiddenOnNarrow>
                             <DownOutlined

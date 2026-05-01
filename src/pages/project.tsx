@@ -87,6 +87,14 @@ const Toolbar = styled.div`
 const StatRail = styled.div`
     display: grid;
     gap: ${space.xs}px;
+    /*
+     * On the narrowest viewports (≤ 360 px) three columns leave each card
+     * around 95 px, which crowds the labels and clips the values. Drop to a
+     * single horizontal row of three smaller cards instead, then expand to
+     * three full columns at sm+. The grid-template-columns at base width
+     * uses minmax(0, 1fr) so labels stay fully visible on every Android
+     * width down to 320 px.
+     */
     grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-bottom: ${space.md}px;
 
@@ -105,7 +113,7 @@ const StatCard = styled.div`
     flex-direction: column;
     gap: 2px;
     min-width: 0;
-    padding: ${space.sm}px ${space.md}px;
+    padding: ${space.xs}px ${space.sm}px;
 
     @media (min-width: ${breakpoints.sm}px) {
         gap: ${space.xxs}px;
@@ -115,18 +123,23 @@ const StatCard = styled.div`
 
 const StatLabel = styled.span`
     color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.55));
-    font-size: ${fontSize.xs}px;
+    /* 11 px label keeps three columns readable at 320 px viewport width. */
+    font-size: 11px;
     font-weight: ${fontWeight.medium};
     letter-spacing: ${letterSpacing.wide};
     overflow: hidden;
     text-overflow: ellipsis;
     text-transform: uppercase;
     white-space: nowrap;
+
+    @media (min-width: ${breakpoints.sm}px) {
+        font-size: ${fontSize.xs}px;
+    }
 `;
 
 const StatValue = styled.span`
     color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
-    font-size: ${fontSize.lg}px;
+    font-size: ${fontSize.md}px;
     font-weight: ${fontWeight.semibold};
     letter-spacing: ${letterSpacing.tight};
 

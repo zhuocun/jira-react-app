@@ -14,11 +14,17 @@ import AiTaskDraftModal from "../aiTaskDraftModal";
 
 const CreatorRow = styled.div`
     align-items: center;
-    display: inline-flex;
+    /*
+     * Stretch to the column width so the two affordances ("Create task" and
+     * "Draft with AI") do not crowd each other inside a narrow column. The
+     * row still wraps cleanly when both labels exceed the available width.
+     */
+    display: flex;
     flex-wrap: wrap;
     gap: ${space.xxs}px;
     margin-top: ${space.xxs}px;
     padding: 0 ${space.xs}px;
+    width: 100%;
 `;
 
 const CreateLink = styled.button`
