@@ -2,7 +2,7 @@
 
 | Field             | Value                                                                                                                                                                                                                               |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status            | Draft v2 — supersedes the AI sections of [`board-copilot.md`](board-copilot.md). v1 capabilities ship as the fallback experience; v2 is the new default once the Python agent server is reachable.                                  |
+| Status            | Draft v2 — **superseded by [`board-copilot-v2.1-agent.md`](board-copilot-v2.1-agent.md)**. Retained as historical context for the v2 → v2.1 design review. v1 capabilities ship as the fallback experience.                        |
 | Author            | Product (this document is a PM-style review and redesign of the existing v1 Board Copilot)                                                                                                                                          |
 | Last updated      | 2026-04-30                                                                                                                                                                                                                          |
 | Target repository | `jira-react-app` (frontend) + a Python agent server hosted at `${REACT_APP_AI_BASE_URL}` (out of repo) reachable through the existing `${REACT_APP_AI_BASE_URL}/api/ai/*` seam                                                      |
