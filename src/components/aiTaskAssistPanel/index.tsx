@@ -70,7 +70,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
         useCachedQueryData<IColumn[]>(["boards", { projectId }]) ??
         EMPTY_COLUMNS;
 
-    const debouncedValues = useDebounce(values, 600);
+    const debouncedValues = useDebounce(values, 1000);
     const taskName = debouncedValues.taskName ?? "";
 
     const estimateAi = useAi<IEstimateSuggestion>({ route: "estimate" });

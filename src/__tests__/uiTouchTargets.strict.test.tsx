@@ -18,7 +18,6 @@
 import "@testing-library/jest-dom";
 
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, MemoryRouter, Route, Routes } from "react-router-dom";
@@ -169,19 +168,6 @@ beforeEach(() => {
     });
     mockedUseReactMutation.mockReturnValue(stubMutation());
 });
-
-const ProvidersWrap = ({ children }: { children: ReactNode }) => {
-    const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false } }
-    });
-    return (
-        <Provider store={store}>
-            <QueryClientProvider client={queryClient}>
-                <BrowserRouter>{children}</BrowserRouter>
-            </QueryClientProvider>
-        </Provider>
-    );
-};
 
 /**
  * Walk every CSS rule emotion has injected into the page and collect the

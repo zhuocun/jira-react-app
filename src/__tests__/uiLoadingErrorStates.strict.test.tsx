@@ -423,6 +423,7 @@ describe("UI quality :: ErrorBoundary fallback", () => {
      * not from the React error path.
      */
     const silenceErrorBoundaryLogs = () => {
+        // eslint-disable-next-line no-console
         const original = console.error;
         return jest.spyOn(console, "error").mockImplementation((...args) => {
             const msg = args.map(String).join(" ");

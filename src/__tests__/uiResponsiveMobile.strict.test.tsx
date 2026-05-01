@@ -38,7 +38,6 @@ import LoginForm from "../components/loginForm";
 import ProjectList from "../components/projectList";
 import ProjectModal from "../components/projectModal";
 import TaskModal from "../components/taskModal";
-import { breakpoints } from "../theme/tokens";
 import { store } from "../store";
 import { projectActions } from "../store/reducers/projectModalSlice";
 import useAiChat from "../utils/hooks/useAiChat";
