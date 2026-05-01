@@ -1,4 +1,4 @@
-import { Button, Result } from "antd";
+import { Button, Result, Space } from "antd";
 import React from "react";
 
 import { microcopy } from "../../constants/microcopy";
@@ -13,9 +13,12 @@ interface ErrorBoundaryState {
 }
 
 /**
- * Top-level error boundary used by routed pages. Recovers via remount on
- * Retry. Implements Phase 3.7 of the optimization plan and Nielsen heuristic
- * #9 (help users recover from errors).
+ * Top-level error boundary used by routed pages. Recovers via Retry
+ * (component remount) or by reloading the entire page (full reset of
+ * client state). Implements Phase 3.7 of the optimization plan and
+ * Nielsen heuristic #9 (help users recover from errors). The "Reload"
+ * fallback covers cases where the cached state itself is corrupt and a
+ * remount alone won't help.
  */
 class ErrorBoundary extends React.Component<
     ErrorBoundaryProps,
@@ -37,6 +40,12 @@ class ErrorBoundary extends React.Component<
         this.setState({ error: null });
     };
 
+    handleReload = () => {
+        if (typeof window !== "undefined") {
+            window.location.reload();
+        }
+    };
+
     render() {
         const { error } = this.state;
         const { children, fallback } = this.props;
@@ -45,12 +54,17 @@ class ErrorBoundary extends React.Component<
         return (
             <Result
                 status="error"
-                title="Something went wrong"
-                subTitle={error.message || microcopy.feedback.loadFailed}
+                title={microcopy.feedback.renderFailed}
+                subTitle={error.message || microcopy.feedback.renderFailedHint}
                 extra={
-                    <Button onClick={this.handleRetry} type="primary">
-                        {microcopy.actions.retry}
-                    </Button>
+                    <Space wrap>
+                        <Button onClick={this.handleRetry} type="primary">
+                            {microcopy.actions.retry}
+                        </Button>
+                        <Button onClick={this.handleReload}>
+                            {microcopy.feedback.reloadPage}
+                        </Button>
+                    </Space>
                 }
             />
         );

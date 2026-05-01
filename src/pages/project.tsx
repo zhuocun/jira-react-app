@@ -16,6 +16,7 @@ import {
     fontWeight,
     letterSpacing,
     lineHeight,
+    radius,
     space
 } from "../theme/tokens";
 import useAiEnabled from "../utils/hooks/useAiEnabled";
@@ -108,10 +109,10 @@ const StatCard = styled.div`
     align-items: flex-start;
     background: var(--ant-color-bg-container, #fff);
     border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
-    border-radius: 14px;
+    border-radius: ${radius.lg}px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: ${space.xxs / 2}px;
     min-width: 0;
     padding: ${space.xs}px ${space.sm}px;
 
@@ -123,18 +124,18 @@ const StatCard = styled.div`
 
 const StatLabel = styled.span`
     color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.55));
-    /* 11 px label keeps three columns readable at 320 px viewport width. */
-    font-size: 11px;
+    /* On the narrowest phones (≤ 360 px) three columns leave each label
+     * around 95 px, so we wide-space the xs (12 px) value and rely on
+     * text-overflow: ellipsis as the safety net. Above the sm
+     * breakpoint we keep the same value but the cards have room to
+     * breathe. */
+    font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
     letter-spacing: ${letterSpacing.wide};
     overflow: hidden;
     text-overflow: ellipsis;
     text-transform: uppercase;
     white-space: nowrap;
-
-    @media (min-width: ${breakpoints.sm}px) {
-        font-size: ${fontSize.xs}px;
-    }
 `;
 
 const StatValue = styled.span`
@@ -271,7 +272,7 @@ const ProjectPage = () => {
                     description={microcopy.feedback.retryHint}
                     showIcon
                     style={{ marginBottom: space.sm }}
-                    title="Data fetching failed, please try again later."
+                    title={microcopy.feedback.loadFailed}
                     type="error"
                 />
             ) : null}

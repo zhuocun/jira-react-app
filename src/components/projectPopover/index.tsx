@@ -4,15 +4,21 @@ import { Divider, Popover, Typography } from "antd";
 import { useNavigate } from "react-router";
 
 import { microcopy } from "../../constants/microcopy";
-import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
+import {
+    fontSize,
+    fontWeight,
+    modalGutterPx,
+    radius,
+    space
+} from "../../theme/tokens";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactQuery from "../../utils/hooks/useReactQuery";
 import { NoPaddingButton } from "../projectList";
 
 const ContentContainer = styled.div`
     max-height: 60vh;
-    max-width: min(22rem, calc(100vw - 32px));
-    min-width: min(18rem, calc(100vw - 32px));
+    max-width: min(22rem, calc(100vw - ${modalGutterPx}px));
+    min-width: min(18rem, calc(100vw - ${modalGutterPx}px));
     overflow-y: auto;
 `;
 

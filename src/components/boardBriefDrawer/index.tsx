@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import {
     Alert,
     Drawer,
@@ -12,10 +13,51 @@ import {
 import { useEffect } from "react";
 
 import { microcopy } from "../../constants/microcopy";
-import { fontSize, space } from "../../theme/tokens";
+import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
 import useAi from "../../utils/hooks/useAi";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import AiSparkleIcon from "../aiSparkleIcon";
+
+/**
+ * Brief-drawer list rows are activatable (open the underlying task in
+ * the modal). They render as `<li role="button">` so styling has to live
+ * here — global :focus-visible would land on the inner content.
+ */
+const ActivatableListItem = styled(List.Item)`
+    && {
+        border-radius: ${radius.sm}px;
+        cursor: pointer;
+        transition: background-color 120ms ease-out;
+    }
+
+    &&:hover {
+        background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.04));
+    }
+
+    &&:focus-visible {
+        background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.04));
+        outline: 2px solid var(--ant-color-primary, #5e6ad2);
+        outline-offset: -2px;
+    }
+`;
+
+const WorkloadRow = styled(List.Item)`
+    && {
+        flex-wrap: wrap;
+        gap: ${space.xs}px;
+    }
+`;
+
+const WorkloadName = styled.span`
+    flex: 1 1 auto;
+    font-weight: ${fontWeight.medium};
+`;
+
+const WorkloadTags = styled.span`
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: ${space.xxs}px;
+`;
 
 interface BoardBriefDrawerProps {
     open: boolean;
@@ -57,15 +99,14 @@ const ClickableListItem: React.FC<ClickableListItemProps> = ({
         }
     };
     return (
-        <List.Item
+        <ActivatableListItem
             onClick={onActivate}
             onKeyDown={handleKey}
             role="button"
-            style={{ cursor: "pointer" }}
             tabIndex={0}
         >
             {children}
-        </List.Item>
+        </ActivatableListItem>
     );
 };
 
@@ -256,22 +297,9 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                         <List
                             dataSource={data.workload}
                             renderItem={(item) => (
-                                <List.Item
-                                    style={{
-                                        flexWrap: "wrap",
-                                        gap: space.xs
-                                    }}
-                                >
-                                    <span style={{ flex: "1 1 auto" }}>
-                                        {item.username}
-                                    </span>
-                                    <span
-                                        style={{
-                                            display: "inline-flex",
-                                            flexWrap: "wrap",
-                                            gap: space.xxs
-                                        }}
-                                    >
+                                <WorkloadRow>
+                                    <WorkloadName>{item.username}</WorkloadName>
+                                    <WorkloadTags>
                                         <Tag style={{ marginInlineEnd: 0 }}>
                                             {item.openTasks} open
                                         </Tag>
@@ -281,8 +309,8 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                                         >
                                             {item.openPoints} pts
                                         </Tag>
-                                    </span>
-                                </List.Item>
+                                    </WorkloadTags>
+                                </WorkloadRow>
                             )}
                             size="small"
                         />

@@ -3,7 +3,7 @@ import { useForm } from "antd/lib/form/Form";
 import { useEffect } from "react";
 
 import { microcopy } from "../../constants/microcopy";
-import { fontSize, lineHeight, space } from "../../theme/tokens";
+import { fontSize, lineHeight, modalWidthCss, space } from "../../theme/tokens";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useReactQuery from "../../utils/hooks/useReactQuery";
@@ -84,7 +84,7 @@ const ProjectModal: React.FC = () => {
                 }
             }}
             title={modalTitle}
-            width="min(520px, calc(100vw - 32px))"
+            width={modalWidthCss(520)}
         >
             <Spin
                 aria-label={microcopy.a11y.loadingProject}
@@ -95,8 +95,7 @@ const ProjectModal: React.FC = () => {
                         display: "block",
                         fontSize: fontSize.sm,
                         lineHeight: lineHeight.normal,
-                        marginBottom: space.md,
-                        marginTop: -space.xs
+                        marginBottom: space.md
                     }}
                     type="secondary"
                 >
@@ -104,12 +103,7 @@ const ProjectModal: React.FC = () => {
                         ? "Update project details and assignment."
                         : "Set a name, organization, and a manager to start tracking work."}
                 </Typography.Text>
-                <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={onFinish}
-                    style={{ marginTop: space.sm }}
-                >
+                <Form form={form} layout="vertical" onFinish={onFinish}>
                     <ErrorBox error={error} />
                     <Form.Item
                         label={microcopy.fields.projectName}

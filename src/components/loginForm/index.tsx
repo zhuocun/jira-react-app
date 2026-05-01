@@ -1,13 +1,27 @@
 import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
+import styled from "@emotion/styled";
 import { Form, Input } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
 import { microcopy } from "../../constants/microcopy";
 import { AuthButton } from "../../layouts/authLayout";
+import { lineHeight } from "../../theme/tokens";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 
 const inputSize = "large" as const;
+
+/**
+ * Reserves a single line of vertical space for the Caps Lock warning so
+ * the Submit button doesn't jump when the warning toggles. The earlier
+ * inline `style={{ minHeight: '1.25em', display: 'inline-block' }}` did
+ * the same job but spread the magic number across login and register.
+ */
+const CapsLockSlot = styled.span`
+    display: inline-block;
+    line-height: ${lineHeight.snug};
+    min-height: ${lineHeight.snug}em;
+`;
 
 const LoginForm: React.FC<{
     onError: React.Dispatch<React.SetStateAction<Error | IError | null>>;
@@ -61,14 +75,13 @@ const LoginForm: React.FC<{
             </Form.Item>
             <Form.Item
                 extra={
-                    <span
+                    <CapsLockSlot
                         aria-atomic="true"
                         aria-live="polite"
                         role="status"
-                        style={{ minHeight: "1.25em", display: "inline-block" }}
                     >
                         {capsLockOn ? microcopy.a11y.capsLockOn : ""}
-                    </span>
+                    </CapsLockSlot>
                 }
                 label={microcopy.fields.password}
                 name="password"

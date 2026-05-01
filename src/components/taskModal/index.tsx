@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
-import { fontSize, fontWeight, space } from "../../theme/tokens";
+import { fontSize, fontWeight, modalWidthCss, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -230,7 +230,7 @@ const TaskModal: React.FC<{
                     overflowY: "auto"
                 }
             }}
-            width="min(640px, calc(100vw - 32px))"
+            width={modalWidthCss(640)}
         >
             <Form
                 form={form}

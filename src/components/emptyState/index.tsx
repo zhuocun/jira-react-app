@@ -2,7 +2,15 @@ import styled from "@emotion/styled";
 import { Empty, Typography } from "antd";
 import React from "react";
 
-import { fontSize, fontWeight, lineHeight, space } from "../../theme/tokens";
+import {
+    accent,
+    breakpoints,
+    fontSize,
+    fontWeight,
+    lineHeight,
+    radius,
+    space
+} from "../../theme/tokens";
 
 interface EmptyStateProps {
     title: string;
@@ -21,7 +29,7 @@ const Container = styled.div`
     padding: ${space.xl}px ${space.md}px;
     text-align: center;
 
-    @media (min-width: 480px) {
+    @media (min-width: ${breakpoints.sm}px) {
         padding: ${space.xxl}px ${space.lg}px;
     }
 `;
@@ -36,7 +44,7 @@ const StyledEmpty = styled(Empty)`
         background:
             radial-gradient(
                 circle at 30% 30%,
-                rgba(124, 92, 255, 0.18),
+                ${accent.bgMedium},
                 transparent 65%
             ),
             radial-gradient(
@@ -47,7 +55,7 @@ const StyledEmpty = styled(Empty)`
             var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
         border: 1px solid
             var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
-        border-radius: 999px;
+        border-radius: ${radius.pill}px;
         color: var(--ant-color-primary, #5e6ad2);
         display: inline-flex;
         height: 72px;

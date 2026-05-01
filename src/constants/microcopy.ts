@@ -86,7 +86,13 @@ export const microcopy = {
         loadFailed: "Couldn't load. Please try again.",
         saveFailed: "Couldn't save. Please try again.",
         operationFailed: "Operation failed",
-        retryHint: "Check your connection or retry."
+        retryHint: "Check your connection or retry.",
+        noManager: "No manager",
+        noDate: "No date",
+        renderFailed: "This page couldn't render.",
+        renderFailedHint:
+            "Try again, or reload the page if the problem persists.",
+        reloadPage: "Reload page"
     },
     empty: {
         projects: {

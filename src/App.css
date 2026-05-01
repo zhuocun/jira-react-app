@@ -81,11 +81,15 @@ body {
 
 /*
  * Long URLs / unbroken tokens in user content (notes, chat) must wrap rather
- * than overflow their container on mobile.
+ * than overflow their container on mobile. `break-word` keeps natural word
+ * boundaries first and only breaks mid-word for runs that genuinely don't
+ * fit (e.g. a long URL); the previous `anywhere` value was too aggressive
+ * and split short words like "projectName" mid-letter on phones.
  */
 p,
 li {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 img,
@@ -117,10 +121,11 @@ video {
 
 /*
  * Selection color matches the brand so selected text feels intentional
- * rather than the OS default sky blue.
+ * rather than the OS default sky blue. The fallback rgba mirrors
+ * `accent.selectionBg` for browsers that don't yet ship the AntD CSS var.
  */
 ::selection {
-    background: rgba(94, 106, 210, 0.22);
+    background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.22));
     color: inherit;
 }
 

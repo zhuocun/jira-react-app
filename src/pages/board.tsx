@@ -1,4 +1,4 @@
-import { SettingOutlined } from "@ant-design/icons";
+import { CloseOutlined, SettingOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import {
     Alert,
@@ -11,7 +11,7 @@ import {
     Typography
 } from "antd";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import AiChatDrawer from "../components/aiChatDrawer";
@@ -168,20 +168,44 @@ const ColumnsViewport = styled.div`
 /**
  * Hint shown on phone-sized viewports the first time the board is loaded
  * with multiple columns, advising the user to swipe horizontally. Hidden
- * on tablet+ where columns are visible side-by-side.
+ * on tablet+ where columns are visible side-by-side. The hint can be
+ * dismissed with the close icon and the dismissal persists across page
+ * loads via sessionStorage so a user is not nagged on every navigation.
  */
 const SwipeHint = styled.div`
     align-items: center;
-    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
+    background: var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
+    border-radius: ${radius.pill}px;
+    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.55));
     display: none;
     font-size: ${fontSize.xs}px;
-    gap: ${themeSpace.xxs}px;
+    gap: ${themeSpace.xs}px;
     justify-content: center;
     margin-bottom: ${themeSpace.xs}px;
+    padding: ${themeSpace.xxs}px ${themeSpace.sm}px;
     text-align: center;
 
     @media (max-width: ${breakpoints.md - 1}px) {
         display: flex;
+    }
+`;
+
+const SwipeHintClose = styled.button`
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: ${radius.pill}px;
+    color: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    height: 20px;
+    justify-content: center;
+    padding: 0;
+    width: 20px;
+
+    &:hover,
+    &:focus-visible {
+        background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.06));
     }
 `;
 
@@ -225,7 +249,11 @@ const BoardTitle = styled(Typography.Title)`
         line-height: ${lineHeight.tight};
         margin: 0;
         min-width: 0;
-        overflow-wrap: anywhere;
+        /* break-word prefers natural word boundaries and only splits a
+         * run mid-character when the run truly does not fit (e.g. a
+         * 30+ char single token). The previous "anywhere" value happily
+         * split "Roadmap" into "Roadma|p" on iPhone SE widths. */
+        overflow-wrap: break-word;
     }
 
     @media (min-width: ${breakpoints.md}px) {
@@ -238,7 +266,8 @@ const BoardTitle = styled(Typography.Title)`
 /**
  * Action cluster on the board header. Stretches full-width below the title
  * on phone-sized viewports so the Brief / Ask buttons get a usable target
- * size and do not crowd the project name.
+ * size and do not crowd the project name. From md upwards the cluster
+ * shrinks to its natural width and aligns to the right of the title row.
  */
 const BoardActions = styled.div`
     align-items: center;
@@ -261,6 +290,8 @@ const BoardActions = styled.div`
         }
     }
 `;
+
+const SWIPE_HINT_DISMISSED_KEY = "board.swipeHintDismissed";
 
 const BoardPage = () => {
     useTitle("Board");
@@ -338,12 +369,59 @@ const BoardPage = () => {
             : null;
     const [briefOpen, setBriefOpen] = useState(false);
     const [chatOpen, setChatOpen] = useState(false);
+    const [swipeHintDismissed, setSwipeHintDismissed] = useState(() => {
+        if (typeof window === "undefined") return false;
+        try {
+            return (
+                window.sessionStorage.getItem(SWIPE_HINT_DISMISSED_KEY) === "1"
+            );
+        } catch {
+            return false;
+        }
+    });
+    const dismissSwipeHint = useCallback(() => {
+        setSwipeHintDismissed(true);
+        try {
+            window.sessionStorage.setItem(SWIPE_HINT_DISMISSED_KEY, "1");
+        } catch {
+            // Storage may be unavailable (private mode); state still updates.
+        }
+    }, []);
 
     useEffect(() => {
         if (!boardAiOn && param.semanticIds) {
             setParam({ semanticIds: undefined });
         }
     }, [boardAiOn, param.semanticIds, setParam]);
+
+    /*
+     * Live status string for the visible task count after filters apply.
+     * Read by screen readers when the user types in the search input or
+     * picks a coordinator filter; also surfaces the empty-result state
+     * for keyboard users who can't see the kanban columns visually.
+     */
+    const visibleFilteredCount = useMemo(() => {
+        return visibleTasks.filter(
+            (task) =>
+                (!param.type || task.type === param.type) &&
+                (!param.coordinatorId ||
+                    task.coordinatorId === param.coordinatorId) &&
+                (!param.taskName || task.taskName.includes(param.taskName)) &&
+                (!param.semanticIds ||
+                    param.semanticIds
+                        .split(",")
+                        .filter(Boolean)
+                        .includes(task._id))
+        ).length;
+    }, [visibleTasks, param]);
+    const hasActiveFilters = Boolean(
+        param.taskName || param.coordinatorId || param.type || param.semanticIds
+    );
+    const filterStatusMessage = hasActiveFilters
+        ? `${visibleFilteredCount} ${
+              visibleFilteredCount === 1 ? "task" : "tasks"
+          } match the active filters`
+        : "";
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
@@ -504,6 +582,20 @@ const BoardPage = () => {
                         type="error"
                     />
                 ) : null}
+                <span
+                    aria-atomic="true"
+                    aria-live="polite"
+                    style={{
+                        clip: "rect(0 0 0 0)",
+                        height: 1,
+                        overflow: "hidden",
+                        position: "absolute",
+                        whiteSpace: "nowrap",
+                        width: 1
+                    }}
+                >
+                    {filterStatusMessage}
+                </span>
                 {!(bLoading || tLoading) ? (
                     <>
                         {(board?.length ?? 0) === 0 ? (
@@ -512,9 +604,21 @@ const BoardPage = () => {
                                 description={microcopy.empty.board.description}
                             />
                         ) : null}
-                        {(board?.length ?? 0) > 1 && (
-                            <SwipeHint aria-hidden>
-                                <span>← swipe to see more columns →</span>
+                        {(board?.length ?? 0) > 1 && !swipeHintDismissed && (
+                            <SwipeHint role="note">
+                                <span aria-hidden>←</span>
+                                <span>Swipe to see more columns</span>
+                                <span aria-hidden>→</span>
+                                <SwipeHintClose
+                                    aria-label="Dismiss swipe hint"
+                                    onClick={dismissSwipeHint}
+                                    type="button"
+                                >
+                                    <CloseOutlined
+                                        aria-hidden
+                                        style={{ fontSize: 10 }}
+                                    />
+                                </SwipeHintClose>
                             </SwipeHint>
                         )}
                         <ColumnsViewport>

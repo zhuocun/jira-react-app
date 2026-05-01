@@ -3,7 +3,13 @@ import styled from "@emotion/styled";
 import { Input, Select } from "antd";
 import React from "react";
 
-import { breakpoints, radius, space } from "../../theme/tokens";
+import {
+    breakpoints,
+    fontSize,
+    fontWeight,
+    radius,
+    space
+} from "../../theme/tokens";
 
 export interface ProjectSearchParam {
     projectName: string;
@@ -66,19 +72,22 @@ const FlexSelect = styled.div`
  * Tiny pill that surfaces how many filters are currently active. Pairs with
  * the search input on tablet+ and stays inline at the end of the filter row
  * so users can confirm at a glance whether the list is being filtered.
+ *
+ * Uses theme tokens for the height (`space.lg` minus 2 px padding) and
+ * font-size (`fontSize.xs`) instead of the previous magic numbers.
  */
 const ActiveFilterCount = styled.span`
     align-items: center;
     background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.1));
-    border-radius: 999px;
+    border-radius: ${radius.pill}px;
     color: var(--ant-color-primary, #5e6ad2);
     display: inline-flex;
     flex: 0 0 auto;
-    font-size: 12px;
-    font-weight: 600;
-    height: 22px;
+    font-size: ${fontSize.xs}px;
+    font-weight: ${fontWeight.semibold};
+    height: ${space.lg - space.xxs / 2}px;
     justify-content: center;
-    min-width: 22px;
+    min-width: ${space.lg - space.xxs / 2}px;
     padding: 0 ${space.xs}px;
 
     @media (min-width: ${breakpoints.md}px) {

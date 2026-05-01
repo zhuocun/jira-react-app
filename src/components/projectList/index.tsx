@@ -6,7 +6,6 @@ import {
 } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import {
-    Avatar,
     Button,
     Dropdown,
     MenuProps,
@@ -24,6 +23,7 @@ import {
     breakpoints,
     fontSize,
     fontWeight,
+    letterSpacing,
     radius,
     semantic,
     space
@@ -33,6 +33,7 @@ import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteProject";
 import EmptyState from "../emptyState";
+import UserAvatar, { gradientFor, initialsOf } from "../userAvatar";
 
 interface ProjectIntro extends IProject {
     key?: number;
@@ -119,11 +120,13 @@ const ListSurface = styled.div`
         }
     }
 
-    /* Slightly larger touch targets for icon buttons on coarse pointers. */
+    /* Lift table icon buttons to a 44 × 44 hit target on coarse pointers
+     * (WCAG 2.5.5 AAA, level AA recommends 24 × 24 minimum). The icon
+     * itself stays small; only the surrounding click region grows. */
     @media (pointer: coarse) {
         .ant-table-tbody .ant-btn-sm {
-            min-height: 32px;
-            min-width: 32px;
+            min-height: 44px;
+            min-width: 44px;
         }
     }
 `;
@@ -138,7 +141,7 @@ const ProjectCell = styled.div`
 const ProjectMeta = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: ${space.xxs / 2}px;
     min-width: 0;
 
     a {
@@ -152,34 +155,16 @@ const ProjectMeta = styled.div`
         color: var(--ant-color-primary, #5e6ad2);
     }
 
+    a:focus-visible {
+        color: var(--ant-color-primary, #5e6ad2);
+        outline-offset: 2px;
+    }
+
     small {
         color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
         font-size: ${fontSize.xs}px;
     }
 `;
-
-/**
- * Deterministic per-project gradient. Hashing the project id gives every
- * board its own visual identity in the list while staying inside the
- * brand-aligned hue range (200° to 280°, indigo / violet / pink).
- */
-const PROJECT_AVATAR_GRADIENTS = [
-    "linear-gradient(135deg, #7C5CFF 0%, #5E6AD2 100%)",
-    "linear-gradient(135deg, #C084FC 0%, #6366F1 100%)",
-    "linear-gradient(135deg, #F472B6 0%, #7C5CFF 100%)",
-    "linear-gradient(135deg, #38BDF8 0%, #5E6AD2 100%)",
-    "linear-gradient(135deg, #34D399 0%, #5E6AD2 100%)",
-    "linear-gradient(135deg, #FB923C 0%, #C084FC 100%)"
-] as const;
-
-const gradientFor = (id: string): string => {
-    let hash = 0;
-    for (let i = 0; i < id.length; i += 1) {
-        hash = (hash * 31 + id.charCodeAt(i)) | 0;
-    }
-    const index = Math.abs(hash) % PROJECT_AVATAR_GRADIENTS.length;
-    return PROJECT_AVATAR_GRADIENTS[index];
-};
 
 const ProjectAvatar = styled.span<{ background: string }>`
     align-items: center;
@@ -192,7 +177,7 @@ const ProjectAvatar = styled.span<{ background: string }>`
     font-weight: ${fontWeight.semibold};
     height: 36px;
     justify-content: center;
-    letter-spacing: 0.02em;
+    letter-spacing: ${letterSpacing.normal};
     width: 36px;
 `;
 
@@ -203,14 +188,6 @@ const ManagerPill = styled.span`
     gap: ${space.xs}px;
     min-width: 0;
 `;
-
-const initialsOf = (name: string | undefined): string => {
-    if (!name) return "?";
-    const parts = name.trim().split(/\s+/);
-    const head = parts[0]?.[0] ?? "";
-    const tail = parts.length > 1 ? parts[parts.length - 1][0] : "";
-    return (head + tail).toUpperCase() || name[0].toUpperCase();
-};
 
 const formatDate = (raw?: string): string => {
     if (!raw) return "—";
@@ -366,23 +343,17 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                 if (!manager) {
                     return (
                         <Typography.Text type="secondary">
-                            unknown
+                            {microcopy.feedback.noManager}
                         </Typography.Text>
                     );
                 }
                 return (
                     <ManagerPill>
-                        <Avatar
+                        <UserAvatar
+                            id={manager._id}
+                            name={manager.username}
                             size="small"
-                            style={{
-                                background: gradientFor(manager._id),
-                                color: "#fff",
-                                fontSize: 11,
-                                fontWeight: 600
-                            }}
-                        >
-                            {initialsOf(manager.username)}
-                        </Avatar>
+                        />
                         <span>{manager.username}</span>
                     </ManagerPill>
                 );
@@ -394,7 +365,9 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
             render(_, data) {
                 if (!data.createdAt) {
                     return (
-                        <Typography.Text type="secondary">Null</Typography.Text>
+                        <Typography.Text type="secondary">
+                            {microcopy.feedback.noDate}
+                        </Typography.Text>
                     );
                 }
                 return (

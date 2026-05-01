@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
-import { space } from "../../theme/tokens";
+import { modalWidthCss, space } from "../../theme/tokens";
 import useAi from "../../utils/hooks/useAi";
 import useAuth from "../../utils/hooks/useAuth";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
@@ -178,7 +178,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                     </Tag>
                 </Space>
             }
-            width="min(640px, calc(100vw - 32px))"
+            width={modalWidthCss(640)}
         >
             <Form.Item label="Describe the work in your own words">
                 <TextArea

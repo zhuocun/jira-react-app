@@ -49,7 +49,8 @@ const AddColumnButton = styled.button`
         color ${motion.short}ms ease-out;
     width: 100%;
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
         background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.08));
         border-color: var(--ant-color-primary, #5e6ad2);
         border-style: solid;
