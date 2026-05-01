@@ -140,18 +140,14 @@ const ColumnsViewport = styled.div`
     &::before {
         background: linear-gradient(
             to right,
-            var(--ant-color-bg-layout, #f7f8fb),
+            var(--pulse-bg-page),
             transparent
         );
         left: 0;
     }
 
     &::after {
-        background: linear-gradient(
-            to left,
-            var(--ant-color-bg-layout, #f7f8fb),
-            transparent
-        );
+        background: linear-gradient(to left, var(--pulse-bg-page), transparent);
         right: 0;
     }
 
@@ -294,7 +290,6 @@ const BoardActions = styled.div`
 const SWIPE_HINT_DISMISSED_KEY = "board.swipeHintDismissed";
 
 const BoardPage = () => {
-    useTitle("Board");
     const { projectId } = useParams<{ projectId: string }>();
     const [param, setParam] = useUrl([
         "taskName",
@@ -307,6 +302,17 @@ const BoardPage = () => {
         useReactQuery<IProject>("projects", {
             projectId
         });
+    /*
+     * Browser tab title mirrors the heading. While the project query is in
+     * flight we keep the generic "Board" title rather than rendering an
+     * orphan " board" with a leading space, and the title updates the
+     * moment the project name resolves.
+     */
+    useTitle(
+        currentProject?.projectName
+            ? `${currentProject.projectName} board`
+            : "Board"
+    );
     const {
         data: board,
         isLoading: bLoading,
@@ -450,7 +456,9 @@ const BoardPage = () => {
                             </span>
                         ) : (
                             <BoardTitle level={1}>
-                                {currentProject?.projectName} board
+                                {currentProject?.projectName
+                                    ? `${currentProject.projectName} board`
+                                    : "Board"}
                             </BoardTitle>
                         )}
                         {aiEnabled && (

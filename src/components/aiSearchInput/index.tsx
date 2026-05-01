@@ -159,6 +159,21 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     onChange={(e) => setDraft(e.target.value)}
                     onPressEnter={() => void onSearch()}
                     placeholder="Ask Board Copilot a question…"
+                    /*
+                     * Sparkle prefix is the only thing that visually separates
+                     * this AI input from the plain text filter that often sits
+                     * directly below it. Without it the two inputs read as
+                     * duplicate search boxes and users couldn't tell which one
+                     * accepts a natural-language question.
+                     */
+                    prefix={
+                        <AiSparkleIcon
+                            aria-hidden
+                            style={{
+                                color: "var(--ant-color-primary, #5e6ad2)"
+                            }}
+                        />
+                    }
                     style={{ flex: "1 1 14rem", minWidth: 0 }}
                     value={draft}
                 />

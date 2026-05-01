@@ -54,6 +54,16 @@ const ThemedShell = ({ children }: { children: ReactNode }) => {
         if (typeof document === "undefined") return;
         document.documentElement.dataset.colorScheme = scheme;
         document.documentElement.style.colorScheme = scheme;
+        /*
+         * AntD v6 with `cssVar: { key: "ant" }` scopes its CSS variables to
+         * `:where(.ant)`, the class it adds to its own components. Any styled
+         * component that reads `var(--ant-color-bg-container, …)` from the
+         * page chrome (header, project table, stat cards, modal portals)
+         * therefore falls back to its hard-coded light value. Putting the
+         * `ant` class on `<html>` makes the variables cascade to the entire
+         * document so dark mode actually flips every surface.
+         */
+        document.documentElement.classList.add("ant");
     }, [scheme]);
 
     return (

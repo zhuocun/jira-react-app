@@ -7,6 +7,26 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
+/*
+ * Page-level theme tokens. AntD's `cssVar: { key: "ant" }` scopes its
+ * variables to the `.ant` class it puts on its own components, so body
+ * and html never see `--ant-color-bg-layout` and the page background
+ * stays in its light-mode fallback even when the user toggles dark
+ * mode. We mirror the two tokens the page chrome actually needs at
+ * `:root` and switch on the `data-color-scheme` attribute set in
+ * `appProviders.tsx`.
+ */
+:root,
+html[data-color-scheme="light"] {
+    --pulse-bg-page: #f7f8fb;
+    --pulse-text-base: rgba(15, 23, 42, 0.92);
+}
+
+html[data-color-scheme="dark"] {
+    --pulse-bg-page: #0f1116;
+    --pulse-text-base: rgba(229, 231, 235, 0.92);
+}
+
 html,
 body {
     margin: 0;
@@ -53,7 +73,8 @@ body {
      * desktop; AntD tokens decide font-size per-control. */
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
-    background: var(--ant-color-bg-layout, #f7f8fb);
+    background: var(--pulse-bg-page);
+    color: var(--pulse-text-base);
 }
 
 #root {
