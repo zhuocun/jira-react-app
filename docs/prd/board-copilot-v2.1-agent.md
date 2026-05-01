@@ -245,6 +245,500 @@ v2 deferred this to "once Phase F lands." In 2026 with a LangGraph backend, this
 
 ---
 
+## 5A. Backend and API design (Python server)
+
+This section specifies the server-side architecture. The server lives in the `jira-python-server` repository and is built on **FastAPI + LangGraph 1.x**. It is the binding contract for anyone implementing or extending the agent server.
+
+### 5A.1 Server stack and dependencies
+
+| Layer             | Technology                                          | Purpose                                    |
+| ----------------- | --------------------------------------------------- | ------------------------------------------ |
+| HTTP framework    | FastAPI 0.115+                                      | Async request handling, OpenAPI docs        |
+| Agent runtime     | LangGraph 1.x (`langgraph`, `langgraph-checkpoint`) | Graph execution, checkpointing, streaming   |
+| LLM providers     | `langchain-openai`, `langchain-anthropic`           | Provider-agnostic via `BaseChatModel`       |
+| Embeddings        | `langchain-openai` (text-embedding-3-small)         | Sentence embeddings for similarity search   |
+| Checkpointer      | `langgraph-checkpoint-postgres` (prod) / `MemorySaver` (dev) | Per-thread state persistence       |
+| Store             | `langgraph.store.postgres.PostgresStore` (prod) / `InMemoryStore` (dev) | Cross-thread memory          |
+| MCP adapters      | `langchain-mcp-adapters`                            | MCP-compatible tool exposure                |
+| Auth              | Custom FastAPI middleware (JWT validation)           | Validates bearer tokens from the FE         |
+| Observability     | LangSmith (built into LangGraph runtime)            | Per-turn, per-tool tracing                  |
+
+### 5A.2 Server directory layout
+
+```
+jira-python-server/
+├── app/
+│   ├── main.py                     # FastAPI app, CORS, middleware, lifespan
+│   ├── config.py                   # Settings: DB URI, LLM keys, rate limits
+│   ├── auth/
+│   │   └── middleware.py           # JWT bearer validation, user extraction
+│   ├── agents/
+│   │   ├── catalog/                # Auto-discovered agent modules
+│   │   │   ├── board_brief.py      # board-brief-agent graph
+│   │   │   ├── task_drafting.py    # task-drafting-agent graph
+│   │   │   ├── task_estimation.py  # task-estimation-agent graph
+│   │   │   ├── chat.py             # chat-agent graph
+│   │   │   └── triage.py           # triage-agent graph
+│   │   ├── registry.py             # BaseAgent ABC, auto-discovery, version metadata
+│   │   └── shared_state.py         # Common state TypedDicts shared across agents
+│   ├── tools/
+│   │   ├── be_tools.py             # be.* tool implementations (embed, summarize, etc.)
+│   │   ├── fe_tool_schemas.py      # JSON schemas for fe.* tools (sent to FE via interrupt)
+│   │   └── redaction.py            # Server-side PII redaction pass
+│   ├── routers/
+│   │   ├── agents.py               # /api/v1/agents/* endpoints
+│   │   └── health.py               # /api/v1/health
+│   ├── middleware/
+│   │   ├── rate_limit.py           # Per-agent, per-user rate limiting
+│   │   └── budget.py               # Per-project token/USD budget enforcement
+│   └── store/
+│       └── namespaces.py           # Namespace constants and helpers for BaseStore
+├── tests/
+│   ├── agents/                     # Per-agent pytest suites using LangGraph test harness
+│   ├── tools/                      # Tool unit tests
+│   └── integration/                # End-to-end stream tests
+├── pyproject.toml
+└── README.md
+```
+
+The `catalog/` directory uses auto-discovery: any module that defines a class inheriting from `BaseAgent` is automatically registered and exposed via `/api/v1/agents/{name}`. No manual wiring needed.
+
+### 5A.3 BaseAgent ABC and agent metadata
+
+```python
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from langgraph.graph import StateGraph
+from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.store.base import BaseStore
+
+@dataclass
+class AgentMetadata:
+    name: str                          # URL-safe slug, e.g. "board-brief-agent"
+    version: str                       # Semver, e.g. "1.0.0"
+    description: str                   # Human-readable, shown in GET /api/v1/agents
+    status: str                        # "active" | "deprecated" | "shadow"
+    recursion_limit: int               # Max graph steps per turn
+    rate_limit: tuple[int, int]        # (requests_per_minute, requests_per_hour) per user
+    allowed_autonomy: list[str]        # ["suggest", "plan", "auto"] — what this agent supports
+
+class BaseAgent(ABC):
+    metadata: AgentMetadata
+
+    @abstractmethod
+    def build_graph(self) -> StateGraph:
+        """Return a compiled StateGraph with tools, nodes, and edges."""
+        ...
+
+    def compile(
+        self, checkpointer: BaseCheckpointSaver, store: BaseStore
+    ) -> CompiledGraph:
+        graph = self.build_graph()
+        return graph.compile(
+            checkpointer=checkpointer,
+            store=store,
+            interrupt_before=[],       # Default: no static interrupts
+        )
+```
+
+### 5A.4 Agent state schemas
+
+Each agent defines a `TypedDict` state schema. Shared fields are inherited from a common base.
+
+```python
+from typing import Annotated, Any
+from typing_extensions import TypedDict
+from langchain_core.messages import BaseMessage
+from langgraph.graph import add_messages
+
+class BaseAgentState(TypedDict):
+    """Common state shared by all Board Copilot agents."""
+    messages: Annotated[list[BaseMessage], add_messages]
+    project_id: str
+    user_id: str
+    autonomy_level: str                # "suggest" | "plan" | "auto"
+
+class BoardBriefState(BaseAgentState):
+    """State for board-brief-agent."""
+    board_snapshot: dict | None        # Populated by fe.boardSnapshot interrupt
+    drift_result: dict | None          # Populated by be.detectDrift tool
+    brief: dict | None                 # Final IBoardBrief output
+    last_brief_read_at: str | None     # ISO timestamp from store, for "what changed" headline
+
+class TaskDraftingState(BaseAgentState):
+    """State for task-drafting-agent."""
+    prompt: str                        # User's natural-language prompt
+    breakdown_axis: str | None         # "by_phase" | "by_surface" | "by_risk" | "freeform" | None
+    board_snapshot: dict | None
+    similar_tasks: list[dict] | None
+    draft: dict | None                 # Final IDraftTaskSuggestion or list thereof
+
+class TaskEstimationState(BaseAgentState):
+    """State for task-estimation-agent."""
+    task_draft: dict                   # Current form values
+    similar_tasks: list[dict] | None
+    embedding_neighbors: list[dict] | None
+    estimate: dict | None              # Final IEstimateSuggestion
+    readiness: dict | None             # Final IReadinessReport
+
+class ChatState(BaseAgentState):
+    """State for chat-agent. Uses the full messages list for multi-turn."""
+    pass                               # Relies entirely on messages + base fields
+
+class TriageState(BaseAgentState):
+    """State for triage-agent."""
+    board_snapshot: dict | None
+    drift_result: dict | None
+    nudges: list[dict]                 # Generated TriageNudge objects
+```
+
+### 5A.5 API request and response shapes
+
+#### `GET /api/v1/agents`
+
+**Response** `200 OK`:
+```json
+{
+    "agents": [
+        {
+            "name": "board-brief-agent",
+            "version": "1.0.0",
+            "description": "Structured board summary with drift-aware headline",
+            "status": "active",
+            "allowed_autonomy": ["suggest", "plan"]
+        },
+        ...
+    ]
+}
+```
+
+#### `GET /api/v1/agents/{name}`
+
+**Response** `200 OK`:
+```json
+{
+    "name": "chat-agent",
+    "version": "1.2.0",
+    "description": "Conversational Q&A grounded in project data",
+    "status": "active",
+    "allowed_autonomy": ["suggest", "plan", "auto"],
+    "tools": ["fe.listProjects", "fe.listMembers", "fe.getProject", "fe.listBoard",
+              "fe.listTasks", "fe.getTask", "fe.boardSnapshot", "fe.similarTasks",
+              "fe.viewerContext", "be.summarize"],
+    "rate_limit": { "per_minute": 20, "per_hour": 200 }
+}
+```
+
+**Response** `404 Not Found` — agent not in registry.
+
+#### `POST /api/v1/agents/{name}/stream`
+
+**Request body** (first invocation — opening a turn):
+```json
+{
+    "input": {
+        "messages": [{"role": "user", "content": "Rebalance the workload..."}],
+        "project_id": "proj_abc123",
+        "autonomy_level": "plan"
+    },
+    "config": {
+        "configurable": {
+            "thread_id": "thread_xyz789",
+            "user_id": "user_001"
+        }
+    },
+    "stream_mode": ["updates", "messages", "custom"],
+    "version": "v2"
+}
+```
+
+**Request body** (resume after interrupt):
+```json
+{
+    "input": null,
+    "command": {
+        "resume": {
+            "tool": "fe.boardSnapshot",
+            "result": { "columns": [...], "tasks": [...], "members": [...] }
+        }
+    },
+    "config": {
+        "configurable": {
+            "thread_id": "thread_xyz789",
+            "user_id": "user_001"
+        }
+    },
+    "stream_mode": ["updates", "messages", "custom"],
+    "version": "v2"
+}
+```
+
+**Request body** (resume after mutation proposal — user decision):
+```json
+{
+    "input": null,
+    "command": {
+        "resume": {
+            "choice": "accept",
+            "edited_diff": null
+        }
+    },
+    "config": {
+        "configurable": {
+            "thread_id": "thread_xyz789",
+            "user_id": "user_001"
+        }
+    },
+    "stream_mode": ["updates", "messages", "custom"],
+    "version": "v2"
+}
+```
+
+**Response** `200 OK` with `Content-Type: text/event-stream`:
+```
+data: {"type": "updates", "ns": [], "data": {"agent": {"messages": [...]}}}
+
+data: {"type": "custom", "ns": [], "data": {"kind": "citation", "refs": [{"source": "task", "id": "task_123", "quote": "Investigate flaky login on Safari"}]}}
+
+data: {"type": "messages", "ns": [], "data": [{"content": "Maya has ", "type": "AIMessageChunk"}, {"langgraph_node": "agent"}]}
+
+data: {"type": "custom", "ns": [], "data": {"kind": "mutation_proposal", "proposal": {"proposal_id": "prop_001", "description": "Reassign 2 tasks from Maya to Priya", "diff": {"task_updates": [{"task_id": "task_456", "field": "coordinatorId", "from": "maya_id", "to": "priya_id"}]}, "risk": "med", "undoable": true}}}
+
+data: {"type": "custom", "ns": [], "data": {"kind": "usage", "tokensIn": 1200, "tokensOut": 340}}
+
+```
+
+**Response** `401 Unauthorized` — invalid or expired bearer token.
+**Response** `404 Not Found` — agent name not in registry.
+**Response** `429 Too Many Requests` — rate limit exceeded; includes `Retry-After` header.
+
+#### `POST /api/v1/agents/{name}/invoke`
+
+Non-streaming fallback. Same request body as `stream` (minus `stream_mode` and `version`). Returns the final state as a single JSON response. Used for simple single-turn invocations where streaming is not needed (e.g., estimation from the assist panel).
+
+#### `GET /api/v1/health`
+
+**Response** `200 OK`:
+```json
+{
+    "status": "ok",
+    "agents_loaded": 5,
+    "checkpointer": "postgres",
+    "store": "postgres"
+}
+```
+
+### 5A.6 Agent graph topology (per agent)
+
+Each agent is a LangGraph `StateGraph`. The topology is specified here so the FE can predict the interaction pattern.
+
+#### board-brief-agent
+
+```
+START → fetch_snapshot → detect_drift → generate_brief → emit_citations → END
+          (interrupt)      (be tool)       (LLM)          (custom event)
+```
+
+- `fetch_snapshot`: calls `interrupt({"tool": "fe.boardSnapshot"})` to get board data from the FE.
+- `detect_drift`: invokes `be.detectDrift` server-side.
+- `generate_brief`: LLM call with structured output (`IBoardBrief` schema). Reads `last_brief_read_at` from `BaseStore` to compute "what changed" headline.
+- `emit_citations`: emits `custom` events for each cited entity.
+- **Recursion limit:** 6. **Typical turns:** 1 (no multi-turn).
+
+#### task-drafting-agent
+
+```
+START → fetch_context → generate_draft ──┬── END (single draft)
+          (interrupt)      (LLM)         │
+                                         └── breakdown_loop → END (multiple drafts)
+                                               (LLM, N iterations)
+```
+
+- `fetch_context`: interrupts for `fe.boardSnapshot` and `fe.similarTasks`.
+- `generate_draft`: LLM call with structured output (`IDraftTaskSuggestion` schema).
+- `breakdown_loop`: if `breakdown_axis` is set, iterates to produce 2–6 subtasks.
+- **Recursion limit:** 12. **Typical turns:** 1.
+
+#### task-estimation-agent
+
+```
+START → fetch_similar → fetch_embeddings → estimate → readiness → emit_citations → END
+         (interrupt)      (be tool)         (LLM)      (LLM)       (custom event)
+```
+
+- `fetch_similar`: interrupts for `fe.similarTasks`.
+- `fetch_embeddings`: invokes `be.embeddingNeighbors` server-side.
+- `estimate`: LLM call → `IEstimateSuggestion`.
+- `readiness`: LLM call → `IReadinessReport`.
+- **Recursion limit:** 8. **Typical turns:** 1.
+
+#### chat-agent
+
+```
+START → route ──┬── tool_call → observe → route (loop)
+                │     (interrupt or be tool)
+                └── respond → emit_citations → END
+                      (LLM streaming)
+```
+
+- `route`: LLM decides whether to call a tool or respond directly.
+- `tool_call`: if the tool is `fe.*`, interrupts to the FE; if `be.*`, executes server-side.
+- `observe`: adds tool result to messages, routes back to LLM.
+- `respond`: streams final text response token-by-token via `messages` stream mode.
+- **Recursion limit:** 15 (up to 5 tool rounds, matching v1's `MAX_TOOL_ROUNDS`). **Multi-turn via thread_id.**
+
+#### triage-agent
+
+```
+START → fetch_snapshot → detect_drift → generate_nudges → END
+          (interrupt)      (be tool)       (LLM)
+```
+
+- Runs on a **server-side schedule** (every 15 min per active project), not interactively.
+- For scheduled runs, `fe.boardSnapshot` is replaced by a server-side data fetch (the server calls the main REST API directly, using a service account token).
+- `generate_nudges`: emits `custom` events with `kind: "nudge"`.
+- **Recursion limit:** 6. **Typical turns:** 1 (fire-and-forget).
+
+### 5A.7 Authentication and authorization middleware
+
+```python
+# app/auth/middleware.py
+
+from fastapi import Request, HTTPException
+from fastapi.security import HTTPBearer
+
+security = HTTPBearer()
+
+async def validate_bearer(request: Request) -> dict:
+    """
+    Validates the JWT bearer token from the Authorization header.
+    Returns the decoded user payload: { user_id, email, roles }.
+    Raises 401 if invalid or expired.
+    """
+    ...
+
+async def check_project_ai_enabled(project_id: str, user_id: str) -> bool:
+    """
+    Checks the org allow-list for AI on this project.
+    Returns False if AI is disabled for this project.
+    Raises 403 if the project has AI disabled.
+    """
+    ...
+```
+
+The middleware runs on every `/api/v1/agents/*` request. It:
+
+1. Validates the bearer token and extracts `user_id`.
+2. For `stream` and `invoke`, checks that the `project_id` in the request body is AI-enabled.
+3. Checks per-user, per-agent rate limits.
+4. Checks per-project token budget via `be.budgetCheck`.
+
+### 5A.8 Rate limiting
+
+Per-agent, per-user rate limits are defined in `AgentMetadata`:
+
+| Agent                   | Requests/min | Requests/hour |
+| ----------------------- | ------------ | ------------- |
+| `board-brief-agent`     | 10           | 60            |
+| `task-drafting-agent`   | 10           | 100           |
+| `task-estimation-agent` | 20           | 200           |
+| `chat-agent`            | 20           | 200           |
+| `triage-agent`          | 2            | 20            |
+
+Rate limit state is stored in Redis (prod) or in-memory (dev). When exceeded, the server returns HTTP 429 with a `Retry-After` header.
+
+### 5A.9 Checkpointer and store configuration
+
+**Production:**
+```python
+from langgraph.checkpoint.postgres import AsyncPostgresSaver
+from langgraph.store.postgres import AsyncPostgresStore
+
+checkpointer = AsyncPostgresSaver.from_conn_string(settings.DATABASE_URL)
+store = AsyncPostgresStore.from_conn_string(
+    settings.DATABASE_URL,
+    index={"embed": embeddings, "dims": 1536}  # enables semantic search on store
+)
+```
+
+**Development (`--dev` flag):**
+```python
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.store.memory import InMemoryStore
+
+checkpointer = MemorySaver()
+store = InMemoryStore()
+```
+
+The checkpointer and store are injected into every agent at compile time via `agent.compile(checkpointer=checkpointer, store=store)`. Agents access the store inside nodes via `store: BaseStore` parameter injection or `get_store()`.
+
+### 5A.10 Server-side redaction pipeline
+
+```python
+# app/tools/redaction.py
+
+import re
+from typing import Any
+
+PATTERNS = [
+    (re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'), '[EMAIL]'),
+    (re.compile(r'\b(Bearer|token|sk-|pk_|ghp_|gho_)\S{10,}\b', re.I), '[SECRET]'),
+    (re.compile(r'\b\d{3}-\d{2}-\d{4}\b'), '[SSN]'),
+    (re.compile(r'\b\d{13,19}\b'), '[CARD]'),
+]
+
+def redact(text: str) -> tuple[str, list[dict]]:
+    """
+    Apply redaction patterns to text before sending to LLM provider.
+    Returns (redacted_text, list of {pattern, start, end} spans for audit).
+    """
+    spans = []
+    for pattern, replacement in PATTERNS:
+        for match in pattern.finditer(text):
+            spans.append({"pattern": replacement, "start": match.start(), "end": match.end()})
+        text = pattern.sub(replacement, text)
+    return text, spans
+```
+
+The redaction pass runs:
+1. On every user message before it enters the LLM context.
+2. On every `fe.*` tool result before it's passed to the LLM.
+3. Redaction spans are logged for the "What is shared" audit panel (Section 6.8) but never sent to the LLM.
+
+### 5A.11 MCP server configuration
+
+```python
+# app/main.py (MCP setup within FastAPI lifespan)
+
+from langchain_mcp_adapters import MCPServer
+
+async def lifespan(app):
+    # Register all agents as MCP-compatible tools
+    mcp = MCPServer(
+        agents=agent_registry.all(),
+        transport="streamable-http",
+        path="/mcp",
+    )
+    app.mount("/mcp", mcp.app)
+    yield
+```
+
+The MCP server exposes the same named agents available via `/api/v1/agents/*`. External assistants connect to `https://<server>/mcp` using MCP's streamable-HTTP transport. Tool schemas are automatically derived from the agent's tool definitions.
+
+### 5A.12 Testing strategy (server-side)
+
+| Test type          | Framework              | What it covers                                           |
+| ------------------ | ---------------------- | -------------------------------------------------------- |
+| Agent unit tests   | `pytest` + LangGraph test harness | Each agent graph with mocked LLM and tools. Verifies state transitions, interrupt payloads, and output schemas. |
+| Tool unit tests    | `pytest`               | `be.*` tools with mocked LLM/embedding providers. Redaction pass with corpus of 20+ samples. |
+| Integration tests  | `pytest` + `httpx.AsyncClient` | Full HTTP round-trip: open stream → interrupt → resume → verify output. Uses `MemorySaver` + `InMemoryStore`. |
+| Rate limit tests   | `pytest`               | Verify 429 after exceeding per-agent limits.             |
+| Auth tests         | `pytest`               | Verify 401 on missing/invalid token; 403 on disabled project. |
+
+All tests run without external dependencies (no real LLM, no Postgres, no Redis) by using `InMemoryStore`, `MemorySaver`, and mocked LLM responses.
+
+---
+
 ## 6. Trust, autonomy, and undo
 
 ### 6.1 The Autonomy Dial (simplified)
