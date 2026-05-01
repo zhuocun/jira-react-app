@@ -185,6 +185,20 @@ export const validateResponse = (
     return raw;
 };
 
+/**
+ * Remote v1 AI route. The Python `jira-python-server` only exposes
+ * `/api/v1/agents/{name}/(invoke|stream)` (PRD §5.3) -- it does NOT
+ * mount `/api/ai/*`. We keep this function so a future bridge server
+ * (or a managed proxy that translates `/api/ai/{route}` into agent
+ * runs) can be plugged in by setting `REACT_APP_AI_BASE_URL`, but in
+ * the canonical deployment the `aiUseLocalEngine` branch in `run`
+ * shortcuts here and the deterministic stub in `utils/ai/engine.ts`
+ * answers locally. The block below should never run with the bundled
+ * server.
+ *
+ * TODO(v2.x): collapse `useAi` onto `streamAgent` so all AI traffic
+ * goes through the LangGraph agent surface and this fork disappears.
+ */
 const remoteResolve = async (
     route: AiRoute,
     payload: RunPayload,
