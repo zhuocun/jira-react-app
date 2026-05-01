@@ -135,5 +135,92 @@ export const microcopy = {
             description:
                 "Try: 'What's at risk?' or 'Who has the most open tasks?' — answers come from your board data."
         }
+    },
+    /**
+     * Board Copilot v3 microcopy (PRD §9.6 X-R13). The `ai` namespace
+     * collects every user-visible AI string so a future translator (or a
+     * neutral-tone audit) only needs to look at one block. Keep strings
+     * tool-like — never "I think" or "I understand" (PRD §6.2).
+     */
+    ai: {
+        draftSuggestions: [
+            "Draft a bug fix task",
+            "Plan a new feature",
+            "Create a research spike"
+        ] as readonly string[],
+        chatSuggestions: [
+            "What's at risk on this board?",
+            "Who has the most open tasks?",
+            "Summarize this board"
+        ] as readonly string[],
+        privacyTitle: "What Board Copilot sees",
+        privacyDisclosure:
+            "Board Copilot sees your board's task names, columns, and member names. No notes, emails, or attachments are shared.",
+        privacyLink: "What is shared?",
+        privacyAcknowledge: "Got it",
+        privacySuppress: "Don't remind me",
+        streaming: "Board Copilot is thinking…",
+        stopped: "Stopped",
+        retryLabel: "Try again",
+        regenerateLabel: "Regenerate",
+        undoLabel: "Undo",
+        copiedConfirm: "Copied to clipboard",
+        feedbackThanks: "Thanks for your feedback",
+        confidenceBands: {
+            high: "High",
+            moderate: "Moderate",
+            low: "Low"
+        },
+        appliedSuggestion: "Suggested by Copilot",
+        appliedSuggestionShort: "AI",
+        suggestionPopover:
+            "Board Copilot filled this in. Edit it, or revert to the previous value.",
+        revertToPrevious: "Revert to previous",
+        showAlternatives: "Show alternatives",
+        showRationale: "Why this?",
+        applyAnyway: "Apply anyway",
+        emptyChatLead:
+            "Ask about this board, tasks, or your projects. Answers use read-only data from the app.",
+        emptyBriefLead:
+            "Not enough history for trends. The brief gets smarter as the board grows.",
+        emptyInbox:
+            "No nudges right now. Board Copilot checks for issues every 15 minutes.",
+        emptyHistory:
+            "No AI actions yet. Changes made with Board Copilot will appear here.",
+        rateLimit:
+            "Board Copilot is at capacity. Please try again in {seconds} seconds.",
+        projectDisabled:
+            "Board Copilot is turned off for this project. An admin can enable it in Settings.",
+        chatErrorRecovery:
+            "I couldn't find an answer. Try rephrasing, or check sources for what I looked at.",
+        copilotLabel: "Board Copilot",
+        askCopilot: "Ask Board Copilot",
+        newConversation: "New conversation",
+        stopResponse: "Stop response",
+        characterCounterMax: 2000,
+        characterCounterShowAfter: 500,
+        breakdownAxes: {
+            by_phase: {
+                label: "By phase",
+                tooltip: "Frontend, backend, testing"
+            },
+            by_surface: {
+                label: "By surface",
+                tooltip: "UI, API, data, infra"
+            },
+            by_risk: {
+                label: "By risk",
+                tooltip: "High risk first, low risk last"
+            },
+            freeform: {
+                label: "Let Copilot decide",
+                tooltip: "Agent picks the best split"
+            }
+        },
+        welcomeBannerTitle: "Board Copilot is ready",
+        welcomeBannerBody:
+            "Draft tasks, estimate work, summarize the board, and answer questions — all from your board data.",
+        welcomeBannerCta: "Try: Summarize this board",
+        welcomeBannerDismiss: "Dismiss"
     }
 } as const;

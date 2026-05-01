@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import environment from "../../constants/env";
 import type {
     AutonomyLevel,
@@ -10,6 +11,7 @@ import type {
     StreamPart,
     TriageNudge
 } from "../../interfaces/agent";
+import { STREAM_WATCHDOG_MS } from "../../theme/aiTokens";
 import { streamAgent } from "../ai/agentClient";
 import { FE_TOOL_REGISTRY } from "../ai/feTools";
 import type { FeToolContext } from "../ai/feTools";
@@ -45,6 +47,24 @@ export interface UseAgentResult {
     nudges: TriageNudge[];
     error: Error | null;
     reset: () => void;
+    /**
+     * Stable thread id for the current run (PRD v3 UA-R4). Surfaces use
+     * this for share/export links; resets on `reset()`.
+     */
+    threadId: string;
+    /**
+     * Time-To-First-Token in ms for the most recent turn (PRD v3 UA-R2).
+     * Null until the first `messages` chunk arrives. Surfaces compare
+     * against `TTFT_TARGET_MS` to detect slow turns; analytics fires
+     * `AGENT_TTFT` automatically when the value lands.
+     */
+    ttftMs: number | null;
+    /**
+     * Clears `pendingProposal` without leaving the agent run going (used
+     * after a user accepts/rejects from a UI surface and the parent has
+     * already wired the resume call). PRD v3 UA-R3.
+     */
+    clearPendingProposal: () => void;
 }
 
 export interface UseAgentOptions {
@@ -207,21 +227,40 @@ const useAgent = (
         useState<MutationProposal | null>(null);
     const [citations, setCitations] = useState<CitationRef[]>([]);
     const [nudges, setNudges] = useState<TriageNudge[]>([]);
-    const controllerRef = useRef<AbortController | null>(null);
-    const threadIdRef = useRef<string>(
+    const [threadId, setThreadId] = useState<string>(
         options.initialThreadId ?? generateThreadId()
     );
+    const [ttftMs, setTtftMs] = useState<number | null>(null);
+    const controllerRef = useRef<AbortController | null>(null);
+    const threadIdRef = useRef<string>(threadId);
     const lastInputRef = useRef<unknown>(null);
     const autonomyRef = useRef<AutonomyLevel>("plan");
     const autoResumeRef = useRef<boolean>(true);
     const mountedRef = useRef(true);
+    /**
+     * TTFT bookkeeping. `streamStartRef` records the `performance.now()`
+     * that consumeStream began; `ttftSeenRef` flips after the first
+     * `messages` chunk so we only emit once per turn (UA-R2).
+     */
+    const streamStartRef = useRef<number | null>(null);
+    const ttftSeenRef = useRef(false);
+    const watchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastChunkAtRef = useRef<number | null>(null);
+
+    const clearWatchdog = useCallback(() => {
+        if (watchdogRef.current !== null) {
+            clearTimeout(watchdogRef.current);
+            watchdogRef.current = null;
+        }
+    }, []);
 
     useEffect(
         () => () => {
             mountedRef.current = false;
             controllerRef.current?.abort();
+            clearWatchdog();
         },
-        []
+        [clearWatchdog]
     );
 
     const safeSetState = useCallback(
@@ -236,9 +275,25 @@ const useAgent = (
         async (
             body: Parameters<typeof streamAgent>[0]["body"],
             signal: AbortSignal,
-            ctx: FeToolContext
+            ctx: FeToolContext,
+            controller: AbortController
         ): Promise<{ pendingResume: unknown | undefined }> => {
             let pendingResume: unknown | undefined;
+            // Watchdog: if no stream chunk arrives for STREAM_WATCHDOG_MS,
+            // abort the run and surface a "took too long" error (UA-R1).
+            const armWatchdog = () => {
+                clearWatchdog();
+                lastChunkAtRef.current = performance.now();
+                watchdogRef.current = setTimeout(() => {
+                    controller.abort();
+                    if (mountedRef.current) {
+                        setError(
+                            new Error("Board Copilot took too long. Try again.")
+                        );
+                    }
+                }, STREAM_WATCHDOG_MS);
+            };
+            armWatchdog();
             try {
                 for await (const part of streamAgent({
                     name,
@@ -247,6 +302,26 @@ const useAgent = (
                     baseUrl
                 })) {
                     if (signal.aborted) break;
+                    armWatchdog();
+                    // TTFT (UA-R2): record on first `messages` chunk only.
+                    if (
+                        !ttftSeenRef.current &&
+                        part.type === "messages" &&
+                        streamStartRef.current !== null
+                    ) {
+                        ttftSeenRef.current = true;
+                        const elapsed = Math.max(
+                            0,
+                            Math.round(
+                                performance.now() - streamStartRef.current
+                            )
+                        );
+                        if (mountedRef.current) setTtftMs(elapsed);
+                        track(ANALYTICS_EVENTS.AGENT_TTFT, {
+                            agent: name,
+                            elapsedMs: elapsed
+                        });
+                    }
                     pendingResume = await applyStreamPart(part, {
                         setState: safeSetState,
                         setPendingInterrupt: (p) =>
@@ -269,10 +344,12 @@ const useAgent = (
                     if (mountedRef.current) setError(err);
                     throw err;
                 }
+            } finally {
+                clearWatchdog();
             }
             return { pendingResume };
         },
-        [baseUrl, name, safeSetState]
+        [baseUrl, clearWatchdog, name, safeSetState]
     );
 
     const runStream = useCallback(
@@ -282,6 +359,10 @@ const useAgent = (
             controllerRef.current = controller;
             setError(null);
             setIsStreaming(true);
+            // Reset TTFT bookkeeping for the new turn (UA-R2).
+            streamStartRef.current = performance.now();
+            ttftSeenRef.current = false;
+            if (mountedRef.current) setTtftMs(null);
 
             const baseCtx: FeToolContext = {
                 queryClient,
@@ -300,7 +381,8 @@ const useAgent = (
                     const { pendingResume } = await consumeStream(
                         nextBody,
                         controller.signal,
-                        baseCtx
+                        baseCtx,
+                        controller
                     );
                     if (pendingResume === undefined) break;
                     nextBody = {
@@ -317,6 +399,7 @@ const useAgent = (
                 // already surfaced
                 void err;
             } finally {
+                clearWatchdog();
                 if (
                     mountedRef.current &&
                     controllerRef.current === controller
@@ -327,6 +410,7 @@ const useAgent = (
             }
         },
         [
+            clearWatchdog,
             consumeStream,
             options.feToolContext,
             options.projectId,
@@ -339,6 +423,7 @@ const useAgent = (
         async (input: unknown, startOptions: StartOptions = {}) => {
             if (startOptions.threadId) {
                 threadIdRef.current = startOptions.threadId;
+                if (mountedRef.current) setThreadId(startOptions.threadId);
             }
             if (startOptions.autonomy)
                 autonomyRef.current = startOptions.autonomy;
@@ -414,6 +499,7 @@ const useAgent = (
     const reset = useCallback(() => {
         controllerRef.current?.abort();
         controllerRef.current = null;
+        clearWatchdog();
         if (!mountedRef.current) return;
         setState({ messages: [] });
         setPendingInterrupt(null);
@@ -422,7 +508,16 @@ const useAgent = (
         setNudges([]);
         setError(null);
         setIsStreaming(false);
-        threadIdRef.current = generateThreadId();
+        setTtftMs(null);
+        const next = generateThreadId();
+        threadIdRef.current = next;
+        setThreadId(next);
+        ttftSeenRef.current = false;
+        streamStartRef.current = null;
+    }, [clearWatchdog]);
+
+    const clearPendingProposal = useCallback(() => {
+        if (mountedRef.current) setPendingProposal(null);
     }, []);
 
     return useMemo(
@@ -437,11 +532,15 @@ const useAgent = (
             citations,
             nudges,
             error,
-            reset
+            reset,
+            threadId,
+            ttftMs,
+            clearPendingProposal
         }),
         [
             abort,
             citations,
+            clearPendingProposal,
             error,
             isStreaming,
             nudges,
@@ -450,7 +549,9 @@ const useAgent = (
             reset,
             resume,
             start,
-            state
+            state,
+            threadId,
+            ttftMs
         ]
     );
 };

@@ -183,12 +183,16 @@ describe("ProjectPage with Board Copilot enabled", () => {
 
         await waitFor(() => {
             expect(
-                screen.getByLabelText("Show tool details")
+                document.querySelector(".ant-drawer-open details")
             ).toBeInTheDocument();
         });
-        fireEvent.click(screen.getByLabelText("Show tool details"));
+        const summaryEl = document.querySelector(
+            ".ant-drawer-open details summary"
+        ) as HTMLElement | null;
+        expect(summaryEl).toBeTruthy();
+        fireEvent.click(summaryEl!);
         await waitFor(() => {
-            expect(screen.getByText("listProjects")).toBeInTheDocument();
+            expect(screen.getByText(/listProjects/i)).toBeInTheDocument();
         });
 
         const drawerClose = document.querySelector(

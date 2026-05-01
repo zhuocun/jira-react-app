@@ -1,18 +1,37 @@
-import React from "react";
+import React, { useId } from "react";
 
-let gradientId = 0;
-const nextId = () => {
-    gradientId += 1;
-    return `aiSparkleGradient-${gradientId}`;
-};
+import { sparkleSize, type SparkleSize } from "../../theme/aiTokens";
 
 /**
  * AI accent sparkle. Renders a violet→indigo→pink gradient that visually
- * separates AI surfaces from the rest of the brand. Each render gets a
- * unique gradient id so multiple icons on the same page don't collide.
+ * separates AI surfaces from the rest of the brand.
+ *
+ * SSR safety (PRD v3 S-R1): the gradient id is sourced from React's
+ * `useId()` so multiple instances on the same page don't collide and
+ * server-rendered output matches the hydrated DOM. The previous
+ * module-level counter crashed on SSR and produced duplicate IDs after
+ * Vite HMR.
+ *
+ * Theming (S-R2): each gradient stop binds to a CSS custom property
+ * (`--color-copilot-grad-*`) declared in `App.css`. Dark-mode shifts the
+ * hue toward lavender so the icon stays readable on dark surfaces.
+ *
+ * Accessibility (S-R3, S-R4): when `aria-hidden` is true the icon
+ * contributes nothing to the AX tree. When the icon is meaningful, an
+ * explicit `aria-label` is rendered with `role="img"`.
  */
-const AiSparkleIcon: React.FC<{
+interface AiSparkleIconProps {
+    /**
+     * Optional sizing token (S-R4). `sm` ≈ 14 px, `md` ≈ 18 px, `lg` ≈ 24 px.
+     * Without this prop the icon scales to the surrounding font (`1em`).
+     */
+    size?: SparkleSize;
     style?: React.CSSProperties;
+    /**
+     * Accessible name when the icon stands alone as a meaningful image.
+     * If omitted (or `aria-hidden` is true) the icon is treated as
+     * decorative.
+     */
     title?: string;
     /**
      * When true, the icon contributes nothing to the accessibility tree
@@ -21,24 +40,48 @@ const AiSparkleIcon: React.FC<{
      * button's accessible name (e.g. "Board Copilot Search").
      */
     "aria-hidden"?: boolean;
-}> = ({ style, title, "aria-hidden": ariaHidden }) => {
-    const id = React.useMemo(() => nextId(), []);
+}
+
+const AiSparkleIcon: React.FC<AiSparkleIconProps> = ({
+    size,
+    style,
+    title,
+    "aria-hidden": ariaHidden
+}) => {
+    const id = useId();
+    const dim = size ? sparkleSize[size] : undefined;
+    const sizeProps =
+        dim !== undefined
+            ? { height: dim, width: dim }
+            : { height: "1em", width: "1em" };
+    const baseStyle: React.CSSProperties = {
+        verticalAlign: "-0.125em",
+        ...style
+    };
     if (ariaHidden) {
         return (
             <svg
                 aria-hidden="true"
                 fill="none"
                 focusable="false"
-                height="1em"
-                style={{ verticalAlign: "-0.125em", ...style }}
+                style={baseStyle}
                 viewBox="0 0 24 24"
-                width="1em"
+                {...sizeProps}
             >
                 <defs>
                     <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#7C5CFF" />
-                        <stop offset="60%" stopColor="#5E6AD2" />
-                        <stop offset="100%" stopColor="#C084FC" />
+                        <stop
+                            offset="0%"
+                            stopColor="var(--color-copilot-grad-start, #7C5CFF)"
+                        />
+                        <stop
+                            offset="60%"
+                            stopColor="var(--color-copilot-grad-mid, #5E6AD2)"
+                        />
+                        <stop
+                            offset="100%"
+                            stopColor="var(--color-copilot-grad-end, #C084FC)"
+                        />
                     </linearGradient>
                 </defs>
                 <path
@@ -57,17 +100,25 @@ const AiSparkleIcon: React.FC<{
         <svg
             aria-label={title ?? "Board Copilot"}
             fill="none"
-            height="1em"
             role="img"
-            style={{ verticalAlign: "-0.125em", ...style }}
+            style={baseStyle}
             viewBox="0 0 24 24"
-            width="1em"
+            {...sizeProps}
         >
             <defs>
                 <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#7C5CFF" />
-                    <stop offset="60%" stopColor="#5E6AD2" />
-                    <stop offset="100%" stopColor="#C084FC" />
+                    <stop
+                        offset="0%"
+                        stopColor="var(--color-copilot-grad-start, #7C5CFF)"
+                    />
+                    <stop
+                        offset="60%"
+                        stopColor="var(--color-copilot-grad-mid, #5E6AD2)"
+                    />
+                    <stop
+                        offset="100%"
+                        stopColor="var(--color-copilot-grad-end, #C084FC)"
+                    />
                 </linearGradient>
             </defs>
             <path

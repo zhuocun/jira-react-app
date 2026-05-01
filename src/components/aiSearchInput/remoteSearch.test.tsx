@@ -74,12 +74,14 @@ describe("AiSearchInput remote search transport", () => {
                 target: { value: "login flaky" }
             }
         );
-        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
+        fireEvent.click(
+            screen.getByRole("button", { name: microcopy.actions.search })
+        );
 
         await waitFor(() => {
             expect(
-                screen.getByText(/Board Copilot search failed/i)
-            ).toBeInTheDocument();
+                screen.getAllByText(/Search failed/i).length
+            ).toBeGreaterThan(0);
         });
     });
 
@@ -101,17 +103,19 @@ describe("AiSearchInput remote search transport", () => {
                 target: { value: "login" }
             }
         );
-        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
+        fireEvent.click(
+            screen.getByRole("button", { name: microcopy.actions.search })
+        );
 
         await waitFor(() => {
             expect(
-                screen.getByText(/Board Copilot search failed/i)
-            ).toBeInTheDocument();
+                screen.getAllByText(/Search failed/i).length
+            ).toBeGreaterThan(0);
         });
 
         const alerts = screen.getAllByRole("alert");
         const failureAlert = alerts.find((el) =>
-            el.textContent?.includes("Board Copilot search failed")
+            el.textContent?.includes("Search failed")
         );
         expect(failureAlert).toBeTruthy();
         fireEvent.click(
@@ -120,7 +124,7 @@ describe("AiSearchInput remote search transport", () => {
 
         await waitFor(() => {
             expect(
-                screen.queryByText(/Board Copilot search failed/i)
+                screen.queryByText(/Search failed\. Try again\./i)
             ).not.toBeInTheDocument();
         });
     });

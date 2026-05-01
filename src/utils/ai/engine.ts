@@ -138,6 +138,12 @@ export interface DraftRequest {
     columnId?: string;
     coordinatorId?: string;
     context: AiContextProject;
+    /**
+     * Optional breakdown axis (PRD v3 D-R3). When the agent supports it
+     * the server picks the cut accordingly; the local fallback ignores
+     * the value and returns its default split.
+     */
+    axis?: "by_phase" | "by_surface" | "by_risk" | "freeform";
 }
 
 const buildNote = (prompt: string, type: "Task" | "Bug"): string => {

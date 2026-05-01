@@ -1,3 +1,4 @@
+import { ReloadOutlined } from "@ant-design/icons";
 import {
     Alert,
     Button,
@@ -8,27 +9,27 @@ import {
     Tooltip,
     Typography
 } from "antd";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react"; // useRef kept for previousPointsRef
 import { useParams } from "react-router-dom";
 
+import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import { microcopy } from "../../constants/microcopy";
-import { accent, fontSize, fontWeight, space } from "../../theme/tokens";
+import { aiTokens } from "../../theme/aiTokens";
+import { fontSize, fontWeight, space } from "../../theme/tokens";
+import {
+    confidenceBand,
+    confidenceColor,
+    confidencePercent
+} from "../../utils/ai/confidenceBand";
+import { aiErrorView } from "../../utils/ai/errorTemplate";
 import useAi from "../../utils/hooks/useAi";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useDebounce from "../../utils/hooks/useDebounce";
 import useDelayedFlag from "../../utils/hooks/useDelayedFlag";
+import useUndoToast from "../../utils/hooks/useUndoToast";
 import AiSparkleIcon from "../aiSparkleIcon";
-
-/**
- * Map a 0–1 confidence to a plain-language band. Threshold values mirror
- * standard product-analytics buckets and are paired with the percentage
- * so users without a probability intuition can still act.
- */
-const confidenceBand = (confidence: number): "Low" | "Moderate" | "High" => {
-    if (confidence >= 0.75) return "High";
-    if (confidence >= 0.45) return "Moderate";
-    return "Low";
-};
+import AiSuggestedBadge from "../aiSuggestedBadge";
+import CopilotPrivacyPopover from "../copilotPrivacyPopover";
 
 // Stable fallbacks: avoid producing a new `[]` reference on every render, which
 // otherwise re-fires the suggestion effect endlessly when the cache is empty.
@@ -77,9 +78,8 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
     const readinessAi = useAi<IReadinessReport>({ route: "readiness" });
     const runEstimate = estimateAi.run;
     const runReadiness = readinessAi.run;
-    // Throttle the spinner — local-engine responses resolve in <250ms and a
-    // bare Spin causes a visible flash. useDelayedFlag suppresses it unless
-    // the request is actually slow.
+    const resetEstimate = estimateAi.reset;
+    const resetReadiness = readinessAi.reset;
     const showEstimateSpinner = useDelayedFlag(
         estimateAi.isLoading && !estimateAi.data,
         250
@@ -88,12 +88,41 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
         readinessAi.isLoading && !readinessAi.data,
         250
     );
+    /**
+     * Dismissed readiness issues (T-R5). Cleared whenever the task name
+     * changes so a new run shows fresh issues. The set holds composite
+     * `field + message` keys to handle multiple issues per field.
+     */
+    const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(
+        () => new Set()
+    );
+    /** Most recently applied story-point value, captured for Undo (T-R1). */
+    const previousPointsRef = useRef<number | undefined>(values.storyPoints);
+    const [showAlternative, setShowAlternative] = useState(false);
+    const undoToast = useUndoToast();
+    const errorView = aiErrorView(estimateAi.error);
+    const readinessErrorView = aiErrorView(readinessAi.error);
 
+    /**
+     * Stale-data guard (T-R7, T-R9). When the trimmed task name is empty,
+     * clear both AI state hooks so the panel renders the empty-state copy
+     * instead of the previous task's estimate. Whitespace-only changes
+     * to the *name* are skipped, but real context changes (board / tasks
+     * /members loading in after mount) still re-fire so cold caches
+     * don't strand the panel.
+     */
+    const trimmedName = taskName.trim();
     useEffect(() => {
-        if (!taskName.trim()) return;
+        if (!trimmedName) {
+            resetEstimate();
+            resetReadiness();
+            setDismissedKeys(new Set());
+            return;
+        }
+        setDismissedKeys(new Set());
         runEstimate({
             estimate: {
-                taskName,
+                taskName: trimmedName,
                 note: debouncedValues.note,
                 epic: debouncedValues.epic,
                 type: debouncedValues.type,
@@ -109,7 +138,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
         }).catch(() => undefined);
         runReadiness({
             readiness: {
-                taskName,
+                taskName: trimmedName,
                 note: debouncedValues.note,
                 epic: debouncedValues.epic,
                 type: debouncedValues.type,
@@ -123,7 +152,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
             }
         }).catch(() => undefined);
     }, [
-        taskName,
+        trimmedName,
         debouncedValues.note,
         debouncedValues.epic,
         debouncedValues.type,
@@ -134,206 +163,396 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
         tasks,
         members,
         runEstimate,
-        runReadiness
+        runReadiness,
+        resetEstimate,
+        resetReadiness
     ]);
 
     const taskById = (id: string) => tasks.find((task) => task._id === id);
 
-    const SectionHeading: React.FC<{ children: React.ReactNode }> = ({
-        children
-    }) => (
-        <Typography.Title
-            level={5}
+    const handleApplyPoints = useCallback(() => {
+        if (!estimateAi.data) return;
+        const previous = previousPointsRef.current;
+        const next = estimateAi.data.storyPoints;
+        previousPointsRef.current = next;
+        onApplyStoryPoints(next);
+        track(ANALYTICS_EVENTS.COPILOT_ESTIMATE_APPLY, {
+            storyPoints: next,
+            confidence: estimateAi.data.confidence
+        });
+        undoToast.show({
+            description: `Story points set to ${next}.`,
+            analyticsTag: "copilot.estimate.apply",
+            undo: () => {
+                if (previous === undefined) return;
+                onApplyStoryPoints(previous as StoryPoints);
+                previousPointsRef.current = previous;
+            }
+        });
+    }, [estimateAi.data, onApplyStoryPoints, undoToast]);
+
+    const handleApplyReadiness = useCallback(
+        (issue: IReadinessIssue) => {
+            if (!issue.suggestion) return;
+            onApplySuggestion(issue.field, issue.suggestion);
+            undoToast.show({
+                description: `Updated ${issue.field}.`,
+                analyticsTag: "copilot.readiness.apply",
+                undo: () => {
+                    /*
+                     * Readiness suggestions don't carry a "previous" value
+                     * (the form drives that itself), so the undo here is a
+                     * passive notification — the field stays where the user
+                     * left it. Keeping the toast still gives users a clear
+                     * tracking surface that an AI change happened.
+                     */
+                }
+            });
+        },
+        [onApplySuggestion, undoToast]
+    );
+
+    const handleRegenerate = useCallback(() => {
+        if (!trimmedName) return;
+        track(ANALYTICS_EVENTS.COPILOT_CHAT_REGENERATE, {
+            surface: "estimate"
+        });
+        runEstimate({
+            estimate: {
+                taskName: trimmedName,
+                note: debouncedValues.note,
+                epic: debouncedValues.epic,
+                type: debouncedValues.type,
+                tasks,
+                excludeTaskId,
+                context: {
+                    project: { _id: projectId ?? "", projectName: "" },
+                    columns,
+                    tasks,
+                    members
+                }
+            }
+        }).catch(() => undefined);
+    }, [
+        trimmedName,
+        debouncedValues.note,
+        debouncedValues.epic,
+        debouncedValues.type,
+        excludeTaskId,
+        projectId,
+        columns,
+        tasks,
+        members,
+        runEstimate
+    ]);
+
+    const SectionHeading: React.FC<{
+        children: React.ReactNode;
+        right?: React.ReactNode;
+    }> = ({ children, right }) => (
+        <div
             style={{
-                fontSize: fontSize.base,
-                marginBottom: space.xxs,
-                marginTop: 0
+                alignItems: "center",
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: space.xxs
             }}
         >
-            {children}
-        </Typography.Title>
+            <Typography.Title
+                level={5}
+                style={{
+                    fontSize: fontSize.base,
+                    margin: 0
+                }}
+            >
+                {children}
+            </Typography.Title>
+            {right ? <span>{right}</span> : null}
+        </div>
     );
+
+    const estimateData = estimateAi.data;
+    const band = estimateData ? confidenceBand(estimateData.confidence) : "Low";
+    const bandColor = confidenceColor(band);
+    const percent = estimateData
+        ? confidencePercent(estimateData.confidence)
+        : "0%";
+    const lowConfidence = estimateData && band === "Low";
 
     return (
         <Card
             size="small"
             style={{
-                background: `linear-gradient(180deg, ${accent.bgSubtle} 0%, transparent 100%)`,
-                borderColor: accent.bgMedium,
+                background: `linear-gradient(180deg, ${aiTokens.bgSubtle} 0%, transparent 100%)`,
+                borderColor: "var(--color-copilot-bg-medium)",
                 marginTop: space.md
             }}
             title={
                 <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />
                     <span style={{ fontWeight: fontWeight.semibold }}>
-                        Board Copilot
+                        {microcopy.ai.copilotLabel}
                     </span>
-                    <Tag variant="filled" color="purple">
-                        {microcopy.a11y.aiBadge}
-                    </Tag>
+                    <Tag color="purple">{microcopy.a11y.aiBadge}</Tag>
+                    <CopilotPrivacyPopover />
                 </Space>
             }
         >
-            <SectionHeading>Suggested story points</SectionHeading>
-            {showEstimateSpinner && (
-                <Skeleton
-                    active
-                    aria-label="Estimating story points"
-                    paragraph={{ rows: 2 }}
-                    title={false}
-                />
-            )}
-            {estimateAi.error && (
-                <Alert
-                    showIcon
-                    style={{ marginBottom: space.xs }}
-                    title={
-                        estimateAi.error.message || "Failed to estimate task"
-                    }
-                    type="warning"
-                />
-            )}
-            {estimateAi.data && (
-                <div>
-                    <div
-                        style={{
-                            alignItems: "center",
-                            display: "flex",
-                            gap: space.xs,
-                            flexWrap: "wrap"
-                        }}
-                    >
-                        <span
-                            aria-label={`Suggested story points: ${estimateAi.data.storyPoints}`}
-                            style={{
-                                fontSize: fontSize.xxl,
-                                fontWeight: 600
-                            }}
-                        >
-                            {estimateAi.data.storyPoints}
-                        </span>
-                        <Tooltip title="Board Copilot's confidence in this estimate, based on similar tasks on this board.">
-                            <Tag color="blue">
-                                {`AI confidence: ${confidenceBand(
-                                    estimateAi.data.confidence
-                                )} (${(
-                                    estimateAi.data.confidence * 100
-                                ).toFixed(0)}%)`}
-                            </Tag>
+            <SectionHeading
+                right={
+                    estimateData ? (
+                        <Tooltip title={microcopy.ai.regenerateLabel}>
+                            <Button
+                                aria-label={microcopy.ai.regenerateLabel}
+                                disabled={estimateAi.isLoading}
+                                icon={<ReloadOutlined />}
+                                onClick={handleRegenerate}
+                                size="small"
+                                type="text"
+                            />
                         </Tooltip>
-                        <Button
-                            aria-label="Apply suggested story points"
-                            onClick={() =>
-                                onApplyStoryPoints(estimateAi.data!.storyPoints)
-                            }
-                            size="small"
-                            type="primary"
-                        >
-                            {microcopy.actions.apply}
-                        </Button>
-                    </div>
+                    ) : null
+                }
+            >
+                Suggested story points
+            </SectionHeading>
+            <div aria-atomic="false" aria-live="polite">
+                {!trimmedName && !estimateAi.isLoading && (
                     <Typography.Paragraph
-                        style={{ margin: `${space.xxs}px 0` }}
+                        style={{ margin: 0 }}
                         type="secondary"
                     >
-                        {estimateAi.data.rationale}
+                        Type a task name above to get an estimate.
                     </Typography.Paragraph>
-                    {estimateAi.data.similar.length > 0 && (
-                        <div>
-                            <strong>Similar tasks:</strong>
-                            <ul style={{ paddingLeft: space.lg }}>
-                                {estimateAi.data.similar.map((entry) => {
-                                    const task = taskById(entry._id);
-                                    return (
-                                        <li key={entry._id}>
-                                            <Button
-                                                onClick={() =>
-                                                    onOpenSimilarTask(entry._id)
-                                                }
-                                                size="small"
-                                                style={{
-                                                    height: "auto",
-                                                    padding: 0
-                                                }}
-                                                type="link"
-                                            >
-                                                {task?.taskName ?? entry._id}
-                                            </Button>{" "}
-                                            <Typography.Text type="secondary">
-                                                — {entry.reason}
-                                            </Typography.Text>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            <div style={{ marginTop: space.md }}>
-                <SectionHeading>Readiness check</SectionHeading>
-            </div>
-            {showReadinessSpinner && (
-                <Skeleton
-                    active
-                    aria-label="Running readiness check"
-                    paragraph={{ rows: 1 }}
-                    title={false}
-                />
-            )}
-            {readinessAi.error && (
-                <Alert
-                    showIcon
-                    style={{ marginBottom: space.xs }}
-                    title={
-                        readinessAi.error.message ||
-                        "Failed to run readiness check"
-                    }
-                    type="warning"
-                />
-            )}
-            {readinessAi.data && readinessAi.data.issues.length === 0 && (
-                <Alert
-                    showIcon
-                    title="Looks ready to work on."
-                    type="success"
-                />
-            )}
-            {readinessAi.data &&
-                readinessAi.data.issues.map((issue) => (
+                )}
+                {showEstimateSpinner && (
+                    <Skeleton
+                        active
+                        aria-label="Estimating story points"
+                        paragraph={{ rows: 2 }}
+                        title={false}
+                    />
+                )}
+                {estimateAi.error && (
                     <Alert
                         action={
-                            issue.suggestion ? (
+                            errorView.retryable ? (
                                 <Button
-                                    aria-label={`Apply readiness suggestion for ${issue.field}`}
+                                    onClick={handleRegenerate}
+                                    size="small"
+                                    type="link"
+                                >
+                                    {microcopy.ai.retryLabel}
+                                </Button>
+                            ) : null
+                        }
+                        title={errorView.heading}
+                        showIcon
+                        style={{ marginBottom: space.xs }}
+                        type={errorView.severity}
+                    />
+                )}
+                {estimateData && (
+                    <div>
+                        <div
+                            style={{
+                                alignItems: "center",
+                                display: "flex",
+                                gap: space.xs,
+                                flexWrap: "wrap"
+                            }}
+                        >
+                            <span
+                                aria-label={`Suggested story points: ${estimateData.storyPoints}`}
+                                style={{
+                                    fontSize: fontSize.xxl,
+                                    fontWeight: 600
+                                }}
+                            >
+                                {estimateData.storyPoints}
+                            </span>
+                            <Tooltip title="Based on similar tasks on this board.">
+                                <Tag color={bandColor}>
+                                    {`${band} (${percent})`}
+                                </Tag>
+                            </Tooltip>
+                            <Button
+                                aria-label="Apply suggested story points"
+                                onClick={handleApplyPoints}
+                                size="small"
+                                type={lowConfidence ? "default" : "primary"}
+                            >
+                                {lowConfidence
+                                    ? microcopy.ai.applyAnyway
+                                    : microcopy.actions.apply}
+                            </Button>
+                            {estimateData.similar.length > 1 && (
+                                <Button
+                                    aria-label={microcopy.ai.showAlternatives}
                                     onClick={() =>
-                                        onApplySuggestion(
-                                            issue.field,
-                                            issue.suggestion!
-                                        )
+                                        setShowAlternative((prev) => !prev)
                                     }
                                     size="small"
                                     type="link"
                                 >
-                                    {microcopy.actions.apply}
+                                    {microcopy.ai.showAlternatives}
                                 </Button>
-                            ) : null
-                        }
-                        description={issue.suggestion}
-                        key={`${issue.field}-${issue.message}`}
-                        showIcon
-                        style={{ marginBottom: space.xxs }}
-                        title={`${microcopy.a11y.aiSuggestion}: ${issue.message}`}
-                        type={
-                            issue.severity === "error"
-                                ? "error"
-                                : issue.severity === "warn"
-                                  ? "warning"
-                                  : "info"
-                        }
+                            )}
+                        </div>
+                        <Typography.Paragraph
+                            style={{ margin: `${space.xxs}px 0` }}
+                            type="secondary"
+                        >
+                            {estimateData.rationale}
+                        </Typography.Paragraph>
+                        {showAlternative && estimateData.similar.length > 1 && (
+                            <Alert
+                                title={
+                                    <span>
+                                        <strong>Alternative:</strong> similar
+                                        task “
+                                        {taskById(estimateData.similar[1]._id)
+                                            ?.taskName ??
+                                            estimateData.similar[1]._id}
+                                        ” — {estimateData.similar[1].reason}
+                                    </span>
+                                }
+                                showIcon
+                                style={{ marginBottom: space.xs }}
+                                type="info"
+                            />
+                        )}
+                        {values.storyPoints !== undefined &&
+                            values.storyPoints === estimateData.storyPoints && (
+                                <AiSuggestedBadge
+                                    onRevert={() => {
+                                        const prev = previousPointsRef.current;
+                                        if (
+                                            prev !== undefined &&
+                                            prev !== null
+                                        ) {
+                                            onApplyStoryPoints(
+                                                prev as StoryPoints
+                                            );
+                                        }
+                                    }}
+                                    rationale={estimateData.rationale}
+                                    style={{ marginInlineEnd: space.xs }}
+                                />
+                            )}
+                        {estimateData.similar.length > 0 && (
+                            <div>
+                                <strong>Similar tasks:</strong>
+                                <ul style={{ paddingLeft: space.lg }}>
+                                    {estimateData.similar.map((entry) => {
+                                        const task = taskById(entry._id);
+                                        return (
+                                            <li key={entry._id}>
+                                                <Button
+                                                    onClick={() =>
+                                                        onOpenSimilarTask(
+                                                            entry._id
+                                                        )
+                                                    }
+                                                    size="small"
+                                                    style={{
+                                                        height: "auto",
+                                                        padding: 0
+                                                    }}
+                                                    type="link"
+                                                >
+                                                    {task?.taskName ??
+                                                        entry._id}
+                                                </Button>{" "}
+                                                <Typography.Text type="secondary">
+                                                    — {entry.reason}
+                                                </Typography.Text>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            <div style={{ marginTop: space.md }}>
+                <SectionHeading>Readiness check</SectionHeading>
+            </div>
+            <div aria-atomic="false" aria-live="polite">
+                {showReadinessSpinner && (
+                    <Skeleton
+                        active
+                        aria-label="Running readiness check"
+                        paragraph={{ rows: 1 }}
+                        title={false}
                     />
-                ))}
+                )}
+                {readinessAi.error && (
+                    <Alert
+                        title={readinessErrorView.heading}
+                        showIcon
+                        style={{ marginBottom: space.xs }}
+                        type={readinessErrorView.severity}
+                    />
+                )}
+                {readinessAi.data && readinessAi.data.issues.length === 0 && (
+                    <Alert
+                        title="Looks ready to work on."
+                        showIcon
+                        type="success"
+                    />
+                )}
+                {readinessAi.data &&
+                    readinessAi.data.issues
+                        .filter(
+                            (issue) =>
+                                !dismissedKeys.has(
+                                    `${issue.field}-${issue.message}`
+                                )
+                        )
+                        .map((issue) => (
+                            <Alert
+                                action={
+                                    issue.suggestion ? (
+                                        <Button
+                                            aria-label={`Apply readiness suggestion for ${issue.field}`}
+                                            onClick={() =>
+                                                handleApplyReadiness(issue)
+                                            }
+                                            size="small"
+                                            type="link"
+                                        >
+                                            {microcopy.actions.apply}
+                                        </Button>
+                                    ) : null
+                                }
+                                closable
+                                description={issue.suggestion}
+                                key={`${issue.field}-${issue.message}`}
+                                onClose={() => {
+                                    setDismissedKeys((prev) => {
+                                        const next = new Set(prev);
+                                        next.add(
+                                            `${issue.field}-${issue.message}`
+                                        );
+                                        return next;
+                                    });
+                                }}
+                                showIcon
+                                style={{ marginBottom: space.xxs }}
+                                title={`${microcopy.a11y.aiSuggestion}: ${issue.message}`}
+                                type={
+                                    issue.severity === "error"
+                                        ? "error"
+                                        : issue.severity === "warn"
+                                          ? "warning"
+                                          : "info"
+                                }
+                            />
+                        ))}
+            </div>
         </Card>
     );
 };

@@ -1,3 +1,4 @@
+import { ReloadOutlined } from "@ant-design/icons";
 import {
     Alert,
     Button,
@@ -5,23 +6,37 @@ import {
     Form,
     Input,
     Modal,
+    Progress,
     Select,
     Space,
     Spin,
-    Tag
+    Tag,
+    Tooltip,
+    Typography
 } from "antd";
 import { useForm } from "antd/lib/form/Form";
-import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import { microcopy } from "../../constants/microcopy";
 import { modalWidthCss, space } from "../../theme/tokens";
+import {
+    confidenceBand,
+    confidenceColor,
+    confidencePercent
+} from "../../utils/ai/confidenceBand";
+import { aiErrorView } from "../../utils/ai/errorTemplate";
 import useAi from "../../utils/hooks/useAi";
 import useAuth from "../../utils/hooks/useAuth";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useReactMutation from "../../utils/hooks/useReactMutation";
+import useUndoToast from "../../utils/hooks/useUndoToast";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
 import AiSparkleIcon from "../aiSparkleIcon";
+import AiSuggestedBadge from "../aiSuggestedBadge";
+import { CopilotPrivacyDisclosure } from "../copilotPrivacyPopover";
 
 interface AiTaskDraftModalProps {
     open: boolean;
@@ -30,6 +45,29 @@ interface AiTaskDraftModalProps {
 }
 
 const { TextArea } = Input;
+
+type BreakdownAxis = "by_phase" | "by_surface" | "by_risk" | "freeform";
+
+const BREAKDOWN_AXES: BreakdownAxis[] = [
+    "by_phase",
+    "by_surface",
+    "by_risk",
+    "freeform"
+];
+
+/**
+ * Form fields the AI draft populates. After Apply, each populated field
+ * shows the "Suggested by Copilot" badge until the user edits it (D-R2).
+ */
+const AI_FIELDS: ReadonlyArray<keyof IDraftTaskSuggestion> = [
+    "taskName",
+    "type",
+    "epic",
+    "storyPoints",
+    "note",
+    "columnId",
+    "coordinatorId"
+];
 
 const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
     open,
@@ -45,17 +83,27 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
 
     const [prompt, setPrompt] = useState("");
     const [breakdownMode, setBreakdownMode] = useState(false);
+    const [breakdownAxis, setBreakdownAxis] =
+        useState<BreakdownAxis>("freeform");
     const [breakdownItems, setBreakdownItems] = useState<
         IDraftTaskSuggestion[]
     >([]);
     const [breakdownChecked, setBreakdownChecked] = useState<boolean[]>([]);
+    const [bulkProgress, setBulkProgress] = useState<{
+        current: number;
+        total: number;
+    } | null>(null);
+    /** Track which fields are still AI-suggested vs. user-edited (D-R2). */
+    const [aiFields, setAiFields] = useState<Set<string>>(new Set());
     const [form] = useForm();
+    const undoToast = useUndoToast();
 
     const draftAi = useAi<IDraftTaskSuggestion>({ route: "task-draft" });
     const breakdownAi = useAi<ITaskBreakdownSuggestion>({
         route: "task-breakdown"
     });
 
+    const queryClient = useQueryClient();
     const { mutateAsync: createTask, isLoading: creating } = useReactMutation(
         "tasks",
         "POST",
@@ -68,27 +116,63 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
     const reset = useCallback(() => {
         setPrompt("");
         setBreakdownMode(false);
+        setBreakdownAxis("freeform");
         setBreakdownItems([]);
         setBreakdownChecked([]);
+        setBulkProgress(null);
+        setAiFields(new Set());
         form.resetFields();
         resetDraftAi();
         resetBreakdownAi();
     }, [form, resetBreakdownAi, resetDraftAi]);
 
+    /**
+     * Modal state reset (D-R7). Clearing on close is correct, but the
+     * previous implementation also reset on every effect run after open
+     * because of stale dependencies — guarded with a ref so it only fires
+     * once per open→close transition.
+     */
+    const wasOpenRef = useRef(false);
     useEffect(() => {
-        if (!open) reset();
+        if (open && !wasOpenRef.current) {
+            wasOpenRef.current = true;
+            return;
+        }
+        if (!open && wasOpenRef.current) {
+            wasOpenRef.current = false;
+            reset();
+        }
     }, [open, reset]);
 
-    const aiContext = {
-        project: { _id: projectId ?? "", projectName: "" },
-        columns,
-        tasks,
-        members
-    };
+    const aiContext = useMemo(
+        () => ({
+            project: { _id: projectId ?? "", projectName: "" },
+            columns,
+            tasks,
+            members
+        }),
+        [projectId, columns, tasks, members]
+    );
+
+    const samplePrompts = useMemo(() => {
+        const projectName =
+            tasks[0]?.projectId === projectId && tasks[0]?.epic
+                ? tasks[0].epic
+                : "this project";
+        return [
+            "Draft a bug fix task",
+            `Plan a feature for ${projectName}`,
+            "Create a research spike"
+        ];
+    }, [tasks, projectId]);
 
     const onDraft = async () => {
         if (!prompt.trim()) return;
         setBreakdownMode(false);
+        track(ANALYTICS_EVENTS.COPILOT_DRAFT_SUBMIT, {
+            mode: "single",
+            length: prompt.length
+        });
         const suggestion = await draftAi.run({
             draft: {
                 prompt,
@@ -98,22 +182,37 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
             }
         });
         form.setFieldsValue(suggestion);
+        setAiFields(new Set(AI_FIELDS as string[]));
     };
 
-    const onBreakdown = async () => {
+    const onBreakdown = async (axis: BreakdownAxis = breakdownAxis) => {
         if (!prompt.trim()) return;
+        track(ANALYTICS_EVENTS.COPILOT_DRAFT_SUBMIT, {
+            mode: "breakdown",
+            axis,
+            length: prompt.length
+        });
         const result = await breakdownAi.run({
             draft: {
                 prompt,
                 columnId,
                 coordinatorId: user?._id,
                 context: aiContext,
-                count: 3
+                count: 3,
+                axis
             }
         });
         setBreakdownMode(true);
         setBreakdownItems(result.items);
         setBreakdownChecked(result.items.map(() => true));
+    };
+
+    const onBreakdownAxisChange = (next: BreakdownAxis) => {
+        setBreakdownAxis(next);
+        track(ANALYTICS_EVENTS.BREAKDOWN_AXIS_CHANGED, { next });
+        if (breakdownMode && prompt.trim()) {
+            void onBreakdown(next);
+        }
     };
 
     const onSubmitSingle = async () => {
@@ -135,25 +234,94 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
         const selected = breakdownItems.filter(
             (_, index) => breakdownChecked[index]
         );
-        for (const item of selected) {
-            // sequential to keep optimistic cache consistent
-            // eslint-disable-next-line no-await-in-loop
-            await createTask({
-                taskName: item.taskName,
-                type: item.type,
-                epic: item.epic,
-                note: item.note,
-                storyPoints: item.storyPoints,
-                columnId: item.columnId,
-                coordinatorId: item.coordinatorId,
-                projectId
+        if (selected.length === 0) return;
+        setBulkProgress({ current: 0, total: selected.length });
+        const created: string[] = [];
+        try {
+            for (const [index, item] of selected.entries()) {
+                // sequential to keep optimistic cache consistent
+                // eslint-disable-next-line no-await-in-loop
+                const result = await createTask({
+                    taskName: item.taskName,
+                    type: item.type,
+                    epic: item.epic,
+                    note: item.note,
+                    storyPoints: item.storyPoints,
+                    columnId: item.columnId,
+                    coordinatorId: item.coordinatorId,
+                    projectId
+                });
+                if (
+                    result &&
+                    typeof result === "object" &&
+                    "_id" in result &&
+                    typeof (result as { _id: string })._id === "string"
+                ) {
+                    created.push((result as { _id: string })._id);
+                }
+                setBulkProgress({ current: index + 1, total: selected.length });
+            }
+            undoToast.show({
+                description: `${selected.length} subtasks created.`,
+                analyticsTag: "copilot.draft.bulk",
+                undo: async () => {
+                    /*
+                     * Best-effort undo: delete each task we just created.
+                     * Failures here surface via the standard message API so
+                     * a partial revert still tells the user what happened.
+                     * The cache invalidation runs once at the end so the
+                     * board doesn't flicker mid-loop.
+                     */
+                    for (const id of created) {
+                        try {
+                            // eslint-disable-next-line no-await-in-loop
+                            await fetch(`/api/v1/tasks/${id}`, {
+                                method: "DELETE"
+                            });
+                        } catch {
+                            /* swallow — invalidation will resync */
+                        }
+                    }
+                    void queryClient.invalidateQueries({
+                        queryKey: ["tasks", { projectId }]
+                    });
+                }
             });
+        } finally {
+            setBulkProgress(null);
         }
         onClose();
     };
 
+    const handleFieldEdit = (field: string) => {
+        if (aiFields.size === 0) return;
+        setAiFields((prev) => {
+            if (!prev.has(field)) return prev;
+            const next = new Set(prev);
+            next.delete(field);
+            return next;
+        });
+    };
+
+    const handleRegenerate = () => {
+        if (!prompt.trim()) return;
+        setAiFields(new Set());
+        if (breakdownMode) {
+            void onBreakdown();
+        } else {
+            void onDraft();
+        }
+    };
+
     const suggestion = draftAi.data;
     const showForm = Boolean(suggestion) && !breakdownMode;
+    const draftErrorView = aiErrorView(draftAi.error ?? breakdownAi.error);
+
+    const breakdownProgressPercent = bulkProgress
+        ? Math.round(
+              (bulkProgress.current / Math.max(1, bulkProgress.total)) * 100
+          )
+        : 0;
 
     return (
         <Modal
@@ -173,24 +341,53 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                     <span style={{ fontWeight: 600 }}>
                         {microcopy.actions.draftWithAi}
                     </span>
-                    <Tag variant="filled" color="purple">
-                        {microcopy.a11y.aiBadge}
-                    </Tag>
+                    <Tag color="purple">{microcopy.a11y.aiBadge}</Tag>
                 </Space>
             }
             width={modalWidthCss(640)}
         >
+            <CopilotPrivacyDisclosure storageKey="boardCopilot:draftPrivacyShown" />
             <Form.Item label="Describe the work in your own words">
                 <TextArea
                     aria-label="Task prompt"
                     maxLength={1000}
                     onChange={(event) => setPrompt(event.target.value)}
+                    onKeyDown={(event) => {
+                        if (
+                            (event.metaKey || event.ctrlKey) &&
+                            event.key === "Enter" &&
+                            prompt.trim()
+                        ) {
+                            event.preventDefault();
+                            void onDraft();
+                        }
+                    }}
                     placeholder="e.g. Investigate flaky login on Safari, blocks v2 release"
                     rows={3}
                     showCount
                     value={prompt}
                 />
+                <Typography.Text
+                    style={{ display: "block", marginTop: 4 }}
+                    type="secondary"
+                >
+                    Cmd+Enter to draft.
+                </Typography.Text>
             </Form.Item>
+            {!prompt.trim() && (
+                <Space size={space.xs} style={{ marginBottom: space.sm }} wrap>
+                    {samplePrompts.map((sample) => (
+                        <Button
+                            key={sample}
+                            onClick={() => setPrompt(sample)}
+                            size="small"
+                            type="default"
+                        >
+                            {sample}
+                        </Button>
+                    ))}
+                </Space>
+            )}
             <div
                 style={{
                     display: "flex",
@@ -207,10 +404,26 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 >
                     {draftAi.isLoading ? <Spin size="small" /> : "Draft task"}
                 </Button>
+                <Select<BreakdownAxis>
+                    aria-label="Breakdown axis"
+                    onChange={onBreakdownAxisChange}
+                    options={BREAKDOWN_AXES.map((axis) => ({
+                        label: (
+                            <Tooltip
+                                title={microcopy.ai.breakdownAxes[axis].tooltip}
+                            >
+                                {microcopy.ai.breakdownAxes[axis].label}
+                            </Tooltip>
+                        ),
+                        value: axis
+                    }))}
+                    style={{ width: 180 }}
+                    value={breakdownAxis}
+                />
                 <Button
                     aria-label="Break the prompt into subtasks"
                     disabled={!prompt.trim() || breakdownAi.isLoading}
-                    onClick={onBreakdown}
+                    onClick={() => onBreakdown()}
                 >
                     {breakdownAi.isLoading ? (
                         <Spin size="small" />
@@ -218,17 +431,50 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                         "Break down"
                     )}
                 </Button>
+                {(suggestion || breakdownMode) && (
+                    <Tooltip title={microcopy.ai.regenerateLabel}>
+                        <Button
+                            aria-label={microcopy.ai.regenerateLabel}
+                            disabled={
+                                draftAi.isLoading || breakdownAi.isLoading
+                            }
+                            icon={<ReloadOutlined />}
+                            onClick={handleRegenerate}
+                        />
+                    </Tooltip>
+                )}
             </div>
 
             {(draftAi.error || breakdownAi.error) && (
                 <Alert
+                    action={
+                        draftErrorView.retryable ? (
+                            <Button
+                                onClick={handleRegenerate}
+                                size="small"
+                                type="link"
+                            >
+                                {microcopy.ai.retryLabel}
+                            </Button>
+                        ) : null
+                    }
                     showIcon
                     style={{ marginBottom: space.md }}
-                    title={
-                        (draftAi.error ?? breakdownAi.error)?.message ??
-                        "Couldn't draft this time."
+                    title={draftErrorView.heading}
+                    description={draftErrorView.body || undefined}
+                    type={draftErrorView.severity}
+                />
+            )}
+
+            {bulkProgress && (
+                <Progress
+                    aria-label="Creating subtasks"
+                    format={() =>
+                        `${bulkProgress.current} of ${bulkProgress.total}`
                     }
-                    type="warning"
+                    percent={breakdownProgressPercent}
+                    status="active"
+                    style={{ marginBottom: space.md }}
                 />
             )}
 
@@ -238,23 +484,35 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                     initialValues={suggestion}
                     layout="vertical"
                     onFinish={onSubmitSingle}
+                    onValuesChange={(changed) => {
+                        Object.keys(changed).forEach(handleFieldEdit);
+                    }}
                 >
                     <Alert
-                        description={suggestion.rationale}
                         showIcon
                         style={{ marginBottom: space.sm }}
                         title={
                             <span>
-                                {`${microcopy.a11y.aiSuggestion} · review and edit before creating`}{" "}
-                                <Tag style={{ marginInlineStart: space.xs }}>
-                                    {(suggestion.confidence * 100).toFixed(0)}%
-                                    confidence
+                                {`${microcopy.a11y.aiSuggestion} · review and edit before creating`}
+                                <Tag
+                                    color={confidenceColor(
+                                        confidenceBand(suggestion.confidence)
+                                    )}
+                                    style={{ marginInlineStart: space.xs }}
+                                >
+                                    {`${confidenceBand(suggestion.confidence)} (${confidencePercent(suggestion.confidence)})`}
                                 </Tag>
                             </span>
                         }
+                        description={suggestion.rationale}
                         type="info"
                     />
                     <Form.Item
+                        extra={
+                            aiFields.has("taskName") && (
+                                <AiSuggestedBadge compact />
+                            )
+                        }
                         label={microcopy.fields.taskName}
                         name="taskName"
                         required
@@ -262,7 +520,13 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                     >
                         <Input />
                     </Form.Item>
-                    <Form.Item label={microcopy.fields.type} name="type">
+                    <Form.Item
+                        extra={
+                            aiFields.has("type") && <AiSuggestedBadge compact />
+                        }
+                        label={microcopy.fields.type}
+                        name="type"
+                    >
                         <Select
                             options={[
                                 { label: "Task", value: "Task" },
@@ -270,10 +534,21 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             ]}
                         />
                     </Form.Item>
-                    <Form.Item label={microcopy.fields.epic} name="epic">
+                    <Form.Item
+                        extra={
+                            aiFields.has("epic") && <AiSuggestedBadge compact />
+                        }
+                        label={microcopy.fields.epic}
+                        name="epic"
+                    >
                         <Input />
                     </Form.Item>
                     <Form.Item
+                        extra={
+                            aiFields.has("storyPoints") && (
+                                <AiSuggestedBadge compact />
+                            )
+                        }
                         label={microcopy.fields.storyPoints}
                         name="storyPoints"
                     >
@@ -284,7 +559,15 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             }))}
                         />
                     </Form.Item>
-                    <Form.Item label="Column" name="columnId">
+                    <Form.Item
+                        extra={
+                            aiFields.has("columnId") && (
+                                <AiSuggestedBadge compact />
+                            )
+                        }
+                        label="Column"
+                        name="columnId"
+                    >
                         <Select
                             options={columns.map((column) => ({
                                 label: column.columnName,
@@ -293,6 +576,11 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                         />
                     </Form.Item>
                     <Form.Item
+                        extra={
+                            aiFields.has("coordinatorId") && (
+                                <AiSuggestedBadge compact />
+                            )
+                        }
                         label={microcopy.fields.coordinator}
                         name="coordinatorId"
                     >
@@ -303,7 +591,13 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             }))}
                         />
                     </Form.Item>
-                    <Form.Item label={microcopy.fields.notes} name="note">
+                    <Form.Item
+                        extra={
+                            aiFields.has("note") && <AiSuggestedBadge compact />
+                        }
+                        label={microcopy.fields.notes}
+                        name="note"
+                    >
                         <TextArea rows={4} />
                     </Form.Item>
                     <div
@@ -334,48 +628,63 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                         showIcon
                         style={{ marginBottom: space.sm }}
                         title={`${microcopy.a11y.aiSuggestion}: pick the subtasks you want to create`}
+                        description={`Axis: ${microcopy.ai.breakdownAxes[breakdownAxis].label}`}
                         type="info"
                     />
-                    {breakdownItems.map((item, index) => (
-                        <div
-                            key={`${item.taskName}-${index}`}
-                            style={{
-                                alignItems: "center",
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: space.xs,
-                                marginBottom: space.xs
-                            }}
-                        >
-                            <Checkbox
-                                aria-label={`Include subtask ${item.taskName}`}
-                                checked={breakdownChecked[index]}
-                                onChange={(event) => {
-                                    const next = [...breakdownChecked];
-                                    next[index] = event.target.checked;
-                                    setBreakdownChecked(next);
-                                }}
-                            />
-                            <span
+                    {breakdownItems.map((item, index) => {
+                        const column = columns.find(
+                            (col) => col._id === item.columnId
+                        );
+                        const owner = members.find(
+                            (member) => member._id === item.coordinatorId
+                        );
+                        return (
+                            <div
+                                key={`${item.taskName}-${index}`}
                                 style={{
-                                    flex: "1 1 12rem",
-                                    minWidth: 0,
-                                    overflowWrap: "anywhere"
+                                    alignItems: "center",
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: space.xs,
+                                    marginBottom: space.xs
                                 }}
                             >
-                                {item.taskName}
-                            </span>
-                            <Tag style={{ marginInlineEnd: 0 }}>
-                                {item.storyPoints} pts
-                            </Tag>
-                            <Tag
-                                color={item.type === "Bug" ? "red" : "blue"}
-                                style={{ marginInlineEnd: 0 }}
-                            >
-                                {item.type}
-                            </Tag>
-                        </div>
-                    ))}
+                                <Checkbox
+                                    aria-label={`Include subtask ${item.taskName}`}
+                                    checked={breakdownChecked[index]}
+                                    onChange={(event) => {
+                                        const next = [...breakdownChecked];
+                                        next[index] = event.target.checked;
+                                        setBreakdownChecked(next);
+                                    }}
+                                />
+                                <span
+                                    style={{
+                                        flex: "1 1 12rem",
+                                        minWidth: 0,
+                                        overflowWrap: "anywhere"
+                                    }}
+                                >
+                                    {item.taskName}
+                                </span>
+                                {column && (
+                                    <Tag color="default">
+                                        {column.columnName}
+                                    </Tag>
+                                )}
+                                {owner && <Tag>{owner.username}</Tag>}
+                                <Tag style={{ marginInlineEnd: 0 }}>
+                                    {item.storyPoints} pts
+                                </Tag>
+                                <Tag
+                                    color={item.type === "Bug" ? "red" : "blue"}
+                                    style={{ marginInlineEnd: 0 }}
+                                >
+                                    {item.type}
+                                </Tag>
+                            </div>
+                        );
+                    })}
                     <div
                         style={{
                             display: "flex",
@@ -394,7 +703,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             onClick={onSubmitBreakdown}
                             type="primary"
                         >
-                            Create selected
+                            {`Create ${breakdownChecked.filter(Boolean).length} subtasks`}
                         </Button>
                     </div>
                 </div>

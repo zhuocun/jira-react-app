@@ -108,8 +108,8 @@ These look wrong but are correct:
 - `flex: 1 1 14rem` inside a `flex-direction: row` parent — only a
   bug when the parent is column.
 - `useTitle("Board")` later replaced by
-  `useTitle(\`${name} board\`)` inside the same component — both
-  calls write to `document.title`, the later one wins.
+  `useTitle(\`${name} board\`)`inside the same component — both
+calls write to`document.title`, the later one wins.
 - AntD `App component={false}` — intentional. The `html.ant`
   workaround in `appProviders.tsx` covers the cssVar cascade; don't
   remove it.

@@ -85,6 +85,14 @@ describe("AiTaskAssistPanel effect error handling", () => {
         await waitFor(() => {
             expect(mockedUseAi).toHaveBeenCalled();
         });
-        expect(screen.getAllByText("offline")).toHaveLength(2);
+        // PRD v3 §9.2 X-R5: surface the standard heading template, not
+        // the raw error.message. Both estimate and readiness errors map
+        // to the same default heading.
+        expect(screen.getAllByText("Board Copilot hit an error")).toHaveLength(
+            2
+        );
+        // The raw "offline" string from error.message should never reach
+        // the user.
+        expect(screen.queryByText("offline")).not.toBeInTheDocument();
     });
 });

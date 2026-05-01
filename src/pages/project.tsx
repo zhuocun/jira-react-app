@@ -1,7 +1,7 @@
 import { PlusOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import { Alert, Button, Typography } from "antd";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import AiChatDrawer from "../components/aiChatDrawer";
 import AiSearchInput from "../components/aiSearchInput";
@@ -154,6 +154,25 @@ const ProjectPage = () => {
     const { openModal } = useProjectModal();
     const { enabled: aiEnabled } = useAiEnabled();
     const [chatOpen, setChatOpen] = useState(false);
+    const [chatInitialPrompt, setChatInitialPrompt] = useState<
+        string | undefined
+    >(undefined);
+    /**
+     * Listen for `boardCopilot:openChat` from the command palette so the
+     * project list (no board context) still surfaces AI mode submissions
+     * (PRD CP-R6).
+     */
+    useEffect(() => {
+        if (!aiEnabled) return;
+        const onOpenChat = (event: Event) => {
+            const detail = (event as CustomEvent<{ prompt?: string }>).detail;
+            setChatInitialPrompt(detail?.prompt);
+            setChatOpen(true);
+        };
+        window.addEventListener("boardCopilot:openChat", onOpenChat);
+        return () =>
+            window.removeEventListener("boardCopilot:openChat", onOpenChat);
+    }, [aiEnabled]);
     const [param, setParam] = useUrl([
         "projectName",
         "managerId",
@@ -299,9 +318,13 @@ const ProjectPage = () => {
             {aiEnabled && (
                 <AiChatDrawer
                     columns={[]}
+                    initialPrompt={chatInitialPrompt}
                     knownProjectIds={(projects ?? []).map((p) => p._id)}
                     members={members ?? []}
-                    onClose={() => setChatOpen(false)}
+                    onClose={() => {
+                        setChatOpen(false);
+                        setChatInitialPrompt(undefined);
+                    }}
                     open={chatOpen}
                     project={null}
                     tasks={[]}

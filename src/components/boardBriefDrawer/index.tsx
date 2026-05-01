@@ -1,22 +1,34 @@
+import {
+    CopyOutlined,
+    InfoCircleOutlined,
+    ReloadOutlined
+} from "@ant-design/icons";
 import styled from "@emotion/styled";
 import {
     Alert,
+    Button,
     Drawer,
     Grid,
     List,
+    message,
     Skeleton,
     Space,
     Table,
     Tag,
+    Tooltip,
     Typography
 } from "antd";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import { microcopy } from "../../constants/microcopy";
+import { BRIEF_CACHE_TTL_MS } from "../../theme/aiTokens";
 import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
+import { aiErrorView } from "../../utils/ai/errorTemplate";
 import useAi from "../../utils/hooks/useAi";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import AiSparkleIcon from "../aiSparkleIcon";
+import CopilotPrivacyPopover from "../copilotPrivacyPopover";
 
 /**
  * Brief-drawer list rows are activatable (open the underlying task in
@@ -53,10 +65,22 @@ const WorkloadName = styled.span`
     font-weight: ${fontWeight.medium};
 `;
 
-const WorkloadTags = styled.span`
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: ${space.xxs}px;
+const WorkloadBarWrap = styled.div`
+    background: var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.04));
+    border-radius: 999px;
+    height: 6px;
+    margin-top: 4px;
+    overflow: hidden;
+    width: 100%;
+`;
+
+const WorkloadBar = styled.div<{ overloaded: boolean }>`
+    background: ${(props) =>
+        props.overloaded
+            ? "var(--ant-color-warning, #F59E0B)"
+            : "var(--color-copilot-grad-mid, #5E6AD2)"};
+    height: 100%;
+    transition: width 320ms ease-out;
 `;
 
 interface BoardBriefDrawerProps {
@@ -110,6 +134,83 @@ const ClickableListItem: React.FC<ClickableListItemProps> = ({
     );
 };
 
+interface CachedBrief {
+    data: IBoardBrief;
+    generatedAt: number;
+    /** Fingerprint of board state used to invalidate stale caches. */
+    fingerprint: string;
+}
+
+const BRIEF_CACHE = new Map<string, CachedBrief>();
+
+const fingerprintBoard = (
+    columns: IColumn[],
+    tasks: ITask[],
+    members: IMember[]
+): string => {
+    return [
+        columns.length,
+        tasks.length,
+        members.length,
+        // Sample a few tasks' ids so adding/removing a single task busts the cache
+        tasks
+            .slice(0, 8)
+            .map((t) => `${t._id}:${t.columnId ?? ""}:${t.coordinatorId ?? ""}`)
+            .join("|")
+    ].join("/");
+};
+
+/**
+ * Format a relative timestamp like "3 minutes ago". Used by the brief
+ * footer (B-R11). Re-renders every 30 s while the drawer is open.
+ */
+const formatRelative = (then: number, now: number): string => {
+    const seconds = Math.max(0, Math.round((now - then) / 1000));
+    if (seconds < 30) return "just now";
+    if (seconds < 90) return "1 minute ago";
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `${minutes} minutes ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+    const days = Math.round(hours / 24);
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+};
+
+const briefToMarkdown = (brief: IBoardBrief): string => {
+    const lines: string[] = [];
+    lines.push(`# ${brief.headline}`, "");
+    if (brief.recommendation) {
+        lines.push(`> ${brief.recommendation}`, "");
+    }
+    lines.push("## Counts per column", "");
+    for (const entry of brief.counts) {
+        lines.push(`- **${entry.columnName}** — ${entry.count}`);
+    }
+    if (brief.largestUnstarted.length > 0) {
+        lines.push("", "## Largest unstarted", "");
+        for (const t of brief.largestUnstarted) {
+            lines.push(
+                `- ${t.taskName}${t.storyPoints !== undefined ? ` (${t.storyPoints} pts)` : ""}`
+            );
+        }
+    }
+    if (brief.unowned.length > 0) {
+        lines.push("", "## Unowned", "");
+        for (const t of brief.unowned) {
+            lines.push(`- ${t.taskName}`);
+        }
+    }
+    if (brief.workload.length > 0) {
+        lines.push("", "## Workload", "");
+        for (const w of brief.workload) {
+            lines.push(
+                `- **${w.username}** — ${w.openTasks} open / ${w.openPoints} pts`
+            );
+        }
+    }
+    return lines.join("\n");
+};
+
 const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
     open,
     onClose,
@@ -124,38 +225,177 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
     });
     const screens = Grid.useBreakpoint();
     const drawerWidth = screens.md ? 420 : "100%";
+    const projectId = project?._id ?? "";
+    const fingerprint = fingerprintBoard(columns, tasks, members);
+    const cacheKey = projectId;
+    const [cachedAt, setCachedAt] = useState<number | null>(null);
+    const [now, setNow] = useState(() => Date.now());
+    const lastFingerprintRef = useRef<string>("");
 
+    /**
+     * Smart caching (B-R1, B-R13). Reuse the cached brief while:
+     *   - it's fresher than `BRIEF_CACHE_TTL_MS` (5 minutes), AND
+     *   - the board fingerprint hasn't changed since we cached.
+     * Otherwise re-run the agent. The cache survives drawer close so a
+     * quick reopen no longer thrashes the network.
+     */
+    const runBrief = useCallback(
+        async (options: { bypassCache?: boolean } = {}) => {
+            if (!project) return;
+            const cached = BRIEF_CACHE.get(cacheKey);
+            const fresh =
+                cached &&
+                Date.now() - cached.generatedAt < BRIEF_CACHE_TTL_MS &&
+                cached.fingerprint === fingerprint;
+            if (fresh && !options.bypassCache) {
+                setCachedAt(cached.generatedAt);
+                return;
+            }
+            try {
+                const result = await run({
+                    brief: {
+                        context: {
+                            project: {
+                                _id: project._id,
+                                projectName: project.projectName
+                            },
+                            columns,
+                            tasks,
+                            members
+                        }
+                    }
+                });
+                if (result) {
+                    const generatedAt = Date.now();
+                    BRIEF_CACHE.set(cacheKey, {
+                        data: result,
+                        generatedAt,
+                        fingerprint
+                    });
+                    setCachedAt(generatedAt);
+                }
+            } catch {
+                /* surfaced via error state */
+            }
+        },
+        [project, cacheKey, fingerprint, run, columns, tasks, members]
+    );
+
+    useEffect(() => {
+        if (!open) return;
+        track(ANALYTICS_EVENTS.COPILOT_BRIEF_OPEN);
+        if (lastFingerprintRef.current !== fingerprint) {
+            lastFingerprintRef.current = fingerprint;
+        }
+        void runBrief();
+    }, [open, fingerprint, runBrief]);
+
+    /**
+     * Drawer close (B-R13): preserve the cached brief so reopening
+     * within the TTL is instant. We still need to clear the in-flight
+     * `useAi` state so a stale spinner doesn't render after reopen.
+     */
     useEffect(() => {
         if (!open) {
             reset();
-            return;
         }
-        if (!project) return;
-        run({
-            brief: {
-                context: {
-                    project: {
-                        _id: project._id,
-                        projectName: project.projectName
-                    },
-                    columns,
-                    tasks,
-                    members
-                }
-            }
-        }).catch(() => {
-            /* surfaced via error state */
-        });
-    }, [open, project, columns, tasks, members, run, reset]);
+    }, [open, reset]);
+
+    /**
+     * Live "Generated N minutes ago" timestamp. Tick every 30 s while
+     * the drawer is open; tear down on close.
+     */
+    useEffect(() => {
+        if (!open) return;
+        const handle = window.setInterval(() => setNow(Date.now()), 30_000);
+        return () => window.clearInterval(handle);
+    }, [open]);
+
+    const cached = cacheKey ? BRIEF_CACHE.get(cacheKey) : undefined;
+    const briefData: IBoardBrief | undefined = data ?? cached?.data;
+    const generatedAt = cachedAt ?? cached?.generatedAt ?? null;
+    const errorView = aiErrorView(error, "Couldn't generate the brief");
+
+    /** Compute "what changed" headline (B-R3) when we have a baseline. */
+    const headline = useMemo(() => {
+        if (!briefData) return "";
+        const totalTasks = tasks.length;
+        const overloaded = briefData.workload.find((w) => w.openTasks >= 5);
+        if (overloaded) {
+            return `${overloaded.username} is carrying ${overloaded.openTasks} open tasks — consider reassigning.`;
+        }
+        if (briefData.unowned.length >= 3) {
+            return `${briefData.unowned.length} tasks have no owner.`;
+        }
+        if (briefData.largestUnstarted.length >= 5) {
+            return `${briefData.largestUnstarted.length} unstarted tasks waiting for pickup.`;
+        }
+        if (totalTasks === 0) {
+            return "Board is empty — start by creating a task.";
+        }
+        return briefData.headline;
+    }, [briefData, tasks.length]);
 
     const openTaskFromBrief = (taskId: string) => {
-        onClose();
+        // B-R8: keep the drawer open so the user can keep scanning the
+        // brief while drilling into a task. Previously closed the drawer.
         startEditing(taskId);
     };
 
+    const handleCopyMarkdown = async () => {
+        if (!briefData) return;
+        try {
+            await navigator.clipboard.writeText(briefToMarkdown(briefData));
+            message.success(microcopy.ai.copiedConfirm);
+        } catch {
+            message.error("Couldn't copy");
+        }
+    };
+
+    const handleRefresh = async () => {
+        track(ANALYTICS_EVENTS.BRIEF_REFRESHED, { projectId });
+        await runBrief({ bypassCache: true });
+    };
+
+    const teamAverage = useMemo(() => {
+        if (!briefData || briefData.workload.length === 0) return 0;
+        const sum = briefData.workload.reduce((acc, w) => acc + w.openTasks, 0);
+        return sum / briefData.workload.length;
+    }, [briefData]);
+
     return (
         <Drawer
-            destroyOnHidden
+            extra={
+                <Space size={space.xs}>
+                    <Tooltip title={microcopy.ai.regenerateLabel}>
+                        <Button
+                            aria-label={microcopy.ai.regenerateLabel}
+                            disabled={isLoading}
+                            icon={<ReloadOutlined />}
+                            onClick={handleRefresh}
+                            size="small"
+                            type="text"
+                        />
+                    </Tooltip>
+                    <Tooltip title="Copy as Markdown">
+                        <Button
+                            aria-label="Copy brief as Markdown"
+                            disabled={!briefData || isLoading}
+                            icon={<CopyOutlined />}
+                            onClick={handleCopyMarkdown}
+                            size="small"
+                            type="text"
+                        />
+                    </Tooltip>
+                    <CopilotPrivacyPopover
+                        label={
+                            <span aria-label={microcopy.ai.privacyLink}>
+                                <InfoCircleOutlined />
+                            </span>
+                        }
+                    />
+                </Space>
+            }
             onClose={onClose}
             open={open}
             styles={{
@@ -169,18 +409,14 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                 <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />
                     <span style={{ fontWeight: 600 }}>Board Copilot brief</span>
-                    <Tag
-                        variant="filled"
-                        color="purple"
-                        style={{ marginInlineStart: space.xs }}
-                    >
+                    <Tag color="purple" style={{ marginInlineStart: space.xs }}>
                         {microcopy.a11y.aiBadge}
                     </Tag>
                 </Space>
             }
             size={drawerWidth}
         >
-            {isLoading && (
+            {isLoading && !briefData && (
                 <div aria-label="Generating brief" aria-busy="true">
                     <Skeleton active paragraph={{ rows: 2 }} title />
                     <Skeleton
@@ -191,26 +427,39 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                     />
                 </div>
             )}
-            {error && !isLoading && (
+            {error && !briefData && (
                 <Alert
-                    description={error.message}
+                    action={
+                        errorView.retryable ? (
+                            <Button
+                                onClick={handleRefresh}
+                                size="small"
+                                type="link"
+                            >
+                                {microcopy.ai.retryLabel}
+                            </Button>
+                        ) : null
+                    }
+                    description={errorView.body || undefined}
                     showIcon
-                    title="Couldn't generate the brief"
-                    type="warning"
+                    title={errorView.heading}
+                    type={errorView.severity}
                 />
             )}
-            {data && !isLoading && (
-                <div aria-label="Board brief content">
+            {briefData && (
+                <div aria-label="Board brief content" aria-live="polite">
                     <Typography.Title level={3} style={{ marginTop: 0 }}>
-                        {data.headline}
+                        {headline}
                     </Typography.Title>
-                    <Alert
-                        description={data.recommendation}
-                        showIcon
-                        style={{ marginBottom: space.md }}
-                        title={`${microcopy.a11y.aiSuggestion}: Recommended next step`}
-                        type="info"
-                    />
+                    {briefData.recommendation && (
+                        <Alert
+                            description={briefData.recommendation}
+                            showIcon
+                            style={{ marginBottom: space.md }}
+                            title={`${microcopy.a11y.aiSuggestion}: Recommended next step`}
+                            type="info"
+                        />
+                    )}
                     <SectionHeading>Counts per column</SectionHeading>
                     <Table
                         columns={[
@@ -226,7 +475,7 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                                 title: "Tasks"
                             }
                         ]}
-                        dataSource={data.counts.map((entry) => ({
+                        dataSource={briefData.counts.map((entry) => ({
                             ...entry,
                             key: entry.columnId
                         }))}
@@ -236,13 +485,13 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                     />
 
                     <SectionHeading>Largest unstarted</SectionHeading>
-                    {data.largestUnstarted.length === 0 ? (
+                    {briefData.largestUnstarted.length === 0 ? (
                         <Typography.Text type="secondary">
                             No unstarted tasks. Nice.
                         </Typography.Text>
                     ) : (
                         <List
-                            dataSource={data.largestUnstarted}
+                            dataSource={briefData.largestUnstarted}
                             renderItem={(item) => (
                                 <ClickableListItem
                                     onActivate={() =>
@@ -267,13 +516,13 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                     )}
 
                     <SectionHeading>Unowned tasks</SectionHeading>
-                    {data.unowned.length === 0 ? (
+                    {briefData.unowned.length === 0 ? (
                         <Typography.Text type="secondary">
                             All tasks have an owner.
                         </Typography.Text>
                     ) : (
                         <List
-                            dataSource={data.unowned}
+                            dataSource={briefData.unowned}
                             renderItem={(item) => (
                                 <ClickableListItem
                                     onActivate={() =>
@@ -289,31 +538,62 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                     )}
 
                     <SectionHeading>Workload</SectionHeading>
-                    {data.workload.length === 0 ? (
+                    {briefData.workload.length === 0 ? (
                         <Typography.Text type="secondary">
                             No active tasks per member.
                         </Typography.Text>
                     ) : (
                         <List
-                            dataSource={data.workload}
-                            renderItem={(item) => (
-                                <WorkloadRow>
-                                    <WorkloadName>{item.username}</WorkloadName>
-                                    <WorkloadTags>
-                                        <Tag style={{ marginInlineEnd: 0 }}>
-                                            {item.openTasks} open
-                                        </Tag>
-                                        <Tag
-                                            color="blue"
-                                            style={{ marginInlineEnd: 0 }}
-                                        >
-                                            {item.openPoints} pts
-                                        </Tag>
-                                    </WorkloadTags>
-                                </WorkloadRow>
-                            )}
+                            dataSource={briefData.workload}
+                            renderItem={(item) => {
+                                const ratio =
+                                    teamAverage > 0
+                                        ? Math.min(
+                                              1.5,
+                                              item.openTasks / teamAverage
+                                          )
+                                        : 0;
+                                const overloaded = ratio > 1.2;
+                                return (
+                                    <WorkloadRow>
+                                        <WorkloadName>
+                                            {item.username}
+                                        </WorkloadName>
+                                        <span>
+                                            <Tag style={{ marginInlineEnd: 0 }}>
+                                                {item.openTasks} open
+                                            </Tag>{" "}
+                                            <Tag
+                                                color="blue"
+                                                style={{ marginInlineEnd: 0 }}
+                                            >
+                                                {item.openPoints} pts
+                                            </Tag>
+                                        </span>
+                                        <WorkloadBarWrap>
+                                            <WorkloadBar
+                                                overloaded={overloaded}
+                                                style={{
+                                                    width: `${Math.min(100, ratio * 80)}%`
+                                                }}
+                                            />
+                                        </WorkloadBarWrap>
+                                    </WorkloadRow>
+                                );
+                            }}
                             size="small"
                         />
+                    )}
+                    {generatedAt !== null && (
+                        <Typography.Text
+                            style={{
+                                display: "block",
+                                marginTop: space.md
+                            }}
+                            type="secondary"
+                        >
+                            Generated {formatRelative(generatedAt, now)}
+                        </Typography.Text>
                     )}
                 </div>
             )}

@@ -19,6 +19,7 @@ import AiSearchInput from "../components/aiSearchInput";
 import AiSparkleIcon from "../components/aiSparkleIcon";
 import BoardBriefDrawer from "../components/boardBriefDrawer";
 import Column from "../components/column";
+import CopilotWelcomeBanner from "../components/copilotWelcomeBanner";
 import ColumnCreator from "../components/columnCreator";
 import { Drag, Drop, DropChild } from "../components/dragAndDrop";
 import EmptyState from "../components/emptyState";
@@ -383,6 +384,26 @@ const BoardPage = () => {
             : null;
     const [briefOpen, setBriefOpen] = useState(false);
     const [chatOpen, setChatOpen] = useState(false);
+    const [chatInitialPrompt, setChatInitialPrompt] = useState<
+        string | undefined
+    >(undefined);
+    /**
+     * Wire the command palette → AI chat hand-off (PRD CP-R6). When the
+     * user submits a prompt in palette AI mode, the palette dispatches
+     * a `boardCopilot:openChat` event with the prompt; we open the
+     * drawer here so the chat hook can pick up the pre-populated value.
+     */
+    useEffect(() => {
+        if (!boardAiOn) return;
+        const onOpenChat = (event: Event) => {
+            const detail = (event as CustomEvent<{ prompt?: string }>).detail;
+            setChatInitialPrompt(detail?.prompt);
+            setChatOpen(true);
+        };
+        window.addEventListener("boardCopilot:openChat", onOpenChat);
+        return () =>
+            window.removeEventListener("boardCopilot:openChat", onOpenChat);
+    }, [boardAiOn]);
     const [swipeHintDismissed, setSwipeHintDismissed] = useState(() => {
         if (typeof window === "undefined") return false;
         try {
@@ -440,6 +461,13 @@ const BoardPage = () => {
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <BoardShell>
+                {boardAiOn && (
+                    <CopilotWelcomeBanner
+                        onCta={() => {
+                            setBriefOpen(true);
+                        }}
+                    />
+                )}
                 <BoardHeader>
                     <Row
                         between
@@ -703,9 +731,13 @@ const BoardPage = () => {
                         />
                         <AiChatDrawer
                             columns={board ?? []}
+                            initialPrompt={chatInitialPrompt}
                             knownProjectIds={projectId ? [projectId] : []}
                             members={members ?? []}
-                            onClose={() => setChatOpen(false)}
+                            onClose={() => {
+                                setChatOpen(false);
+                                setChatInitialPrompt(undefined);
+                            }}
                             open={chatOpen}
                             project={currentProject ?? null}
                             tasks={visibleTasks}

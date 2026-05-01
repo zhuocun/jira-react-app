@@ -130,12 +130,16 @@ describe("AiSearchInput", () => {
                 target: { value: "login token flaky" }
             }
         );
-        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
+        fireEvent.click(
+            screen.getByRole("button", { name: microcopy.actions.search })
+        );
 
         await waitFor(() => {
             expect(
-                screen.getByText(/Board Copilot is disabled for this project/i)
-            ).toBeInTheDocument();
+                screen.getAllByText(
+                    /Board Copilot is turned off for this project/i
+                ).length
+            ).toBeGreaterThan(0);
         });
         expect(setSemanticIds).not.toHaveBeenCalled();
     });
@@ -157,7 +161,9 @@ describe("AiSearchInput", () => {
                 target: { value: "login token flaky" }
             }
         );
-        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
+        fireEvent.click(
+            screen.getByRole("button", { name: microcopy.actions.search })
+        );
 
         await waitFor(() => {
             expect(setSemanticIds).toHaveBeenCalled();
@@ -213,10 +219,15 @@ describe("AiSearchInput", () => {
                 target: { value: "quantum entanglement" }
             }
         );
-        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
+        fireEvent.click(
+            screen.getByRole("button", { name: microcopy.actions.search })
+        );
 
         await waitFor(() => {
-            expect(screen.getByText(/No semantic match/i)).toBeInTheDocument();
+            expect(
+                screen.getAllByText(/No semantic match|No tasks matched/i)
+                    .length
+            ).toBeGreaterThan(0);
         });
         expect(setSemanticIds).toHaveBeenCalledWith(undefined);
     });

@@ -1,0 +1,171 @@
+import { InfoCircleOutlined } from "@ant-design/icons";
+import styled from "@emotion/styled";
+import { Button, Popover, Typography } from "antd";
+import React from "react";
+
+import { microcopy } from "../../constants/microcopy";
+import { fontSize, fontWeight, space } from "../../theme/tokens";
+
+/**
+ * "What is shared?" disclosure (PRD v3 §9.7 X-R14, P7).
+ *
+ * Lists every category of board data the agent receives so users can
+ * calibrate trust before sending the first message in a thread. The
+ * trigger renders inline as a subtle text link; the popover content is
+ * static — there is no per-call computation, so a cold open is instant.
+ *
+ * Surfaces that need the disclosure as a one-shot acknowledgement
+ * (e.g. AiTaskDraftModal first use) read the same `microcopy.ai.privacy*`
+ * strings without rendering the popover, so wording stays consistent.
+ */
+const Trigger = styled.button`
+    align-items: center;
+    background: none;
+    border: 0;
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.65));
+    cursor: pointer;
+    display: inline-flex;
+    font-size: ${fontSize.xs}px;
+    font-weight: ${fontWeight.medium};
+    gap: 4px;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover,
+    &:focus-visible {
+        color: var(--ant-color-text, rgba(15, 23, 42, 0.9));
+    }
+`;
+
+const List = styled.ul`
+    margin: 0;
+    max-width: 24rem;
+    padding-inline-start: ${space.lg}px;
+`;
+
+interface CopilotPrivacyPopoverProps {
+    /**
+     * Optional override for the trigger label. Defaults to the standard
+     * "What is shared?" microcopy. Pass a `ReactNode` to embed the
+     * disclosure inside another UI element.
+     */
+    label?: React.ReactNode;
+    /** AntD Popover placement — defaults to top-right. */
+    placement?:
+        | "top"
+        | "topLeft"
+        | "topRight"
+        | "bottom"
+        | "bottomLeft"
+        | "bottomRight";
+}
+
+const CopilotPrivacyPopover: React.FC<CopilotPrivacyPopoverProps> = ({
+    label,
+    placement = "topRight"
+}) => {
+    const content = (
+        <div>
+            <Typography.Title level={5} style={{ marginTop: 0 }}>
+                {microcopy.ai.privacyTitle}
+            </Typography.Title>
+            <List>
+                <li>Board name and column titles</li>
+                <li>Task names, types, story points, and column placement</li>
+                <li>Member usernames and your own user id</li>
+            </List>
+            <Typography.Paragraph
+                style={{ marginBottom: 0, marginTop: space.xs }}
+                type="secondary"
+            >
+                No task notes, member emails, or attachments are ever sent.
+            </Typography.Paragraph>
+        </div>
+    );
+    return (
+        <Popover
+            content={content}
+            placement={placement}
+            trigger={["click", "focus"]}
+        >
+            <Trigger aria-label={microcopy.ai.privacyLink} type="button">
+                <InfoCircleOutlined aria-hidden />
+                {label ?? microcopy.ai.privacyLink}
+            </Trigger>
+        </Popover>
+    );
+};
+
+/**
+ * One-shot disclosure used in modals (PRD D-R8). Reads
+ * `boardCopilot:privacyShown` from `localStorage`; renders the inline
+ * disclosure block when not yet acknowledged, with two buttons.
+ *
+ * Returns `null` once dismissed so subsequent renders skip the markup.
+ */
+interface CopilotPrivacyDisclosureProps {
+    storageKey?: string;
+    onAcknowledge?: () => void;
+}
+
+export const CopilotPrivacyDisclosure: React.FC<
+    CopilotPrivacyDisclosureProps
+> = ({ storageKey = "boardCopilot:privacyShown", onAcknowledge }) => {
+    const [shown, setShown] = React.useState<boolean>(() => {
+        if (typeof window === "undefined") return false;
+        try {
+            return window.localStorage.getItem(storageKey) === "1";
+        } catch {
+            return false;
+        }
+    });
+    if (shown) return null;
+    const acknowledge = () => {
+        try {
+            window.localStorage.setItem(storageKey, "1");
+        } catch {
+            /* private mode — keep state in memory only */
+        }
+        setShown(true);
+        onAcknowledge?.();
+    };
+    return (
+        <div
+            role="status"
+            style={{
+                background: "var(--color-copilot-bg-subtle)",
+                border: "1px solid var(--color-copilot-bg-medium, rgba(124, 92, 255, 0.18))",
+                borderRadius: 8,
+                marginBottom: space.sm,
+                padding: space.sm
+            }}
+        >
+            <Typography.Text strong>
+                {microcopy.ai.privacyTitle}
+            </Typography.Text>
+            <Typography.Paragraph
+                style={{ marginBottom: space.xs, marginTop: 4 }}
+                type="secondary"
+            >
+                {microcopy.ai.privacyDisclosure}
+            </Typography.Paragraph>
+            <div
+                style={{
+                    display: "flex",
+                    gap: space.xs,
+                    justifyContent: "flex-end"
+                }}
+            >
+                <Button onClick={acknowledge} size="small" type="primary">
+                    {microcopy.ai.privacyAcknowledge}
+                </Button>
+                <Button onClick={acknowledge} size="small" type="text">
+                    {microcopy.ai.privacySuppress}
+                </Button>
+            </div>
+        </div>
+    );
+};
+
+export default CopilotPrivacyPopover;

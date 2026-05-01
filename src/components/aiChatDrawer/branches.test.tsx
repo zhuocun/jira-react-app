@@ -124,15 +124,19 @@ describe("AiChatDrawer UI branches (mocked chat hook)", () => {
         expect(screen.getByText("Working…")).toBeInTheDocument();
     });
 
-    it("renders tool rows without an explicit tool name once details are revealed", () => {
+    it("renders tool rows inside collapsed <details> with a human-readable summary", () => {
         mockedUseAiChat.mockReturnValue({
             ...baseChat(),
             messages: [{ role: "tool", content: "payload" }]
         });
         renderDrawer();
-        expect(screen.queryByText("tool")).not.toBeInTheDocument();
-        fireEvent.click(screen.getByLabelText("Show tool details"));
-        expect(screen.getByText("tool")).toBeInTheDocument();
-        expect(screen.getByText("payload")).toBeInTheDocument();
+        const details = document.querySelector("details");
+        expect(details).toBeTruthy();
+        expect(details!.querySelector("summary")?.textContent).toMatch(
+            /Looked up/i
+        );
+        // The raw payload still renders inside the <details> body so power
+        // users can expand to inspect it; the summary is the user-facing copy.
+        expect(details!.textContent).toContain("payload");
     });
 });

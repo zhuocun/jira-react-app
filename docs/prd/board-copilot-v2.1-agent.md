@@ -1,12 +1,12 @@
 # PRD: Board Copilot v2.1 — Agentic AI for `jira-react-app`
 
-| Field             | Value                                                                                                                                                                                                                                                  |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status            | Draft v2.1 — supersedes [`board-copilot-v2-agent.md`](board-copilot-v2-agent.md). v1 capabilities ship as the fallback experience; v2.1 is the new default once the Python agent server is reachable.                                                  |
-| Author            | Product (this document is the design-reviewed revision of the v2 Board Copilot PRD)                                                                                                                                                                    |
-| Last updated      | 2026-05-01                                                                                                                                                                                                                                             |
-| Target repository | `jira-react-app` (frontend) + a Python agent server at `${REACT_APP_AI_BASE_URL}` (out of repo), built on LangGraph 1.x with agents registered in `app/agents/catalog/`                                                                               |
-| Document scope    | Product critique of v2, redesigned architecture aligned to LangGraph substrate, FE↔BE agent contract, governance & rollout. Server internals are referenced where they affect the wire contract.                                                        |
+| Field             | Value                                                                                                                                                                                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Status            | Draft v2.1 — supersedes [`board-copilot-v2-agent.md`](board-copilot-v2-agent.md). v1 capabilities ship as the fallback experience; v2.1 is the new default once the Python agent server is reachable.                                                                                            |
+| Author            | Product (this document is the design-reviewed revision of the v2 Board Copilot PRD)                                                                                                                                                                                                              |
+| Last updated      | 2026-05-01                                                                                                                                                                                                                                                                                       |
+| Target repository | `jira-react-app` (frontend) + a Python agent server at `${REACT_APP_AI_BASE_URL}` (out of repo), built on LangGraph 1.x with agents registered in `app/agents/catalog/`                                                                                                                          |
+| Document scope    | Product critique of v2, redesigned architecture aligned to LangGraph substrate, FE↔BE agent contract, governance & rollout. Server internals are referenced where they affect the wire contract.                                                                                                 |
 | Companion docs    | [`board-copilot.md`](board-copilot.md) (v1 design), [`board-copilot-v2-agent.md`](board-copilot-v2-agent.md) (v2), [`board-copilot-progress.md`](board-copilot-progress.md), [`board-copilot-review.md`](board-copilot-review.md), [`ui-ux-optimization-plan.md`](../ui-ux-optimization-plan.md) |
 
 ---
@@ -89,13 +89,13 @@ First-time user on a fresh project: no recent activity, no past tasks, no learne
 
 The Python server hosts a **registry of named agents** in `app/agents/catalog/`. Each agent is a LangGraph `StateGraph` compiled with a `BaseCheckpointSaver` (thread-scoped) and a `BaseStore` (cross-thread, namespaced). Each agent has its own `recursion_limit`, `context_schema`, tool set, and version metadata.
 
-| Agent name              | v2 intent      | Purpose                                                      | Key tools                                       |
-| ----------------------- | -------------- | ------------------------------------------------------------ | ------------------------------------------------ |
-| `board-brief-agent`     | `brief`        | Structured board summary with drift-aware headline           | `fe.boardSnapshot`, `be.detectDrift`             |
-| `task-drafting-agent`   | `draft`        | Natural-language → fully populated task form                 | `fe.boardSnapshot`, `fe.similarTasks`            |
-| `task-estimation-agent` | `estimate`     | Story-point estimation + readiness check with citations      | `fe.similarTasks`, `be.embeddingNeighbors`       |
-| `chat-agent`            | `chat`         | Conversational Q&A grounded in project data                  | All FE read tools, `be.summarize`                |
-| `triage-agent`          | `triage`       | Proactive drift detection → nudges                           | `fe.boardSnapshot`, `be.detectDrift`             |
+| Agent name              | v2 intent  | Purpose                                                 | Key tools                                  |
+| ----------------------- | ---------- | ------------------------------------------------------- | ------------------------------------------ |
+| `board-brief-agent`     | `brief`    | Structured board summary with drift-aware headline      | `fe.boardSnapshot`, `be.detectDrift`       |
+| `task-drafting-agent`   | `draft`    | Natural-language → fully populated task form            | `fe.boardSnapshot`, `fe.similarTasks`      |
+| `task-estimation-agent` | `estimate` | Story-point estimation + readiness check with citations | `fe.similarTasks`, `be.embeddingNeighbors` |
+| `chat-agent`            | `chat`     | Conversational Q&A grounded in project data             | All FE read tools, `be.summarize`          |
+| `triage-agent`          | `triage`   | Proactive drift detection → nudges                      | `fe.boardSnapshot`, `be.detectDrift`       |
 
 Each agent is:
 
@@ -108,12 +108,12 @@ Each agent is:
 
 The FE calls the **existing** server endpoints. No new endpoint shape is introduced.
 
-| Method | Path                              | Purpose                                         |
-| ------ | --------------------------------- | ----------------------------------------------- |
-| `GET`  | `/api/v1/agents`                  | List available agents (for feature discovery)   |
-| `GET`  | `/api/v1/agents/{name}`           | Agent metadata: version, description, status    |
-| `POST` | `/api/v1/agents/{name}/invoke`    | Single-turn invocation (non-streaming fallback) |
-| `POST` | `/api/v1/agents/{name}/stream`    | Open an SSE stream; primary transport           |
+| Method | Path                           | Purpose                                         |
+| ------ | ------------------------------ | ----------------------------------------------- |
+| `GET`  | `/api/v1/agents`               | List available agents (for feature discovery)   |
+| `GET`  | `/api/v1/agents/{name}`        | Agent metadata: version, description, status    |
+| `POST` | `/api/v1/agents/{name}/invoke` | Single-turn invocation (non-streaming fallback) |
+| `POST` | `/api/v1/agents/{name}/stream` | Open an SSE stream; primary transport           |
 
 Authentication: reuses the existing bearer header (`getStoredBearerAuthHeader` from `src/utils/aiAuthHeader.ts`).
 
@@ -187,19 +187,19 @@ Carried forward from v2 §5.4 with these changes:
 
 #### 5.4.1 Read tools (auto-resume, no confirmation needed)
 
-| Tool                | Purpose                                                      | Source of truth                   |
-| ------------------- | ------------------------------------------------------------ | --------------------------------- |
-| `fe.listProjects`   | Projects visible to the user                                 | `useReactQuery("projects")`       |
-| `fe.listMembers`    | Org members                                                  | `useReactQuery("users/members")`  |
-| `fe.getProject`     | Single project                                               | cache → fallback `useApi`         |
-| `fe.listBoard`      | Columns of a project                                         | `useReactQuery("boards", {pid})`  |
-| `fe.listTasks`      | Tasks of a project, filtered                                 | `useReactQuery("tasks", {pid})`   |
-| `fe.getTask`        | Single task                                                  | cache → fallback `useApi`         |
-| `fe.boardSnapshot`  | Compact JSON snapshot (counts, unowned, workload)            | derived from above                |
-| `fe.similarTasks`   | Top-N similar tasks by client-side similarity                | `engine.semanticSearch`           |
-| `fe.viewerContext`  | `{ user, role, currentRoute, focusedTaskId, selectionIds }`  | router + `useAuth` + Redux        |
-| `fe.recentActivity` | Last 24h of optimistic updates                               | new `activity log` slice          |
-| `fe.formDraft`      | Current value of the open Form                               | `Form.getFieldsValue` via context |
+| Tool                | Purpose                                                     | Source of truth                   |
+| ------------------- | ----------------------------------------------------------- | --------------------------------- |
+| `fe.listProjects`   | Projects visible to the user                                | `useReactQuery("projects")`       |
+| `fe.listMembers`    | Org members                                                 | `useReactQuery("users/members")`  |
+| `fe.getProject`     | Single project                                              | cache → fallback `useApi`         |
+| `fe.listBoard`      | Columns of a project                                        | `useReactQuery("boards", {pid})`  |
+| `fe.listTasks`      | Tasks of a project, filtered                                | `useReactQuery("tasks", {pid})`   |
+| `fe.getTask`        | Single task                                                 | cache → fallback `useApi`         |
+| `fe.boardSnapshot`  | Compact JSON snapshot (counts, unowned, workload)           | derived from above                |
+| `fe.similarTasks`   | Top-N similar tasks by client-side similarity               | `engine.semanticSearch`           |
+| `fe.viewerContext`  | `{ user, role, currentRoute, focusedTaskId, selectionIds }` | router + `useAuth` + Redux        |
+| `fe.recentActivity` | Last 24h of optimistic updates                              | new `activity log` slice          |
+| `fe.formDraft`      | Current value of the open Form                              | `Form.getFieldsValue` via context |
 
 #### 5.4.2 Mutation tools (confirmation required by default)
 
@@ -213,14 +213,14 @@ Unchanged from v2 §5.4.3.
 
 These tools are internal to the agent's LangGraph graph. They do not cross the wire to the FE; the agent invokes them as regular LangGraph tool nodes.
 
-| Tool                    | Purpose                                                      |
-| ----------------------- | ------------------------------------------------------------ |
-| `be.llmComplete`        | Structured-output completion against the configured provider |
-| `be.embed`              | Sentence embedding for a list of texts                       |
-| `be.embeddingNeighbors` | Top-K nearest tasks given an embedding                       |
-| `be.summarize`          | Long-text summarisation                                      |
-| `be.translate`          | Natural-language translation                                 |
-| `be.detectDrift`        | Rule + LLM hybrid: WIP overflow, stale tasks, unowned bugs  |
+| Tool                    | Purpose                                                       |
+| ----------------------- | ------------------------------------------------------------- |
+| `be.llmComplete`        | Structured-output completion against the configured provider  |
+| `be.embed`              | Sentence embedding for a list of texts                        |
+| `be.embeddingNeighbors` | Top-K nearest tasks given an embedding                        |
+| `be.summarize`          | Long-text summarisation                                       |
+| `be.translate`          | Natural-language translation                                  |
+| `be.detectDrift`        | Rule + LLM hybrid: WIP overflow, stale tasks, unowned bugs    |
 | `be.budgetCheck`        | Enforce per-project / per-org token budget; refuse on overrun |
 
 **Dropped from v2:** `be.scheduleDigest` and `be.dispatchDigest` (deferred to v3 — each requires OAuth integration with Slack/Confluence); `be.persistThread` (replaced by LangGraph checkpointer).
@@ -251,17 +251,17 @@ This section specifies the server-side architecture. The server lives in the `ji
 
 ### 5A.1 Server stack and dependencies
 
-| Layer             | Technology                                          | Purpose                                    |
-| ----------------- | --------------------------------------------------- | ------------------------------------------ |
-| HTTP framework    | FastAPI 0.115+                                      | Async request handling, OpenAPI docs        |
-| Agent runtime     | LangGraph 1.x (`langgraph`, `langgraph-checkpoint`) | Graph execution, checkpointing, streaming   |
-| LLM providers     | `langchain-openai`, `langchain-anthropic`           | Provider-agnostic via `BaseChatModel`       |
-| Embeddings        | `langchain-openai` (text-embedding-3-small)         | Sentence embeddings for similarity search   |
-| Checkpointer      | `langgraph-checkpoint-postgres` (prod) / `MemorySaver` (dev) | Per-thread state persistence       |
-| Store             | `langgraph.store.postgres.PostgresStore` (prod) / `InMemoryStore` (dev) | Cross-thread memory          |
-| MCP adapters      | `langchain-mcp-adapters`                            | MCP-compatible tool exposure                |
-| Auth              | Custom FastAPI middleware (JWT validation)           | Validates bearer tokens from the FE         |
-| Observability     | LangSmith (built into LangGraph runtime)            | Per-turn, per-tool tracing                  |
+| Layer          | Technology                                                              | Purpose                                   |
+| -------------- | ----------------------------------------------------------------------- | ----------------------------------------- |
+| HTTP framework | FastAPI 0.115+                                                          | Async request handling, OpenAPI docs      |
+| Agent runtime  | LangGraph 1.x (`langgraph`, `langgraph-checkpoint`)                     | Graph execution, checkpointing, streaming |
+| LLM providers  | `langchain-openai`, `langchain-anthropic`                               | Provider-agnostic via `BaseChatModel`     |
+| Embeddings     | `langchain-openai` (text-embedding-3-small)                             | Sentence embeddings for similarity search |
+| Checkpointer   | `langgraph-checkpoint-postgres` (prod) / `MemorySaver` (dev)            | Per-thread state persistence              |
+| Store          | `langgraph.store.postgres.PostgresStore` (prod) / `InMemoryStore` (dev) | Cross-thread memory                       |
+| MCP adapters   | `langchain-mcp-adapters`                                                | MCP-compatible tool exposure              |
+| Auth           | Custom FastAPI middleware (JWT validation)                              | Validates bearer tokens from the FE       |
+| Observability  | LangSmith (built into LangGraph runtime)                                | Per-turn, per-tool tracing                |
 
 ### 5A.2 Server directory layout
 
@@ -397,6 +397,7 @@ class TriageState(BaseAgentState):
 #### `GET /api/v1/agents`
 
 **Response** `200 OK`:
+
 ```json
 {
     "agents": [
@@ -415,6 +416,7 @@ class TriageState(BaseAgentState):
 #### `GET /api/v1/agents/{name}`
 
 **Response** `200 OK`:
+
 ```json
 {
     "name": "chat-agent",
@@ -422,9 +424,18 @@ class TriageState(BaseAgentState):
     "description": "Conversational Q&A grounded in project data",
     "status": "active",
     "allowed_autonomy": ["suggest", "plan", "auto"],
-    "tools": ["fe.listProjects", "fe.listMembers", "fe.getProject", "fe.listBoard",
-              "fe.listTasks", "fe.getTask", "fe.boardSnapshot", "fe.similarTasks",
-              "fe.viewerContext", "be.summarize"],
+    "tools": [
+        "fe.listProjects",
+        "fe.listMembers",
+        "fe.getProject",
+        "fe.listBoard",
+        "fe.listTasks",
+        "fe.getTask",
+        "fe.boardSnapshot",
+        "fe.similarTasks",
+        "fe.viewerContext",
+        "be.summarize"
+    ],
     "rate_limit": { "per_minute": 20, "per_hour": 200 }
 }
 ```
@@ -434,10 +445,13 @@ class TriageState(BaseAgentState):
 #### `POST /api/v1/agents/{name}/stream`
 
 **Request body** (first invocation — opening a turn):
+
 ```json
 {
     "input": {
-        "messages": [{"role": "user", "content": "Rebalance the workload..."}],
+        "messages": [
+            { "role": "user", "content": "Rebalance the workload..." }
+        ],
         "project_id": "proj_abc123",
         "autonomy_level": "plan"
     },
@@ -453,6 +467,7 @@ class TriageState(BaseAgentState):
 ```
 
 **Request body** (resume after interrupt):
+
 ```json
 {
     "input": null,
@@ -474,6 +489,7 @@ class TriageState(BaseAgentState):
 ```
 
 **Request body** (resume after mutation proposal — user decision):
+
 ```json
 {
     "input": null,
@@ -495,6 +511,7 @@ class TriageState(BaseAgentState):
 ```
 
 **Response** `200 OK` with `Content-Type: text/event-stream`:
+
 ```
 data: {"type": "updates", "ns": [], "data": {"agent": {"messages": [...]}}}
 
@@ -519,6 +536,7 @@ Non-streaming fallback. Same request body as `stream` (minus `stream_mode` and `
 #### `GET /api/v1/health`
 
 **Response** `200 OK`:
+
 ```json
 {
     "status": "ok",
@@ -650,6 +668,7 @@ Rate limit state is stored in Redis (prod) or in-memory (dev). When exceeded, th
 ### 5A.9 Checkpointer and store configuration
 
 **Production:**
+
 ```python
 from langgraph.checkpoint.postgres import AsyncPostgresSaver
 from langgraph.store.postgres import AsyncPostgresStore
@@ -662,6 +681,7 @@ store = AsyncPostgresStore.from_conn_string(
 ```
 
 **Development (`--dev` flag):**
+
 ```python
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.store.memory import InMemoryStore
@@ -701,6 +721,7 @@ def redact(text: str) -> tuple[str, list[dict]]:
 ```
 
 The redaction pass runs:
+
 1. On every user message before it enters the LLM context.
 2. On every `fe.*` tool result before it's passed to the LLM.
 3. Redaction spans are logged for the "What is shared" audit panel (Section 6.8) but never sent to the LLM.
@@ -727,13 +748,13 @@ The MCP server exposes the same named agents available via `/api/v1/agents/*`. E
 
 ### 5A.12 Testing strategy (server-side)
 
-| Test type          | Framework              | What it covers                                           |
-| ------------------ | ---------------------- | -------------------------------------------------------- |
-| Agent unit tests   | `pytest` + LangGraph test harness | Each agent graph with mocked LLM and tools. Verifies state transitions, interrupt payloads, and output schemas. |
-| Tool unit tests    | `pytest`               | `be.*` tools with mocked LLM/embedding providers. Redaction pass with corpus of 20+ samples. |
-| Integration tests  | `pytest` + `httpx.AsyncClient` | Full HTTP round-trip: open stream → interrupt → resume → verify output. Uses `MemorySaver` + `InMemoryStore`. |
-| Rate limit tests   | `pytest`               | Verify 429 after exceeding per-agent limits.             |
-| Auth tests         | `pytest`               | Verify 401 on missing/invalid token; 403 on disabled project. |
+| Test type         | Framework                         | What it covers                                                                                                  |
+| ----------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Agent unit tests  | `pytest` + LangGraph test harness | Each agent graph with mocked LLM and tools. Verifies state transitions, interrupt payloads, and output schemas. |
+| Tool unit tests   | `pytest`                          | `be.*` tools with mocked LLM/embedding providers. Redaction pass with corpus of 20+ samples.                    |
+| Integration tests | `pytest` + `httpx.AsyncClient`    | Full HTTP round-trip: open stream → interrupt → resume → verify output. Uses `MemorySaver` + `InMemoryStore`.   |
+| Rate limit tests  | `pytest`                          | Verify 429 after exceeding per-agent limits.                                                                    |
+| Auth tests        | `pytest`                          | Verify 401 on missing/invalid token; 403 on disabled project.                                                   |
 
 All tests run without external dependencies (no real LLM, no Postgres, no Redis) by using `InMemoryStore`, `MemorySaver`, and mocked LLM responses.
 
@@ -745,10 +766,10 @@ All tests run without external dependencies (no real LLM, no Postgres, no Redis)
 
 Two shipped levels plus a per-tool opt-in third level:
 
-| Level                  | What the agent can do                                                              |
-| ---------------------- | ---------------------------------------------------------------------------------- |
-| **1. Suggest**         | Read tools only. Returns text + suggestions, never proposes mutations.             |
-| **2. Plan** (default)  | Read tools + `mutation_proposal` events. Every proposal needs explicit user consent before execution. Accepted mutations get a 10-second toast Undo. |
+| Level                  | What the agent can do                                                                                                                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Suggest**         | Read tools only. Returns text + suggestions, never proposes mutations.                                                                                                                                                          |
+| **2. Plan** (default)  | Read tools + `mutation_proposal` events. Every proposal needs explicit user consent before execution. Accepted mutations get a 10-second toast Undo.                                                                            |
 | **3. Auto** (per-tool) | Admin-only opt-in, off by default. The agent may auto-execute specific low-risk tools (`assignTask`, in-column `moveTask`, `renameColumn`) with a 10-second toast Undo. High-risk tools always require Plan-level confirmation. |
 
 **What v2 had that v2.1 drops:**
@@ -775,18 +796,18 @@ A right-edge Drawer ("History") accessible from the avatar menu.
 
 v2 invented four memory layers (per-turn, per-thread in IndexedDB, project memory, learned profile). v2.1 delegates to LangGraph's two well-defined layers:
 
-| Layer                                    | LangGraph primitive      | Scope                          | What it stores                                                   |
-| ---------------------------------------- | ------------------------ | ------------------------------ | ---------------------------------------------------------------- |
-| **Per-thread memory**                    | `BaseCheckpointSaver`    | Thread-scoped (one per turn)   | Full conversation state, tool call history, intermediate results |
-| **Cross-thread memory**                  | `BaseStore`              | Namespaced per project/user    | Learned profile, accepted suggestion patterns, per-coordinator workload defaults, per-epic point baselines |
+| Layer                   | LangGraph primitive   | Scope                        | What it stores                                                                                             |
+| ----------------------- | --------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Per-thread memory**   | `BaseCheckpointSaver` | Thread-scoped (one per turn) | Full conversation state, tool call history, intermediate results                                           |
+| **Cross-thread memory** | `BaseStore`           | Namespaced per project/user  | Learned profile, accepted suggestion patterns, per-coordinator workload defaults, per-epic point baselines |
 
 **Namespace design for BaseStore:**
 
-| Pattern                  | Namespace                              | Use case                                |
-| ------------------------ | -------------------------------------- | --------------------------------------- |
-| Per-user preferences     | `("users", userId, "preferences")`     | Autonomy level, display preferences     |
-| Per-project profile      | `("projects", projectId, "profile")`   | Learned estimation baselines, epic patterns |
-| Per-user per-project     | `("users", userId, projectId, "facts")`| User-specific project facts             |
+| Pattern              | Namespace                               | Use case                                    |
+| -------------------- | --------------------------------------- | ------------------------------------------- |
+| Per-user preferences | `("users", userId, "preferences")`      | Autonomy level, display preferences         |
+| Per-project profile  | `("projects", projectId, "profile")`    | Learned estimation baselines, epic patterns |
+| Per-user per-project | `("users", userId, projectId, "facts")` | User-specific project facts                 |
 
 **Persistence opt-in** is a boolean `enabled` on the store namespace, not a separate subsystem. The user can inspect and reset their learned profile from the Settings panel (which calls `store.delete` on the relevant namespace).
 
@@ -811,16 +832,17 @@ The browser is stateless between sessions. LangSmith tracing is available for fr
 
 Every new surface specifies its ARIA pattern and keyboard interactions. WCAG 2.2 criteria 2.4.11–13, 2.5.7–8 are all implicated by the new drawers and palette.
 
-| Surface              | ARIA pattern                   | Keyboard                                                        |
-| -------------------- | ------------------------------ | --------------------------------------------------------------- |
-| Command palette      | `role="combobox"` + `listbox`  | `Cmd/Ctrl+K` open; `↑↓` navigate; `Enter` select; `Esc` close; `Tab` toggles AI mode |
-| Action History drawer| `role="log"` + `role="listitem"` per row | `Tab` through rows; `Enter` expands details; `Esc` closes drawer |
-| Mutation proposal    | `role="alertdialog"`           | Focus trapped; `Enter` accept; `Escape` reject; `Tab` between Accept/Edit/Reject buttons |
-| Triage Inbox         | `role="feed"` + `role="article"` per nudge | `Tab` through nudges; `Enter` opens action; `Esc` closes |
-| Chat streaming text  | `aria-live="polite"` (carry over from v1) | —                                                               |
-| Side-by-side diff    | `role="table"` with row-by-row `aria-label` | `↑↓` navigate rows; `Enter` toggles expand                     |
+| Surface               | ARIA pattern                                | Keyboard                                                                                 |
+| --------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Command palette       | `role="combobox"` + `listbox`               | `Cmd/Ctrl+K` open; `↑↓` navigate; `Enter` select; `Esc` close; `Tab` toggles AI mode     |
+| Action History drawer | `role="log"` + `role="listitem"` per row    | `Tab` through rows; `Enter` expands details; `Esc` closes drawer                         |
+| Mutation proposal     | `role="alertdialog"`                        | Focus trapped; `Enter` accept; `Escape` reject; `Tab` between Accept/Edit/Reject buttons |
+| Triage Inbox          | `role="feed"` + `role="article"` per nudge  | `Tab` through nudges; `Enter` opens action; `Esc` closes                                 |
+| Chat streaming text   | `aria-live="polite"` (carry over from v1)   | —                                                                                        |
+| Side-by-side diff     | `role="table"` with row-by-row `aria-label` | `↑↓` navigate rows; `Enter` toggles expand                                               |
 
 Focus management rules:
+
 - All drawers trap focus while open and return focus to the invoking control on close.
 - Sticky column headers must not occlude focused controls (`scroll-padding-top` on the page container).
 - Every interactive element ≥ 24×24 CSS px (WCAG 2.5.8).
@@ -878,9 +900,9 @@ A single input that:
 ### 7.2 Smart task drafting — redesigned
 
 - The "Draft with AI" link still launches `AiTaskDraftModal`, but the modal opens with **three suggested prompts** sourced deterministically:
-  1. "Continue the last bug you reported" (last task touched by this user)
-  2. "Decompose the largest unstarted task" (largest by story points)
-  3. "Add a follow-up to _{taskName}_" (most recently edited task)
+    1. "Continue the last bug you reported" (last task touched by this user)
+    2. "Decompose the largest unstarted task" (largest by story points)
+    3. "Add a follow-up to _{taskName}_" (most recently edited task)
 - These are **deterministic templates** refreshed when the React Query cache changes. No LLM call on panel open. Instantly trustworthy, never stale by more than one cache cycle.
 - The breakdown action shows a picker for the breakdown axis (`by phase` / `by surface` / `by risk` / `freeform`), and the agent returns the breakdown for the chosen axis. The five hard-coded `SUBTASK_VERBS` are gone.
 - Every populated field carries a `Suggested by Copilot` badge until the user edits the field.
@@ -891,6 +913,7 @@ A single input that:
 v2 specified `/copilot` slash commands inside `Input.TextArea` with a "translucent overlay" preview. The substrate is a plain HTML textarea with no rich-text capabilities, no overlay support, and no caret position API beyond `selectionStart`. Implementing this properly requires either (a) replacing the textarea with a contenteditable / Lexical / Tiptap editor, or (b) shipping a poor imitation that breaks accessibility and IME composition.
 
 **v2.1 design:** a small **"Rewrite with AI" button** above the textarea that opens a **side panel** with the rewrite options:
+
 - _Rewrite as user story_
 - _Add acceptance criteria_
 - _Translate to \<user locale\>_
@@ -918,9 +941,9 @@ Unchanged from v2 §7.4.
 
 - The `Ask` button is demoted: the same conversation lives in the command palette, in a side Drawer, and as a `?` shortcut on every task card.
 - **Sample prompts** are deterministic templates, not LLM-generated:
-  1. "What's at risk on this board?" (always available)
-  2. "{lastTouchedTaskName} — what's the status?" (last task user interacted with)
-  3. "Who has the most open work?" (always available)
+    1. "What's at risk on this board?" (always available)
+    2. "{lastTouchedTaskName} — what's the status?" (last task user interacted with)
+    3. "Who has the most open work?" (always available)
 - Refreshed when the cache changes. No LLM call on panel open.
 - Tool-call internals are never shown verbatim. The assistant emits `citation` events with **required `quote` field** (verbatim excerpt, not optional). The UI shows a "Sources (N)" footnote.
 - **Citation click-through:** clicking a citation scrolls the source entity into view and pulse-highlights it for 1 second (task card on the board, member row in workload, etc.). On hover, a card shows the verbatim `quote`.
@@ -937,15 +960,18 @@ Unchanged from v2 §7.7.
 A small `Inbox` icon in the header (badge with unread count, capped at 9). Each entry is a nudge the agent generated proactively.
 
 **Aggregation rules:**
+
 - At most **5 active nudges per board**. Newer nudges replace older ones of the same type (e.g., a new "Maya overloaded" nudge replaces the previous one, not appends to it).
 - Nudges of different types coexist (one load-imbalance + one WIP-overflow + one unowned-bug is 3 nudges, not 3 of the same).
 
 **Decay/expiry rules:**
+
 - A nudge **auto-dismisses** when the underlying state changes (e.g., the unowned bug gets an assignee → the nudge disappears).
 - Unacted nudges expire after **4 hours** and are silently removed.
 - Acknowledged nudges (user clicked "Dismiss") are removed immediately.
 
 **Generation:**
+
 - `triage-agent` runs `be.detectDrift` on a server-side schedule (every 15 min per active project).
 - Nudges are pushed to the FE via the next-opened SSE turn or via a poll on Inbox open.
 - Per-project disable mutes nudges for that project.
@@ -997,9 +1023,9 @@ v2 has accept/reject for `mutation_proposal` but no feedback on non-mutating tex
 
 The FE uses the **existing LangGraph server endpoints** (Section 5.2). The only FE-specific additions:
 
-| Method | Path                              | Purpose                                         |
-| ------ | --------------------------------- | ----------------------------------------------- |
-| `GET`  | `/api/v1/health`                  | Liveness; FE shows degraded indicator when down |
+| Method | Path             | Purpose                                         |
+| ------ | ---------------- | ----------------------------------------------- |
+| `GET`  | `/api/v1/health` | Liveness; FE shows degraded indicator when down |
 
 Budget, digest dispatch, and abort are handled within the agent stream (budget via `be.budgetCheck` at turn start; abort via closing the SSE connection, which the LangGraph runtime detects).
 
@@ -1072,28 +1098,28 @@ The repo's dev experience runs against `__json_server_mock__`. The agent server 
 
 Numbered to extend, not replace, the v1 ACs in `board-copilot.md` §5.
 
-| ID     | Acceptance criterion                                                                                                                                                                      |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AC-V1  | With `REACT_APP_AI_BASE_URL` empty, the app behaves as v1: read-only AI surfaces, no Inbox, no History drawer, no autonomy dial.                                                          |
-| AC-V2  | With the agent reachable, every AI feature routes through `POST /api/v1/agents/{name}/stream` with the named agent from §5.1.                                                            |
-| AC-V3  | The agent never executes a `mutation_proposal` without an explicit `Command(resume={choice: "accept"})` from the FE. Verified by integration test.                                        |
-| AC-V4  | Every accepted mutation produces a History row and a working toast Undo for ≥10 seconds.                                                                                                  |
+| ID     | Acceptance criterion                                                                                                                                                                       |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| AC-V1  | With `REACT_APP_AI_BASE_URL` empty, the app behaves as v1: read-only AI surfaces, no Inbox, no History drawer, no autonomy dial.                                                           |
+| AC-V2  | With the agent reachable, every AI feature routes through `POST /api/v1/agents/{name}/stream` with the named agent from §5.1.                                                              |
+| AC-V3  | The agent never executes a `mutation_proposal` without an explicit `Command(resume={choice: "accept"})` from the FE. Verified by integration test.                                         |
+| AC-V4  | Every accepted mutation produces a History row and a working toast Undo for ≥10 seconds.                                                                                                   |
 | AC-V5  | Auto-level tools may execute only the pre-approved low-risk set (`assignTask`, in-column `moveTask`, `renameColumn`). Any other tool requires Plan-level confirmation. Admin-toggled only. |
-| AC-V6  | Tool-call internals are never visible without explicit "Show details" toggle. Default off.                                                                                                |
-| AC-V7  | Every assistant turn that cited project data emits at least one `citation` event with a required `quote` field; the FE renders "Sources (N)" with click-to-highlight.                     |
-| AC-V8  | The server's redaction pass masks emails, bearer tokens, and PII before forwarding to the LLM provider. Verified by server-side unit tests.                                              |
-| AC-V9  | Spend dashboard (admin-only) reflects per-project monthly tokens spent within ≤5 s of the last completed turn.                                                                            |
-| AC-V10 | Per-project disable blocks turns, proactive nudges, embedding updates, drift detection, and store updates for that project.                                                               |
-| AC-V11 | `Cmd/Ctrl+K` opens the command palette; AI mode toggles via `Tab` or `/`; `Esc` closes; focus is trapped while open.                                                                     |
-| AC-V12 | "Rewrite with AI" button above the task note textarea opens a side panel; Accept replaces content; Cancel reverts. Accessible via keyboard.                                              |
-| AC-V13 | Brief footer `Copy as Markdown` and `Save as task note` actions work. Slack/Confluence/Schedule actions are absent (deferred to v3).                                                     |
-| AC-V14 | Triage Inbox: ≤5 active nudges per board; auto-dismiss on state change; expire after 4 hours; badge capped at 9.                                                                         |
-| AC-V15 | When the agent is unreachable, a banner reads "Copilot is offline — basic suggestions only." The FE does not silently fall back to a different brain.                                     |
-| AC-V16 | Each new surface meets its ARIA pattern from §6.5. Zero `jest-axe` violations on every surface test.                                                                                     |
-| AC-V17 | Shadow mode: shadowed tools generate proposals logged to telemetry, never rendered to the user. Admin can review shadow-vs-actual correlation.                                            |
-| AC-V18 | Mobile: a visible Copilot button on the board header opens the right rail on mobile viewports. `Cmd/Ctrl+K` is desktop-only.                                                             |
-| AC-V19 | Cold start: empty projects show onboarding prompts, not blank personalised surfaces.                                                                                                      |
-| AC-V20 | Dev mode: `REACT_APP_AI_BASE_URL` unset → local engine works end-to-end with no network. Documented in `README.md`.                                                                      |
+| AC-V6  | Tool-call internals are never visible without explicit "Show details" toggle. Default off.                                                                                                 |
+| AC-V7  | Every assistant turn that cited project data emits at least one `citation` event with a required `quote` field; the FE renders "Sources (N)" with click-to-highlight.                      |
+| AC-V8  | The server's redaction pass masks emails, bearer tokens, and PII before forwarding to the LLM provider. Verified by server-side unit tests.                                                |
+| AC-V9  | Spend dashboard (admin-only) reflects per-project monthly tokens spent within ≤5 s of the last completed turn.                                                                             |
+| AC-V10 | Per-project disable blocks turns, proactive nudges, embedding updates, drift detection, and store updates for that project.                                                                |
+| AC-V11 | `Cmd/Ctrl+K` opens the command palette; AI mode toggles via `Tab` or `/`; `Esc` closes; focus is trapped while open.                                                                       |
+| AC-V12 | "Rewrite with AI" button above the task note textarea opens a side panel; Accept replaces content; Cancel reverts. Accessible via keyboard.                                                |
+| AC-V13 | Brief footer `Copy as Markdown` and `Save as task note` actions work. Slack/Confluence/Schedule actions are absent (deferred to v3).                                                       |
+| AC-V14 | Triage Inbox: ≤5 active nudges per board; auto-dismiss on state change; expire after 4 hours; badge capped at 9.                                                                           |
+| AC-V15 | When the agent is unreachable, a banner reads "Copilot is offline — basic suggestions only." The FE does not silently fall back to a different brain.                                      |
+| AC-V16 | Each new surface meets its ARIA pattern from §6.5. Zero `jest-axe` violations on every surface test.                                                                                       |
+| AC-V17 | Shadow mode: shadowed tools generate proposals logged to telemetry, never rendered to the user. Admin can review shadow-vs-actual correlation.                                             |
+| AC-V18 | Mobile: a visible Copilot button on the board header opens the right rail on mobile viewports. `Cmd/Ctrl+K` is desktop-only.                                                               |
+| AC-V19 | Cold start: empty projects show onboarding prompts, not blank personalised surfaces.                                                                                                       |
+| AC-V20 | Dev mode: `REACT_APP_AI_BASE_URL` unset → local engine works end-to-end with no network. Documented in `README.md`.                                                                        |
 
 ---
 
@@ -1118,16 +1144,16 @@ All metrics flow through the same `track(event, payload)` no-op hook the UI/UX p
 
 ## 12. Risks and mitigations
 
-| Risk                                                                   | Mitigation                                                                                                               |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| The agent proposes a confidently-wrong mutation                        | Plan default; explicit accept; History + toast Undo; shadow mode before Auto promotion; admin-only Auto toggle            |
-| Token spend balloons during a chatty session                           | Per-org / per-project monthly token cap enforced by `be.budgetCheck` at every turn open                                  |
-| The user's note contains secrets that should not reach the LLM         | Server-side redaction pass before forwarding to the provider; "What is shared" panel for transparency                    |
-| The user disables the global toggle but a scheduled process still fires | `be.detectDrift` checks per-project disable list at fire time; drops silently                                            |
-| The local fallback engine gets stale vs the agent's behaviour          | Explicit "Copilot is offline — basic suggestions only" banner; no silent fallback to a different brain                   |
-| Promoting a tool to Auto surprises a coworker who never opted in       | Auto is per-tool, admin-only; visible in Settings; shadow mode validates quality before exposure                          |
-| Noisy triage inbox becomes a mute-button magnet                        | ≤5 active nudges per board; auto-dismiss on state change; 4-hour expiry; badge capped at 9                               |
-| Citation decoration without substance                                  | `quote` is required (not optional); click-to-source highlights the cited entity; hover shows verbatim excerpt            |
+| Risk                                                                    | Mitigation                                                                                                     |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| The agent proposes a confidently-wrong mutation                         | Plan default; explicit accept; History + toast Undo; shadow mode before Auto promotion; admin-only Auto toggle |
+| Token spend balloons during a chatty session                            | Per-org / per-project monthly token cap enforced by `be.budgetCheck` at every turn open                        |
+| The user's note contains secrets that should not reach the LLM          | Server-side redaction pass before forwarding to the provider; "What is shared" panel for transparency          |
+| The user disables the global toggle but a scheduled process still fires | `be.detectDrift` checks per-project disable list at fire time; drops silently                                  |
+| The local fallback engine gets stale vs the agent's behaviour           | Explicit "Copilot is offline — basic suggestions only" banner; no silent fallback to a different brain         |
+| Promoting a tool to Auto surprises a coworker who never opted in        | Auto is per-tool, admin-only; visible in Settings; shadow mode validates quality before exposure               |
+| Noisy triage inbox becomes a mute-button magnet                         | ≤5 active nudges per board; auto-dismiss on state change; 4-hour expiry; badge capped at 9                     |
+| Citation decoration without substance                                   | `quote` is required (not optional); click-to-source highlights the cited entity; hover shows verbatim excerpt  |
 
 ---
 
@@ -1135,19 +1161,19 @@ All metrics flow through the same `track(event, payload)` no-op hook the UI/UX p
 
 Items explicitly removed from v2.1 scope, with clear reasons:
 
-| Item                                               | Reason                                                                                                  |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `be.scheduleDigest` / `be.dispatchDigest` to Slack | Full OAuth integration feature (channel picker, webhook management). Ship digest copy/save first.       |
-| `be.dispatchDigest` to Confluence                  | Full OAuth integration feature (space picker, page creation). Same rationale.                           |
-| Inline `/copilot` slash commands in textarea        | Requires rich-text editor swap (Lexical/Tiptap). "Rewrite with AI" button covers the use case for now. |
+| Item                                               | Reason                                                                                                 |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `be.scheduleDigest` / `be.dispatchDigest` to Slack | Full OAuth integration feature (channel picker, webhook management). Ship digest copy/save first.      |
+| `be.dispatchDigest` to Confluence                  | Full OAuth integration feature (space picker, page creation). Same rationale.                          |
+| Inline `/copilot` slash commands in textarea       | Requires rich-text editor swap (Lexical/Tiptap). "Rewrite with AI" button covers the use case for now. |
 | Voice / speech-to-text composer                    | UX-rich; high cost. Revisit in v3.                                                                     |
-| Four-level autonomy dial                           | Over-engineered before metrics exist. Two levels + per-tool Auto is sufficient.                         |
-| 24-hour drawer Undo                                | Unsafe after intervening manual edits. Toast Undo + read-only History is the safe design.               |
+| Four-level autonomy dial                           | Over-engineered before metrics exist. Two levels + per-tool Auto is sufficient.                        |
+| 24-hour drawer Undo                                | Unsafe after intervening manual edits. Toast Undo + read-only History is the safe design.              |
 | Client-side memory model (IndexedDB/localStorage)  | Duplicates LangGraph checkpointer + store. Server owns persistence.                                    |
-| USD display for end users                          | Creates cost-anxiety for ICs/PMs. Admin-only.                                                           |
+| USD display for end users                          | Creates cost-anxiety for ICs/PMs. Admin-only.                                                          |
 | Client-side redaction                              | Degrades model quality; misses non-trivial PII. Server-side is strictly better.                        |
-| Auto-promotion thresholds                          | Chicken-and-egg problem. Shadow mode + admin action replaces automatic promotion.                       |
-| Cross-project planning                             | Scope creep risk. Revisit when per-project metrics show acceptance ≥70%.                                |
+| Auto-promotion thresholds                          | Chicken-and-egg problem. Shadow mode + admin action replaces automatic promotion.                      |
+| Cross-project planning                             | Scope creep risk. Revisit when per-project metrics show acceptance ≥70%.                               |
 
 ---
 
@@ -1155,14 +1181,14 @@ Items explicitly removed from v2.1 scope, with clear reasons:
 
 ### Resolved (from v2)
 
-| v2 OQ  | Resolution in v2.1                                                                                     |
-| ------ | ------------------------------------------------------------------------------------------------------ |
-| OQ1    | Action History is per-user view by default; per-project view available to admins via server-side log.  |
-| OQ2    | Smallest Auto tool set: `assignTask`, in-column `moveTask`, `renameColumn`. Everything else ≤ Plan.   |
-| OQ3    | Agent cannot read FE-redacted notes. User can re-send full content via explicit "Send full note" toggle per turn. |
-| OQ4    | Autonomy dial lives in avatar dropdown → Settings → Board Copilot.                                    |
-| OQ5    | Command palette ships in Phase A as nav-only; AI mode in Phase E.                                      |
-| OQ6    | Confidence bands: "Low / Moderate / High" in the assist panel; no raw percentages in chat.             |
+| v2 OQ | Resolution in v2.1                                                                                                |
+| ----- | ----------------------------------------------------------------------------------------------------------------- |
+| OQ1   | Action History is per-user view by default; per-project view available to admins via server-side log.             |
+| OQ2   | Smallest Auto tool set: `assignTask`, in-column `moveTask`, `renameColumn`. Everything else ≤ Plan.               |
+| OQ3   | Agent cannot read FE-redacted notes. User can re-send full content via explicit "Send full note" toggle per turn. |
+| OQ4   | Autonomy dial lives in avatar dropdown → Settings → Board Copilot.                                                |
+| OQ5   | Command palette ships in Phase A as nav-only; AI mode in Phase E.                                                 |
+| OQ6   | Confidence bands: "Low / Moderate / High" in the assist panel; no raw percentages in chat.                        |
 
 ### New open questions
 
@@ -1212,36 +1238,36 @@ Items explicitly removed from v2.1 scope, with clear reasons:
 
 This table traces every item from the v2 design review to its resolution in v2.1.
 
-| Review item | v2.1 section | Resolution |
-| --- | --- | --- |
-| §1 Substrate blindness (LangGraph alignment) | §5.1, §5.2, §5.3 | Named agents in `app/agents/catalog/`; `POST /api/v1/agents/{name}/stream`; LangGraph interrupt for HITL |
-| §1 Memory model reinvention | §6.3 | Delegated to `BaseCheckpointSaver` + `BaseStore` |
-| §1 Wire schema overlap | §5.2 | `AgentEvent` replaced by LangGraph `StreamPart` with `stream_mode=("updates","messages","custom")` |
-| §1 Protocol versioning | §8.5 | Per-agent `AgentMetadata.version` via `GET /api/v1/agents/{name}`; no global `protocolVersion` |
-| §1 MCP deferred | §5.6 | MCP-compatible from Phase A via `langchain-mcp-adapters` |
-| §2.1 Over-engineered autonomy dial | §6.1 | Two levels + per-tool Auto; admin-only promotion |
-| §2.2 Plan visibility unresolved | §7.11 | Explicit: hidden at Suggest, collapsed-by-default at Plan, hidden+toast at Auto |
-| §2.3 SSE upstream / fallback POST | §5.3 | SSE down, plain fetch up (resume via POST). No hybrid. |
-| §2.4 Local fallback drift unsolved | §9.1 | Explicit banner: "Copilot is offline — basic suggestions only" |
-| §2.5 Too many transports | §5.2, §8.1 | Two shapes: stream (SSE) and health (GET). Budget/abort/digest folded into agent stream. |
-| §3.1 Triage inbox mute-button magnet | §7.8 | ≤5 nudges per board; auto-dismiss on state change; 4-hour expiry |
-| §3.2 Slash commands in plain textarea | §7.3 | "Rewrite with AI" button + side panel instead of inline slash |
-| §3.3 Headline ranking wrong priority | §7.5 | Ranked by what changed since last read; load imbalance > WIP overflow > unowned bug |
-| §3.4 Citations undesigned | §7.6, AC-V7 | `quote` required; click-to-source with pulse-highlight; hover card |
-| §3.5 24h Undo over-engineered | §6.2 | 10s toast Undo only; History drawer is read-only |
-| §3.6 Sample prompt personalisation hand-waved | §7.2, §7.6 | Deterministic templates: last task, largest unstarted, most recently edited. Refreshed on cache change. |
-| §3.7 Drawer is wrong primary surface | §7.1, §7.9 | Palette is primary verb; drawers collapse into single right-side rail with tabs (Chat / Brief / Inbox / History) |
-| §4.1 Client-side redaction | §6.7 | Server-side redaction; AC-V8 rewritten |
-| §4.2 USD for wrong audience | §6.4 | Admin-only; end users see latency and reliability |
-| §4.3 "What is shared" half-specified | §6.8 | Full spec: modal with exact JSON payload, pretty-printed, Copy button, always-on in dev |
-| §4.4 Per-project disable doesn't propagate | §6.3 | Explicit: AI off = no embeddings, no drift detection, no store updates, threads frozen |
-| §5.1 Cold-start UX undefined | §3.5 | Explicit empty states for every personalised surface |
-| §5.2 Dev-mode missing | §9.3 | Local engine fallback; `--dev` flag for localhost agent; documented in README |
-| §5.3 Mobile not designed | §7.10 | Single Copilot button on mobile; palette is desktop-only accelerator |
-| §5.4 Accessibility undeveloped | §6.5 | Full table: ARIA pattern + keyboard per surface |
-| §5.5 No shadow mode | §6.6 | Shadow mode per tool; admin-reviewed; no automatic promotion |
-| §5.6 No feedback on text answers | §7.12 | Thumbs-up/down, "wrong because" textarea, flag-citation-as-irrelevant |
-| §6 What to trim | §4.2, §13 | Explicit deferred list with reasons |
+| Review item                                   | v2.1 section     | Resolution                                                                                                       |
+| --------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
+| §1 Substrate blindness (LangGraph alignment)  | §5.1, §5.2, §5.3 | Named agents in `app/agents/catalog/`; `POST /api/v1/agents/{name}/stream`; LangGraph interrupt for HITL         |
+| §1 Memory model reinvention                   | §6.3             | Delegated to `BaseCheckpointSaver` + `BaseStore`                                                                 |
+| §1 Wire schema overlap                        | §5.2             | `AgentEvent` replaced by LangGraph `StreamPart` with `stream_mode=("updates","messages","custom")`               |
+| §1 Protocol versioning                        | §8.5             | Per-agent `AgentMetadata.version` via `GET /api/v1/agents/{name}`; no global `protocolVersion`                   |
+| §1 MCP deferred                               | §5.6             | MCP-compatible from Phase A via `langchain-mcp-adapters`                                                         |
+| §2.1 Over-engineered autonomy dial            | §6.1             | Two levels + per-tool Auto; admin-only promotion                                                                 |
+| §2.2 Plan visibility unresolved               | §7.11            | Explicit: hidden at Suggest, collapsed-by-default at Plan, hidden+toast at Auto                                  |
+| §2.3 SSE upstream / fallback POST             | §5.3             | SSE down, plain fetch up (resume via POST). No hybrid.                                                           |
+| §2.4 Local fallback drift unsolved            | §9.1             | Explicit banner: "Copilot is offline — basic suggestions only"                                                   |
+| §2.5 Too many transports                      | §5.2, §8.1       | Two shapes: stream (SSE) and health (GET). Budget/abort/digest folded into agent stream.                         |
+| §3.1 Triage inbox mute-button magnet          | §7.8             | ≤5 nudges per board; auto-dismiss on state change; 4-hour expiry                                                 |
+| §3.2 Slash commands in plain textarea         | §7.3             | "Rewrite with AI" button + side panel instead of inline slash                                                    |
+| §3.3 Headline ranking wrong priority          | §7.5             | Ranked by what changed since last read; load imbalance > WIP overflow > unowned bug                              |
+| §3.4 Citations undesigned                     | §7.6, AC-V7      | `quote` required; click-to-source with pulse-highlight; hover card                                               |
+| §3.5 24h Undo over-engineered                 | §6.2             | 10s toast Undo only; History drawer is read-only                                                                 |
+| §3.6 Sample prompt personalisation hand-waved | §7.2, §7.6       | Deterministic templates: last task, largest unstarted, most recently edited. Refreshed on cache change.          |
+| §3.7 Drawer is wrong primary surface          | §7.1, §7.9       | Palette is primary verb; drawers collapse into single right-side rail with tabs (Chat / Brief / Inbox / History) |
+| §4.1 Client-side redaction                    | §6.7             | Server-side redaction; AC-V8 rewritten                                                                           |
+| §4.2 USD for wrong audience                   | §6.4             | Admin-only; end users see latency and reliability                                                                |
+| §4.3 "What is shared" half-specified          | §6.8             | Full spec: modal with exact JSON payload, pretty-printed, Copy button, always-on in dev                          |
+| §4.4 Per-project disable doesn't propagate    | §6.3             | Explicit: AI off = no embeddings, no drift detection, no store updates, threads frozen                           |
+| §5.1 Cold-start UX undefined                  | §3.5             | Explicit empty states for every personalised surface                                                             |
+| §5.2 Dev-mode missing                         | §9.3             | Local engine fallback; `--dev` flag for localhost agent; documented in README                                    |
+| §5.3 Mobile not designed                      | §7.10            | Single Copilot button on mobile; palette is desktop-only accelerator                                             |
+| §5.4 Accessibility undeveloped                | §6.5             | Full table: ARIA pattern + keyboard per surface                                                                  |
+| §5.5 No shadow mode                           | §6.6             | Shadow mode per tool; admin-reviewed; no automatic promotion                                                     |
+| §5.6 No feedback on text answers              | §7.12            | Thumbs-up/down, "wrong because" textarea, flag-citation-as-irrelevant                                            |
+| §6 What to trim                               | §4.2, §13        | Explicit deferred list with reasons                                                                              |
 
 ---
 

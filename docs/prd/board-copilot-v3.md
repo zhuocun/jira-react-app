@@ -1,12 +1,12 @@
 # Board Copilot v3 — AI UX Excellence
 
-| Field             | Value                                                                                                                                                                                                            |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status            | Draft v3 — merges and supersedes `board-copilot-v3-ux.md`. v2.1 remains the binding backend/wire contract; v3 is the UX and product layer on top of it.                                                         |
-| Author            | Product                                                                                                                                                                                                          |
-| Last updated      | 2026-05-01                                                                                                                                                                                                       |
-| Target repository | `jira-react-app` (frontend) + Python agent server at `${REACT_APP_AI_BASE_URL}` (out of repo)                                                                                                                   |
-| Document scope    | AI UX audit (94 component-level issues + 25 product-level issues), competitive analysis, industry best practices, redesigned AI surfaces, implementation requirements, trust & transparency patterns, onboarding, accessibility, and phased rollout. |
+| Field             | Value                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status            | Draft v3 — merges and supersedes `board-copilot-v3-ux.md`. v2.1 remains the binding backend/wire contract; v3 is the UX and product layer on top of it.                                                                                                                                                                                                                                                           |
+| Author            | Product                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Last updated      | 2026-05-01                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Target repository | `jira-react-app` (frontend) + Python agent server at `${REACT_APP_AI_BASE_URL}` (out of repo)                                                                                                                                                                                                                                                                                                                     |
+| Document scope    | AI UX audit (94 component-level issues + 25 product-level issues), competitive analysis, industry best practices, redesigned AI surfaces, implementation requirements, trust & transparency patterns, onboarding, accessibility, and phased rollout.                                                                                                                                                              |
 | Companion docs    | [`board-copilot.md`](board-copilot.md) (v1), [`board-copilot-v2.1-agent.md`](board-copilot-v2.1-agent.md) (backend contract), [`board-copilot-v3-ux.md`](board-copilot-v3-ux.md) (per-component audit — folded into this document), [`board-copilot-progress.md`](board-copilot-progress.md), [`board-copilot-review.md`](board-copilot-review.md), [`ui-ux-optimization-plan.md`](../ui-ux-optimization-plan.md) |
 
 ---
@@ -21,7 +21,7 @@ v3 is a **UX-focused PRD**. It does not replace v2.1's backend architecture; it 
 
 > AI features fail not because the model is wrong, but because the interface doesn't help users calibrate trust, recover from errors, or understand what happened.
 
-Engineers and designers should treat v2.1 as the *what* (capabilities, transport, data contracts) and this document as the *how* (interaction patterns, copy, states, accessibility, error handling).
+Engineers and designers should treat v2.1 as the _what_ (capabilities, transport, data contracts) and this document as the _how_ (interaction patterns, copy, states, accessibility, error handling).
 
 ### Seven Design Moves
 
@@ -40,56 +40,63 @@ Engineers and designers should treat v2.1 as the *what* (capabilities, transport
 These seven principles govern every decision in this document. When a spec detail is ambiguous, pick the reading that best satisfies the most applicable principle.
 
 ### P1 — Stream Everything Visible
+
 Show the first token in ≤700ms of agent response latency. Never replace a loading spinner with a final result in a single paint; always stream intermediate content. A placeholder skeleton that dissolves into streamed text is acceptable; a blank → full-text swap is not.
 
-*Source: Nielsen Norman Group "AI UX" 2025; Anthropic "Claude streaming best practices"; Vercel AI SDK streaming guidelines.*
+_Source: Nielsen Norman Group "AI UX" 2025; Anthropic "Claude streaming best practices"; Vercel AI SDK streaming guidelines._
 
 ### P2 — Never Abandon the User
+
 Every AI surface must have at least three states beyond the happy path: a loading/streaming state, an error recovery state with a human-readable message, and an empty/no-result state with a next action. The empty state must never be a blank area.
 
-*Source: "Designing AI Products" (Lenny's Newsletter 2025); Google PAIR Explorables.*
+_Source: "Designing AI Products" (Lenny's Newsletter 2025); Google PAIR Explorables._
 
 ### P3 — Trust Through Transparency
+
 Confidence scores must appear as labeled bands (High / Moderate / Low) paired with a percentage. Citations must be inline chips with required `quote` fields. Every AI-generated field must carry a visual "Suggested by Copilot" badge until the user edits it. Rationale must be surfaced by default, not behind a toggle. When confidence is low, default to a safer behavior: show alternatives, ask for clarification, or decline to answer.
 
-*Source: Perplexity citation pattern; Linear "Magic" UX review 2025; "Building trust in AI systems" — Microsoft Research; Confidence UI pattern (Modexa 2026).*
+_Source: Perplexity citation pattern; Linear "Magic" UX review 2025; "Building trust in AI systems" — Microsoft Research; Confidence UI pattern (Modexa 2026)._
 
 ### P4 — Mutations Need a Safety Net
+
 No AI action that writes data may execute without either: (a) an explicit user confirmation step that includes a preview diff, or (b) a 10-second toast Undo for low-risk, reversible changes. "Auto" autonomy (admin only) still requires Undo. The preview diff must show field names and old→new values; it must not be a JSON dump.
 
-*Source: v2.1 §6 autonomy design; Superhuman "undo-for-everything" pattern; Notion AI mutation UX.*
+_Source: v2.1 §6 autonomy design; Superhuman "undo-for-everything" pattern; Notion AI mutation UX._
 
 ### P5 — Discoverability Over Assumption
+
 Users cannot benefit from features they do not know exist. Each AI surface must expose at least three sample prompts or representative capabilities on first open. The global Copilot entry point must be reachable from every top-level view in ≤2 gestures. Features reveal themselves through use, not through tours or feature dumps.
 
-*Source: Raycast AI discoverability research 2025; OpenAI "ChatGPT Explore" onboarding audit; Progressive disclosure (IxDF 2026).*
+_Source: Raycast AI discoverability research 2025; OpenAI "ChatGPT Explore" onboarding audit; Progressive disclosure (IxDF 2026)._
 
 ### P6 — Accessible by Default
+
 All AI surfaces must meet WCAG 2.2 AA. Streaming content must use `aria-live="polite"` regions. Motion-heavy features must respect `prefers-reduced-motion`. Copilot icon gradients must meet WCAG contrast in both themes.
 
-*Source: WCAG 2.2 (W3C); A11y Project "Accessible AI Interfaces" 2025.*
+_Source: WCAG 2.2 (W3C); A11y Project "Accessible AI Interfaces" 2025._
 
 ### P7 — Privacy Surfaces Are Non-Negotiable
+
 The "What is shared with the agent?" disclosure must be present before the user sends the first message in any new thread. It must accurately describe every category of data sent. It must be one tap/click away from any AI panel.
 
-*Source: v2.1 §9 privacy design; FTC "AI Disclosure" guidance 2025; GDPR Art. 13.*
+_Source: v2.1 §9 privacy design; FTC "AI Disclosure" guidance 2025; GDPR Art. 13._
 
 ---
 
 ## 3. Terminology
 
-| Term | Definition |
-|---|---|
-| **Copilot** | Branded name for all Board Copilot AI features |
-| **Surface** | A named UI component that hosts AI output (drawer, modal, panel, input) |
-| **Turn** | One user message + one complete agent response cycle |
-| **Streaming** | Progressive token delivery via SSE; content grows character by character |
-| **Proposal** | A structured mutation the agent wants to apply; requires user confirm |
-| **Resume** | Posting a FE tool result back to the agent to continue the run |
-| **Interrupt** | Agent pause awaiting a FE tool result or user confirm |
-| **TTFT** | Time To First Token — latency from request send to first rendered character |
-| **Band** | Confidence label: High (≥75%), Moderate (45–74%), Low (<45%) |
-| **Shimmer** | CSS skeleton animation used as a streaming placeholder |
+| Term          | Definition                                                                  |
+| ------------- | --------------------------------------------------------------------------- |
+| **Copilot**   | Branded name for all Board Copilot AI features                              |
+| **Surface**   | A named UI component that hosts AI output (drawer, modal, panel, input)     |
+| **Turn**      | One user message + one complete agent response cycle                        |
+| **Streaming** | Progressive token delivery via SSE; content grows character by character    |
+| **Proposal**  | A structured mutation the agent wants to apply; requires user confirm       |
+| **Resume**    | Posting a FE tool result back to the agent to continue the run              |
+| **Interrupt** | Agent pause awaiting a FE tool result or user confirm                       |
+| **TTFT**      | Time To First Token — latency from request send to first rendered character |
+| **Band**      | Confidence label: High (≥75%), Moderate (45–74%), Low (<45%)                |
+| **Shimmer**   | CSS skeleton animation used as a streaming placeholder                      |
 
 ---
 
@@ -97,41 +104,41 @@ The "What is shared with the agent?" disclosure must be present before the user 
 
 ### 4.1 Linear
 
-| Strength | Lesson for Board Copilot |
-|----------|-------------------------|
-| **Keyboard-first (`Cmd+K` everything)** | Our command palette exists but AI mode is a placeholder. Ship it. |
-| **AI Triage auto-routes incoming issues (85% accuracy)** | Our triage-agent exists in spec but has no UI. Ship the Inbox. |
-| **Sub-100ms response times, local-first architecture** | Our local engine is synchronous and fast — leverage this as the instant-feedback layer while the remote agent streams. |
+| Strength                                                      | Lesson for Board Copilot                                                                                               |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Keyboard-first (`Cmd+K` everything)**                       | Our command palette exists but AI mode is a placeholder. Ship it.                                                      |
+| **AI Triage auto-routes incoming issues (85% accuracy)**      | Our triage-agent exists in spec but has no UI. Ship the Inbox.                                                         |
+| **Sub-100ms response times, local-first architecture**        | Our local engine is synchronous and fast — leverage this as the instant-feedback layer while the remote agent streams. |
 | **Minimal, scannable UI — dense rows, not card-heavy boards** | Our AI panels (especially the chat drawer) are text-heavy walls. Add structure: cards, dividers, collapsible sections. |
-| **Dark theme by default, clean typography** | We have dark mode. Ensure all AI surfaces respect both themes via CSS custom properties. |
+| **Dark theme by default, clean typography**                   | We have dark mode. Ensure all AI surfaces respect both themes via CSS custom properties.                               |
 
 ### 4.2 Atlassian Jira (Rovo / AI)
 
-| Strength | Lesson for Board Copilot |
-|----------|-------------------------|
+| Strength                                       | Lesson for Board Copilot                                                                              |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Agents as assignees — run inside workflows** | v3 is not there yet (requires real backend), but the mutation proposal pattern is the stepping stone. |
-| **AI-powered issue creation + summaries** | We have this. Invest in quality (citations, confidence) rather than breadth. |
-| **Deep integration with Confluence/Bitbucket** | We don't have integrations. Focus on what we can do well: in-product AI with verifiable citations. |
+| **AI-powered issue creation + summaries**      | We have this. Invest in quality (citations, confidence) rather than breadth.                          |
+| **Deep integration with Confluence/Bitbucket** | We don't have integrations. Focus on what we can do well: in-product AI with verifiable citations.    |
 
 ### 4.3 Notion AI
 
-| Strength | Lesson for Board Copilot |
-|----------|-------------------------|
-| **AI content generation inline — write/rewrite/summarize where text lives** | Our "Rewrite with AI" button (v2.1 §7.3) is the right scope. |
-| **Beautiful, minimalist design** | AI surfaces should inherit the design system, not fight it. |
-| **Q&A across workspace** | Our semantic search + chat already do this. The gap is quality (embeddings vs. Jaccard) and UX (citations). |
+| Strength                                                                    | Lesson for Board Copilot                                                                                    |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **AI content generation inline — write/rewrite/summarize where text lives** | Our "Rewrite with AI" button (v2.1 §7.3) is the right scope.                                                |
+| **Beautiful, minimalist design**                                            | AI surfaces should inherit the design system, not fight it.                                                 |
+| **Q&A across workspace**                                                    | Our semantic search + chat already do this. The gap is quality (embeddings vs. Jaccard) and UX (citations). |
 
 ### 4.4 Industry Anti-Patterns to Avoid
 
-| Anti-Pattern | Risk in Board Copilot | Mitigation |
-|-------------|----------------------|------------|
-| **Illusion of determinism** | Estimation shows "5 points" as if it's the right answer | Confidence bands + "one possible estimate" language + show alternatives |
-| **Black box AI** | Chat answers without showing reasoning or sources | Mandatory citations with required `quote` field; "Sources (N)" footnote |
-| **Feature dump onboarding** | Board header has 4+ AI controls visible simultaneously | Progressive disclosure: consolidate into one Copilot entry; reveal features through use |
-| **Overconfident personality** | Chat uses "I understand" or "I think" | Neutral, tool-like tone: "Based on 3 tasks in Backlog..." |
-| **Hidden uncertainty** | Local engine always produces an answer, never hedges | Low-confidence threshold: if confidence < 0.45, show "Low confidence — verify manually" |
-| **No failure UI** | Errors show generic messages | Specific failure reasons + suggested next inputs |
-| **No undo** | "Apply suggestion" fills form fields with no revert | Every Apply has a 10-second toast Undo + "Revert to previous" |
+| Anti-Pattern                  | Risk in Board Copilot                                   | Mitigation                                                                              |
+| ----------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Illusion of determinism**   | Estimation shows "5 points" as if it's the right answer | Confidence bands + "one possible estimate" language + show alternatives                 |
+| **Black box AI**              | Chat answers without showing reasoning or sources       | Mandatory citations with required `quote` field; "Sources (N)" footnote                 |
+| **Feature dump onboarding**   | Board header has 4+ AI controls visible simultaneously  | Progressive disclosure: consolidate into one Copilot entry; reveal features through use |
+| **Overconfident personality** | Chat uses "I understand" or "I think"                   | Neutral, tool-like tone: "Based on 3 tasks in Backlog..."                               |
+| **Hidden uncertainty**        | Local engine always produces an answer, never hedges    | Low-confidence threshold: if confidence < 0.45, show "Low confidence — verify manually" |
+| **No failure UI**             | Errors show generic messages                            | Specific failure reasons + suggested next inputs                                        |
+| **No undo**                   | "Apply suggestion" fills form fields with no revert     | Every Apply has a 10-second toast Undo + "Revert to previous"                           |
 
 ---
 
@@ -141,48 +148,48 @@ These are structural issues that span multiple surfaces. Each is tagged with sev
 
 ### 5.1 Trust & Transparency
 
-| # | Issue | Severity | Principle |
-|---|-------|----------|-----------|
-| T1 | Raw confidence percentages without calibrated bands or plain-language reasons | High | P3 |
-| T2 | No citations on AI answers — chat and brief don't show which entities they referenced | High | P3 |
-| T3 | No "AI-generated" provenance badges — applied suggestions are indistinguishable from manual input | High | P3 |
-| T4 | No "Why this?" explainability — estimation shows similar tasks but no expandable rationale | Medium | P3 |
-| T5 | No "What is shared?" transparency panel | High | P7 |
-| T6 | Tool-call internals leak to users as raw `<pre>` JSON | Medium | P3 |
+| #   | Issue                                                                                             | Severity | Principle |
+| --- | ------------------------------------------------------------------------------------------------- | -------- | --------- |
+| T1  | Raw confidence percentages without calibrated bands or plain-language reasons                     | High     | P3        |
+| T2  | No citations on AI answers — chat and brief don't show which entities they referenced             | High     | P3        |
+| T3  | No "AI-generated" provenance badges — applied suggestions are indistinguishable from manual input | High     | P3        |
+| T4  | No "Why this?" explainability — estimation shows similar tasks but no expandable rationale        | Medium   | P3        |
+| T5  | No "What is shared?" transparency panel                                                           | High     | P7        |
+| T6  | Tool-call internals leak to users as raw `<pre>` JSON                                             | Medium   | P3        |
 
 ### 5.2 Interaction & Surface Architecture
 
-| # | Issue | Severity | Principle |
-|---|-------|----------|-----------|
-| U1 | Four separate AI drawers/modals compete for the right edge | High | P5 |
-| U2 | No streaming text rendering — all responses arrive as complete JSON | High | P1 |
-| U3 | Chat has no regenerate control | Medium | P2 |
-| U4 | No prompt history / session persistence | Medium | P2 |
-| U5 | No feedback mechanism on text answers (no thumbs-up/down) | Medium | P3 |
-| U6 | Chat send box has no character limit indicator | Low | P2 |
-| U7 | Brief headline is a count, not "what changed since last read" | Medium | P5 |
-| U8 | Semantic search uses Jaccard only — no synonyms, no "Did you mean…?" | Medium | P2 |
-| U9 | Breakdown uses hard-coded subtask verbs — no axis picker | Low | P5 |
+| #   | Issue                                                                | Severity | Principle |
+| --- | -------------------------------------------------------------------- | -------- | --------- |
+| U1  | Four separate AI drawers/modals compete for the right edge           | High     | P5        |
+| U2  | No streaming text rendering — all responses arrive as complete JSON  | High     | P1        |
+| U3  | Chat has no regenerate control                                       | Medium   | P2        |
+| U4  | No prompt history / session persistence                              | Medium   | P2        |
+| U5  | No feedback mechanism on text answers (no thumbs-up/down)            | Medium   | P3        |
+| U6  | Chat send box has no character limit indicator                       | Low      | P2        |
+| U7  | Brief headline is a count, not "what changed since last read"        | Medium   | P5        |
+| U8  | Semantic search uses Jaccard only — no synonyms, no "Did you mean…?" | Medium   | P2        |
+| U9  | Breakdown uses hard-coded subtask verbs — no axis picker             | Low      | P5        |
 
 ### 5.3 Onboarding & Empty States
 
-| # | Issue | Severity | Principle |
-|---|-------|----------|-----------|
-| O1 | No AI onboarding — first-time users see the same interface as power users | High | P5 |
-| O2 | Hard-coded sample prompts that never change regardless of project state | Medium | P5 |
-| O3 | Empty chat state is a muted paragraph, not actionable chips | Low | P2 |
-| O4 | Cold-start brief shows full counts on empty board | Low | P2 |
+| #   | Issue                                                                     | Severity | Principle |
+| --- | ------------------------------------------------------------------------- | -------- | --------- |
+| O1  | No AI onboarding — first-time users see the same interface as power users | High     | P5        |
+| O2  | Hard-coded sample prompts that never change regardless of project state   | Medium   | P5        |
+| O3  | Empty chat state is a muted paragraph, not actionable chips               | Low      | P2        |
+| O4  | Cold-start brief shows full counts on empty board                         | Low      | P2        |
 
 ### 5.4 Accessibility & Performance
 
-| # | Issue | Severity | Principle |
-|---|-------|----------|-----------|
-| A1 | Draft modal uses raw `<input type="checkbox">` instead of AntD | Medium | P6 |
-| A2 | No `aria-live` on AI assist panel | Medium | P6 |
-| A3 | Spinner flash on fast local engine (no 250ms throttle) | Medium | P1 |
-| A4 | Drawers don't render as bottom sheets on mobile | Medium | P6 |
-| A5 | No skeleton loading states for AI surfaces | Medium | P1 |
-| A6 | Estimation debounce is 600ms (PRD says 1000ms) | Low | P1 |
+| #   | Issue                                                          | Severity | Principle |
+| --- | -------------------------------------------------------------- | -------- | --------- |
+| A1  | Draft modal uses raw `<input type="checkbox">` instead of AntD | Medium   | P6        |
+| A2  | No `aria-live` on AI assist panel                              | Medium   | P6        |
+| A3  | Spinner flash on fast local engine (no 250ms throttle)         | Medium   | P1        |
+| A4  | Drawers don't render as bottom sheets on mobile                | Medium   | P6        |
+| A5  | No skeleton loading states for AI surfaces                     | Medium   | P1        |
+| A6  | Estimation debounce is 600ms (PRD says 1000ms)                 | Low      | P1        |
 
 ---
 
@@ -192,13 +199,13 @@ These are structural issues that span multiple surfaces. Each is tagged with sev
 
 #### Issues
 
-| # | Issue | Severity |
-|---|---|---|
-| S-01 | Module-level mutable `gradientId` counter crashes SSR and produces duplicate gradient IDs on hot-reload | Critical |
-| S-02 | Hard-coded gradient colors have no dark-mode variant — icon appears washed-out on dark backgrounds | High |
-| S-03 | Default `aria-label="Board Copilot"` is announced on every decorative use, polluting screen-reader output | High |
-| S-04 | No `role="img"` when used as a meaningful icon | Medium |
-| S-05 | Gradient colors are not themeable via design tokens | Low |
+| #    | Issue                                                                                                     | Severity |
+| ---- | --------------------------------------------------------------------------------------------------------- | -------- |
+| S-01 | Module-level mutable `gradientId` counter crashes SSR and produces duplicate gradient IDs on hot-reload   | Critical |
+| S-02 | Hard-coded gradient colors have no dark-mode variant — icon appears washed-out on dark backgrounds        | High     |
+| S-03 | Default `aria-label="Board Copilot"` is announced on every decorative use, polluting screen-reader output | High     |
+| S-04 | No `role="img"` when used as a meaningful icon                                                            | Medium   |
+| S-05 | Gradient colors are not themeable via design tokens                                                       | Low      |
 
 #### Requirements
 
@@ -214,21 +221,21 @@ These are structural issues that span multiple surfaces. Each is tagged with sev
 
 #### Issues
 
-| # | Issue | Severity |
-|---|---|---|
-| C-01 | `destroyOnHidden` wipes the entire transcript on close | Critical |
-| C-02 | Tool call messages rendered as raw `<pre>` JSON | High |
-| C-03 | No Stop button — only escape from runaway stream is closing the drawer | High |
-| C-04 | No streaming — full response renders in one paint | High |
-| C-05 | Input not disabled during streaming — second message silently drops | High |
-| C-06 | Sample prompts shown only on initial empty state; disappear after first message | Medium |
-| C-07 | Error messages appear as raw text with no retry affordance | Medium |
-| C-08 | Citations not rendered — `useAiChat` does not surface `CitationRef[]` | High |
-| C-09 | Nudges (`TriageNudge`) not wired — silently dropped | High |
-| C-10 | No "What is shared?" privacy disclosure link | High |
-| C-11 | Long responses with code blocks break layout at narrow widths | Medium |
-| C-12 | Thumbs feedback buttons always `disabled={isLoading}` — never re-enable | Medium |
-| C-13 | Drawer title is static "Board Copilot" — no thread context | Low |
+| #    | Issue                                                                           | Severity |
+| ---- | ------------------------------------------------------------------------------- | -------- |
+| C-01 | `destroyOnHidden` wipes the entire transcript on close                          | Critical |
+| C-02 | Tool call messages rendered as raw `<pre>` JSON                                 | High     |
+| C-03 | No Stop button — only escape from runaway stream is closing the drawer          | High     |
+| C-04 | No streaming — full response renders in one paint                               | High     |
+| C-05 | Input not disabled during streaming — second message silently drops             | High     |
+| C-06 | Sample prompts shown only on initial empty state; disappear after first message | Medium   |
+| C-07 | Error messages appear as raw text with no retry affordance                      | Medium   |
+| C-08 | Citations not rendered — `useAiChat` does not surface `CitationRef[]`           | High     |
+| C-09 | Nudges (`TriageNudge`) not wired — silently dropped                             | High     |
+| C-10 | No "What is shared?" privacy disclosure link                                    | High     |
+| C-11 | Long responses with code blocks break layout at narrow widths                   | Medium   |
+| C-12 | Thumbs feedback buttons always `disabled={isLoading}` — never re-enable         | Medium   |
+| C-13 | Drawer title is static "Board Copilot" — no thread context                      | Low      |
 
 #### Architecture Change
 
@@ -245,6 +252,7 @@ Migrate from `useAiChat` to `useAgent("chat-agent")`. This unlocks real streamin
 **C-R4. Input guard.** Disable text input and send button while `isStreaming`. Show spinner inside send button.
 
 **C-R5. Sample prompts.** Three contextual chips on every empty turn (after each complete response, not just first open). Cache-driven:
+
 1. "What's at risk on this board?"
 2. "{lastTouchedTaskName} — what's the status?" (contextual, from cache)
 3. "Who has the most open work?"
@@ -258,6 +266,7 @@ Clicking populates input; user still presses Send.
 **C-R8. Nudge cards.** Render each `TriageNudge` as a compact card below the assistant bubble: severity icon, title, primary CTA button, dismiss link. Fires `ANALYTICS_EVENTS.NUDGE_DISMISSED` on dismiss.
 
 **C-R9. Proposal preview card.** When `pendingProposal` is non-null, render `MutationProposalCard` between last bubble and input:
+
 - Title: "Copilot wants to [verb] [entity name]"
 - Diff table: Field | Current | Proposed (red/green text)
 - Risk band chip (Low/Medium/High)
@@ -283,6 +292,7 @@ Clicking populates input; user still presses Send.
 **C-R17. Save to task note.** Button on each assistant turn. Writes answer (with citations) to focused task's note, behind confirmation. Appends with horizontal rule separator; never replaces without confirmation.
 
 **Microcopy guidelines:**
+
 - Never "I think" / "I understand." Use "Based on..." or "Looking at..."
 - Error: "I couldn't find an answer. Try rephrasing, or check [Sources] for what I looked at."
 - Rate limit: "Board Copilot is at capacity. Please try again in {retryAfter} seconds."
@@ -292,22 +302,22 @@ Clicking populates input; user still presses Send.
 
 #### Issues
 
-| # | Issue | Severity |
-|---|---|---|
-| T-01 | Story-points Apply button executes with no undo affordance | High |
-| T-02 | Confidence shown as raw `%` only — no band label | Medium |
-| T-03 | `confidenceBand` implemented but never shown in the label | Medium |
-| T-04 | No visual distinction between AI-suggested and user-entered values | High |
-| T-05 | Similar-task list shows task ID as fallback when name is undefined | Medium |
-| T-06 | Readiness issues have no "Dismiss" affordance | Medium |
-| T-07 | No explanation when AI can't estimate — spinner disappears leaving blank space | High |
-| T-08 | Re-runs on every debounced change including whitespace-only | Medium |
-| T-09 | Panel is always expanded — no collapse affordance | Low |
-| T-09b | Apply suggestion for readiness fires with no preview | High |
-| T-10 | No "Regenerate" affordance | Medium |
-| T-11 | Stale data from previous task shown when name is blank | High |
-| T-12 | No "Board Copilot" branding consistency with other surfaces | Low |
-| T-13 | No ARIA live region | Medium |
+| #     | Issue                                                                          | Severity |
+| ----- | ------------------------------------------------------------------------------ | -------- |
+| T-01  | Story-points Apply button executes with no undo affordance                     | High     |
+| T-02  | Confidence shown as raw `%` only — no band label                               | Medium   |
+| T-03  | `confidenceBand` implemented but never shown in the label                      | Medium   |
+| T-04  | No visual distinction between AI-suggested and user-entered values             | High     |
+| T-05  | Similar-task list shows task ID as fallback when name is undefined             | Medium   |
+| T-06  | Readiness issues have no "Dismiss" affordance                                  | Medium   |
+| T-07  | No explanation when AI can't estimate — spinner disappears leaving blank space | High     |
+| T-08  | Re-runs on every debounced change including whitespace-only                    | Medium   |
+| T-09  | Panel is always expanded — no collapse affordance                              | Low      |
+| T-09b | Apply suggestion for readiness fires with no preview                           | High     |
+| T-10  | No "Regenerate" affordance                                                     | Medium   |
+| T-11  | Stale data from previous task shown when name is blank                         | High     |
+| T-12  | No "Board Copilot" branding consistency with other surfaces                    | Low      |
+| T-13  | No ARIA live region                                                            | Medium   |
 
 #### Requirements
 
@@ -348,27 +358,28 @@ Clicking populates input; user still presses Send.
 
 #### Issues
 
-| # | Issue | Severity |
-|---|---|---|
-| D-01 | No sample prompts on modal open | High |
-| D-02 | No "Suggested by Copilot" badges on auto-populated fields | High |
-| D-03 | No breakdown axis picker (v2.1 specifies 4 axes) | High |
-| D-04 | Sequential `createTask` loop has no progress indicator | High |
-| D-05 | Confidence shown as raw `%` | Medium |
-| D-06 | No "Regenerate draft" affordance | Medium |
-| D-07 | No undo when subtasks are created in bulk | High |
-| D-08 | Task type icon defaults to generic circle for unrecognized types | Low |
-| D-09 | Modal does not clear draft state when closed and reopened | High |
-| D-10 | No privacy disclosure (first use) | High |
-| D-11 | "Create [N] subtasks" label doesn't update with count changes | Medium |
-| D-12 | Breakdown list shows names only — no column/assignee preview | Medium |
-| D-13 | Long descriptions overflow on small screens | Medium |
-| D-14 | No Cmd+Enter keyboard shortcut | Low |
-| D-15 | No analytics for breakdown axis selection | Low |
+| #    | Issue                                                            | Severity |
+| ---- | ---------------------------------------------------------------- | -------- |
+| D-01 | No sample prompts on modal open                                  | High     |
+| D-02 | No "Suggested by Copilot" badges on auto-populated fields        | High     |
+| D-03 | No breakdown axis picker (v2.1 specifies 4 axes)                 | High     |
+| D-04 | Sequential `createTask` loop has no progress indicator           | High     |
+| D-05 | Confidence shown as raw `%`                                      | Medium   |
+| D-06 | No "Regenerate draft" affordance                                 | Medium   |
+| D-07 | No undo when subtasks are created in bulk                        | High     |
+| D-08 | Task type icon defaults to generic circle for unrecognized types | Low      |
+| D-09 | Modal does not clear draft state when closed and reopened        | High     |
+| D-10 | No privacy disclosure (first use)                                | High     |
+| D-11 | "Create [N] subtasks" label doesn't update with count changes    | Medium   |
+| D-12 | Breakdown list shows names only — no column/assignee preview     | Medium   |
+| D-13 | Long descriptions overflow on small screens                      | Medium   |
+| D-14 | No Cmd+Enter keyboard shortcut                                   | Low      |
+| D-15 | No analytics for breakdown axis selection                        | Low      |
 
 #### Requirements
 
 **D-R1. Sample prompts on open.** Three chips when prompt is empty:
+
 - "Draft a bug fix task for [board name]"
 - "Plan a feature for [first epic name or 'this project']"
 - "Create a research spike"
@@ -379,12 +390,12 @@ Use `microcopy.ai.draftSuggestions` for translatability.
 
 **D-R3. Breakdown axis picker.** `<Select>` above breakdown list:
 
-| Value | Label | Tooltip |
-|---|---|---|
-| `by_phase` | By phase | "Frontend, backend, testing" |
-| `by_surface` | By surface | "UI, API, data, infra" |
-| `by_risk` | By risk | "High risk first, low risk last" |
-| `freeform` | Let Copilot decide | "Agent picks the best split" |
+| Value        | Label              | Tooltip                          |
+| ------------ | ------------------ | -------------------------------- |
+| `by_phase`   | By phase           | "Frontend, backend, testing"     |
+| `by_surface` | By surface         | "UI, API, data, infra"           |
+| `by_risk`    | By risk            | "High risk first, low risk last" |
+| `freeform`   | Let Copilot decide | "Agent picks the best split"     |
 
 Default: `freeform`. Change re-runs breakdown (500ms debounce). Fires `ANALYTICS_EVENTS.BREAKDOWN_AXIS_CHANGED`.
 
@@ -397,6 +408,7 @@ Default: `freeform`. Change re-runs breakdown (500ms debounce). Fires `ANALYTICS
 **D-R7. Modal state reset.** On close, reset AI hook and clear form back to defaults.
 
 **D-R8. Privacy disclosure (first use).** First submit checks `localStorage.getItem("boardCopilot:draftPrivacyShown")`. If not shown:
+
 > "Copilot will see your board's task list, column names, and member names. No task notes or emails are sent."
 > [Got it] [Don't remind me]
 
@@ -408,22 +420,22 @@ Default: `freeform`. Change re-runs breakdown (500ms debounce). Fires `ANALYTICS
 
 #### Issues
 
-| # | Issue | Severity |
-|---|---|---|
-| B-01 | Auto-fires AI on every open — no caching | High |
-| B-02 | No "Copy as Markdown" action | High |
-| B-03 | No "Save as task note" action | Medium |
-| B-04 | No refresh button | Medium |
-| B-05 | `openTaskFromBrief` closes drawer — loses board context | High |
-| B-06 | Recommendations render as plain text — no CTA | High |
-| B-07 | Re-runs when drawer reopens even if data unchanged | High |
-| B-08 | No streaming | High |
-| B-09 | No error retry affordance | Medium |
-| B-10 | Risk section shows raw counts with no links to see which tasks | Medium |
-| B-11 | No "Generated X minutes ago" timestamp | Low |
-| B-12 | Data destroyed when drawer closes (`destroyOnHidden`) | Medium |
-| B-13 | No progress indicator during generation | High |
-| B-14 | Footer buttons have no `aria-label` | Low |
+| #    | Issue                                                          | Severity |
+| ---- | -------------------------------------------------------------- | -------- |
+| B-01 | Auto-fires AI on every open — no caching                       | High     |
+| B-02 | No "Copy as Markdown" action                                   | High     |
+| B-03 | No "Save as task note" action                                  | Medium   |
+| B-04 | No refresh button                                              | Medium   |
+| B-05 | `openTaskFromBrief` closes drawer — loses board context        | High     |
+| B-06 | Recommendations render as plain text — no CTA                  | High     |
+| B-07 | Re-runs when drawer reopens even if data unchanged             | High     |
+| B-08 | No streaming                                                   | High     |
+| B-09 | No error retry affordance                                      | Medium   |
+| B-10 | Risk section shows raw counts with no links to see which tasks | Medium   |
+| B-11 | No "Generated X minutes ago" timestamp                         | Low      |
+| B-12 | Data destroyed when drawer closes (`destroyOnHidden`)          | Medium   |
+| B-13 | No progress indicator during generation                        | High     |
+| B-14 | Footer buttons have no `aria-label`                            | Low      |
 
 #### Requirements
 
@@ -445,13 +457,13 @@ Default: `freeform`. Change re-runs breakdown (500ms debounce). Fires `ANALYTICS
 
 **B-R9. Recommendation CTAs.** Each recommendation includes a CTA:
 
-| Type | CTA | Action |
-|---|---|---|
-| `reassign` | "Reassign…" | Opens assignee picker |
-| `move_column` | "Move…" | Opens column picker |
+| Type          | CTA           | Action                     |
+| ------------- | ------------- | -------------------------- |
+| `reassign`    | "Reassign…"   | Opens assignee picker      |
+| `move_column` | "Move…"       | Opens column picker        |
 | `add_subtask` | "Break down…" | Opens breakdown pre-filled |
-| `create_task` | "Create task" | Opens draft modal |
-| Other | "Open task" | Navigates to task |
+| `create_task` | "Create task" | Opens draft modal          |
+| Other         | "Open task"   | Navigates to task          |
 
 **B-R10. Risk section links.** Each count (e.g., "3 blocked tasks") is a clickable link opening a filtered board view.
 
@@ -467,18 +479,18 @@ Default: `freeform`. Change re-runs breakdown (500ms debounce). Fires `ANALYTICS
 
 #### Issues
 
-| # | Issue | Severity |
-|---|---|---|
-| SR-01 | Clear is a separate button — standard is ×-icon inside input | Medium |
-| SR-02 | No rationale on successful match | Medium |
-| SR-03 | Input disabled during search — can't type next query | High |
-| SR-04 | No result count for screen readers | Medium |
-| SR-05 | No streaming for results | Medium |
-| SR-06 | No "Why this result?" tooltip | Low |
-| SR-07 | Search icon button has no `aria-label` | High |
-| SR-08 | No keyboard shortcut to focus search | Low |
-| SR-09 | Error state shows raw string with no retry | Medium |
-| SR-10 | No distinction between "no AI results" and "no tasks at all" | High |
+| #     | Issue                                                        | Severity |
+| ----- | ------------------------------------------------------------ | -------- |
+| SR-01 | Clear is a separate button — standard is ×-icon inside input | Medium   |
+| SR-02 | No rationale on successful match                             | Medium   |
+| SR-03 | Input disabled during search — can't type next query         | High     |
+| SR-04 | No result count for screen readers                           | Medium   |
+| SR-05 | No streaming for results                                     | Medium   |
+| SR-06 | No "Why this result?" tooltip                                | Low      |
+| SR-07 | Search icon button has no `aria-label`                       | High     |
+| SR-08 | No keyboard shortcut to focus search                         | Low      |
+| SR-09 | Error state shows raw string with no retry                   | Medium   |
+| SR-10 | No distinction between "no AI results" and "no tasks at all" | High     |
 
 #### Requirements
 
@@ -504,25 +516,25 @@ Default: `freeform`. Change re-runs breakdown (500ms debounce). Fires `ANALYTICS
 
 #### Issues
 
-| # | Issue | Severity |
-|---|---|---|
-| CP-01 | Tab hijacked to toggle AI mode — breaks keyboard nav | Critical |
-| CP-02 | "/" prefix doesn't reset on deletion | High |
-| CP-03 | `aria-expanded` hardcoded to `true` | High |
-| CP-04 | Naive `indexOf` ranking — no fuzzy matching or recency | Medium |
-| CP-05 | Mobile: entire palette replaced with text paragraph — no search | High |
-| CP-06 | AI mode shows "Phase E" placeholder — Phase E has started | High |
-| CP-07 | "/" in body (not start) sets AI mode unexpectedly | High |
-| CP-08 | No keyboard shortcut to clear input without closing | Low |
-| CP-09 | No frecency weighting | Low |
-| CP-10 | No visual group headers (Projects / Tasks / Columns / Members) | Low |
-| CP-11 | ARIA tree invalid: `role="option"` not direct children of `role="listbox"` | High |
-| CP-12 | No empty-state illustration | Low |
-| CP-13 | No result count announced to screen readers | Medium |
-| CP-14 | `isMacLike()` uses deprecated `navigator.platform` | Low |
-| CP-15 | No loading state while list populates | Medium |
-| CP-16 | Query not trimmed — leading spaces cause false no-matches | Low |
-| CP-17 | "Phase E" internal naming in user-visible copy | High |
+| #     | Issue                                                                      | Severity |
+| ----- | -------------------------------------------------------------------------- | -------- |
+| CP-01 | Tab hijacked to toggle AI mode — breaks keyboard nav                       | Critical |
+| CP-02 | "/" prefix doesn't reset on deletion                                       | High     |
+| CP-03 | `aria-expanded` hardcoded to `true`                                        | High     |
+| CP-04 | Naive `indexOf` ranking — no fuzzy matching or recency                     | Medium   |
+| CP-05 | Mobile: entire palette replaced with text paragraph — no search            | High     |
+| CP-06 | AI mode shows "Phase E" placeholder — Phase E has started                  | High     |
+| CP-07 | "/" in body (not start) sets AI mode unexpectedly                          | High     |
+| CP-08 | No keyboard shortcut to clear input without closing                        | Low      |
+| CP-09 | No frecency weighting                                                      | Low      |
+| CP-10 | No visual group headers (Projects / Tasks / Columns / Members)             | Low      |
+| CP-11 | ARIA tree invalid: `role="option"` not direct children of `role="listbox"` | High     |
+| CP-12 | No empty-state illustration                                                | Low      |
+| CP-13 | No result count announced to screen readers                                | Medium   |
+| CP-14 | `isMacLike()` uses deprecated `navigator.platform`                         | Low      |
+| CP-15 | No loading state while list populates                                      | Medium   |
+| CP-16 | Query not trimmed — leading spaces cause false no-matches                  | Low      |
+| CP-17 | "Phase E" internal naming in user-visible copy                             | High     |
 
 #### Requirements
 
@@ -625,6 +637,7 @@ When the agent proposes a mutation:
 ### 7.5 "Rewrite with AI" — Task Note Editor
 
 Button above textarea: "✨ Rewrite with AI". Opens side panel (not modal — textarea stays visible):
+
 - Rewrite as user story
 - Add acceptance criteria
 - Translate to {user locale}
@@ -643,6 +656,7 @@ Flow: select option → streaming rewrite in side panel → diff view for notes 
 When user first encounters Board Copilot (first `boardCopilot:enabled` on a project with tasks):
 
 **Welcome banner** (top of board, dismissible):
+
 > ✨ Board Copilot is ready
 > I can help you draft tasks, estimate work, summarize this board, and answer questions.
 > [Try it: "Summarize this board"] [Dismiss]
@@ -652,6 +666,7 @@ When user first encounters Board Copilot (first `boardCopilot:enabled` on a proj
 - Dismissing hides forever.
 
 **Contextual tooltips** (once per feature on first encounter):
+
 - First Draft: "Type a description and Board Copilot will fill in the details."
 - First Assist panel: "Board Copilot suggests story points based on similar tasks."
 - First Brief: "This summary updates every time you open it."
@@ -661,26 +676,26 @@ When user first encounters Board Copilot (first `boardCopilot:enabled` on a proj
 
 Features surface based on usage maturity:
 
-| User Action | Feature Revealed |
-|-------------|-----------------|
-| Creates first task with AI | "Tip: You can also break tasks into subtasks" |
-| Opens 3rd task modal | "Board Copilot can suggest story points" tooltip |
-| Runs 2nd brief | "Copy as Markdown to share this summary" hint |
-| Sends 5th chat message | "Use / in the command palette for quick AI actions" |
-| Has 10+ tasks | Triage Inbox becomes visible in tabs |
+| User Action                | Feature Revealed                                    |
+| -------------------------- | --------------------------------------------------- |
+| Creates first task with AI | "Tip: You can also break tasks into subtasks"       |
+| Opens 3rd task modal       | "Board Copilot can suggest story points" tooltip    |
+| Runs 2nd brief             | "Copy as Markdown to share this summary" hint       |
+| Sends 5th chat message     | "Use / in the command palette for quick AI actions" |
+| Has 10+ tasks              | Triage Inbox becomes visible in tabs                |
 
 Each revelation is a single non-blocking tooltip. Never a modal. Never blocking work.
 
 ### 8.3 Cold-Start States
 
-| Surface | Cold-Start |
-|---------|-----------|
-| Chat | Three onboarding prompts: "What can Board Copilot do?", "Summarize this board", "Draft a sample task" |
-| Brief | Structural counts + "Not enough history for trends. Brief gets smarter as the board grows." |
-| Estimation | Local heuristic + "Estimate based on board averages — accuracy improves with more tasks." |
-| Inbox | "No nudges yet. Board Copilot checks every 15 minutes." |
-| History | "No AI actions yet. Changes made with Board Copilot will appear here." |
-| Palette AI mode | "What Copilot can do" help panel |
+| Surface         | Cold-Start                                                                                            |
+| --------------- | ----------------------------------------------------------------------------------------------------- |
+| Chat            | Three onboarding prompts: "What can Board Copilot do?", "Summarize this board", "Draft a sample task" |
+| Brief           | Structural counts + "Not enough history for trends. Brief gets smarter as the board grows."           |
+| Estimation      | Local heuristic + "Estimate based on board averages — accuracy improves with more tasks."             |
+| Inbox           | "No nudges yet. Board Copilot checks every 15 minutes."                                               |
+| History         | "No AI actions yet. Changes made with Board Copilot will appear here."                                |
+| Palette AI mode | "What Copilot can do" help panel                                                                      |
 
 ---
 
@@ -699,6 +714,7 @@ Each revelation is a single non-blocking tooltip. Never a modal. Never blocking 
 ### 9.2 Error Handling
 
 **X-R5.** All AI error states follow this template:
+
 - **Heading:** Plain-language description ("Couldn't generate board brief")
 - **Body:** (Optional) one sentence of context
 - **Primary action:** "Try again" — retries last operation
@@ -722,35 +738,38 @@ Each revelation is a single non-blocking tooltip. Never a modal. Never blocking 
 ### 9.5 Design Tokens
 
 **X-R11.** New `src/theme/aiTokens.ts`:
+
 ```ts
 export const ai = {
     gradStart: "var(--color-copilot-grad-start)",
-    gradEnd:   "var(--color-copilot-grad-end)",
-    bgSubtle:  "var(--color-copilot-bg-subtle)",
-    bgMedium:  "var(--color-copilot-bg-medium)",
-    badgePurple: "#7C5CFF",
+    gradEnd: "var(--color-copilot-grad-end)",
+    bgSubtle: "var(--color-copilot-bg-subtle)",
+    bgMedium: "var(--color-copilot-bg-medium)",
+    badgePurple: "#7C5CFF"
 };
 ```
 
 **X-R12.** CSS custom properties in `:root` and `:root[data-theme="dark"]`:
+
 ```css
 :root {
-    --color-copilot-grad-start: #7C5CFF;
-    --color-copilot-grad-end:   #C084FC;
-    --color-copilot-bg-subtle:  rgba(124, 92, 255, 0.06);
-    --color-copilot-bg-medium:  rgba(124, 92, 255, 0.15);
+    --color-copilot-grad-start: #7c5cff;
+    --color-copilot-grad-end: #c084fc;
+    --color-copilot-bg-subtle: rgba(124, 92, 255, 0.06);
+    --color-copilot-bg-medium: rgba(124, 92, 255, 0.15);
 }
 :root[data-theme="dark"] {
-    --color-copilot-grad-start: #A78BFA;
-    --color-copilot-grad-end:   #E879F9;
-    --color-copilot-bg-subtle:  rgba(167, 139, 250, 0.08);
-    --color-copilot-bg-medium:  rgba(167, 139, 250, 0.18);
+    --color-copilot-grad-start: #a78bfa;
+    --color-copilot-grad-end: #e879f9;
+    --color-copilot-bg-subtle: rgba(167, 139, 250, 0.08);
+    --color-copilot-bg-medium: rgba(167, 139, 250, 0.18);
 }
 ```
 
 ### 9.6 Microcopy
 
 **X-R13.** Add to `src/constants/microcopy.ts`:
+
 ```ts
 ai: {
     draftSuggestions: ["Draft a bug fix task", "Plan a new feature", "Create a research spike"],
@@ -770,6 +789,7 @@ ai: {
 ### 9.7 Privacy
 
 **X-R14.** New `CopilotPrivacyPopover` component at `src/components/copilotPrivacyPopover/index.tsx`. Popover with:
+
 - Title: "What Board Copilot sees"
 - Bulleted list: board name, column names, task names, member names, current user ID
 - Fine print: "No task notes, member emails, or attachments are ever sent."
@@ -778,6 +798,7 @@ ai: {
 ### 9.8 Analytics
 
 **X-R15.** Add to `ANALYTICS_EVENTS`:
+
 ```ts
 AGENT_TTFT: "agent_ttft",
 BRIEF_REFRESHED: "brief_refreshed",
@@ -804,21 +825,25 @@ COPILOT_ONBOARDING_CTA: "copilot_onboarding_cta",
 ## 10. New Shared Components
 
 ### 10.1 `MutationProposalCard`
+
 **Path:** `src/components/mutationProposalCard/index.tsx`
 
 Props: `{ proposal, onAccept, onReject, isLoading? }`. Renders: header ("Copilot wants to [verb] [entity]"), diff table (Field | Current | Proposed with red/green), risk chip, undoable badge, Accept/Reject buttons.
 
 ### 10.2 `CitationChip`
+
 **Path:** `src/components/citationChip/index.tsx`
 
 Props: `{ index, citation, onNavigate? }`. Renders `<sup>` Tag with `role="link"`, `tabIndex={0}`. Click/Enter navigates; Tooltip shows `citation.title`, `citation.type`, verbatim `quote`.
 
 ### 10.3 `NudgeCard`
+
 **Path:** `src/components/nudgeCard/index.tsx`
 
 Props: `{ nudge, onAction, onDismiss }`. Compact Card with severity icon, title, action button, dismiss link.
 
 ### 10.4 `CopilotPrivacyPopover`
+
 Spec in §9.7.
 
 ---
@@ -837,21 +862,21 @@ Spec in §9.7.
 
 ## 12. Success Metrics
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| M1 — Drafting adoption | ≥40% of new tasks via AI draft (AI-on users, 4 weeks) | `copilot_draft_submit / total creates` |
-| M2 — Draft quality | ≥30% submitted without modifying AI fields (except name) | Modification count ≤ 1 |
-| M3 — Estimation acceptance | ≥25% of panel opens result in Apply | `copilot_estimate_apply / panel opens` |
-| M4 — Brief usage | ≥2 briefs / active board / week | `copilot_brief_open` per board/week |
-| M8 — Proposal acceptance | ≥70% per tool before Auto | `accept / (accept + reject)` |
-| M9 — Undo rate | ≤5% per tool | `undo / accept` |
-| M10 — Inbox engagement | ≥40% nudges read / week | `inbox.read / nudges generated` |
-| M11 — Palette adoption | ≥50% AI invocations from palette (4 weeks) | `palette_invoke(ai) / total AI` |
-| M14 — Text answer quality | ≥80% thumbs-up | `feedback(up) / total feedback` |
-| M15 — Citation relevance | ≥90% not flagged | `1 - flag / click` |
-| M16 — Onboarding completion | ≥60% new users complete 1 AI action in first session | `onboarding_cta / new AI users` |
-| M17 — Time to first AI value | Median <3 min from enable to first interaction | Timestamp delta |
-| M18 — TTFT | p50 <700ms, p95 <1.5s | Client measurement |
+| Metric                       | Target                                                   | Measurement                            |
+| ---------------------------- | -------------------------------------------------------- | -------------------------------------- |
+| M1 — Drafting adoption       | ≥40% of new tasks via AI draft (AI-on users, 4 weeks)    | `copilot_draft_submit / total creates` |
+| M2 — Draft quality           | ≥30% submitted without modifying AI fields (except name) | Modification count ≤ 1                 |
+| M3 — Estimation acceptance   | ≥25% of panel opens result in Apply                      | `copilot_estimate_apply / panel opens` |
+| M4 — Brief usage             | ≥2 briefs / active board / week                          | `copilot_brief_open` per board/week    |
+| M8 — Proposal acceptance     | ≥70% per tool before Auto                                | `accept / (accept + reject)`           |
+| M9 — Undo rate               | ≤5% per tool                                             | `undo / accept`                        |
+| M10 — Inbox engagement       | ≥40% nudges read / week                                  | `inbox.read / nudges generated`        |
+| M11 — Palette adoption       | ≥50% AI invocations from palette (4 weeks)               | `palette_invoke(ai) / total AI`        |
+| M14 — Text answer quality    | ≥80% thumbs-up                                           | `feedback(up) / total feedback`        |
+| M15 — Citation relevance     | ≥90% not flagged                                         | `1 - flag / click`                     |
+| M16 — Onboarding completion  | ≥60% new users complete 1 AI action in first session     | `onboarding_cta / new AI users`        |
+| M17 — Time to first AI value | Median <3 min from enable to first interaction           | Timestamp delta                        |
+| M18 — TTFT                   | p50 <700ms, p95 <1.5s                                    | Client measurement                     |
 
 ---
 
@@ -861,66 +886,66 @@ Spec in §9.7.
 
 Block on no other work. Fix bugs that degrade existing functionality:
 
-| Req | Summary |
-|---|---|
-| S-R1 | Fix SSR-crashing gradient ID |
-| CP-R1 | Fix Tab hijack in command palette |
-| CP-R7 | Fix "/" detection |
-| CP-R8 | Fix ARIA listbox tree |
-| T-R7 | Fix stale estimate data on blank task name |
-| D-R7 | Fix stale draft state on modal reopen |
-| SR-R3 | Fix disabled input during search |
-| C-R12 | Re-enable thumbs buttons after stream ends |
-| X-R5 | Standardize error templates across all surfaces |
+| Req   | Summary                                         |
+| ----- | ----------------------------------------------- |
+| S-R1  | Fix SSR-crashing gradient ID                    |
+| CP-R1 | Fix Tab hijack in command palette               |
+| CP-R7 | Fix "/" detection                               |
+| CP-R8 | Fix ARIA listbox tree                           |
+| T-R7  | Fix stale estimate data on blank task name      |
+| D-R7  | Fix stale draft state on modal reopen           |
+| SR-R3 | Fix disabled input during search                |
+| C-R12 | Re-enable thumbs buttons after stream ends      |
+| X-R5  | Standardize error templates across all surfaces |
 
 ### Phase UX-2 — Trust, Transparency & Tokens
 
 Confidence bands, badges, privacy disclosures, design tokens:
 
-| Req | Summary |
-|---|---|
-| X-R6 | Extract `confidenceBand()` to shared util |
-| T-R2, T-R3 | Confidence bands + AI field badges in assist panel |
-| D-R2 | AI field badges in draft modal |
-| X-R11/12 | Design token extraction and dark-mode CSS |
-| S-R2/3/4 | Sparkle icon improvements |
-| X-R14 | Create `CopilotPrivacyPopover` |
-| C-R10, D-R8 | Privacy links/disclosures |
-| X-R13 | Microcopy additions |
-| Onboarding | Welcome banner + first-encounter tooltips |
-| Cold starts | All surface empty states |
+| Req         | Summary                                            |
+| ----------- | -------------------------------------------------- |
+| X-R6        | Extract `confidenceBand()` to shared util          |
+| T-R2, T-R3  | Confidence bands + AI field badges in assist panel |
+| D-R2        | AI field badges in draft modal                     |
+| X-R11/12    | Design token extraction and dark-mode CSS          |
+| S-R2/3/4    | Sparkle icon improvements                          |
+| X-R14       | Create `CopilotPrivacyPopover`                     |
+| C-R10, D-R8 | Privacy links/disclosures                          |
+| X-R13       | Microcopy additions                                |
+| Onboarding  | Welcome banner + first-encounter tooltips          |
+| Cold starts | All surface empty states                           |
 
 ### Phase UX-3 — Safety Nets, Streaming & Persistence
 
-| Req | Summary |
-|---|---|
-| T-R1, T-R4 | Undo for story points and readiness |
-| D-R5 | Undo for bulk subtask creation |
-| D-R4 | Bulk-create progress indicator |
-| B-R1/13 | Brief caching + persist across close |
-| C-R1 | Persist chat transcript |
-| C-R2, C-R3 | Streaming text + Stop button (requires useAgent migration) |
-| B-R2 | Streaming brief |
-| UA-R1/2 | Timeout watchdog + TTFT measurement |
-| C-R9 | Proposal preview card + MutationProposalCard component |
-| History tab | Action History with toast Undo |
+| Req         | Summary                                                    |
+| ----------- | ---------------------------------------------------------- |
+| T-R1, T-R4  | Undo for story points and readiness                        |
+| D-R5        | Undo for bulk subtask creation                             |
+| D-R4        | Bulk-create progress indicator                             |
+| B-R1/13     | Brief caching + persist across close                       |
+| C-R1        | Persist chat transcript                                    |
+| C-R2, C-R3  | Streaming text + Stop button (requires useAgent migration) |
+| B-R2        | Streaming brief                                            |
+| UA-R1/2     | Timeout watchdog + TTFT measurement                        |
+| C-R9        | Proposal preview card + MutationProposalCard component     |
+| History tab | Action History with toast Undo                             |
 
 ### Phase UX-4 — Discoverability, Power Features & Polish
 
-| Req | Summary |
-|---|---|
-| D-R1, C-R5 | Sample prompts in draft + chat |
-| D-R3 | Breakdown axis picker |
-| D-R6, T-R8, C-R14 | Regenerate buttons everywhere |
-| B-R3/5/6/7 | Brief footer: Copy, Save, Refresh |
-| B-R3/9/10 | Brief headline + recommendation CTAs + risk links |
-| C-R7/8 | Citations and nudge cards in chat |
-| Inbox tab | Nudge cards with aggregation/decay |
-| CP-R4/5/6 | Fuzzy ranking, mobile bottom sheet, wire AI mode |
-| SR-R2/5/9 | Search rationale + "Did you mean?" |
-| 7.5 | "Rewrite with AI" on task note editor |
-| New components | MutationProposalCard, CitationChip, NudgeCard |
-| C-R15/16/17 | Character counter, session persistence, save-to-note |
+| Req               | Summary                                              |
+| ----------------- | ---------------------------------------------------- |
+| D-R1, C-R5        | Sample prompts in draft + chat                       |
+| D-R3              | Breakdown axis picker                                |
+| D-R6, T-R8, C-R14 | Regenerate buttons everywhere                        |
+| B-R3/5/6/7        | Brief footer: Copy, Save, Refresh                    |
+| B-R3/9/10         | Brief headline + recommendation CTAs + risk links    |
+| C-R7/8            | Citations and nudge cards in chat                    |
+| Inbox tab         | Nudge cards with aggregation/decay                   |
+| CP-R4/5/6         | Fuzzy ranking, mobile bottom sheet, wire AI mode     |
+| SR-R2/5/9         | Search rationale + "Did you mean?"                   |
+| 7.5               | "Rewrite with AI" on task note editor                |
+| New components    | MutationProposalCard, CitationChip, NudgeCard        |
+| C-R15/16/17       | Character counter, session persistence, save-to-note |
 
 ---
 
@@ -940,18 +965,18 @@ A feature is complete when:
 
 ## 15. Out of Scope
 
-| Item | Reason Deferred |
-|---|---|
-| Real-time board sync via WebSocket | Requires backend outside AI scope |
-| Voice input | Accessibility concerns, low priority |
-| AI-powered column re-ordering | Risky mutation; needs deeper undo stack |
-| Export chat history | Low demand |
-| Internationalization of AI output | Model output English-only |
-| Per-user fine-tuning | Requires LangGraph Cloud tier |
-| Multi-agent orchestration UI | Architecture supports it; UI not yet designed |
-| Slack/Confluence/Schedule dispatch | Each requires OAuth integration (v4) |
-| Inline `/copilot` slash commands | Requires rich-text editor swap (v4) |
-| Cross-project planning | Scope creep; revisit when per-project metrics ≥70% acceptance |
+| Item                               | Reason Deferred                                               |
+| ---------------------------------- | ------------------------------------------------------------- |
+| Real-time board sync via WebSocket | Requires backend outside AI scope                             |
+| Voice input                        | Accessibility concerns, low priority                          |
+| AI-powered column re-ordering      | Risky mutation; needs deeper undo stack                       |
+| Export chat history                | Low demand                                                    |
+| Internationalization of AI output  | Model output English-only                                     |
+| Per-user fine-tuning               | Requires LangGraph Cloud tier                                 |
+| Multi-agent orchestration UI       | Architecture supports it; UI not yet designed                 |
+| Slack/Confluence/Schedule dispatch | Each requires OAuth integration (v4)                          |
+| Inline `/copilot` slash commands   | Requires rich-text editor swap (v4)                           |
+| Cross-project planning             | Scope creep; revisit when per-project metrics ≥70% acceptance |
 
 ---
 
@@ -980,65 +1005,65 @@ Use during design review of any AI surface. If any item is checked, the surface 
 
 ## Appendix A — Audit Issue Cross-Reference
 
-| Audit Source | Component | This PRD |
-|---|---|---|
-| S-01 → S-05 | AiSparkleIcon | §6.1 |
-| C-01 → C-13 | AiChatDrawer | §6.2 |
-| T-01 → T-13 | AiTaskAssistPanel | §6.3 |
-| D-01 → D-15 | AiTaskDraftModal | §6.4 |
-| B-01 → B-14 | BoardBriefDrawer | §6.5 |
-| SR-01 → SR-10 | AiSearchInput | §6.6 |
-| CP-01 → CP-17 | CommandPalette | §6.7 |
-| Cross-cutting | All surfaces | §9 |
-| Product-level T1–T6, U1–U9, O1–O4, A1–A6 | Architecture | §5, §7, §8 |
+| Audit Source                             | Component         | This PRD   |
+| ---------------------------------------- | ----------------- | ---------- |
+| S-01 → S-05                              | AiSparkleIcon     | §6.1       |
+| C-01 → C-13                              | AiChatDrawer      | §6.2       |
+| T-01 → T-13                              | AiTaskAssistPanel | §6.3       |
+| D-01 → D-15                              | AiTaskDraftModal  | §6.4       |
+| B-01 → B-14                              | BoardBriefDrawer  | §6.5       |
+| SR-01 → SR-10                            | AiSearchInput     | §6.6       |
+| CP-01 → CP-17                            | CommandPalette    | §6.7       |
+| Cross-cutting                            | All surfaces      | §9         |
+| Product-level T1–T6, U1–U9, O1–O4, A1–A6 | Architecture      | §5, §7, §8 |
 
 All 94 component-level issues and 25 product-level issues are addressed. None deferred.
 
 ## Appendix B — Research Principles Cross-Reference
 
-| Principle | Source Area | This PRD |
-|---|---|---|
-| Stream-first, TTFT <700ms | P1 | C-R2, B-R2, X-R1, X-R3, UA-R2 |
-| Never abandon the user (3 states) | P2 | X-R5, T-R6, SR-R7, B-R12 |
-| Trust via transparency | P3 | X-R6, T-R2, D-R2, C-R7, T-R3, T-R11 |
-| Mutations need safety net | P4 | T-R1, D-R5, C-R9, §7.3, §7.4 |
-| Discoverability | P5 | D-R1, C-R5, CP-R6, §8 |
-| Accessible by default | P6 | §9.4, X-R7–10 |
-| Privacy non-negotiable | P7 | §9.7, C-R10, D-R8, X-R14 |
+| Principle                         | Source Area | This PRD                            |
+| --------------------------------- | ----------- | ----------------------------------- |
+| Stream-first, TTFT <700ms         | P1          | C-R2, B-R2, X-R1, X-R3, UA-R2       |
+| Never abandon the user (3 states) | P2          | X-R5, T-R6, SR-R7, B-R12            |
+| Trust via transparency            | P3          | X-R6, T-R2, D-R2, C-R7, T-R3, T-R11 |
+| Mutations need safety net         | P4          | T-R1, D-R5, C-R9, §7.3, §7.4        |
+| Discoverability                   | P5          | D-R1, C-R5, CP-R6, §8               |
+| Accessible by default             | P6          | §9.4, X-R7–10                       |
+| Privacy non-negotiable            | P7          | §9.7, C-R10, D-R8, X-R14            |
 
 ## Appendix C — Competitive UX Feature Matrix
 
-| Feature | Current | v3 | Linear | Jira (Rovo) | Notion AI |
-|---------|---------|-----|--------|-------------|-----------|
-| AI task drafting | ✅ | ✅ + badges + axis picker | ❌ | ✅ | ✅ |
-| Story-point estimation | ✅ | ✅ + confidence bands + alternatives + undo | ❌ | ❌ | ❌ |
-| Board summary | ✅ | ✅ + "what changed" + charts + CTAs | ❌ | ❌ | ❌ |
-| Conversational assistant | ✅ | ✅ + citations + streaming + feedback + regenerate | ❌ | ✅ | ✅ |
-| Semantic search | ✅ | ✅ + rationale + reformulations | ✅ | ✅ | ✅ |
-| Inline rewrite | ❌ | ✅ (side panel) | ❌ | ❌ | ✅ |
-| AI triage / nudges | ❌ | ✅ (Inbox tab) | ✅ | ✅ | ❌ |
-| Command palette + AI | Partial | ✅ (AI mode + fuzzy + mobile) | ✅ | ❌ | ✅ |
-| Mutation proposals + undo | ❌ | ✅ + visual diff + toast undo | ✅ (beta) | ✅ | ❌ |
-| Confidence indicators | Partial | ✅ (calibrated bands + reasons) | ❌ | ❌ | ❌ |
-| Mandatory citations | ❌ | ✅ | ❌ | ❌ | ✅ |
-| Thumbs feedback | Partial | ✅ (+ reasons) | ❌ | ❌ | ✅ |
-| Keyboard-first AI | ❌ | ✅ | ✅ | ❌ | ✅ |
-| Mobile AI | ❌ | ✅ (bottom sheet) | ✅ | ✅ | ✅ |
-| Session persistence | ❌ | ✅ (opt-in) | ✅ | ✅ | ✅ |
-| Onboarding | ❌ | ✅ (progressive) | Minimal | Tutorial | Minimal |
-| Privacy disclosure | ❌ | ✅ (mandatory) | ❌ | ❌ | ❌ |
+| Feature                   | Current | v3                                                 | Linear    | Jira (Rovo) | Notion AI |
+| ------------------------- | ------- | -------------------------------------------------- | --------- | ----------- | --------- |
+| AI task drafting          | ✅      | ✅ + badges + axis picker                          | ❌        | ✅          | ✅        |
+| Story-point estimation    | ✅      | ✅ + confidence bands + alternatives + undo        | ❌        | ❌          | ❌        |
+| Board summary             | ✅      | ✅ + "what changed" + charts + CTAs                | ❌        | ❌          | ❌        |
+| Conversational assistant  | ✅      | ✅ + citations + streaming + feedback + regenerate | ❌        | ✅          | ✅        |
+| Semantic search           | ✅      | ✅ + rationale + reformulations                    | ✅        | ✅          | ✅        |
+| Inline rewrite            | ❌      | ✅ (side panel)                                    | ❌        | ❌          | ✅        |
+| AI triage / nudges        | ❌      | ✅ (Inbox tab)                                     | ✅        | ✅          | ❌        |
+| Command palette + AI      | Partial | ✅ (AI mode + fuzzy + mobile)                      | ✅        | ❌          | ✅        |
+| Mutation proposals + undo | ❌      | ✅ + visual diff + toast undo                      | ✅ (beta) | ✅          | ❌        |
+| Confidence indicators     | Partial | ✅ (calibrated bands + reasons)                    | ❌        | ❌          | ❌        |
+| Mandatory citations       | ❌      | ✅                                                 | ❌        | ❌          | ✅        |
+| Thumbs feedback           | Partial | ✅ (+ reasons)                                     | ❌        | ❌          | ✅        |
+| Keyboard-first AI         | ❌      | ✅                                                 | ✅        | ❌          | ✅        |
+| Mobile AI                 | ❌      | ✅ (bottom sheet)                                  | ✅        | ✅          | ✅        |
+| Session persistence       | ❌      | ✅ (opt-in)                                        | ✅        | ✅          | ✅        |
+| Onboarding                | ❌      | ✅ (progressive)                                   | Minimal   | Tutorial    | Minimal   |
+| Privacy disclosure        | ❌      | ✅ (mandatory)                                     | ❌        | ❌          | ❌        |
 
 ## Appendix D — Nielsen's Heuristics Coverage
 
-| Heuristic | v3 Coverage |
-|-----------|-------------|
-| H1 — Visibility of system status | Streaming, skeletons, confidence, "offline" banner |
-| H2 — Match real world | Plain-language bands, no jargon, neutral tone |
-| H3 — User control & freedom | Undo everywhere, Escape cancels, Regenerate, Revert |
-| H4 — Consistency & standards | Unified right-rail, standardized confidence, design tokens |
-| H5 — Error prevention | Char counter, low-confidence warnings, "Apply anyway" friction |
-| H6 — Recognition over recall | Sample prompts, citation links, History tab |
-| H7 — Flexibility & efficiency | Command palette, keyboard shortcuts, slash commands |
-| H8 — Aesthetic & minimalist | Tool internals hidden, collapsible sections, focused empty states |
-| H9 — Help recover from errors | Specific messages + next steps, Retry buttons, graceful degradation |
-| H10 — Help & documentation | Onboarding banner, tooltips, "What can Copilot do?" panel |
+| Heuristic                        | v3 Coverage                                                         |
+| -------------------------------- | ------------------------------------------------------------------- |
+| H1 — Visibility of system status | Streaming, skeletons, confidence, "offline" banner                  |
+| H2 — Match real world            | Plain-language bands, no jargon, neutral tone                       |
+| H3 — User control & freedom      | Undo everywhere, Escape cancels, Regenerate, Revert                 |
+| H4 — Consistency & standards     | Unified right-rail, standardized confidence, design tokens          |
+| H5 — Error prevention            | Char counter, low-confidence warnings, "Apply anyway" friction      |
+| H6 — Recognition over recall     | Sample prompts, citation links, History tab                         |
+| H7 — Flexibility & efficiency    | Command palette, keyboard shortcuts, slash commands                 |
+| H8 — Aesthetic & minimalist      | Tool internals hidden, collapsible sections, focused empty states   |
+| H9 — Help recover from errors    | Specific messages + next steps, Retry buttons, graceful degradation |
+| H10 — Help & documentation       | Onboarding banner, tooltips, "What can Copilot do?" panel           |
