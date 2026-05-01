@@ -379,6 +379,34 @@ export const getAgentMetadata = async ({
     return (await response.json()) as AgentMetadata;
 };
 
+/**
+ * Server health body shape on the wire (`/api/v1/health`). Both
+ * snake_case fields (`status`, `agents_loaded`) and camelCase fields
+ * (`ok`, `agentsLoaded`) are accepted because the Python server emits
+ * both for backwards compatibility. We map either into the canonical
+ * `AgentHealthResponse` so the rest of the app stays oblivious.
+ */
+interface RawAgentHealthResponse {
+    status?: string;
+    ok?: boolean;
+    agents_loaded?: number;
+    agentsLoaded?: number;
+    latencyMs?: number;
+}
+
+/**
+ * Coerce the server-side health flag. Returns `undefined` (not `false`)
+ * when the body has no opinion so the caller can fall back to the HTTP
+ * status. A naive `body.ok ?? body.status === "ok" ?? response.ok`
+ * collapses by precedence into `?? false ?? response.ok` and the third
+ * branch is unreachable.
+ */
+const inferOkFromBody = (body: RawAgentHealthResponse): boolean | undefined => {
+    if (typeof body.ok === "boolean") return body.ok;
+    if (typeof body.status === "string") return body.status === "ok";
+    return undefined;
+};
+
 export const getAgentHealth = async ({
     baseUrl,
     headers,
@@ -399,11 +427,11 @@ export const getAgentHealth = async ({
     if (!response.ok) {
         throw await mapErrorResponse(response);
     }
-    const json = (await response.json()) as Partial<AgentHealthResponse>;
+    const json = (await response.json()) as RawAgentHealthResponse;
     const latencyMs = Date.now() - started;
     return {
-        ok: json.ok ?? response.ok,
-        agentsLoaded: json.agentsLoaded ?? 0,
+        ok: inferOkFromBody(json) ?? response.ok,
+        agentsLoaded: json.agentsLoaded ?? json.agents_loaded ?? 0,
         latencyMs: json.latencyMs ?? latencyMs
     };
 };
