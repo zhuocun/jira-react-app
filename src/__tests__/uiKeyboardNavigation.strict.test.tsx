@@ -581,11 +581,13 @@ describe("UI quality :: AiChatDrawer keyboard contract", () => {
         );
 
         const dialog = screen.getByRole("dialog");
-        // The Clear button must be a real <button>.
+        // The "New conversation" button must be a real <button>.
         const clearBtn = Array.from(
             dialog.querySelectorAll<HTMLElement>("[aria-label]")
         ).find(
-            (el) => el.getAttribute("aria-label") === "Clear Board Copilot chat"
+            (el) =>
+                el.getAttribute("aria-label") === "New conversation" ||
+                el.getAttribute("aria-label") === "Clear Board Copilot chat"
         );
         expect(clearBtn).toBeTruthy();
         if (clearBtn) {

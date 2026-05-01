@@ -1,6 +1,8 @@
-import { Alert, Button, Input, Spin } from "antd";
-import React, { useCallback, useEffect, useState } from "react";
+import { CloseCircleFilled, InfoCircleOutlined } from "@ant-design/icons";
+import { Alert, Button, Input, Space, Tag, Tooltip, Typography } from "antd";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 
+import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import environment from "../../constants/env";
 import { microcopy } from "../../constants/microcopy";
 import { space as themeSpace } from "../../theme/tokens";
@@ -9,6 +11,7 @@ import {
     AiSearchProjectsContext,
     semanticSearch
 } from "../../utils/ai/engine";
+import { aiErrorView } from "../../utils/ai/errorTemplate";
 import { isProjectAiDisabled } from "../../utils/ai/projectAiStorage";
 import { validateSearch } from "../../utils/ai/validate";
 import useAi, {
@@ -37,111 +40,182 @@ type Props = TaskSearchProps | ProjectSearchProps;
 const hasActiveSemanticFilter = (semanticIds: string | null | undefined) =>
     Boolean(semanticIds?.trim());
 
+/**
+ * Minimal-effort "Did you mean?" reformulator (SR-R9). Generates up to
+ * three rephrasings the user can click to retry — synonyms, broader
+ * scope, and a verb shift. The output is intentionally lo-fi: when the
+ * agent server adds real reformulation we'll swap the implementation
+ * but the surface stays the same.
+ */
+const reformulate = (query: string): string[] => {
+    const trimmed = query.trim();
+    if (trimmed.length === 0) return [];
+    const words = trimmed.split(/\s+/);
+    const head = words[0];
+    const candidates: string[] = [];
+    if (words.length > 2) {
+        candidates.push(words.slice(0, 2).join(" "));
+    }
+    if (head && head.length > 3) {
+        candidates.push(`tasks about ${trimmed}`);
+    }
+    candidates.push(`open ${trimmed}`);
+    // Dedupe while preserving order, drop self-matches.
+    const seen = new Set<string>([trimmed.toLowerCase()]);
+    return candidates
+        .filter((candidate) => {
+            const key = candidate.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        })
+        .slice(0, 3);
+};
+
 const AiSearchInput: React.FC<Props> = (props) => {
     const { enabled: aiEnabled } = useAiEnabled();
     const searchAi = useAi<ISearchResult>({ route: "search" });
     const [draft, setDraft] = useState("");
     const [noMatchHint, setNoMatchHint] = useState<string | null>(null);
+    const [reformulations, setReformulations] = useState<string[]>([]);
+    const [matchRationale, setMatchRationale] = useState<string | null>(null);
+    const [boardHasItems, setBoardHasItems] = useState(true);
+    const announcerId = useId();
     const semanticActive = hasActiveSemanticFilter(props.semanticIds);
+    const abortRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
         if (!semanticActive) {
             setNoMatchHint(null);
+            setReformulations([]);
+            setMatchRationale(null);
         }
     }, [semanticActive]);
 
+    /**
+     * Track whether the underlying scope has any data at all so the
+     * empty-state copy can disambiguate between "no AI hits" and "no
+     * tasks at all" (SR-R7).
+     */
+    useEffect(() => {
+        if (props.kind === "tasks") {
+            setBoardHasItems(props.projectContext.tasks.length > 0);
+        } else {
+            setBoardHasItems(props.projectsContext.projects.length > 0);
+        }
+    }, [props]);
+
     const applyResult = useCallback(
-        (result: ISearchResult) => {
+        (result: ISearchResult, query: string) => {
             if (result.ids.length === 0) {
                 props.setSemanticIds(undefined);
+                setMatchRationale(null);
                 setNoMatchHint(
                     result.rationale?.trim() ||
-                        "No semantic match for that phrase."
+                        (boardHasItems
+                            ? "No tasks matched your search. Try different words, or clear to see everything."
+                            : "This board has no tasks yet.")
                 );
+                setReformulations(reformulate(query));
                 return;
             }
             setNoMatchHint(null);
+            setReformulations([]);
+            setMatchRationale(result.rationale?.trim() || null);
             props.setSemanticIds(result.ids.join(","));
         },
-        [props]
+        [boardHasItems, props]
     );
 
-    const onSearch = async () => {
-        const query = draft.trim();
-        if (!query) return;
-        setNoMatchHint(null);
-        const searchPayload =
-            props.kind === "tasks"
-                ? {
-                      search: {
-                          kind: "tasks" as const,
-                          query,
-                          projectContext: (props as TaskSearchProps)
-                              .projectContext
-                      }
-                  }
-                : (() => {
-                      // Per-project AI off (PRD §8): silently drop those
-                      // projects from the projects-list semantic search so a
-                      // single opt-out doesn't break global discovery.
-                      const ctx = (props as ProjectSearchProps).projectsContext;
-                      const filtered: AiSearchProjectsContext = {
-                          ...ctx,
-                          projects: ctx.projects.filter(
-                              (p) => !isProjectAiDisabled(p._id)
-                          )
-                      };
-                      return {
+    const performSearch = useCallback(
+        async (rawQuery: string) => {
+            const query = rawQuery.trim();
+            if (!query) return;
+            // SR-R3: don't disable the input. Cancel any in-flight request
+            // so the latest query wins, then start a fresh one.
+            abortRef.current?.abort();
+            const controller = new AbortController();
+            abortRef.current = controller;
+            setNoMatchHint(null);
+            const searchPayload =
+                props.kind === "tasks"
+                    ? {
                           search: {
-                              kind: "projects" as const,
+                              kind: "tasks" as const,
                               query,
-                              projectsContext: filtered
+                              projectContext: (props as TaskSearchProps)
+                                  .projectContext
                           }
-                      };
-                  })();
-        try {
-            assertRunPayloadProjectsAiAllowed(searchPayload);
-        } catch {
-            setNoMatchHint("Board Copilot is disabled for this project.");
-            return;
-        }
-        if (!environment.aiUseLocalEngine) {
+                      }
+                    : (() => {
+                          const ctx = (props as ProjectSearchProps)
+                              .projectsContext;
+                          const filtered: AiSearchProjectsContext = {
+                              ...ctx,
+                              projects: ctx.projects.filter(
+                                  (p) => !isProjectAiDisabled(p._id)
+                              )
+                          };
+                          return {
+                              search: {
+                                  kind: "projects" as const,
+                                  query,
+                                  projectsContext: filtered
+                              }
+                          };
+                      })();
             try {
-                const result = await searchAi.run(searchPayload);
-                applyResult(result);
+                assertRunPayloadProjectsAiAllowed(searchPayload);
             } catch {
-                setNoMatchHint("Board Copilot search failed. Try again.");
+                setNoMatchHint(microcopy.ai.projectDisabled);
+                return;
             }
-            return;
-        }
-        let raw: ISearchResult;
-        if (props.kind === "tasks") {
-            const ctx = (props as TaskSearchProps).projectContext;
-            raw = semanticSearch("tasks", query, ctx);
-            const valid = new Set(ctx.tasks.map((t) => t._id));
-            applyResult(validateSearch(raw, valid));
-        } else {
-            // Use the same filtered context the remote payload would use.
-            const projectsCtx =
-                searchPayload.search.kind === "projects"
-                    ? searchPayload.search.projectsContext!
-                    : (props as ProjectSearchProps).projectsContext;
-            raw = semanticSearch("projects", query, projectsCtx);
-            const valid = new Set(projectsCtx.projects.map((p) => p._id));
-            applyResult(validateSearch(raw, valid));
-        }
-    };
+            if (!environment.aiUseLocalEngine) {
+                try {
+                    const result = await searchAi.run(searchPayload);
+                    if (controller.signal.aborted) return;
+                    applyResult(result, query);
+                } catch {
+                    if (controller.signal.aborted) return;
+                    setNoMatchHint("Search failed. Try again.");
+                }
+                return;
+            }
+            let raw: ISearchResult;
+            if (props.kind === "tasks") {
+                const ctx = (props as TaskSearchProps).projectContext;
+                raw = semanticSearch("tasks", query, ctx);
+                const valid = new Set(ctx.tasks.map((t) => t._id));
+                applyResult(validateSearch(raw, valid), query);
+            } else {
+                const projectsCtx =
+                    searchPayload.search.kind === "projects"
+                        ? searchPayload.search.projectsContext!
+                        : (props as ProjectSearchProps).projectsContext;
+                raw = semanticSearch("projects", query, projectsCtx);
+                const valid = new Set(projectsCtx.projects.map((p) => p._id));
+                applyResult(validateSearch(raw, valid), query);
+            }
+        },
+        [applyResult, props, searchAi]
+    );
 
     const onClear = () => {
         setDraft("");
         setNoMatchHint(null);
+        setReformulations([]);
+        setMatchRationale(null);
         searchAi.reset();
+        abortRef.current?.abort();
         props.setSemanticIds(undefined);
     };
 
     if (!aiEnabled) return null;
 
     const busy = searchAi.isLoading;
+    const errorView = searchAi.error
+        ? aiErrorView(searchAi.error, "Search failed")
+        : null;
 
     return (
         <div style={{ marginBottom: themeSpace.md }}>
@@ -154,10 +228,10 @@ const AiSearchInput: React.FC<Props> = (props) => {
                 }}
             >
                 <Input
+                    allowClear={{ clearIcon: <CloseCircleFilled /> }}
                     aria-label="Ask Board Copilot a question about tasks or projects"
-                    disabled={busy}
                     onChange={(e) => setDraft(e.target.value)}
-                    onPressEnter={() => void onSearch()}
+                    onPressEnter={() => void performSearch(draft)}
                     placeholder="Ask Board Copilot a question…"
                     /*
                      * Sparkle prefix is the only thing that visually separates
@@ -175,14 +249,16 @@ const AiSearchInput: React.FC<Props> = (props) => {
                         />
                     }
                     style={{ flex: "1 1 14rem", minWidth: 0 }}
+                    suffix={
+                        busy ? <Tag color="processing">Searching…</Tag> : null
+                    }
                     value={draft}
                 />
                 <Button
-                    aria-label={microcopy.actions.search}
-                    disabled={busy || !draft.trim()}
+                    disabled={!draft.trim()}
                     icon={<AiSparkleIcon aria-hidden />}
                     loading={busy}
-                    onClick={() => void onSearch()}
+                    onClick={() => void performSearch(draft)}
                     type="default"
                 >
                     {microcopy.actions.search}
@@ -196,48 +272,111 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     </Button>
                 ) : null}
             </div>
-            {busy ? (
-                <Spin
-                    aria-label="Searching"
-                    style={{
-                        display: "block",
-                        marginTop: themeSpace.sm
-                    }}
-                />
-            ) : null}
+            <span
+                aria-live="assertive"
+                id={announcerId}
+                style={{
+                    border: 0,
+                    clip: "rect(0 0 0 0)",
+                    height: 1,
+                    margin: -1,
+                    overflow: "hidden",
+                    padding: 0,
+                    position: "absolute",
+                    width: 1
+                }}
+            >
+                {busy
+                    ? "Searching"
+                    : semanticActive && matchRationale
+                      ? `Results filtered. ${matchRationale}`
+                      : (noMatchHint ?? "")}
+            </span>
+            {matchRationale && (
+                <Tooltip title={matchRationale}>
+                    <Typography.Paragraph
+                        style={{
+                            marginBottom: 0,
+                            marginTop: themeSpace.xs
+                        }}
+                        type="secondary"
+                    >
+                        <InfoCircleOutlined
+                            aria-hidden
+                            style={{ marginInlineEnd: 4 }}
+                        />
+                        Why this result?{" "}
+                        <span
+                            onClick={() =>
+                                track(
+                                    ANALYTICS_EVENTS.SEARCH_RESULT_RATIONALE_VIEWED
+                                )
+                            }
+                            onMouseEnter={() =>
+                                track(
+                                    ANALYTICS_EVENTS.SEARCH_RESULT_RATIONALE_VIEWED
+                                )
+                            }
+                            style={{ borderBottom: "1px dotted currentColor" }}
+                        >
+                            Show reasoning
+                        </span>
+                    </Typography.Paragraph>
+                </Tooltip>
+            )}
             {noMatchHint ? (
                 <Alert
                     action={
                         <Button
-                            onClick={() => void onSearch()}
+                            onClick={() => void performSearch(draft)}
                             size="small"
                             type="link"
                         >
-                            {microcopy.actions.retry}
+                            {microcopy.ai.retryLabel}
                         </Button>
                     }
                     closable
-                    description={noMatchHint}
+                    description={
+                        reformulations.length > 0 ? (
+                            <Space size={themeSpace.xs} wrap>
+                                <span>Did you mean:</span>
+                                {reformulations.map((alt) => (
+                                    <Tag.CheckableTag
+                                        checked={false}
+                                        key={alt}
+                                        onChange={() => {
+                                            setDraft(alt);
+                                            void performSearch(alt);
+                                        }}
+                                    >
+                                        {alt}
+                                    </Tag.CheckableTag>
+                                ))}
+                            </Space>
+                        ) : null
+                    }
                     onClose={() => setNoMatchHint(null)}
                     showIcon
                     style={{
                         marginTop: themeSpace.sm,
                         maxWidth: "40rem"
                     }}
-                    title="AI semantic search"
+                    title={noMatchHint}
                     type="info"
                 />
             ) : null}
-            {searchAi.error ? (
+            {errorView ? (
                 <Alert
                     action={
-                        <Button
-                            onClick={() => void onSearch()}
-                            size="small"
-                            type="link"
-                        >
-                            {microcopy.actions.retry}
-                        </Button>
+                        errorView.retryable ? (
+                            <Button
+                                onClick={() => void performSearch(draft)}
+                                size="small"
+                                type="link"
+                            >
+                                {microcopy.ai.retryLabel}
+                            </Button>
+                        ) : null
                     }
                     closable
                     onClose={() => searchAi.reset()}
@@ -245,10 +384,9 @@ const AiSearchInput: React.FC<Props> = (props) => {
                         marginTop: themeSpace.sm,
                         maxWidth: "40rem"
                     }}
-                    title={
-                        searchAi.error.message || microcopy.feedback.loadFailed
-                    }
-                    type="warning"
+                    title={errorView.heading}
+                    description={errorView.body || undefined}
+                    type={errorView.severity}
                 />
             ) : null}
         </div>

@@ -101,16 +101,14 @@ describe("CommandPalette", () => {
         });
     });
 
-    it("Tab toggles AI mode and shows a Phase E banner", async () => {
+    it("activates AI mode when the query begins with `/`", async () => {
         renderPalette(true);
         const input = (await screen.findByRole("combobox")).querySelector(
             "input"
         ) as HTMLInputElement;
-        fireEvent.keyDown(input, { key: "Tab" });
+        fireEvent.change(input, { target: { value: "/ what's at risk" } });
         await waitFor(() => {
-            expect(
-                screen.getByText(/AI mode is coming in Phase E/i)
-            ).toBeInTheDocument();
+            expect(screen.getByText(/Ask Board Copilot/i)).toBeInTheDocument();
         });
     });
 

@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Grid, Input, Modal, Tag, Typography } from "antd";
+import { Drawer, Grid, Input, Modal, Tag, Typography } from "antd";
 import {
     useCallback,
     useEffect,
@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router";
 
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
+import { microcopy } from "../../constants/microcopy";
 import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
 import useCachedQueryData, {
     useGatheredCachedList
@@ -28,6 +29,8 @@ interface PaletteEntry {
     sublabel?: string;
     kind: "project" | "task" | "column" | "member";
     href?: string;
+    /** Score components used to rank fuzzy matches. */
+    rankBoost?: number;
 }
 
 const ListContainer = styled.ul`
@@ -36,6 +39,16 @@ const ListContainer = styled.ul`
     max-height: 50vh;
     overflow-y: auto;
     padding: 0;
+`;
+
+const KindGroup = styled.li`
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.65));
+    font-size: ${fontSize.xs}px;
+    font-weight: ${fontWeight.semibold};
+    letter-spacing: 0.04em;
+    margin: ${space.xs}px 0 ${space.xxs}px;
+    padding: 0 ${space.sm}px;
+    text-transform: uppercase;
 `;
 
 const Row = styled.li<{ active: boolean }>`
@@ -61,7 +74,8 @@ const KindTag = styled(Tag)`
 
 const ModeBanner = styled.div`
     align-items: center;
-    background: var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.04));
+    background: var(--color-copilot-bg-subtle);
+    border: 1px solid var(--color-copilot-bg-medium);
     border-radius: ${radius.md}px;
     color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.65));
     display: flex;
@@ -82,9 +96,35 @@ const HiddenLabel = styled.span`
     width: 1px;
 `;
 
+const SamplePromptRow = styled.button`
+    background: transparent;
+    border: 0;
+    border-radius: ${radius.md}px;
+    cursor: pointer;
+    display: block;
+    padding: ${space.xs}px ${space.sm}px;
+    text-align: left;
+    width: 100%;
+
+    &:hover,
+    &:focus-visible {
+        background: var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.04));
+    }
+`;
+
+/**
+ * Mac/iOS detection (PRD CP-R10). Prefers the modern `userAgentData`
+ * API; falls back to the legacy `navigator.platform` for browsers that
+ * haven't shipped it yet (Firefox, Safari ≤16). Wrapped in a function so
+ * SSR / Jest envs without `navigator` short-circuit to false.
+ */
 const isMacLike = () => {
     if (typeof navigator === "undefined") return false;
-    return /Mac|iPod|iPhone|iPad/i.test(navigator.platform || "");
+    const nav = navigator as Navigator & {
+        userAgentData?: { platform?: string };
+    };
+    const platform = nav.userAgentData?.platform ?? nav.platform ?? "";
+    return /Mac|iPod|iPhone|iPad/i.test(platform);
 };
 
 const indexEntries = (
@@ -100,7 +140,8 @@ const indexEntries = (
             label: p.projectName,
             sublabel: p.organization,
             kind: "project",
-            href: `/projects/${p._id}`
+            href: `/projects/${p._id}`,
+            rankBoost: 0
         });
     }
     for (const c of columns) {
@@ -109,7 +150,8 @@ const indexEntries = (
             label: c.columnName,
             sublabel: "Column",
             kind: "column",
-            href: c.projectId ? `/projects/${c.projectId}` : undefined
+            href: c.projectId ? `/projects/${c.projectId}` : undefined,
+            rankBoost: 6
         });
     }
     for (const t of tasks) {
@@ -118,7 +160,8 @@ const indexEntries = (
             label: t.taskName,
             sublabel: t.epic,
             kind: "task",
-            href: t.projectId ? `/projects/${t.projectId}` : undefined
+            href: t.projectId ? `/projects/${t.projectId}` : undefined,
+            rankBoost: 3
         });
     }
     for (const m of members) {
@@ -126,38 +169,122 @@ const indexEntries = (
             id: `member:${m._id}`,
             label: m.username,
             sublabel: m.email,
-            kind: "member"
+            kind: "member",
+            rankBoost: 9
         });
     }
     return out;
 };
 
+/**
+ * Fuzzy ranking (PRD CP-R4). Scoring rules — lower is better:
+ *   - Prefix match on label: 0
+ *   - Substring on label/sublabel: index in haystack + 1
+ *   - Token match (any whitespace-delimited word starts with q): 50 + idx
+ *   - No match: skipped
+ *
+ * Ties broken by `rankBoost` (project < task < column < member). The
+ * caller groups the resulting list by `kind` so the UI renders headers.
+ */
 const filterEntries = (
     entries: PaletteEntry[],
-    query: string
+    rawQuery: string
 ): PaletteEntry[] => {
-    const q = query.trim().toLowerCase();
+    const q = rawQuery.trim().toLowerCase();
     if (!q) return entries.slice(0, 20);
     const ranked: Array<{ entry: PaletteEntry; score: number }> = [];
     for (const entry of entries) {
-        const hay = `${entry.label} ${entry.sublabel ?? ""}`.toLowerCase();
-        const idx = hay.indexOf(q);
-        if (idx >= 0) {
-            ranked.push({ entry, score: idx });
+        const label = entry.label.toLowerCase();
+        const sublabel = (entry.sublabel ?? "").toLowerCase();
+        let score = -1;
+        if (label.startsWith(q)) {
+            score = 0;
+        } else {
+            const idxLabel = label.indexOf(q);
+            if (idxLabel >= 0) {
+                score = idxLabel + 1;
+            } else {
+                const idxSub = sublabel.indexOf(q);
+                if (idxSub >= 0) {
+                    score = idxSub + 10;
+                } else {
+                    const tokens = `${label} ${sublabel}`.split(/\s+/);
+                    const tokenIdx = tokens.findIndex((token) =>
+                        token.startsWith(q)
+                    );
+                    if (tokenIdx >= 0) {
+                        score = 50 + tokenIdx;
+                    }
+                }
+            }
+        }
+        if (score >= 0) {
+            ranked.push({
+                entry,
+                score: score + (entry.rankBoost ?? 0)
+            });
         }
     }
     ranked.sort((a, b) => a.score - b.score);
     return ranked.slice(0, 20).map((row) => row.entry);
 };
 
+interface RenderedRow {
+    type: "row";
+    entry: PaletteEntry;
+}
+interface RenderedHeader {
+    type: "header";
+    label: string;
+}
+type RenderedItem = RenderedRow | RenderedHeader;
+
+const KIND_ORDER: PaletteEntry["kind"][] = [
+    "project",
+    "task",
+    "column",
+    "member"
+];
+const KIND_LABEL: Record<PaletteEntry["kind"], string> = {
+    project: "Projects",
+    task: "Tasks",
+    column: "Columns",
+    member: "Members"
+};
+
+/** Group rows by kind only when results span more than one kind. */
+const groupByKind = (entries: PaletteEntry[]): RenderedItem[] => {
+    const kinds = new Set(entries.map((e) => e.kind));
+    if (kinds.size <= 1) {
+        return entries.map((entry) => ({ type: "row", entry }));
+    }
+    const out: RenderedItem[] = [];
+    for (const kind of KIND_ORDER) {
+        const group = entries.filter((e) => e.kind === kind);
+        if (group.length === 0) continue;
+        out.push({ type: "header", label: KIND_LABEL[kind] });
+        for (const entry of group) {
+            out.push({ type: "row", entry });
+        }
+    }
+    return out;
+};
+
+const AI_SAMPLES = [
+    "What's at risk on this board?",
+    "Summarize this board",
+    "Who has the most open work?"
+];
+
 /**
- * Phase A command palette (PRD §7.1, OQ5 resolved) — navigation-only.
+ * Command palette (PRD §7.1, v3 §6.7). Navigation by default; AI mode
+ * activates when the query starts with "/" at index 0 or when the user
+ * clicks the sparkle toggle. Enter in AI mode dispatches a custom event
+ * that the board / project pages handle by opening the chat drawer with
+ * the input pre-populated.
  *
- * Index pulled from the existing React Query caches: `projects`,
- * `users/members`, plus the current project's `boards` and `tasks` if a
- * project context is in cache. Results render as a single ARIA listbox
- * inside a centered modal; AI mode (slash prefix or Tab) shows a
- * placeholder banner — the real LangGraph wiring lands in Phase E.
+ * Mobile (CP-R5): below the `md` breakpoint the palette renders as an
+ * AntD bottom-sheet Drawer with the same search + results semantics.
  */
 const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
     const navigate = useNavigate();
@@ -166,14 +293,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
     const [aiMode, setAiMode] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const listboxId = useId();
+    const announcerId = useId();
     const screens = Grid.useBreakpoint();
 
-    // `useReactQuery` keys parametric calls as `[endpoint, filterRequest({...})]`,
-    // so the bare `["projects"]` etc. keys are usually empty in production
-    // (see review follow-up #2). Scan every parametric variant via
-    // `useGatheredCachedList` so the palette indexes whatever the screens
-    // have already loaded. Members are still fetched via a bare key (see
-    // `pages/board.tsx`, `useReactQuery<IMember[]>("users/members")`).
     const projects = useGatheredCachedList<IProject>(["projects"]);
     const members = useCachedQueryData<IMember[]>(["users/members"]) ?? [];
     const tasksCache = useGatheredCachedList<ITask>(["tasks"]);
@@ -184,11 +306,28 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
         [projects, tasksCache, boardsCache, members]
     );
 
+    /**
+     * Visible navigation results. CP-R11: trim before filtering so a
+     * leading space isn't a false miss. CP-R7: only treat the leading
+     * "/" as the AI sigil — embedded slashes (e.g. "v2/api") are normal
+     * substring matches.
+     */
     const visible = useMemo(() => {
         if (aiMode) return [];
-        const q = query.startsWith("/") ? query.slice(1) : query;
+        const trimmed = query.trim();
+        const q = trimmed.startsWith("/") ? trimmed.slice(1) : trimmed;
         return filterEntries(entries, q);
     }, [aiMode, entries, query]);
+
+    const renderedItems = useMemo(() => groupByKind(visible), [visible]);
+    /** Indices of `renderedItems` that are selectable rows (skip headers). */
+    const selectableIndices = useMemo(
+        () =>
+            renderedItems
+                .map((item, idx) => (item.type === "row" ? idx : -1))
+                .filter((idx) => idx >= 0),
+        [renderedItems]
+    );
 
     useEffect(() => {
         if (!open) return;
@@ -202,25 +341,23 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
         return () => window.clearTimeout(handle);
     }, [open]);
 
+    /**
+     * Reset active index when results change so the highlight never points
+     * past the end of the list. Snaps to the first selectable row.
+     */
     useEffect(() => {
-        if (typeof window === "undefined") return;
-        const onKey = (event: KeyboardEvent) => {
-            const isToggle =
-                (event.metaKey || event.ctrlKey) &&
-                (event.key === "k" || event.key === "K");
-            if (isToggle) {
-                event.preventDefault();
-                if (!open) {
-                    // Re-open via the same prop boundary; consumers manage open state.
-                    window.dispatchEvent(
-                        new CustomEvent("commandPalette:open")
-                    );
-                }
-            }
-        };
-        window.addEventListener("keydown", onKey);
-        return () => window.removeEventListener("keydown", onKey);
-    }, [open]);
+        if (selectableIndices.length === 0) {
+            setActiveIndex(-1);
+            return;
+        }
+        if (activeIndex < 0 || activeIndex >= renderedItems.length) {
+            setActiveIndex(selectableIndices[0]);
+            return;
+        }
+        if (renderedItems[activeIndex]?.type !== "row") {
+            setActiveIndex(selectableIndices[0]);
+        }
+    }, [activeIndex, renderedItems, selectableIndices]);
 
     const handleEntrySelect = useCallback(
         (entry: PaletteEntry) => {
@@ -232,60 +369,306 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
         [navigate, onClose]
     );
 
+    /**
+     * AI invocation (CP-R6). Closes the palette and dispatches a
+     * `boardCopilot:openChat` custom event with the prompt payload. The
+     * board page listens for this and opens the AI drawer; if the user
+     * is on a non-board route, an open handler exists at the App shell.
+     */
+    const dispatchAiPrompt = useCallback(
+        (prompt: string) => {
+            track(ANALYTICS_EVENTS.COPILOT_PALETTE_INVOKE, {
+                length: prompt.length
+            });
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(
+                    new CustomEvent("boardCopilot:openChat", {
+                        detail: { prompt }
+                    })
+                );
+            }
+            onClose();
+        },
+        [onClose]
+    );
+
+    const toggleAiMode = useCallback((next?: boolean) => {
+        setAiMode((prev) => {
+            const value = next === undefined ? !prev : next;
+            track(ANALYTICS_EVENTS.PALETTE_AI_MODE_TOGGLED, { next: value });
+            return value;
+        });
+    }, []);
+
     const handleQueryChange = useCallback((value: string) => {
         setQuery(value);
-        setActiveIndex(0);
+        // CP-R2 + CP-R7: AI mode tracks ONLY the leading "/" character.
+        // A trailing or interior "/" leaves the mode untouched, and
+        // deleting back through the "/" turns AI mode off.
         if (value.startsWith("/")) {
             setAiMode(true);
+        } else {
+            setAiMode(false);
         }
     }, []);
 
+    const moveActive = useCallback(
+        (delta: 1 | -1) => {
+            if (selectableIndices.length === 0) return;
+            const cursor = selectableIndices.indexOf(activeIndex);
+            const nextCursor =
+                cursor < 0
+                    ? 0
+                    : (cursor + delta + selectableIndices.length) %
+                      selectableIndices.length;
+            setActiveIndex(selectableIndices[nextCursor]);
+        },
+        [activeIndex, selectableIndices]
+    );
+
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLInputElement>) => {
-            if (event.key === "Tab") {
-                event.preventDefault();
-                setAiMode((v) => {
-                    track(ANALYTICS_EVENTS.PALETTE_AI_MODE_TOGGLED, {
-                        next: !v
-                    });
-                    return !v;
-                });
-                return;
-            }
             if (event.key === "ArrowDown") {
                 event.preventDefault();
-                setActiveIndex((i) =>
-                    visible.length === 0 ? 0 : (i + 1) % visible.length
-                );
+                moveActive(1);
                 return;
             }
             if (event.key === "ArrowUp") {
                 event.preventDefault();
-                setActiveIndex((i) =>
-                    visible.length === 0
-                        ? 0
-                        : (i - 1 + visible.length) % visible.length
-                );
+                moveActive(-1);
                 return;
             }
             if (event.key === "Enter") {
-                const entry = visible[activeIndex];
-                if (entry) {
+                if (aiMode) {
+                    const trimmed = query.trim().replace(/^\//, "").trim();
+                    if (trimmed.length > 0) {
+                        event.preventDefault();
+                        dispatchAiPrompt(trimmed);
+                    }
+                    return;
+                }
+                const item = renderedItems[activeIndex];
+                if (item && item.type === "row") {
                     event.preventDefault();
-                    handleEntrySelect(entry);
+                    handleEntrySelect(item.entry);
                 }
             }
         },
-        [activeIndex, handleEntrySelect, visible]
+        [
+            activeIndex,
+            aiMode,
+            dispatchAiPrompt,
+            handleEntrySelect,
+            moveActive,
+            query,
+            renderedItems
+        ]
     );
 
     const shortcutText = isMacLike() ? "Cmd+K" : "Ctrl+K";
     const placeholder = aiMode
         ? "Ask Board Copilot…"
         : "Search projects, tasks, columns, members…";
-    // Phase A: hide on small viewports per PRD §7.10. We render an explanatory
-    // notice instead of nothing so the modal remains discoverable.
     const isMobile = !screens.md;
+    const resultCount = visible.length;
+
+    const renderBody = () => (
+        <>
+            <HiddenLabel id={`${listboxId}-label`}>
+                Search and navigate. Start the query with “/” to switch to Board
+                Copilot.
+            </HiddenLabel>
+            <div
+                aria-controls={listboxId}
+                aria-expanded={!aiMode && resultCount > 0}
+                aria-haspopup="listbox"
+                aria-owns={listboxId}
+                role="combobox"
+            >
+                <Input
+                    aria-activedescendant={
+                        renderedItems[activeIndex]?.type === "row"
+                            ? `entry-${(renderedItems[activeIndex] as RenderedRow).entry.id}`
+                            : undefined
+                    }
+                    aria-autocomplete="list"
+                    aria-controls={listboxId}
+                    aria-label={placeholder}
+                    onChange={(event) => handleQueryChange(event.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={placeholder}
+                    prefix={
+                        <button
+                            aria-label={
+                                aiMode
+                                    ? "Exit Board Copilot mode"
+                                    : "Switch to Board Copilot"
+                            }
+                            aria-pressed={aiMode}
+                            onClick={() => toggleAiMode()}
+                            style={{
+                                background: aiMode
+                                    ? "var(--color-copilot-bg-medium)"
+                                    : "transparent",
+                                border: 0,
+                                borderRadius: 999,
+                                cursor: "pointer",
+                                lineHeight: 0,
+                                padding: 4
+                            }}
+                            type="button"
+                        >
+                            <AiSparkleIcon aria-hidden />
+                        </button>
+                    }
+                    ref={(node) => {
+                        inputRef.current = node?.input ?? null;
+                    }}
+                    size="large"
+                    value={query}
+                />
+            </div>
+            <span
+                aria-live="polite"
+                id={announcerId}
+                style={{
+                    border: 0,
+                    clip: "rect(0 0 0 0)",
+                    height: 1,
+                    margin: -1,
+                    overflow: "hidden",
+                    padding: 0,
+                    position: "absolute",
+                    width: 1
+                }}
+            >
+                {aiMode
+                    ? "Board Copilot mode. Press Enter to ask."
+                    : query.trim().length > 0
+                      ? `${resultCount} ${resultCount === 1 ? "result" : "results"}`
+                      : ""}
+            </span>
+            {aiMode ? (
+                <ModeBanner role="status">
+                    <AiSparkleIcon aria-hidden />
+                    <span>
+                        {microcopy.ai.askCopilot}. Type your question, then
+                        press Enter.
+                    </span>
+                </ModeBanner>
+            ) : (
+                <ListContainer
+                    aria-labelledby={`${listboxId}-label`}
+                    id={listboxId}
+                    role="listbox"
+                >
+                    {renderedItems.length === 0 ? (
+                        <Typography.Paragraph type="secondary">
+                            No matches.
+                        </Typography.Paragraph>
+                    ) : (
+                        renderedItems.map((item, index) => {
+                            if (item.type === "header") {
+                                return (
+                                    <KindGroup
+                                        key={`header-${item.label}`}
+                                        role="presentation"
+                                    >
+                                        {item.label}
+                                    </KindGroup>
+                                );
+                            }
+                            const entry = item.entry;
+                            return (
+                                <Row
+                                    active={index === activeIndex}
+                                    aria-selected={index === activeIndex}
+                                    id={`entry-${entry.id}`}
+                                    key={entry.id}
+                                    onClick={() => handleEntrySelect(entry)}
+                                    onMouseEnter={() => setActiveIndex(index)}
+                                    role="option"
+                                >
+                                    <KindTag color="default">
+                                        {entry.kind}
+                                    </KindTag>
+                                    <span>
+                                        <span
+                                            style={{
+                                                fontWeight: fontWeight.medium
+                                            }}
+                                        >
+                                            {entry.label}
+                                        </span>
+                                        {entry.sublabel ? (
+                                            <Typography.Text
+                                                style={{
+                                                    marginInlineStart: space.xs
+                                                }}
+                                                type="secondary"
+                                            >
+                                                {entry.sublabel}
+                                            </Typography.Text>
+                                        ) : null}
+                                    </span>
+                                </Row>
+                            );
+                        })
+                    )}
+                </ListContainer>
+            )}
+            {aiMode && (
+                <ListContainer aria-label="Sample prompts">
+                    {AI_SAMPLES.map((prompt) => (
+                        <li key={prompt}>
+                            <SamplePromptRow
+                                onClick={() => dispatchAiPrompt(prompt)}
+                                type="button"
+                            >
+                                <Typography.Text>{prompt}</Typography.Text>
+                            </SamplePromptRow>
+                        </li>
+                    ))}
+                </ListContainer>
+            )}
+        </>
+    );
+
+    const titleNode = (
+        <span
+            style={{
+                alignItems: "center",
+                display: "inline-flex",
+                gap: space.xs
+            }}
+        >
+            <AiSparkleIcon aria-hidden />
+            <span style={{ fontWeight: fontWeight.semibold }}>
+                Command palette
+            </span>
+            <Typography.Text type="secondary">{shortcutText}</Typography.Text>
+        </span>
+    );
+
+    if (isMobile) {
+        return (
+            <Drawer
+                destroyOnClose
+                height="65vh"
+                onClose={onClose}
+                open={open}
+                placement="bottom"
+                styles={{
+                    body: {
+                        paddingBottom: `max(${space.lg}px, env(safe-area-inset-bottom))`
+                    }
+                }}
+                title={titleNode}
+            >
+                {renderBody()}
+            </Drawer>
+        );
+    }
 
     return (
         <Modal
@@ -293,125 +676,10 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
             footer={null}
             onCancel={onClose}
             open={open}
-            title={
-                <span
-                    style={{
-                        alignItems: "center",
-                        display: "inline-flex",
-                        gap: space.xs
-                    }}
-                >
-                    <AiSparkleIcon aria-hidden />
-                    <span style={{ fontWeight: fontWeight.semibold }}>
-                        Command palette
-                    </span>
-                    <Typography.Text type="secondary">
-                        {shortcutText}
-                    </Typography.Text>
-                </span>
-            }
+            title={titleNode}
             width={560}
         >
-            {isMobile ? (
-                <Typography.Paragraph type="secondary">
-                    The command palette is keyboard-driven and works best on a
-                    larger screen. Use the navigation menu to move around.
-                </Typography.Paragraph>
-            ) : (
-                <>
-                    <HiddenLabel id={`${listboxId}-label`}>
-                        Search and navigate. Use Tab to switch to AI mode.
-                    </HiddenLabel>
-                    <div
-                        aria-controls={listboxId}
-                        aria-expanded
-                        aria-haspopup="listbox"
-                        aria-owns={listboxId}
-                        role="combobox"
-                    >
-                        <Input
-                            aria-activedescendant={
-                                visible[activeIndex]?.id
-                                    ? `entry-${visible[activeIndex].id}`
-                                    : undefined
-                            }
-                            aria-autocomplete="list"
-                            aria-controls={listboxId}
-                            aria-label={placeholder}
-                            onChange={(event) =>
-                                handleQueryChange(event.target.value)
-                            }
-                            onKeyDown={handleKeyDown}
-                            placeholder={placeholder}
-                            ref={(node) => {
-                                inputRef.current = node?.input ?? null;
-                            }}
-                            size="large"
-                            value={query}
-                        />
-                    </div>
-                    {aiMode ? (
-                        <ModeBanner role="status">
-                            <AiSparkleIcon aria-hidden />
-                            <span>
-                                AI mode is coming in Phase E. For now, the
-                                palette routes to projects and tasks.
-                            </span>
-                        </ModeBanner>
-                    ) : (
-                        <ListContainer
-                            aria-labelledby={`${listboxId}-label`}
-                            id={listboxId}
-                            role="listbox"
-                        >
-                            {visible.length === 0 ? (
-                                <Typography.Paragraph type="secondary">
-                                    No matches.
-                                </Typography.Paragraph>
-                            ) : (
-                                visible.map((entry, index) => (
-                                    <Row
-                                        active={index === activeIndex}
-                                        aria-selected={index === activeIndex}
-                                        id={`entry-${entry.id}`}
-                                        key={entry.id}
-                                        onClick={() => handleEntrySelect(entry)}
-                                        onMouseEnter={() =>
-                                            setActiveIndex(index)
-                                        }
-                                        role="option"
-                                    >
-                                        <KindTag color="default">
-                                            {entry.kind}
-                                        </KindTag>
-                                        <span>
-                                            <span
-                                                style={{
-                                                    fontWeight:
-                                                        fontWeight.medium
-                                                }}
-                                            >
-                                                {entry.label}
-                                            </span>
-                                            {entry.sublabel ? (
-                                                <Typography.Text
-                                                    style={{
-                                                        marginInlineStart:
-                                                            space.xs
-                                                    }}
-                                                    type="secondary"
-                                                >
-                                                    {entry.sublabel}
-                                                </Typography.Text>
-                                            ) : null}
-                                        </span>
-                                    </Row>
-                                ))
-                            )}
-                        </ListContainer>
-                    )}
-                </>
-            )}
+            {renderBody()}
         </Modal>
     );
 };

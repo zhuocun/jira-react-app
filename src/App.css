@@ -15,16 +15,65 @@
  * mode. We mirror the two tokens the page chrome actually needs at
  * `:root` and switch on the `data-color-scheme` attribute set in
  * `appProviders.tsx`.
+ *
+ * The `--color-copilot-*` block (PRD v3 §9.5 X-R12) names the AI gradient,
+ * subtle background, and badge color so AI-themed surfaces never duplicate
+ * raw rgba literals. Dark-mode overrides shift the gradient lighter so it
+ * stays legible against the dark canvas (PRD v3 S-R2).
  */
 :root,
 html[data-color-scheme="light"] {
     --pulse-bg-page: #f7f8fb;
     --pulse-text-base: rgba(15, 23, 42, 0.92);
+    --color-copilot-grad-start: #7c5cff;
+    --color-copilot-grad-mid: #5e6ad2;
+    --color-copilot-grad-end: #c084fc;
+    --color-copilot-bg-subtle: rgba(124, 92, 255, 0.06);
+    --color-copilot-bg-medium: rgba(124, 92, 255, 0.15);
+    --color-copilot-badge: #7c5cff;
+    --color-copilot-badge-bg: rgba(124, 92, 255, 0.12);
+    --color-copilot-pulse: rgba(124, 92, 255, 0.45);
 }
 
 html[data-color-scheme="dark"] {
     --pulse-bg-page: #0f1116;
     --pulse-text-base: rgba(229, 231, 235, 0.92);
+    --color-copilot-grad-start: #a78bfa;
+    --color-copilot-grad-mid: #8b94f0;
+    --color-copilot-grad-end: #e879f9;
+    --color-copilot-bg-subtle: rgba(167, 139, 250, 0.08);
+    --color-copilot-bg-medium: rgba(167, 139, 250, 0.18);
+    --color-copilot-badge: #a78bfa;
+    --color-copilot-badge-bg: rgba(167, 139, 250, 0.16);
+    --color-copilot-pulse: rgba(167, 139, 250, 0.5);
+}
+
+/*
+ * Pulse-highlight animation used when a citation chip navigates to the
+ * source entity (PRD v3 C-R7). 1 s ring fade. Honors reduced motion via
+ * the global block below.
+ */
+@keyframes copilotCitationPulse {
+    0% {
+        box-shadow: 0 0 0 0 var(--color-copilot-pulse);
+    }
+    70% {
+        box-shadow: 0 0 0 8px transparent;
+    }
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+.copilot-pulse {
+    animation: copilotCitationPulse 1000ms ease-out 1;
+    border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .copilot-pulse {
+        animation: none;
+    }
 }
 
 html,

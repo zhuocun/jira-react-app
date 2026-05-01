@@ -126,7 +126,9 @@ describe("BoardBriefDrawer", () => {
         await screen.findByText("Big task");
         fireEvent.click(screen.getByText("Big task"));
         expect(startEditing).toHaveBeenCalledWith("t1");
-        expect(onClose).toHaveBeenCalledTimes(1);
+        // PRD v3 B-R8: keep the brief drawer open so users can keep
+        // scanning while drilling into tasks. Previously closed.
+        expect(onClose).not.toHaveBeenCalled();
     });
 
     it("opens editing when an unowned task row is clicked", async () => {
@@ -141,7 +143,8 @@ describe("BoardBriefDrawer", () => {
         const rows = await screen.findAllByText("Unowned task");
         fireEvent.click(rows[rows.length - 1]);
         expect(startEditing).toHaveBeenCalledWith("t2");
-        expect(onClose).toHaveBeenCalled();
+        // PRD v3 B-R8: drawer stays open.
+        expect(onClose).not.toHaveBeenCalled();
     });
 
     it("renders nothing when open is false", () => {
@@ -179,8 +182,11 @@ describe("BoardBriefDrawer", () => {
                 </MemoryRouter>
             </QueryClientProvider>
         );
+        // PRD v3 B-R3: when the board has no tasks the brief headline
+        // calls out the empty board explicitly instead of shipping a
+        // raw "0 tasks" count.
         await waitFor(() =>
-            expect(screen.getByText(/0 tasks/)).toBeInTheDocument()
+            expect(screen.getByText(/Board is empty/i)).toBeInTheDocument()
         );
         expect(screen.getByText(/All tasks have an owner/)).toBeInTheDocument();
         expect(

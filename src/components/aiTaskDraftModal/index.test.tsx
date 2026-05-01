@@ -139,7 +139,9 @@ describe("AiTaskDraftModal", () => {
         expect(checkboxes.length).toBeGreaterThanOrEqual(2);
         // uncheck one so the loop also exercises the filter
         fireEvent.click(checkboxes[0]);
-        const create = screen.getByRole("button", { name: /create selected/i });
+        const create = screen.getByRole("button", {
+            name: /create \d+ subtasks?/i
+        });
         fireEvent.click(create);
         await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
         expect(fetchMock.mock.calls.length).toBe(checkboxes.length - 1);

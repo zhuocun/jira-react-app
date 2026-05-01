@@ -20,7 +20,21 @@ export const ANALYTICS_EVENTS = {
     AGENT_HEALTH_DEGRADED: "agent.health.degraded",
     THUMBS_FEEDBACK: "agent.feedback.thumbs",
     CITATION_FLAGGED: "agent.feedback.citation_flagged",
-    CITATION_CLICKED: "agent.citation.clicked"
+    CITATION_CLICKED: "agent.citation.clicked",
+    /* PRD v3 §9.8 (X-R15) — UX surface analytics */
+    AGENT_TTFT: "agent.ttft",
+    BRIEF_REFRESHED: "brief.refreshed",
+    BREAKDOWN_AXIS_CHANGED: "breakdown.axis_changed",
+    SEARCH_RESULT_RATIONALE_VIEWED: "search.result_rationale_viewed",
+    UNDO_APPLIED: "undo.applied",
+    COPILOT_CHAT_SEND: "copilot.chat.send",
+    COPILOT_CHAT_REGENERATE: "copilot.chat.regenerate",
+    COPILOT_ESTIMATE_APPLY: "copilot.estimate.apply",
+    COPILOT_BRIEF_OPEN: "copilot.brief.open",
+    COPILOT_DRAFT_SUBMIT: "copilot.draft.submit",
+    COPILOT_PALETTE_INVOKE: "copilot.palette.invoke",
+    COPILOT_REWRITE_ACCEPT: "copilot.rewrite.accept",
+    COPILOT_ONBOARDING_CTA: "copilot.onboarding.cta"
 } as const;
 
 export type AnalyticsEvent =

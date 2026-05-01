@@ -84,7 +84,10 @@ describe("AiSearchInput useAi error state", () => {
             />
         );
 
-        expect(screen.getByText("AI offline")).toBeInTheDocument();
+        // PRD v3 §X-R5: raw error.message must never reach the user. The
+        // surface-specific heading replaces it.
+        expect(screen.getByText(/Search failed/i)).toBeInTheDocument();
+        expect(screen.queryByText("AI offline")).not.toBeInTheDocument();
         const close = document.querySelector(
             ".ant-alert-warning .ant-alert-close-icon"
         ) as HTMLElement | null;

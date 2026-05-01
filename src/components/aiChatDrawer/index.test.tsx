@@ -122,7 +122,7 @@ describe("AiChatDrawer", () => {
         expect(mockApi).not.toHaveBeenCalled();
     });
 
-    it("clears the thread when Clear is clicked", async () => {
+    it("clears the thread when New conversation is clicked", async () => {
         renderDrawer(true);
         fireEvent.change(screen.getByLabelText("Message Board Copilot"), {
             target: { value: "Summarize the board" }
@@ -132,7 +132,7 @@ describe("AiChatDrawer", () => {
             expect(screen.getByText(/task on the board/i)).toBeInTheDocument();
         });
 
-        const clearBtn = screen.getByLabelText("Clear Board Copilot chat");
+        const clearBtn = screen.getByLabelText("New conversation");
         expect(clearBtn).not.toBeDisabled();
         fireEvent.click(clearBtn);
 
@@ -170,7 +170,7 @@ describe("AiChatDrawer", () => {
         expect(screen.getByText(/ask about this board/i)).toBeInTheDocument();
     });
 
-    it("renders tool output behind a Show details toggle when the assistant requests listProjects", async () => {
+    it("renders tool output collapsed inside <details> when the assistant requests listProjects", async () => {
         mockApi.mockImplementation(async (endpoint: string) => {
             if (endpoint === "projects") {
                 return [{ _id: "p1", projectName: "Roadmap" }];
@@ -183,18 +183,14 @@ describe("AiChatDrawer", () => {
         });
         fireEvent.click(screen.getByLabelText("Send message"));
 
-        // Tool details are hidden by default to keep internal ids out of the
-        // user-visible thread; the toggle reveals them.
+        // Tool details land in a collapsed native <details> element with a
+        // human-readable summary (PRD v3 C-R11).
         await waitFor(() => {
-            expect(
-                screen.getByLabelText("Show tool details")
-            ).toBeInTheDocument();
-        });
-        expect(screen.queryByText("listProjects")).not.toBeInTheDocument();
-
-        fireEvent.click(screen.getByLabelText("Show tool details"));
-        await waitFor(() => {
-            expect(screen.getByText("listProjects")).toBeInTheDocument();
+            const details = document.querySelector("details");
+            expect(details).toBeTruthy();
+            expect(details!.querySelector("summary")?.textContent).toMatch(
+                /Looked up/i
+            );
         });
         expect(mockApi).toHaveBeenCalledWith(
             "projects",
@@ -204,9 +200,7 @@ describe("AiChatDrawer", () => {
 
     it("sends a sample prompt when its chip is activated", async () => {
         renderDrawer(true);
-        const chip = screen.getByLabelText(
-            /Try sample prompt: What's at risk\?/
-        );
+        const chip = screen.getByLabelText(/Try sample prompt: Summarize/);
         fireEvent.click(chip);
 
         await waitFor(() => {

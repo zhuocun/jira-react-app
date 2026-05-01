@@ -1,0 +1,113 @@
+import styled from "@emotion/styled";
+import { Tag, Tooltip, Typography } from "antd";
+import React from "react";
+
+import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
+import type { CitationRef } from "../../interfaces/agent";
+import { fontSize, fontWeight, space } from "../../theme/tokens";
+
+/**
+ * Inline citation chip (PRD v3 §10.2). Renders as a small superscript tag
+ * — clicking or pressing Enter navigates to the cited entity (or fires
+ * `onNavigate` so the surface can scroll the row into view and pulse it
+ * per C-R7). Verbatim `quote` is mandatory and always shown in the
+ * tooltip / popover so users can verify what the agent saw.
+ */
+const Chip = styled(Tag)`
+    && {
+        background: var(--color-copilot-badge-bg);
+        border-color: var(--color-copilot-bg-medium);
+        border-radius: 999px;
+        color: var(--color-copilot-badge);
+        cursor: pointer;
+        font-size: ${fontSize.xs - 1}px;
+        font-weight: ${fontWeight.semibold};
+        line-height: 1;
+        margin: 0 2px;
+        padding: 1px 6px;
+        vertical-align: super;
+    }
+
+    &&:hover,
+    &&:focus-visible {
+        outline: 2px solid var(--ant-color-primary, #5e6ad2);
+        outline-offset: 1px;
+    }
+`;
+
+const TooltipBody = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: ${space.xxs}px;
+    max-width: 18rem;
+`;
+
+interface CitationChipProps {
+    /** 1-based index used for the visible label (`[1]`, `[2]`, …). */
+    index: number;
+    citation: CitationRef;
+    /**
+     * Called when the user activates the chip. The surface decides what
+     * "navigate" means (open task modal, scroll to entity, focus a row).
+     * If omitted, the chip becomes informational — no click handler is
+     * attached, but the tooltip still opens on hover.
+     */
+    onNavigate?: (citation: CitationRef) => void;
+}
+
+/**
+ * Map source → human-readable label. Localized via the same approach the
+ * rest of microcopy uses; for now English-only matches the agent output.
+ */
+const sourceLabel: Record<CitationRef["source"], string> = {
+    task: "Task",
+    column: "Column",
+    member: "Member",
+    project: "Project"
+};
+
+const CitationChip: React.FC<CitationChipProps> = ({
+    index,
+    citation,
+    onNavigate
+}) => {
+    const handleActivate = () => {
+        track(ANALYTICS_EVENTS.CITATION_CLICKED, {
+            source: citation.source,
+            id: citation.id
+        });
+        onNavigate?.(citation);
+    };
+    const onKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleActivate();
+        }
+    };
+    return (
+        <Tooltip
+            title={
+                <TooltipBody>
+                    <Typography.Text strong style={{ color: "inherit" }}>
+                        {sourceLabel[citation.source]} · {citation.id}
+                    </Typography.Text>
+                    <Typography.Text style={{ color: "inherit" }}>
+                        “{citation.quote}”
+                    </Typography.Text>
+                </TooltipBody>
+            }
+        >
+            <Chip
+                aria-label={`Citation ${index}: ${sourceLabel[citation.source]} ${citation.id}`}
+                onClick={handleActivate}
+                onKeyDown={onKeyDown}
+                role={onNavigate ? "link" : "note"}
+                tabIndex={onNavigate ? 0 : -1}
+            >
+                [{index}]
+            </Chip>
+        </Tooltip>
+    );
+};
+
+export default CitationChip;
