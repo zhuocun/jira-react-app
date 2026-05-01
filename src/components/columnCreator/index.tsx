@@ -5,6 +5,7 @@ import type { InputRef } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { microcopy } from "../../constants/microcopy";
 import {
     breakpoints,
     fontWeight,
@@ -110,12 +111,12 @@ const ColumnCreator: React.FC = () => {
         return (
             <Slot>
                 <AddColumnButton
-                    aria-label="Add column"
+                    aria-label={microcopy.actions.addColumn}
                     disabled={isLoading}
                     onClick={() => setEditing(true)}
                     type="button"
                 >
-                    <PlusOutlined aria-hidden /> Add column
+                    <PlusOutlined aria-hidden /> {microcopy.actions.addColumn}
                 </AddColumnButton>
             </Slot>
         );

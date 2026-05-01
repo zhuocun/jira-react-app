@@ -119,7 +119,7 @@ describe("RegisterForm", () => {
 
         await changeField(/^email$/i, "not-an-email");
         await changeField(/^username$/i, "Alice");
-        await changeField(/^password$/i, "secret");
+        await changeField(/^password$/i, "secret-password");
         await submitRegister();
 
         expect(
@@ -133,7 +133,7 @@ describe("RegisterForm", () => {
 
         await changeField(/^email$/i, "alice@example.com");
         await changeField(/^username$/i, "Alice");
-        await changeField(/^password$/i, "secret");
+        await changeField(/^password$/i, "secret-password");
 
         expect(onError).toHaveBeenCalledTimes(3);
         expect(onError).toHaveBeenCalledWith(null);
@@ -144,13 +144,13 @@ describe("RegisterForm", () => {
 
         await changeField(/^email$/i, "alice@example.com");
         await changeField(/^username$/i, "Alice");
-        await changeField(/^password$/i, "secret");
+        await changeField(/^password$/i, "secret-password");
         await submitRegister();
 
         await waitFor(() => {
             expect(mutateAsync).toHaveBeenCalledWith({
                 email: "alice@example.com",
-                password: "secret",
+                password: "secret-password",
                 username: "Alice"
             });
         });
@@ -165,13 +165,13 @@ describe("RegisterForm", () => {
 
         await changeField(/^email$/i, "alice@example.com");
         await changeField(/^username$/i, "Alice");
-        await changeField(/^password$/i, "secret");
+        await changeField(/^password$/i, "secret-password");
         await submitRegister();
 
         await waitFor(() => {
             expect(mutateAsync).toHaveBeenCalledWith({
                 email: "alice@example.com",
-                password: "secret",
+                password: "secret-password",
                 username: "Alice"
             });
         });

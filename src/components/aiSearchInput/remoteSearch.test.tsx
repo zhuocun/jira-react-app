@@ -10,6 +10,8 @@ jest.mock("../../constants/env", () => ({
     }
 }));
 
+import { microcopy } from "../../constants/microcopy";
+
 import AiSearchInput from ".";
 
 jest.mock("../../utils/hooks/useAiEnabled", () => ({
@@ -72,7 +74,7 @@ describe("AiSearchInput remote search transport", () => {
                 target: { value: "login flaky" }
             }
         );
-        fireEvent.click(screen.getByLabelText("Run natural language search"));
+        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
 
         await waitFor(() => {
             expect(
@@ -99,7 +101,7 @@ describe("AiSearchInput remote search transport", () => {
                 target: { value: "login" }
             }
         );
-        fireEvent.click(screen.getByLabelText("Run natural language search"));
+        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
 
         await waitFor(() => {
             expect(

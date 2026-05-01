@@ -112,6 +112,7 @@ const ProjectModal: React.FC = () => {
                         rules={[
                             {
                                 required: true,
+                                whitespace: true,
                                 message:
                                     microcopy.validation.projectNameRequired
                             }
@@ -126,6 +127,7 @@ const ProjectModal: React.FC = () => {
                         rules={[
                             {
                                 required: true,
+                                whitespace: true,
                                 message:
                                     microcopy.validation.organizationRequired
                             }

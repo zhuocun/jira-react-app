@@ -8,22 +8,30 @@
  */
 export const microcopy = {
     actions: {
+        addColumn: "Add column",
         apply: "Apply",
+        askCopilot: "Ask Copilot",
         cancel: "Cancel",
         clear: "Clear",
+        clearAiSearch: "Clear AI search",
         close: "Close",
         create: "Create",
         createProject: "Create project",
+        createTask: "Create task",
         delete: "Delete",
+        draftWithAi: "Draft with AI",
         edit: "Edit",
+        editProject: "Edit project",
+        editTask: "Edit task",
         logIn: "Log in",
         loggingIn: "Logging in…",
         logOut: "Log out",
         registerCta: "Register for an account",
-        loginCta: "Already have an account? Log in",
+        loginCta: "Log in to your account",
         resetFilters: "Reset filters",
         retry: "Retry",
         save: "Save",
+        search: "Search",
         send: "Send",
         showPassword: "Show password",
         hidePassword: "Hide password",
@@ -36,10 +44,14 @@ export const microcopy = {
         emailRequired: "Please enter your email",
         emailInvalid: "Please enter a valid email address",
         passwordRequired: "Please enter your password",
+        passwordTooShort: "Password must be at least 8 characters",
         usernameRequired: "Please enter your username",
         projectNameRequired: "Please enter the project name",
         organizationRequired: "Please enter the organization",
-        managerRequired: "Please select a manager"
+        managerRequired: "Please select a manager",
+        coordinatorRequired: "Please select a coordinator",
+        taskNameRequired: "Please enter the task name",
+        taskTypeRequired: "Please select the task type"
     },
     a11y: {
         capsLockOn: "Caps Lock is on",
@@ -49,7 +61,9 @@ export const microcopy = {
         accountMenu: "Account menu",
         boardCopilot: "Board Copilot",
         aiSuggestion: "AI suggestion",
-        aiBadge: "AI · review before using"
+        aiBadge: "AI · review before using",
+        useDarkMode: "Switch to dark mode",
+        useLightMode: "Switch to light mode"
     },
     fields: {
         coordinator: "Coordinator",
@@ -94,6 +108,13 @@ export const microcopy = {
             "Try again, or reload the page if the problem persists.",
         reloadPage: "Reload page"
     },
+    /**
+     * ICU-style placeholder greeting. Header reads it as
+     * `microcopy.greeting.replace("{name}", username)`. Keeping the token
+     * in a single string (instead of `${microcopy.actions.hi} ${name}`)
+     * lets translators reorder the noun and the verb per locale.
+     */
+    greeting: "Hi, {name}",
     empty: {
         projects: {
             title: "No projects yet",

@@ -4,6 +4,7 @@ import { Button, Input } from "antd";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { microcopy } from "../../constants/microcopy";
 import { fontWeight, radius, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
@@ -38,6 +39,13 @@ const CreateLink = styled.button`
     font: inherit;
     font-weight: ${fontWeight.medium};
     gap: ${space.xxs}px;
+    /*
+     * 32 px keeps the affordance comfortably tappable on a fine-pointer
+     * desktop. On coarse pointers (touch) we lift to 44 px to satisfy
+     * WCAG 2.5.8 (target size, AA recommendation) so a thumb can land
+     * the link without zoom.
+     */
+    min-height: 32px;
     padding: ${space.xs}px ${space.sm}px;
     transition:
         background-color 120ms ease-out,
@@ -57,6 +65,10 @@ const CreateLink = styled.button`
     &:disabled {
         cursor: default;
         opacity: 0.5;
+    }
+
+    @media (pointer: coarse) {
+        min-height: 44px;
     }
 `;
 
@@ -78,9 +90,16 @@ const TaskCreator: React.FC<{
         newTaskCallback
     );
     const submit = async () => {
+        const trimmed = taskName.trim();
+        if (!trimmed) {
+            // Empty / whitespace-only input is the user collapsing the
+            // editor — never POST a "   " task to the board.
+            setInputMode(false);
+            return;
+        }
         setInputMode(false);
         await mutateAsync({
-            taskName,
+            taskName: trimmed,
             projectId,
             columnId,
             coordinatorId: user?._id,
@@ -104,24 +123,24 @@ const TaskCreator: React.FC<{
         return (
             <CreatorRow>
                 <CreateLink
-                    aria-label="Create task"
+                    aria-label={microcopy.actions.createTask}
                     disabled={disabled}
                     onClick={toggle}
                     type="button"
                 >
-                    <PlusOutlined aria-hidden /> Create task
+                    <PlusOutlined aria-hidden /> {microcopy.actions.createTask}
                 </CreateLink>
                 {aiEnabled && boardAiOn && (
                     <>
                         <Button
-                            aria-label="Draft a task with Board Copilot"
+                            aria-label={microcopy.actions.draftWithAi}
                             disabled={disabled}
                             icon={<AiSparkleIcon />}
                             onClick={() => setAiOpen(true)}
                             size="small"
                             type="link"
                         >
-                            Draft with AI
+                            {microcopy.actions.draftWithAi}
                         </Button>
                         {aiOpen && (
                             <AiTaskDraftModal

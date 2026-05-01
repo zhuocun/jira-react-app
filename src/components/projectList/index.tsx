@@ -438,11 +438,12 @@ const ProjectList: React.FC<Props> = ({ members, ...props }) => {
                             description={microcopy.empty.projects.description}
                             cta={
                                 <Button
-                                    icon={<PlusOutlined />}
+                                    aria-label={microcopy.actions.createProject}
+                                    icon={<PlusOutlined aria-hidden />}
                                     onClick={openModal}
                                     type="primary"
                                 >
-                                    {microcopy.actions.create} project
+                                    {microcopy.actions.createProject}
                                 </Button>
                             }
                         />

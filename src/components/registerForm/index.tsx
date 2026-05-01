@@ -36,7 +36,11 @@ const RegisterForm: React.FC<{
         password: string;
     }) => {
         try {
-            await mutateAsync(input);
+            await mutateAsync({
+                ...input,
+                email: input.email.trim(),
+                username: input.username.trim()
+            });
             // Confirm success before navigating so the user knows the
             // request was received — without this the redirect can read
             // as a navigation glitch on a slow connection.
@@ -79,6 +83,7 @@ const RegisterForm: React.FC<{
                 rules={[
                     {
                         required: true,
+                        whitespace: true,
                         message: microcopy.validation.usernameRequired
                     }
                 ]}
@@ -108,6 +113,10 @@ const RegisterForm: React.FC<{
                     {
                         required: true,
                         message: microcopy.validation.passwordRequired
+                    },
+                    {
+                        min: 8,
+                        message: microcopy.validation.passwordTooShort
                     }
                 ]}
             >

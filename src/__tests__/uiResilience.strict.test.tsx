@@ -408,10 +408,10 @@ describe("UI quality :: AiSearchInput guards", () => {
     it("disables the Search button while the query is empty so a single-click can't fire a wasted request", () => {
         renderInput();
         // §2.A.1 — the Search button should only enable when there's a
-        // non-whitespace query.
-        const searchBtn = screen.getByRole("button", {
-            name: /run natural language search/i
-        });
+        // non-whitespace query. The button uses `microcopy.actions.search`
+        // ("Search") as its accessible name; we anchor the regex so we
+        // never accidentally match the "Clear AI search" sibling.
+        const searchBtn = screen.getByRole("button", { name: /^Search$/i });
         expect(searchBtn).toBeDisabled();
     });
 

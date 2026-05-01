@@ -17,6 +17,13 @@ interface EmptyStateProps {
     description?: React.ReactNode;
     cta?: React.ReactNode;
     illustration?: React.ReactNode;
+    /**
+     * Heading level for the title (1-5). Defaults to 5 for backwards
+     * compatibility, but callers should pass the level that keeps their
+     * page outline contiguous (h1 → h2 on the project list, h2 → h3
+     * inside a column).
+     */
+    headingLevel?: 1 | 2 | 3 | 4 | 5;
     "data-testid"?: string;
 }
 
@@ -97,6 +104,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     description,
     cta,
     illustration,
+    headingLevel = 5,
     "data-testid": testId
 }) => (
     <Container data-testid={testId} role="status">
@@ -106,7 +114,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
             />
         )}
-        <Title level={5}>{title}</Title>
+        <Title level={headingLevel}>{title}</Title>
         {description ? <Description>{description}</Description> : null}
         {cta ? <div style={{ marginTop: space.xs }}>{cta}</div> : null}
     </Container>
