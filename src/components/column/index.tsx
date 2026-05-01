@@ -42,6 +42,12 @@ export const ColumnContainer = styled.div`
     display: flex;
     flex-direction: column;
     margin-right: ${space.md}px;
+    /* Fix the column at 18rem so a single ultra-wide task card cannot
+     * stretch the lane past its lane-mates. min-width alone is a floor —
+     * flex-basis: auto resolves to the card's max-content and the column
+     * grew to ~780px when a 120-char single-token task name appeared. */
+    width: ${columnMinWidthRem}rem;
+    flex: 0 0 ${columnMinWidthRem}rem;
     min-width: ${columnMinWidthRem}rem;
     padding: ${space.sm}px;
     transition: background-color 200ms ease-out;
@@ -134,6 +140,12 @@ const CardTitle = styled.div`
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    /* A 120-char single-token name (URL, commit hash) has no natural break
+     * points, so the line-clamp can't truncate and the unbreakable run grows
+     * the column past 18rem, distorting the whole kanban. break-word lets the
+     * run split mid-character so the clamp engages and the column stays at
+     * its min-width. */
+    word-break: break-word;
 `;
 
 const CardFooter = styled.div`
@@ -289,7 +301,10 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                             fontSize: fontSize.xs,
                             fontWeight: 500,
                             marginBottom: space.xs,
-                            paddingInline: space.xs
+                            paddingInline: space.xs,
+                            maxWidth: "100%",
+                            wordBreak: "break-word",
+                            whiteSpace: "normal"
                         }}
                     >
                         {task.epic}

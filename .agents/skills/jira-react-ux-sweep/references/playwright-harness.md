@@ -9,10 +9,10 @@ documented.
 - Vite dev server runs on `http://localhost:3000` after `npm start`.
 - Playwright lives at `/opt/node22/lib/node_modules/playwright/index.js`
   as a CommonJS build. Import as:
-  ```js
-  import pw from "/opt/node22/lib/node_modules/playwright/index.js";
-  const { chromium } = pw;
-  ```
+    ```js
+    import pw from "/opt/node22/lib/node_modules/playwright/index.js";
+    const { chromium } = pw;
+    ```
 - Chromium binaries are pre-installed under `/opt/pw-browsers/`. No
   download step needed.
 - The remote API at `https://jira-python-server.vercel.app` returns
@@ -26,19 +26,19 @@ Auth header is required on every endpoint except `/auth/*`. Pre-seed
 `localStorage.Token = "demo"` before navigating to authenticated
 routes.
 
-| Method | Path | Response |
-|---|---|---|
-| POST | `/api/v1/auth/login` | `IUser` (single, includes `jwt`) |
-| POST | `/api/v1/auth/register` | 201 `{ message }` |
-| GET | `/api/v1/users` | single `IUser` |
-| GET | `/api/v1/users/members` | `IMember[]` |
-| GET | `/api/v1/projects` (no `projectId`) | `IProject[]`; honor `?projectName=` and `?managerId=` filters |
-| GET | `/api/v1/projects?projectId=p1` | **single** `IProject` (board.tsx expects an object, not an array) |
-| POST | `/api/v1/projects` | 201 single `IProject` |
-| PATCH/DELETE | `/api/v1/projects/:id` | 200 `{ ok: true }` |
-| GET | `/api/v1/boards?projectId=` | `IColumn[]` |
-| GET | `/api/v1/tasks?projectId=` | `ITask[]` |
-| GET | `/api/v1/health` | `{ status: "ok" }` |
+| Method       | Path                                | Response                                                          |
+| ------------ | ----------------------------------- | ----------------------------------------------------------------- |
+| POST         | `/api/v1/auth/login`                | `IUser` (single, includes `jwt`)                                  |
+| POST         | `/api/v1/auth/register`             | 201 `{ message }`                                                 |
+| GET          | `/api/v1/users`                     | single `IUser`                                                    |
+| GET          | `/api/v1/users/members`             | `IMember[]`                                                       |
+| GET          | `/api/v1/projects` (no `projectId`) | `IProject[]`; honor `?projectName=` and `?managerId=` filters     |
+| GET          | `/api/v1/projects?projectId=p1`     | **single** `IProject` (board.tsx expects an object, not an array) |
+| POST         | `/api/v1/projects`                  | 201 single `IProject`                                             |
+| PATCH/DELETE | `/api/v1/projects/:id`              | 200 `{ ok: true }`                                                |
+| GET          | `/api/v1/boards?projectId=`         | `IColumn[]`                                                       |
+| GET          | `/api/v1/tasks?projectId=`          | `ITask[]`                                                         |
+| GET          | `/api/v1/health`                    | `{ status: "ok" }`                                                |
 
 Type shapes (see `src/types/*.d.ts`):
 
@@ -58,14 +58,14 @@ IUser    = IMember & { jwt: string; likedProjects: string[] }
   catch-all, or register the API mock last.
 - **Theme toggle is event-driven.** Don't click the moon icon —
   flake-prone. Set the preference directly:
-  ```js
-  await page.evaluate(() => {
-      localStorage.setItem("ui:colorScheme", "dark");
-      window.dispatchEvent(
-          new CustomEvent("ui:colorScheme:changed", { detail: "dark" })
-      );
-  });
-  ```
+    ```js
+    await page.evaluate(() => {
+        localStorage.setItem("ui:colorScheme", "dark");
+        window.dispatchEvent(
+            new CustomEvent("ui:colorScheme:changed", { detail: "dark" })
+        );
+    });
+    ```
 - **`fullPage: false` for mobile.** `fullPage: true` ignores
   `body { overflow-x: hidden }` and stretches the capture past the
   viewport, which makes desktop overflow bugs look bigger than users
@@ -74,6 +74,10 @@ IUser    = IMember & { jwt: string; likedProjects: string[] }
   not `?_id=p1`. Mocking the wrong key returns the array fallback and
   the board renders `" board"` with a leading space because
   `currentProject?.projectName` is undefined.
+- **Token only for authed routes.** `/login` and `/register` redirect
+  to `/projects` whenever `localStorage.Token` is set. Capture them in
+  a separate browser context that does not seed `Token`, otherwise
+  every "login" cell of the matrix shows the projects page.
 
 ## The matrix
 
@@ -119,7 +123,8 @@ const setupMocks = async (page, overrides = {}) => {
         if (override) return override(route, url);
 
         if (path === "auth/login") return route.fulfill(json(USER));
-        if (path === "auth/register") return route.fulfill(json({ message: "ok" }, 201));
+        if (path === "auth/register")
+            return route.fulfill(json({ message: "ok" }, 201));
         if (path === "users") return route.fulfill(json(USER));
         if (path === "users/members") return route.fulfill(json(MEMBERS));
         if (path === "projects" && url.searchParams.get("projectId")) {
@@ -184,9 +189,40 @@ await page.evaluate((varName) => {
     for (const el of document.querySelectorAll("*")) {
         const v = getComputedStyle(el).getPropertyValue(varName);
         if (v && v.trim()) {
-            return { tag: el.tagName, cls: String(el.className), val: v.trim() };
+            return {
+                tag: el.tagName,
+                cls: String(el.className),
+                val: v.trim()
+            };
         }
     }
     return null;
 }, "--ant-color-bg-layout");
 ```
+
+**Why a flex item is wider than expected** (parent-chain sizing):
+
+```js
+await page.evaluate(() => {
+    let el = document.querySelector(".ant-tag"); // start from the offender
+    const chain = [];
+    for (let i = 0; i < 10 && el; i++) {
+        const r = el.getBoundingClientRect();
+        const c = getComputedStyle(el);
+        chain.push({
+            tag: el.tagName,
+            cls: String(el.className).slice(0, 60),
+            width: Math.round(r.width),
+            display: c.display,
+            flex: c.flex,
+            minWidth: c.minWidth
+        });
+        el = el.parentElement;
+    }
+    return chain;
+});
+```
+
+The first row whose `width` jumps far above its siblings is the
+ancestor whose `flex-basis: auto` is resolving to a child's max-content
+— not the element you started from.

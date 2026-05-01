@@ -149,6 +149,11 @@ const ProjectMeta = styled.div`
         font-weight: ${fontWeight.semibold};
         line-height: 1.3;
         text-decoration: none;
+        /* AntD's auto-layout table lets a single 200-char project name
+         * grow the cell past the row, hiding Organization / Manager /
+         * Created. break-word splits the run mid-character so the cell
+         * stays bounded and other columns remain visible. */
+        word-break: break-word;
     }
 
     a:hover {
