@@ -316,6 +316,12 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
         {
             key: "Project",
             title: "Project",
+            // AntD's `scroll: { x: 'max-content' }` sizes columns to their
+            // widest descendant; a 200-char single-token name was producing a
+            // 1370 px Project column that pushed Organization / Manager /
+            // Created off-screen. Cap the column so `word-break: break-word`
+            // on the link wraps the run inside the cell.
+            width: 360,
             sorter: (a, b) => a.projectName.localeCompare(b.projectName),
             render(_, data) {
                 return (

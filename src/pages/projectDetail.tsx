@@ -50,8 +50,21 @@ const TopBar = styled.div`
     }
 `;
 
+/*
+ * flex-basis: auto reads as the breadcrumb's max-content width, which for a
+ * 200-char project name is wider than the row, pushing the Board tab onto
+ * its own line below. Pin the basis to 0 so the wrapper starts empty and
+ * grows into whatever space the tabs leave behind; the inner ellipsis takes
+ * care of the visual truncation.
+ *
+ * AntD Breadcrumb's inner <ol> is a flex container with flex-wrap: wrap, so
+ * once the wrapper stops growing past max-content the long item wraps onto
+ * a second row instead of getting truncated. Force nowrap on the ol and
+ * pin the last item with min-width: 0 + overflow: hidden so it can shrink
+ * and ellipsize in place.
+ */
 const BreadcrumbWrapper = styled.div`
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
 
     && .ant-breadcrumb {
@@ -60,9 +73,13 @@ const BreadcrumbWrapper = styled.div`
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+    && .ant-breadcrumb ol {
+        flex-wrap: nowrap;
+    }
     && .ant-breadcrumb li:last-child {
         color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
         font-weight: ${fontWeight.semibold};
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
     }
