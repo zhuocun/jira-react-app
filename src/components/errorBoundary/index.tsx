@@ -65,10 +65,7 @@ class ErrorBoundary extends React.Component<
                     }
                     extra={
                         <Space wrap>
-                            <Button
-                                onClick={this.handleRetry}
-                                type="primary"
-                            >
+                            <Button onClick={this.handleRetry} type="primary">
                                 {microcopy.actions.retry}
                             </Button>
                             <Button onClick={this.handleReload}>

@@ -168,9 +168,7 @@ describe("TaskCreator", () => {
 
     it("opens the Board Copilot draft modal from the Draft with AI button", async () => {
         renderCreator();
-        fireEvent.click(
-            screen.getByLabelText(microcopy.actions.draftWithAi)
-        );
+        fireEvent.click(screen.getByLabelText(microcopy.actions.draftWithAi));
         await waitFor(() =>
             expect(screen.getByLabelText("Task prompt")).toBeInTheDocument()
         );
@@ -178,9 +176,7 @@ describe("TaskCreator", () => {
 
     it("closes the draft modal and returns to link mode", async () => {
         renderCreator();
-        fireEvent.click(
-            screen.getByLabelText(microcopy.actions.draftWithAi)
-        );
+        fireEvent.click(screen.getByLabelText(microcopy.actions.draftWithAi));
         await waitFor(() =>
             expect(screen.getByLabelText("Task prompt")).toBeInTheDocument()
         );

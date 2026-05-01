@@ -35,13 +35,7 @@ const AiSparkleIcon: React.FC<{
                 width="1em"
             >
                 <defs>
-                    <linearGradient
-                        id={id}
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="100%"
-                    >
+                    <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor="#7C5CFF" />
                         <stop offset="60%" stopColor="#5E6AD2" />
                         <stop offset="100%" stopColor="#C084FC" />
