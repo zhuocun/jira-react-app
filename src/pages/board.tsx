@@ -613,72 +613,80 @@ const BoardPage = () => {
                     {filterStatusMessage}
                 </span>
                 {!(bLoading || tLoading) ? (
-                    <>
-                        {(board?.length ?? 0) === 0 && !(bError || tError) ? (
-                            <EmptyState
-                                title={microcopy.empty.board.title}
-                                description={microcopy.empty.board.description}
-                            />
-                        ) : null}
-                        {(board?.length ?? 0) > 1 && !swipeHintDismissed && (
-                            <SwipeHint role="note">
-                                <span aria-hidden>←</span>
-                                <span>Swipe to see more columns</span>
-                                <span aria-hidden>→</span>
-                                <SwipeHintClose
-                                    aria-label="Dismiss swipe hint"
-                                    onClick={dismissSwipeHint}
-                                    type="button"
-                                >
-                                    <CloseOutlined
-                                        aria-hidden
-                                        style={{ fontSize: 10 }}
-                                    />
-                                </SwipeHintClose>
-                            </SwipeHint>
-                        )}
-                        <ColumnsViewport>
-                            <ColumnContainer>
-                                <Drop
-                                    droppableId="column"
-                                    type="COLUMN"
-                                    direction="horizontal"
-                                >
-                                    <DropChild style={{ display: "flex" }}>
-                                        {board?.map((column, index) => (
-                                            <Drag
-                                                key={column._id}
-                                                draggableId={`column${column._id}`}
-                                                index={index}
-                                                isDragDisabled={
-                                                    isColumnDragDisabled ||
-                                                    isTaskDragDisabled ||
-                                                    column._id === "mock"
-                                                }
-                                            >
-                                                <Column
-                                                    boardAiOn={boardAiOn}
-                                                    tasks={
-                                                        tasksByColumn.get(
-                                                            column._id
-                                                        ) ?? []
-                                                    }
+                    (board?.length ?? 0) === 0 && !(bError || tError) ? (
+                        // When the board has no columns, show only the empty
+                        // hero with a single inline CTA. Previously we also
+                        // rendered the ColumnsViewport with a lone
+                        // <ColumnCreator />, producing a duplicate "Add column"
+                        // tile floating to the left of the centered hero.
+                        <EmptyState
+                            title={microcopy.empty.board.title}
+                            description={microcopy.empty.board.description}
+                            cta={<ColumnCreator />}
+                        />
+                    ) : (
+                        <>
+                            {(board?.length ?? 0) > 1 &&
+                                !swipeHintDismissed && (
+                                    <SwipeHint role="note">
+                                        <span aria-hidden>←</span>
+                                        <span>Swipe to see more columns</span>
+                                        <span aria-hidden>→</span>
+                                        <SwipeHintClose
+                                            aria-label="Dismiss swipe hint"
+                                            onClick={dismissSwipeHint}
+                                            type="button"
+                                        >
+                                            <CloseOutlined
+                                                aria-hidden
+                                                style={{ fontSize: 10 }}
+                                            />
+                                        </SwipeHintClose>
+                                    </SwipeHint>
+                                )}
+                            <ColumnsViewport>
+                                <ColumnContainer>
+                                    <Drop
+                                        droppableId="column"
+                                        type="COLUMN"
+                                        direction="horizontal"
+                                    >
+                                        <DropChild style={{ display: "flex" }}>
+                                            {board?.map((column, index) => (
+                                                <Drag
                                                     key={column._id}
-                                                    column={column}
-                                                    members={members ?? []}
-                                                    param={debouncedParam}
+                                                    draggableId={`column${column._id}`}
+                                                    index={index}
                                                     isDragDisabled={
-                                                        isTaskDragDisabled
+                                                        isColumnDragDisabled ||
+                                                        isTaskDragDisabled ||
+                                                        column._id === "mock"
                                                     }
-                                                />
-                                            </Drag>
-                                        ))}
-                                    </DropChild>
-                                </Drop>
-                                <ColumnCreator />
-                            </ColumnContainer>
-                        </ColumnsViewport>
-                    </>
+                                                >
+                                                    <Column
+                                                        boardAiOn={boardAiOn}
+                                                        tasks={
+                                                            tasksByColumn.get(
+                                                                column._id
+                                                            ) ?? []
+                                                        }
+                                                        key={column._id}
+                                                        column={column}
+                                                        members={members ?? []}
+                                                        param={debouncedParam}
+                                                        isDragDisabled={
+                                                            isTaskDragDisabled
+                                                        }
+                                                    />
+                                                </Drag>
+                                            ))}
+                                        </DropChild>
+                                    </Drop>
+                                    <ColumnCreator />
+                                </ColumnContainer>
+                            </ColumnsViewport>
+                        </>
+                    )
                 ) : (
                     <BoardLoadingSkeleton />
                 )}

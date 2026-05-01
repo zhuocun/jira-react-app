@@ -91,6 +91,12 @@ const FlexSelect = styled.div`
  */
 const ActiveFilterCount = styled.span`
     align-items: center;
+    /* In the parent's mobile column layout (align-items: stretch), an
+     * inline-flex pill with no align-self stretched to the full row width
+     * and produced a tall empty bar with the count floating in the
+     * middle. Pin the pill to its content width so it sits neatly under
+     * the manager select. */
+    align-self: flex-start;
     background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.1));
     border-radius: ${radius.pill}px;
     color: var(--ant-color-primary, #5e6ad2);
@@ -104,6 +110,7 @@ const ActiveFilterCount = styled.span`
     padding: 0 ${space.xs}px;
 
     @media (min-width: ${breakpoints.md}px) {
+        align-self: auto;
         margin-inline-start: auto;
     }
 `;
