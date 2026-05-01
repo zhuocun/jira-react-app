@@ -1,0 +1,264 @@
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
+
+import type { StreamPart } from "../../interfaces/agent";
+
+jest.mock("../ai/agentClient", () => ({
+    __esModule: true,
+    streamAgent: jest.fn()
+}));
+
+jest.mock("../../constants/env", () => ({
+    __esModule: true,
+    default: {
+        aiBaseUrl: "https://agents.example",
+        aiEnabled: true,
+        aiUseLocalEngine: false,
+        apiBaseUrl: "/api/v1"
+    }
+}));
+
+// eslint-disable-next-line simple-import-sort/imports
+import { streamAgent } from "../ai/agentClient";
+import useAgent from "./useAgent";
+
+const mockedStream = streamAgent as unknown as jest.Mock;
+
+async function* fromParts(parts: StreamPart[]) {
+    for (const part of parts) {
+        yield part;
+    }
+}
+
+const wrapper = (queryClient: QueryClient) => {
+    const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+        <QueryClientProvider client={queryClient}>
+            {children}
+        </QueryClientProvider>
+    );
+    Wrapper.displayName = "TestWrapper";
+    return Wrapper;
+};
+
+describe("useAgent", () => {
+    beforeEach(() => {
+        mockedStream.mockReset();
+    });
+
+    it("starts a run and reduces messages from streamed chunks", async () => {
+        mockedStream.mockReturnValueOnce(
+            fromParts([
+                { type: "updates", ns: ["root"], data: { step: 1 } },
+                {
+                    type: "messages",
+                    ns: ["root"],
+                    data: [{ content: "Hello " }, {}]
+                },
+                {
+                    type: "messages",
+                    ns: ["root"],
+                    data: [{ content: "world" }, {}]
+                }
+            ])
+        );
+        const queryClient = new QueryClient();
+        const { result } = renderHook(
+            () => useAgent("board-coach", { projectId: "p1", userId: "u1" }),
+            { wrapper: wrapper(queryClient) }
+        );
+
+        await act(async () => {
+            await result.current.start("hi");
+        });
+
+        await waitFor(() => {
+            expect(result.current.isStreaming).toBe(false);
+        });
+
+        const assistantMsgs = result.current.state.messages.filter(
+            (m) => m.role === "assistant"
+        );
+        expect(assistantMsgs[assistantMsgs.length - 1]?.content).toBe(
+            "Hello world"
+        );
+        expect(result.current.state.lastUpdate).toEqual({ step: 1 });
+        expect(mockedStream).toHaveBeenCalledTimes(1);
+    });
+
+    it("auto-resumes on an interrupt for a known FE tool", async () => {
+        mockedStream
+            .mockReturnValueOnce(
+                fromParts([
+                    {
+                        type: "interrupt",
+                        ns: ["root"],
+                        data: {
+                            tool: "fe.listProjects",
+                            args: {}
+                        }
+                    }
+                ])
+            )
+            .mockReturnValueOnce(
+                fromParts([
+                    {
+                        type: "messages",
+                        ns: ["root"],
+                        data: [{ content: "Done." }, {}]
+                    }
+                ])
+            );
+        const queryClient = new QueryClient();
+        queryClient.setQueryData<IProject[]>(
+            ["projects"],
+            [
+                {
+                    _id: "p1",
+                    createdAt: "0",
+                    managerId: "m1",
+                    organization: "Org",
+                    projectName: "Roadmap"
+                }
+            ]
+        );
+        const { result } = renderHook(
+            () => useAgent("board-coach", { projectId: "p1", userId: "u1" }),
+            { wrapper: wrapper(queryClient) }
+        );
+
+        await act(async () => {
+            await result.current.start("list projects");
+        });
+
+        await waitFor(() => {
+            expect(result.current.isStreaming).toBe(false);
+        });
+
+        expect(mockedStream).toHaveBeenCalledTimes(2);
+        const secondCall = mockedStream.mock.calls[1][0];
+        expect(secondCall.body.command?.resume).toBeDefined();
+        expect(result.current.pendingInterrupt).toBeNull();
+    });
+
+    it("surfaces a mutation_proposal as pendingProposal", async () => {
+        mockedStream.mockReturnValueOnce(
+            fromParts([
+                {
+                    type: "custom",
+                    ns: ["root"],
+                    data: {
+                        kind: "mutation_proposal",
+                        proposal: {
+                            proposal_id: "mp-1",
+                            description: "Move task",
+                            diff: { taskId: "t1", to: "c2" },
+                            risk: "low",
+                            undoable: true
+                        }
+                    }
+                }
+            ])
+        );
+        const queryClient = new QueryClient();
+        const { result } = renderHook(
+            () => useAgent("board-coach", { projectId: "p1" }),
+            { wrapper: wrapper(queryClient) }
+        );
+
+        await act(async () => {
+            await result.current.start("Plan a move");
+        });
+
+        await waitFor(() => {
+            expect(result.current.pendingProposal?.proposal_id).toBe("mp-1");
+        });
+    });
+
+    it("captures citations and nudges from custom events", async () => {
+        mockedStream.mockReturnValueOnce(
+            fromParts([
+                {
+                    type: "custom",
+                    ns: ["root"],
+                    data: {
+                        kind: "citation",
+                        refs: [
+                            {
+                                source: "task",
+                                id: "t1",
+                                quote: "Fix login"
+                            }
+                        ]
+                    }
+                },
+                {
+                    type: "custom",
+                    ns: ["root"],
+                    data: {
+                        kind: "nudge",
+                        nudge: {
+                            nudge_id: "n1",
+                            kind: "load_imbalance",
+                            project_id: "p1",
+                            summary: "Alice is overloaded",
+                            target_ids: [],
+                            severity: "warn"
+                        }
+                    }
+                }
+            ])
+        );
+        const queryClient = new QueryClient();
+        const { result } = renderHook(
+            () => useAgent("triage", { projectId: "p1" }),
+            { wrapper: wrapper(queryClient) }
+        );
+
+        await act(async () => {
+            await result.current.start("triage");
+        });
+
+        await waitFor(() => {
+            expect(result.current.citations).toHaveLength(1);
+            expect(result.current.nudges).toHaveLength(1);
+        });
+    });
+
+    it("reset clears state and assigns a new threadId for the next run", async () => {
+        mockedStream.mockReturnValue(
+            fromParts([
+                {
+                    type: "messages",
+                    ns: ["root"],
+                    data: [{ content: "ok" }, {}]
+                }
+            ])
+        );
+        const queryClient = new QueryClient();
+        const { result } = renderHook(
+            () =>
+                useAgent("board-coach", {
+                    projectId: "p1",
+                    initialThreadId: "thread-fixed"
+                }),
+            { wrapper: wrapper(queryClient) }
+        );
+
+        await act(async () => {
+            await result.current.start("hi");
+        });
+
+        expect(
+            mockedStream.mock.calls[0][0].body.config.configurable.thread_id
+        ).toBe("thread-fixed");
+
+        act(() => {
+            result.current.reset();
+        });
+
+        expect(result.current.state.messages).toEqual([]);
+        expect(result.current.error).toBeNull();
+        expect(result.current.isStreaming).toBe(false);
+    });
+});
