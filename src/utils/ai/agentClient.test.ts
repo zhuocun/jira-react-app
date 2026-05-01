@@ -1,6 +1,7 @@
 import {
     AgentAuthError,
     AgentBudgetError,
+    AgentForbiddenError,
     AgentNotFoundError,
     AgentRateLimitError,
     AgentServerError,
@@ -168,6 +169,19 @@ describe("agentClient", () => {
             ).rejects.toBeInstanceOf(AgentAuthError);
         });
 
+        it("maps a 403 to AgentForbiddenError (not AgentAuthError)", async () => {
+            fetchSpy.mockResolvedValueOnce(
+                errorResponse(403, { message: "no autonomy" })
+            );
+            await expect(
+                (async () => {
+                    for await (const _ of streamAgent(baseRequest)) {
+                        // exhaust
+                    }
+                })()
+            ).rejects.toBeInstanceOf(AgentForbiddenError);
+        });
+
         it("maps a 429 with Retry-After to AgentRateLimitError with seconds", async () => {
             fetchSpy.mockResolvedValueOnce(
                 errorResponse(
@@ -288,6 +302,102 @@ describe("agentClient", () => {
             } catch (err) {
                 expect((err as Error).name).toBe("AbortError");
             }
+        });
+
+        it("joins multi-line `data:` chunks into one StreamPart", async () => {
+            // SSE allows the JSON payload to be split across several
+            // `data:` lines; the parser must concatenate them on `\n`
+            // before JSON.parse'ing. Encode an `updates` part across
+            // four data lines.
+            const chunks = [
+                [
+                    "data: {",
+                    'data: "type": "updates",',
+                    'data: "ns": ["root"],',
+                    'data: "data": { "x": 1 }',
+                    "data: }",
+                    "",
+                    ""
+                ].join("\n")
+            ];
+            fetchSpy.mockResolvedValueOnce(buildStreamResponse(chunks));
+            const out = [];
+            for await (const part of streamAgent(baseRequest)) {
+                out.push(part);
+            }
+            expect(out).toHaveLength(1);
+            expect(out[0]).toEqual({
+                type: "updates",
+                ns: ["root"],
+                data: { x: 1 }
+            });
+        });
+
+        it("preserves trailing whitespace inside JSON string values (no .trim)", async () => {
+            // SSE spec strips exactly one leading space after `data:`.
+            // Trimming the whole line would clobber `"ok "` ⇒ `"ok"` and
+            // change agent semantics. Encode a value with a trailing
+            // space and assert it survives the round-trip.
+            const payload = JSON.stringify({
+                type: "messages",
+                ns: ["root"],
+                data: [{ content: "ok " }, {}]
+            });
+            const chunks = [`data: ${payload}\n\n`];
+            fetchSpy.mockResolvedValueOnce(buildStreamResponse(chunks));
+            const out = [];
+            for await (const part of streamAgent(baseRequest)) {
+                out.push(part);
+            }
+            expect(out).toHaveLength(1);
+            const message = out[0] as {
+                type: "messages";
+                data: [{ content: string }, unknown];
+            };
+            expect(message.data[0].content).toBe("ok ");
+        });
+
+        it("wraps a mid-stream reader error as AgentTransportError", async () => {
+            // Mock a reader that returns one good chunk then rejects on
+            // the next read. The async generator should map that into a
+            // typed AgentTransportError so the hook layer can surface a
+            // user-visible error without re-parsing strings.
+            const enc2 = new TextEncoder();
+            let calls = 0;
+            const reader = {
+                read: jest.fn(async () => {
+                    calls += 1;
+                    if (calls === 1) {
+                        return {
+                            value: enc2.encode(
+                                'data: {"type":"updates","ns":["root"],"data":{"step":1}}\n\n'
+                            ),
+                            done: false
+                        };
+                    }
+                    throw new Error("network reset");
+                }),
+                releaseLock: jest.fn()
+            };
+            const response = {
+                body: { getReader: () => reader },
+                ok: true,
+                status: 200,
+                headers: makeHeaders({ "Content-Type": "text/event-stream" })
+            } as unknown as Response;
+            fetchSpy.mockResolvedValueOnce(response);
+
+            const collected: unknown[] = [];
+            await expect(
+                (async () => {
+                    for await (const part of streamAgent(baseRequest)) {
+                        collected.push(part);
+                    }
+                })()
+            ).rejects.toBeInstanceOf(AgentTransportError);
+            // The first chunk should still have been yielded before the
+            // error.
+            expect(collected).toHaveLength(1);
         });
     });
 

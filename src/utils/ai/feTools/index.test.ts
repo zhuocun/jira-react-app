@@ -1,8 +1,13 @@
 import { QueryClient } from "@tanstack/react-query";
 
+import type { AutonomyLevel } from "../../../interfaces/agent";
+
 import { FE_TOOL_REGISTRY } from ".";
 import { boardSnapshotTool } from "./boardSnapshot";
+import { getProjectTool } from "./getProject";
+import { listProjectsTool } from "./listProjects";
 import type { FeToolContext } from "./types";
+import { viewerContextTool } from "./viewerContext";
 
 const expectedNames = [
     "fe.listProjects",
@@ -20,10 +25,12 @@ const expectedNames = [
 
 const buildCtx = (
     queryClient: QueryClient,
-    projectId?: string
+    projectId?: string,
+    autonomyLevel?: AutonomyLevel
 ): FeToolContext => ({
     queryClient,
-    projectId
+    projectId,
+    autonomyLevel
 });
 
 describe("FE_TOOL_REGISTRY", () => {
@@ -125,7 +132,7 @@ describe("FE_TOOL_REGISTRY", () => {
         ]);
     });
 
-    it("redacts board snapshot notes longer than 4 KB", async () => {
+    it("redacts board snapshot notes longer than 4 KB at suggest autonomy", async () => {
         const qc = new QueryClient();
         const longNote = "a".repeat(5000);
         qc.setQueryData<ITask[]>(
@@ -151,10 +158,156 @@ describe("FE_TOOL_REGISTRY", () => {
         );
         const result = await boardSnapshotTool.run(
             { projectId: "p1" },
-            buildCtx(qc, "p1")
+            buildCtx(qc, "p1", "suggest")
         );
         const note = result.unowned[0]?.note ?? "";
         expect(note.length).toBeLessThan(longNote.length);
-        expect(note).toMatch(/redacted len=5000/);
+        // Length and a stable djb2 hash both appear in the marker so the
+        // agent can detect repeated long notes across turns.
+        expect(note).toMatch(/redacted len=5000 h=[0-9a-z]+/);
+    });
+
+    it("returns full notes at plan autonomy without redaction", async () => {
+        const qc = new QueryClient();
+        const longNote = "b".repeat(5000);
+        qc.setQueryData<ITask[]>(
+            ["tasks", { projectId: "p1" }],
+            [
+                {
+                    _id: "t1",
+                    columnId: "c1",
+                    coordinatorId: "ghost",
+                    epic: "x",
+                    index: 0,
+                    note: longNote,
+                    projectId: "p1",
+                    storyPoints: 1,
+                    taskName: "Big",
+                    type: "Task"
+                }
+            ]
+        );
+        qc.setQueryData<IColumn[]>(
+            ["boards", { projectId: "p1" }],
+            [{ _id: "c1", columnName: "Todo", index: 0, projectId: "p1" }]
+        );
+        const planCtx = buildCtx(qc, "p1", "plan");
+        const planResult = await boardSnapshotTool.run(
+            { projectId: "p1" },
+            planCtx
+        );
+        expect(planResult.unowned[0]?.note).toBe(longNote);
+
+        const autoCtx = buildCtx(qc, "p1", "auto");
+        const autoResult = await boardSnapshotTool.run(
+            { projectId: "p1" },
+            autoCtx
+        );
+        expect(autoResult.unowned[0]?.note).toBe(longNote);
+    });
+
+    it('viewerContext reads the IUser cache under the ["users"] key', async () => {
+        const qc = new QueryClient();
+        qc.setQueryData<IUser>(["users"], {
+            _id: "u1",
+            email: "alice@example.com",
+            jwt: "tok",
+            likedProjects: [],
+            username: "alice"
+        });
+        const result = await viewerContextTool.run(undefined, buildCtx(qc));
+        expect(result.user).toEqual({
+            id: "u1",
+            username: "alice",
+            email: "alice@example.com"
+        });
+        expect(result.role).toBeNull();
+    });
+
+    it("listProjects merges every parametric ['projects', *] cache entry", async () => {
+        const qc = new QueryClient();
+        qc.setQueryData<IProject[]>(
+            ["projects", { projectName: "Roadmap" }],
+            [
+                {
+                    _id: "p1",
+                    createdAt: "0",
+                    managerId: "m1",
+                    organization: "Acme",
+                    projectName: "Roadmap"
+                }
+            ]
+        );
+        qc.setQueryData<IProject[]>(
+            ["projects", { managerId: "m2" }],
+            [
+                {
+                    _id: "p2",
+                    createdAt: "0",
+                    managerId: "m2",
+                    organization: "Acme",
+                    projectName: "Marketing"
+                },
+                // Same project surfacing under two parametric keys must
+                // dedupe to one entry by `_id`.
+                {
+                    _id: "p1",
+                    createdAt: "0",
+                    managerId: "m1",
+                    organization: "Acme",
+                    projectName: "Roadmap"
+                }
+            ]
+        );
+        // Single-project shape from `pages/board.tsx` — should also be
+        // collected by listProjects.
+        qc.setQueryData<IProject>(["projects", { projectId: "p3" }], {
+            _id: "p3",
+            createdAt: "0",
+            managerId: "m1",
+            organization: "Acme",
+            projectName: "Solo"
+        });
+        const result = await listProjectsTool.run(undefined, buildCtx(qc));
+        const ids = result.map((p) => p._id).sort();
+        expect(ids).toEqual(["p1", "p2", "p3"]);
+    });
+
+    it("getProject finds a single-project entry via the parametric cache", async () => {
+        const qc = new QueryClient();
+        qc.setQueryData<IProject>(["projects", { projectId: "p9" }], {
+            _id: "p9",
+            createdAt: "0",
+            managerId: "m1",
+            organization: "Acme",
+            projectName: "Singleton"
+        });
+        const result = await getProjectTool.run(
+            { projectId: "p9" },
+            buildCtx(qc)
+        );
+        expect(result?._id).toBe("p9");
+        expect(result?.projectName).toBe("Singleton");
+    });
+
+    it("getProject returns null when the project is not in any cached variant", async () => {
+        const qc = new QueryClient();
+        qc.setQueryData<IProject[]>(
+            ["projects", { projectName: "x" }],
+            [
+                {
+                    _id: "p1",
+                    createdAt: "0",
+                    managerId: "m1",
+                    organization: "Acme",
+                    projectName: "x"
+                }
+            ]
+        );
+        const result = await getProjectTool.run(
+            { projectId: "missing" },
+            buildCtx(qc)
+        );
+        expect(result).toBeNull();
     });
 });

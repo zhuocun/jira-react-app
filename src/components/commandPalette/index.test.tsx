@@ -31,8 +31,13 @@ const installAntdMocks = () => {
 
 const seedClient = () => {
     const qc = new QueryClient();
+    // Projects are loaded via parametric `["projects", filterRequest({...})]`
+    // keys in production (see `pages/project.tsx`) — the palette must
+    // surface them via the gather-all helper, not the bare `["projects"]`
+    // key (which is rarely populated). Seed under a parametric key here
+    // to exercise the production code path.
     qc.setQueryData<IProject[]>(
-        ["projects"],
+        ["projects", { managerId: "m1" }],
         [
             {
                 _id: "p1",
@@ -145,5 +150,44 @@ describe("CommandPalette", () => {
         await screen.findByRole("combobox");
         const results = await axe(container);
         expect(results).toHaveNoViolations();
+    });
+
+    it("indexes tasks and columns from parametric cache keys", async () => {
+        const onClose = jest.fn();
+        const qc = seedClient();
+        // `pages/board.tsx` keys these as `["tasks", { projectId }]` and
+        // `["boards", { projectId }]`. The palette must scan all matching
+        // entries, not just the bare prefix.
+        qc.setQueryData<ITask[]>(
+            ["tasks", { projectId: "p1" }],
+            [
+                {
+                    _id: "t1",
+                    columnId: "c1",
+                    coordinatorId: "m1",
+                    epic: "Auth",
+                    index: 0,
+                    note: "",
+                    projectId: "p1",
+                    storyPoints: 2,
+                    taskName: "Refactor login",
+                    type: "Task"
+                }
+            ]
+        );
+        qc.setQueryData<IColumn[]>(
+            ["boards", { projectId: "p1" }],
+            [{ _id: "c1", columnName: "Backlog", index: 0, projectId: "p1" }]
+        );
+        render(
+            <QueryClientProvider client={qc}>
+                <MemoryRouter>
+                    <CommandPalette onClose={onClose} open />
+                </MemoryRouter>
+            </QueryClientProvider>
+        );
+        await screen.findByRole("combobox");
+        expect(screen.getByText("Refactor login")).toBeInTheDocument();
+        expect(screen.getByText("Backlog")).toBeInTheDocument();
     });
 });

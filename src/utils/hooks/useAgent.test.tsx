@@ -152,7 +152,16 @@ describe("useAgent", () => {
                         proposal: {
                             proposal_id: "mp-1",
                             description: "Move task",
-                            diff: { taskId: "t1", to: "c2" },
+                            diff: {
+                                task_updates: [
+                                    {
+                                        task_id: "t1",
+                                        field: "columnId",
+                                        from: "c1",
+                                        to: "c2"
+                                    }
+                                ]
+                            },
                             risk: "low",
                             undoable: true
                         }
@@ -222,6 +231,91 @@ describe("useAgent", () => {
         await waitFor(() => {
             expect(result.current.citations).toHaveLength(1);
             expect(result.current.nudges).toHaveLength(1);
+        });
+    });
+
+    it("resets citations and nudges at the start of every new turn", async () => {
+        // First turn emits one citation and one nudge.
+        mockedStream
+            .mockReturnValueOnce(
+                fromParts([
+                    {
+                        type: "custom",
+                        ns: ["root"],
+                        data: {
+                            kind: "citation",
+                            refs: [
+                                {
+                                    source: "task",
+                                    id: "t1",
+                                    quote: "First"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        type: "custom",
+                        ns: ["root"],
+                        data: {
+                            kind: "nudge",
+                            nudge: {
+                                nudge_id: "n1",
+                                kind: "load_imbalance",
+                                project_id: "p1",
+                                summary: "Alice overloaded",
+                                target_ids: [],
+                                severity: "warn"
+                            }
+                        }
+                    }
+                ])
+            )
+            // Second turn emits a different citation only.
+            .mockReturnValueOnce(
+                fromParts([
+                    {
+                        type: "custom",
+                        ns: ["root"],
+                        data: {
+                            kind: "citation",
+                            refs: [
+                                {
+                                    source: "task",
+                                    id: "t2",
+                                    quote: "Second"
+                                }
+                            ]
+                        }
+                    }
+                ])
+            );
+        const queryClient = new QueryClient();
+        const { result } = renderHook(
+            () => useAgent("board-coach", { projectId: "p1", userId: "u1" }),
+            { wrapper: wrapper(queryClient) }
+        );
+
+        await act(async () => {
+            await result.current.start("first turn");
+        });
+
+        await waitFor(() => {
+            expect(result.current.citations).toHaveLength(1);
+            expect(result.current.nudges).toHaveLength(1);
+        });
+        expect(result.current.citations[0].id).toBe("t1");
+
+        await act(async () => {
+            await result.current.start("second turn");
+        });
+
+        // Second turn's start() must drop the previous turn's surfaces
+        // (per review follow-up #10) before streaming new ones in.
+        await waitFor(() => {
+            expect(result.current.citations).toHaveLength(1);
+            expect(result.current.citations[0].id).toBe("t2");
+            // Nudges array reset and not reloaded by the second turn.
+            expect(result.current.nudges).toHaveLength(0);
         });
     });
 

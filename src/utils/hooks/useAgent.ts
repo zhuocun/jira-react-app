@@ -57,8 +57,26 @@ export interface UseAgentOptions {
     initialThreadId?: string;
 }
 
-const generateThreadId = () =>
-    `t_${Math.random().toString(36).slice(2, 10)}_${Date.now().toString(36)}`;
+/**
+ * Per-turn thread id. Uses `crypto.randomUUID()` when available (modern
+ * browsers, Node 19+) and falls back to a `Math.random()` blend for SSR
+ * shells / older runtimes that strip `crypto`. Exported so tests can
+ * stub it without monkey-patching the global.
+ */
+export const generateThreadId = (): string => {
+    const cryptoLike =
+        typeof globalThis !== "undefined"
+            ? (
+                  globalThis as {
+                      crypto?: { randomUUID?: () => string };
+                  }
+              ).crypto
+            : undefined;
+    if (cryptoLike && typeof cryptoLike.randomUUID === "function") {
+        return `t_${cryptoLike.randomUUID()}`;
+    }
+    return `t_${Math.random().toString(36).slice(2, 10)}_${Date.now().toString(36)}`;
+};
 
 interface ApplyStreamPartHandlers {
     setState: (updater: (prev: UseAgentState) => UseAgentState) => void;
@@ -269,6 +287,7 @@ const useAgent = (
                 queryClient,
                 projectId: options.projectId,
                 userId: options.userId,
+                autonomyLevel: autonomyRef.current,
                 ...(options.feToolContext ?? {})
             };
 
@@ -330,6 +349,14 @@ const useAgent = (
             lastInputRef.current = input;
             setPendingInterrupt(null);
             setPendingProposal(null);
+            // Per-turn reset (review follow-up #10): citations and nudges
+            // are scoped to a single user turn, so each new `start()` call
+            // discards the previous turn's surfaces. Multi-turn within one
+            // `start()` (auto-resume loop) continues to accumulate inside
+            // `consumeStream` so the agent can stream multiple citations
+            // for a single answer.
+            setCitations([]);
+            setNudges([]);
             const messages =
                 typeof input === "string"
                     ? [{ role: "user" as const, content: input }]

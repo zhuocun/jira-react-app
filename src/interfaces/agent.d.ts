@@ -31,10 +31,55 @@ export interface CitationRef {
     quote: string;
 }
 
+/**
+ * Field-scoped task mutation. `field` is the union of editable task
+ * properties (PRD v2 §5.4.2). `from` / `to` carry the prior and proposed
+ * value — typed `unknown` because the field varies per row, but kept in
+ * a single shape so renderers can do `from`-vs-`to` diffing uniformly.
+ */
+export interface TaskUpdate {
+    task_id: string;
+    field:
+        | "coordinatorId"
+        | "columnId"
+        | "epic"
+        | "type"
+        | "storyPoints"
+        | "taskName"
+        | "note";
+    from: unknown;
+    to: unknown;
+}
+
+export interface ColumnUpdate {
+    column_id: string;
+    field: "name" | "order";
+    from: unknown;
+    to: unknown;
+}
+
+/**
+ * Bulk operation against a homogeneous set of `targets`. Used for
+ * "reassign all unowned bugs to Alice" / "move overdue tasks to Doing"
+ * patterns — the agent picks the operation name (e.g. `assign`,
+ * `set_column`), the FE maps it to a real BE call.
+ */
+export interface BulkApply {
+    operation: string;
+    targets: string[];
+    payload: Record<string, unknown>;
+}
+
+export interface MutationDiff {
+    task_updates?: TaskUpdate[];
+    column_updates?: ColumnUpdate[];
+    bulk_apply?: BulkApply[];
+}
+
 export interface MutationProposal {
     proposal_id: string;
     description: string;
-    diff: Record<string, unknown>;
+    diff: MutationDiff;
     risk: "low" | "med" | "high";
     undoable: true;
 }

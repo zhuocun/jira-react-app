@@ -35,6 +35,20 @@ export class AgentAuthError extends Error {
     }
 }
 
+/**
+ * Distinguishes 403 from 401: the request was authenticated but the
+ * caller does not have permission for this agent / autonomy level / org.
+ * Splitting the error class lets the UI route 403 to a "request access"
+ * flow instead of nudging the user back to login (which is what 401
+ * triggers).
+ */
+export class AgentForbiddenError extends Error {
+    constructor(message = "Agent server forbade this request") {
+        super(message);
+        this.name = "AgentForbiddenError";
+    }
+}
+
 export class AgentRateLimitError extends Error {
     constructor(
         public retryAfterSeconds: number,
@@ -139,8 +153,11 @@ const mapErrorResponse = async (response: Response): Promise<Error> => {
               : undefined;
 
     const status = response.status;
-    if (status === 401 || status === 403) {
+    if (status === 401) {
         return new AgentAuthError(messageFromBody);
+    }
+    if (status === 403) {
+        return new AgentForbiddenError(messageFromBody);
     }
     if (status === 402) {
         return new AgentBudgetError(messageFromBody);
@@ -168,6 +185,7 @@ const wrapNetworkError = (err: unknown): Error => {
     if (
         err instanceof AgentTransportError ||
         err instanceof AgentAuthError ||
+        err instanceof AgentForbiddenError ||
         err instanceof AgentBudgetError ||
         err instanceof AgentRateLimitError ||
         err instanceof AgentNotFoundError ||
@@ -196,8 +214,13 @@ const parseSseLine = (chunk: string): StreamPart | null => {
         if (!line) continue;
         if (line.startsWith(":")) continue; // SSE comment
         if (line.startsWith("event:")) continue;
-        if (line.startsWith("data:")) {
-            dataLines.push(line.slice(5).trim());
+        // SSE spec (whatwg HTML §9.2.6): strip exactly one leading space
+        // after `data:`. Do NOT trim — trailing whitespace inside string
+        // values must be preserved (e.g. "ok " ≠ "ok").
+        if (line.startsWith("data: ")) {
+            dataLines.push(line.slice(6));
+        } else if (line.startsWith("data:")) {
+            dataLines.push(line.slice(5));
         }
     }
     if (dataLines.length === 0) return null;

@@ -12,7 +12,9 @@ import { useNavigate } from "react-router";
 
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
-import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
+import useCachedQueryData, {
+    useGatheredCachedList
+} from "../../utils/hooks/useCachedQueryData";
 import AiSparkleIcon from "../aiSparkleIcon";
 
 interface CommandPaletteProps {
@@ -166,12 +168,16 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
     const listboxId = useId();
     const screens = Grid.useBreakpoint();
 
-    const projects = useCachedQueryData<IProject[]>(["projects"]) ?? [];
+    // `useReactQuery` keys parametric calls as `[endpoint, filterRequest({...})]`,
+    // so the bare `["projects"]` etc. keys are usually empty in production
+    // (see review follow-up #2). Scan every parametric variant via
+    // `useGatheredCachedList` so the palette indexes whatever the screens
+    // have already loaded. Members are still fetched via a bare key (see
+    // `pages/board.tsx`, `useReactQuery<IMember[]>("users/members")`).
+    const projects = useGatheredCachedList<IProject>(["projects"]);
     const members = useCachedQueryData<IMember[]>(["users/members"]) ?? [];
-    // Phase A: best-effort look at the most-recently-loaded board/tasks via
-    // the global cache. If absent, the palette degrades to projects only.
-    const tasksCache = useCachedQueryData<ITask[]>(["tasks"]) ?? [];
-    const boardsCache = useCachedQueryData<IColumn[]>(["boards"]) ?? [];
+    const tasksCache = useGatheredCachedList<ITask>(["tasks"]);
+    const boardsCache = useGatheredCachedList<IColumn>(["boards"]);
 
     const entries = useMemo(
         () => indexEntries(projects, tasksCache, boardsCache, members),
