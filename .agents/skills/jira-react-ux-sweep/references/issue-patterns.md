@@ -39,6 +39,16 @@ inherits the stretched track. Fix at the grid container with
 `grid-template-columns: minmax(0, 1fr)` (and `min-width: 0` on the
 inner flex item that holds the scroll region).
 
+⚠ **`-webkit-line-clamp` doesn't truncate an unbreakable run, and
+`min-width` on a flex lane is only a floor.** Symptom: a 120-char
+single-token taskName (URL, commit hash) makes one kanban lane ~3×
+wider than its mates; a 200-char project name produces a 4-line H1.
+Cause: the clamp only engages once the run wraps, and `flex-basis:
+auto` resolves to the child's max-content so `min-width: 18rem`
+becomes a floor, not a width. Fix: `word-break: break-word` on the
+clamping element **and**, for flex lanes, pin `width` and
+`flex: 0 0 ${width}` so the lane stays at the intended size.
+
 ⚠ **Mobile filter rows reserve a tall empty slot above each input.**
 `flex: 1 1 14rem` works in row direction (basis = width) but
 reserves 14 rem of height in column direction. Fix:

@@ -74,6 +74,10 @@ IUser    = IMember & { jwt: string; likedProjects: string[] }
   not `?_id=p1`. Mocking the wrong key returns the array fallback and
   the board renders `" board"` with a leading space because
   `currentProject?.projectName` is undefined.
+- **Token only for authed routes.** `/login` and `/register` redirect
+  to `/projects` whenever `localStorage.Token` is set. Capture them in
+  a separate browser context that does not seed `Token`, otherwise
+  every "login" cell of the matrix shows the projects page.
 
 ## The matrix
 
@@ -190,3 +194,30 @@ await page.evaluate((varName) => {
     return null;
 }, "--ant-color-bg-layout");
 ```
+
+**Why a flex item is wider than expected** (parent-chain sizing):
+
+```js
+await page.evaluate(() => {
+    let el = document.querySelector(".ant-tag"); // start from the offender
+    const chain = [];
+    for (let i = 0; i < 10 && el; i++) {
+        const r = el.getBoundingClientRect();
+        const c = getComputedStyle(el);
+        chain.push({
+            tag: el.tagName,
+            cls: String(el.className).slice(0, 60),
+            width: Math.round(r.width),
+            display: c.display,
+            flex: c.flex,
+            minWidth: c.minWidth
+        });
+        el = el.parentElement;
+    }
+    return chain;
+});
+```
+
+The first row whose `width` jumps far above its siblings is the
+ancestor whose `flex-basis: auto` is resolving to a child's max-content
+— not the element you started from.
