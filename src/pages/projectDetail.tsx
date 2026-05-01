@@ -30,6 +30,7 @@ const TopBar = styled.div`
     flex-wrap: wrap;
     gap: ${space.xxs}px;
     justify-content: space-between;
+    min-width: 0;
     padding: ${space.xs}px ${space.sm}px 0;
     padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
     padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
@@ -50,18 +51,28 @@ const TopBar = styled.div`
 `;
 
 const BreadcrumbWrapper = styled.div`
+    flex: 1 1 auto;
+    min-width: 0;
+
     && .ant-breadcrumb {
         font-size: ${fontSize.sm}px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     && .ant-breadcrumb li:last-child {
         color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
         font-weight: ${fontWeight.semibold};
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 `;
 
 const TabsRow = styled(Tabs)`
     && {
+        flex: 0 0 auto;
         margin-bottom: -1px;
+        min-width: 0;
     }
     && .ant-tabs-tab {
         font-weight: ${fontWeight.medium};

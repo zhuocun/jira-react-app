@@ -143,6 +143,20 @@ const ColumnHeader = styled(Row)`
     align-items: center;
     margin-bottom: ${space.sm}px;
     padding: ${space.xxs}px ${space.xs}px;
+
+    /*
+     * Lift the column-level "more actions" trigger to a 32 × 32 hit target
+     * on touch viewports so a thumb can land it without zooming. The icon
+     * stays visually small but the surrounding padding grows, satisfying
+     * WCAG 2.5.5 (24 × 24 minimum, 44 × 44 recommended on coarse pointers).
+     */
+    @media (pointer: coarse) {
+        > button:last-child,
+        > div:last-child > button {
+            min-height: 32px;
+            min-width: 32px;
+        }
+    }
 `;
 
 const ColumnTitle = styled(Typography.Title)`

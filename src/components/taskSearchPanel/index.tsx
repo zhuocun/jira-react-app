@@ -72,7 +72,9 @@ const FlexSelect = styled.div`
  * tablet+ it shrinks to its natural width and aligns with the filter fields.
  */
 const ResetButtonSlot = styled.div`
+    align-items: center;
     display: flex;
+    gap: ${space.xs}px;
 
     > .ant-btn {
         width: 100%;
@@ -86,6 +88,27 @@ const ResetButtonSlot = styled.div`
             width: auto;
         }
     }
+`;
+
+/**
+ * Tiny pill that surfaces how many filters are currently active. Sits next
+ * to the Reset button so users can confirm at a glance whether the list is
+ * filtered, and re-uses the brand-tinted background so it visually pairs
+ * with primary actions without competing.
+ */
+const ActiveFilterCount = styled.span`
+    align-items: center;
+    background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.1));
+    border-radius: 999px;
+    color: var(--ant-color-primary, #5e6ad2);
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 600;
+    height: 22px;
+    justify-content: center;
+    min-width: 22px;
+    padding: 0 ${space.xs}px;
 `;
 
 const TaskSearchPanel: React.FC<Props> = ({
@@ -131,6 +154,13 @@ const TaskSearchPanel: React.FC<Props> = ({
             semanticIds: undefined
         });
     };
+
+    const activeFilterCount = [
+        param.taskName,
+        param.coordinatorId,
+        param.type,
+        param.semanticIds
+    ].filter((value) => Boolean(value)).length;
 
     return (
         <FilterShell>
@@ -206,7 +236,20 @@ const TaskSearchPanel: React.FC<Props> = ({
                     </Select>
                 </FlexSelect>
                 <ResetButtonSlot>
-                    <Button onClick={resetParams} type="text">
+                    {activeFilterCount > 0 ? (
+                        <ActiveFilterCount
+                            aria-label={`${activeFilterCount} active filter${
+                                activeFilterCount === 1 ? "" : "s"
+                            }`}
+                        >
+                            {activeFilterCount}
+                        </ActiveFilterCount>
+                    ) : null}
+                    <Button
+                        disabled={activeFilterCount === 0}
+                        onClick={resetParams}
+                        type="text"
+                    >
                         {microcopy.actions.resetFilters}
                     </Button>
                 </ResetButtonSlot>

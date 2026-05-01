@@ -31,21 +31,31 @@ const Page = styled.div`
         ),
         var(--ant-color-bg-layout, #f7f8fb);
 
+    /*
+     * Show the marketing rail on tablet+ instead of waiting for desktop —
+     * a 768 × 1024 iPad in portrait has plenty of room to read the hero
+     * copy alongside the form. Below "md" the rail collapses so the form
+     * gets the full viewport (no wasted space, no awkward 50/50 split).
+     */
+    @media (min-width: ${breakpoints.md}px) {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
     @media (min-width: ${breakpoints.lg}px) {
         grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
     }
 `;
 
 /**
- * Marketing rail. Sits on the left at desktop widths and disappears below
- * `lg` so the auth card has the full viewport. The visual treatment is a
+ * Marketing rail. Sits on the left at tablet widths and disappears below
+ * `md` so the auth card has the full viewport. The visual treatment is a
  * soft indigo gradient with a subtle dot pattern overlay — no heavy
  * decorative SVGs, no raster images, just CSS so it scales perfectly.
  */
 const HeroRail = styled.aside`
     display: none;
 
-    @media (min-width: ${breakpoints.lg}px) {
+    @media (min-width: ${breakpoints.md}px) {
         align-items: center;
         background:
             radial-gradient(
@@ -62,8 +72,12 @@ const HeroRail = styled.aside`
         color: #fff;
         display: flex;
         justify-content: center;
-        padding: ${space.xxxl}px ${space.xxl}px;
+        padding: ${space.xxl}px ${space.xl}px;
         position: relative;
+    }
+
+    @media (min-width: ${breakpoints.lg}px) {
+        padding: ${space.xxxl}px ${space.xxl}px;
     }
 
     /* Subtle grid texture so the gradient does not feel empty. */
@@ -115,11 +129,17 @@ const HeroBadgeDot = styled.span`
 
 const HeroTitle = styled.h2`
     color: #fff;
-    font-size: 40px;
+    /* 32 px on tablet, 40 px on desktop. The smaller value keeps the
+     * headline within the rail's available width on a portrait iPad. */
+    font-size: 32px;
     font-weight: ${fontWeight.semibold};
     letter-spacing: ${letterSpacing.tight};
     line-height: 1.1;
     margin: ${space.lg}px 0 ${space.md}px;
+
+    @media (min-width: ${breakpoints.lg}px) {
+        font-size: 40px;
+    }
 `;
 
 const HeroSubtitle = styled.p`

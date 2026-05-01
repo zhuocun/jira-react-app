@@ -62,6 +62,30 @@ const FlexSelect = styled.div`
     }
 `;
 
+/**
+ * Tiny pill that surfaces how many filters are currently active. Pairs with
+ * the search input on tablet+ and stays inline at the end of the filter row
+ * so users can confirm at a glance whether the list is being filtered.
+ */
+const ActiveFilterCount = styled.span`
+    align-items: center;
+    background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.1));
+    border-radius: 999px;
+    color: var(--ant-color-primary, #5e6ad2);
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 600;
+    height: 22px;
+    justify-content: center;
+    min-width: 22px;
+    padding: 0 ${space.xs}px;
+
+    @media (min-width: ${breakpoints.md}px) {
+        margin-inline-start: auto;
+    }
+`;
+
 const ProjectSearchPanel: React.FC<Props> = ({
     param,
     setParam,
@@ -70,6 +94,12 @@ const ProjectSearchPanel: React.FC<Props> = ({
     aiSearchSlot
 }) => {
     const defaultUser = members.find((u) => u._id === param.managerId);
+
+    const activeFilterCount = [
+        param.projectName,
+        param.managerId,
+        param.semanticIds
+    ].filter((value) => Boolean(value)).length;
 
     return (
         <FilterShell>
@@ -125,6 +155,15 @@ const ProjectSearchPanel: React.FC<Props> = ({
                         }
                     />
                 </FlexSelect>
+                {activeFilterCount > 0 ? (
+                    <ActiveFilterCount
+                        aria-label={`${activeFilterCount} active filter${
+                            activeFilterCount === 1 ? "" : "s"
+                        }`}
+                    >
+                        {activeFilterCount}
+                    </ActiveFilterCount>
+                ) : null}
             </FilterRow>
         </FilterShell>
     );

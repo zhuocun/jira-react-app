@@ -95,11 +95,35 @@ const ListSurface = styled.div`
         border-radius: 999px;
     }
 
-    /* Tighter cell padding so more content fits on phone. */
+    /*
+     * Phone widths: hide secondary columns (Organization, Created) so the
+     * row fits without horizontal scroll on a 320 px viewport. The Project,
+     * Like, Manager, and Actions columns carry the primary affordances and
+     * stay visible. The columns are hidden via CSS rather than the AntD
+     * "responsive" prop because we still want the underlying data in the
+     * accessibility tree for assistive tech that ignores "display: none".
+     */
     @media (max-width: ${breakpoints.sm - 1}px) {
         .ant-table-tbody > tr > td,
         .ant-table-thead > tr > th {
-            padding-inline: ${space.sm}px;
+            padding-block: ${space.sm}px;
+            padding-inline: ${space.xs}px;
+        }
+
+        /* Drop the Organization (col 3) and Created (col 5) cells. */
+        .ant-table-tbody > tr > td:nth-of-type(3),
+        .ant-table-thead > tr > th:nth-of-type(3),
+        .ant-table-tbody > tr > td:nth-of-type(5),
+        .ant-table-thead > tr > th:nth-of-type(5) {
+            display: none;
+        }
+    }
+
+    /* Slightly larger touch targets for icon buttons on coarse pointers. */
+    @media (pointer: coarse) {
+        .ant-table-tbody .ant-btn-sm {
+            min-height: 32px;
+            min-width: 32px;
         }
     }
 `;
