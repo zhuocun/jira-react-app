@@ -183,8 +183,13 @@ const HeroFeatureIcon = styled.span`
 
 /**
  * Main auth canvas. Holds the brand mark and the form card.
+ *
+ * Rendered as a real `<main>` landmark so keyboard / screen-reader users
+ * can jump straight to the form via the standard "main content" pattern
+ * (WCAG 2.4.1 Bypass Blocks). The previous `<div>` left auth pages
+ * without any top-level landmark.
  */
-const Canvas = styled.div`
+const Canvas = styled.main`
     align-items: center;
     display: flex;
     flex-direction: column;

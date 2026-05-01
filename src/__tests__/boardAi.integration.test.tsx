@@ -136,6 +136,10 @@ const testUser = (): IUser => ({
 });
 
 describe("Board AI integration (App + local engine)", () => {
+    // Each test simulates a full login → navigate → interact flow with
+    // `userEvent.type`, which is intentionally slow. Bump the per-test
+    // timeout so the suite stays green on slower CI workers.
+    jest.setTimeout(20000);
     const fetchMock = global.fetch as jest.Mock;
 
     const renderAppAt = (path: string) => {
@@ -257,9 +261,7 @@ describe("Board AI integration (App + local engine)", () => {
             name: /Ask Board Copilot/i
         });
         await user.type(nlInput, "first task");
-        await user.click(
-            screen.getByRole("button", { name: /run natural language search/i })
-        );
+        await user.click(screen.getByRole("button", { name: /^Search$/i }));
 
         await waitFor(() => {
             expect(screen.getByText("First task")).toBeInTheDocument();

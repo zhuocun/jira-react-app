@@ -61,14 +61,27 @@ const TaskModal: React.FC<{
     };
 
     const onOk = async () => {
-        if (
-            _.isEqual({ ...editingTask, ...form.getFieldsValue() }, editingTask)
-        ) {
+        try {
+            await form.validateFields();
+        } catch {
+            // AntD has surfaced inline errors on the failing fields; bail
+            // so we never persist a half-validated payload.
+            return;
+        }
+        const fieldValues = form.getFieldsValue();
+        const trimmedName =
+            typeof fieldValues.taskName === "string"
+                ? fieldValues.taskName.trim()
+                : fieldValues.taskName;
+        const merged = {
+            ...editingTask,
+            ...fieldValues,
+            taskName: trimmedName
+        };
+        if (_.isEqual(merged, editingTask)) {
             closeModal();
         } else {
-            await update({ ...editingTask, ...form.getFieldsValue() }).then(
-                closeModal
-            );
+            await update(merged).then(closeModal);
         }
     };
 
@@ -109,8 +122,8 @@ const TaskModal: React.FC<{
         : true;
 
     const titleText = editingTask?.taskName
-        ? `Edit Task · ${editingTask.taskName}`
-        : "Edit Task";
+        ? `${microcopy.actions.editTask} · ${editingTask.taskName}`
+        : microcopy.actions.editTask;
     const titleNode = (
         <div
             style={{
@@ -245,7 +258,8 @@ const TaskModal: React.FC<{
                     rules={[
                         {
                             required: true,
-                            message: "Please enter the task name"
+                            whitespace: true,
+                            message: microcopy.validation.taskNameRequired
                         }
                     ]}
                 >
@@ -258,7 +272,7 @@ const TaskModal: React.FC<{
                     rules={[
                         {
                             required: true,
-                            message: "Please select a coordinator"
+                            message: microcopy.validation.coordinatorRequired
                         }
                     ]}
                 >
@@ -277,7 +291,7 @@ const TaskModal: React.FC<{
                     rules={[
                         {
                             required: true,
-                            message: "Please select the task type"
+                            message: microcopy.validation.taskTypeRequired
                         }
                     ]}
                 >

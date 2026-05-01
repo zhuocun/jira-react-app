@@ -171,7 +171,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />
                     <span style={{ fontWeight: 600 }}>
-                        Draft a task with Board Copilot
+                        {microcopy.actions.draftWithAi}
                     </span>
                     <Tag variant="filled" color="purple">
                         {microcopy.a11y.aiBadge}
@@ -322,7 +322,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             loading={creating}
                             type="primary"
                         >
-                            {`${microcopy.actions.create} task`}
+                            {microcopy.actions.createTask}
                         </Button>
                     </div>
                 </Form>

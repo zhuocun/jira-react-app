@@ -5,9 +5,11 @@ import { Navigate, useNavigate } from "react-router";
 import ErrorBox from "../components/errorBox";
 import LoginForm from "../components/loginForm";
 import { NoPaddingButton } from "../components/projectList";
+import { microcopy } from "../constants/microcopy";
 import { AuthSubtitle, AuthTitle } from "../layouts/authLayout";
 import { fontSize, space } from "../theme/tokens";
 import useAuth from "../utils/hooks/useAuth";
+import useTitle from "../utils/hooks/useTitle";
 
 const SwitchRow = styled.p`
     color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.6));
@@ -17,6 +19,7 @@ const SwitchRow = styled.p`
 `;
 
 const LoginPage = () => {
+    useTitle(microcopy.actions.logIn);
     const navigate = useNavigate();
     const { user, token } = useAuth();
     const [error, setError] = useState<Error | IError | null>(null);
@@ -48,7 +51,7 @@ const LoginPage = () => {
             <SwitchRow>
                 Don&apos;t have an account?{" "}
                 <NoPaddingButton onClick={handleSwitch} type="link">
-                    Register for an account
+                    {microcopy.actions.registerCta}
                 </NoPaddingButton>
             </SwitchRow>
         </>

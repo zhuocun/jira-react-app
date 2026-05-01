@@ -163,18 +163,21 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     value={draft}
                 />
                 <Button
-                    aria-label="Run natural language search"
+                    aria-label={microcopy.actions.search}
                     disabled={busy || !draft.trim()}
-                    icon={<AiSparkleIcon />}
+                    icon={<AiSparkleIcon aria-hidden />}
                     loading={busy}
                     onClick={() => void onSearch()}
                     type="default"
                 >
-                    Search
+                    {microcopy.actions.search}
                 </Button>
                 {semanticActive ? (
-                    <Button aria-label="Clear AI search" onClick={onClear}>
-                        Clear AI search
+                    <Button
+                        aria-label={microcopy.actions.clearAiSearch}
+                        onClick={onClear}
+                    >
+                        {microcopy.actions.clearAiSearch}
                     </Button>
                 ) : null}
             </div>

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { microcopy } from "../../constants/microcopy";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 
 import AiSearchInput from ".";
@@ -129,7 +130,7 @@ describe("AiSearchInput", () => {
                 target: { value: "login token flaky" }
             }
         );
-        fireEvent.click(screen.getByLabelText("Run natural language search"));
+        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
 
         await waitFor(() => {
             expect(
@@ -156,7 +157,7 @@ describe("AiSearchInput", () => {
                 target: { value: "login token flaky" }
             }
         );
-        fireEvent.click(screen.getByLabelText("Run natural language search"));
+        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
 
         await waitFor(() => {
             expect(setSemanticIds).toHaveBeenCalled();
@@ -212,7 +213,7 @@ describe("AiSearchInput", () => {
                 target: { value: "quantum entanglement" }
             }
         );
-        fireEvent.click(screen.getByLabelText("Run natural language search"));
+        fireEvent.click(screen.getByLabelText(microcopy.actions.search));
 
         await waitFor(() => {
             expect(screen.getByText(/No semantic match/i)).toBeInTheDocument();

@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
+import { microcopy } from "../../constants/microcopy";
+
 import TaskCreator from ".";
 
 const member = (overrides: Partial<IMember> = {}): IMember => ({
@@ -160,14 +162,14 @@ describe("TaskCreator", () => {
     it("hides Draft with AI when boardAiOn is false", () => {
         renderCreator({ boardAiOn: false });
         expect(
-            screen.queryByLabelText("Draft a task with Board Copilot")
+            screen.queryByLabelText(microcopy.actions.draftWithAi)
         ).not.toBeInTheDocument();
     });
 
     it("opens the Board Copilot draft modal from the Draft with AI button", async () => {
         renderCreator();
         fireEvent.click(
-            screen.getByLabelText("Draft a task with Board Copilot")
+            screen.getByLabelText(microcopy.actions.draftWithAi)
         );
         await waitFor(() =>
             expect(screen.getByLabelText("Task prompt")).toBeInTheDocument()
@@ -177,7 +179,7 @@ describe("TaskCreator", () => {
     it("closes the draft modal and returns to link mode", async () => {
         renderCreator();
         fireEvent.click(
-            screen.getByLabelText("Draft a task with Board Copilot")
+            screen.getByLabelText(microcopy.actions.draftWithAi)
         );
         await waitFor(() =>
             expect(screen.getByLabelText("Task prompt")).toBeInTheDocument()
@@ -189,7 +191,7 @@ describe("TaskCreator", () => {
             ).not.toBeInTheDocument();
         });
         expect(
-            screen.getByLabelText("Draft a task with Board Copilot")
+            screen.getByLabelText(microcopy.actions.draftWithAi)
         ).toBeInTheDocument();
     });
 });

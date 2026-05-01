@@ -375,15 +375,19 @@ describe("UI quality :: auth pages landmarks", () => {
             user: undefined
         });
 
-        // Render the page exactly as the router would — the top-level
-        // element from the page must surface a main landmark itself,
-        // OR the layout must, but in either case the page tree must
-        // render one. We do not wrap manually; if no main appears the
-        // assertion correctly fails.
+        // Render the page exactly as the router would — wrap the page
+        // in its `AuthLayout` outlet so we test the integrated route
+        // tree, since landmarks belong to the layout (and are shared
+        // across login + register), not to each page.
+        const AuthLayout = require("../layouts/authLayout").default;
         const { container } = render(
-            <BrowserRouter>
-                <LoginPage />
-            </BrowserRouter>
+            <MemoryRouter initialEntries={["/login"]}>
+                <Routes>
+                    <Route element={<AuthLayout />} path="/">
+                        <Route element={<LoginPage />} path="login" />
+                    </Route>
+                </Routes>
+            </MemoryRouter>
         );
 
         const main = container.querySelector("main, [role='main']");

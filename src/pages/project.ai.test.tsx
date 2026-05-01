@@ -139,9 +139,7 @@ describe("ProjectPage with Board Copilot enabled", () => {
                 target: { value: "billing finance" }
             }
         );
-        fireEvent.click(
-            screen.getByRole("button", { name: /run natural language search/i })
-        );
+        fireEvent.click(screen.getByRole("button", { name: /^Search$/i }));
 
         await waitFor(() => {
             expect(screen.getByText("Billing Portal")).toBeInTheDocument();

@@ -319,8 +319,8 @@ const Header: React.FC = () => {
                 <IconButton
                     aria-label={
                         scheme === "dark"
-                            ? "Switch to light mode"
-                            : "Switch to dark mode"
+                            ? microcopy.a11y.useLightMode
+                            : microcopy.a11y.useDarkMode
                     }
                     onClick={() =>
                         setPreference(scheme === "dark" ? "light" : "dark")
@@ -341,7 +341,12 @@ const Header: React.FC = () => {
                             size="small"
                         />
                         <HiddenOnTiny>
-                            <Greeting>Hi, {user?.username}</Greeting>
+                            <Greeting>
+                                {microcopy.greeting.replace(
+                                    "{name}",
+                                    user?.username ?? ""
+                                )}
+                            </Greeting>
                         </HiddenOnTiny>
                         <HiddenOnNarrow>
                             <DownOutlined
