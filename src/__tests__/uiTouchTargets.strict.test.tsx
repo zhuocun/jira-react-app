@@ -87,9 +87,8 @@ const installAntdBrowserMocks = () => {
         removeEventListener: jest.fn(),
         removeListener: jest.fn()
     });
-    (
-        window as unknown as { matchMedia: (q: string) => unknown }
-    ).matchMedia = fn;
+    (window as unknown as { matchMedia: (q: string) => unknown }).matchMedia =
+        fn;
 
     class ResizeObserverMock {
         observe = jest.fn();
@@ -215,14 +214,14 @@ const collectSizeDecls = (element: HTMLElement): SizeDecl[] => {
             }
             if (!(rule instanceof CSSStyleRule)) return;
             if (!matchSelector(rule.selectorText)) return;
-            (
-                ["min-height", "min-width", "height", "width"] as const
-            ).forEach((prop) => {
-                const value = rule.style.getPropertyValue(prop);
-                if (value) {
-                    out.push({ media, prop, value: value.trim() });
+            (["min-height", "min-width", "height", "width"] as const).forEach(
+                (prop) => {
+                    const value = rule.style.getPropertyValue(prop);
+                    if (value) {
+                        out.push({ media, prop, value: value.trim() });
+                    }
                 }
-            });
+            );
         });
     };
 

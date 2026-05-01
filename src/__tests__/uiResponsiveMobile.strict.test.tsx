@@ -136,9 +136,8 @@ const setViewport = (width: number, pointer: "fine" | "coarse" = "coarse") => {
             removeListener: jest.fn()
         };
     };
-    (
-        window as unknown as { matchMedia: (q: string) => unknown }
-    ).matchMedia = fn;
+    (window as unknown as { matchMedia: (q: string) => unknown }).matchMedia =
+        fn;
 };
 
 const installResizeObserverMock = () => {
@@ -448,9 +447,11 @@ describe("UI quality :: TaskModal on mobile", () => {
         if (footer) {
             const stacked = Array.from(
                 footer.querySelectorAll<HTMLElement>("div")
-            ).some((node) => /flex-direction:\s*column/.test(
-                node.getAttribute("style") ?? ""
-            ));
+            ).some((node) =>
+                /flex-direction:\s*column/.test(
+                    node.getAttribute("style") ?? ""
+                )
+            );
             expect(stacked).toBe(true);
         }
     });
@@ -669,13 +670,14 @@ describe("UI quality :: LoginForm on mobile", () => {
             </BrowserRouter>
         );
 
-        const form = screen.getByRole("button", {
-            name: /^log in$/i
-        }).closest("form");
+        const form = screen
+            .getByRole("button", {
+                name: /^log in$/i
+            })
+            .closest("form");
         expect(form).not.toBeNull();
         if (form) {
-            const buttons =
-                form.querySelectorAll<HTMLButtonElement>("button");
+            const buttons = form.querySelectorAll<HTMLButtonElement>("button");
             expect(buttons.length).toBe(1);
         }
     });

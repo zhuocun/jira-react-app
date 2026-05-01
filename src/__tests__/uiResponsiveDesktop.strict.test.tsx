@@ -134,9 +134,8 @@ const setViewport = (width: number, pointer: "fine" | "coarse" = "fine") => {
     };
     // setupTests installs matchMedia non-configurably; re-assign via the
     // existing slot rather than re-defining it.
-    (
-        window as unknown as { matchMedia: (q: string) => unknown }
-    ).matchMedia = fn;
+    (window as unknown as { matchMedia: (q: string) => unknown }).matchMedia =
+        fn;
 };
 
 const installResizeObserverMock = () => {
@@ -323,10 +322,9 @@ describe("UI quality :: Header on desktop", () => {
         // The DownOutlined SVG carries the AntD `anticon-down` class.
         // On desktop it must be present in the DOM. (The chevron has
         // `aria-hidden` — that's fine; we only assert it ships.)
-        const chevron =
-            screen.getByRole("button", { name: /account menu/i }).querySelector(
-                ".anticon-down"
-            );
+        const chevron = screen
+            .getByRole("button", { name: /account menu/i })
+            .querySelector(".anticon-down");
         expect(chevron).not.toBeNull();
     });
 });
@@ -363,9 +361,9 @@ describe("UI quality :: AuthLayout marketing rail at desktop", () => {
         // skips aria-hidden subtrees by default).
         const headings = Array.from(container.querySelectorAll("h2"));
         const titles = headings.map((h) => (h.textContent ?? "").trim());
-        expect(
-            titles.some((t) => /ship work with calm focus/i.test(t))
-        ).toBe(true);
+        expect(titles.some((t) => /ship work with calm focus/i.test(t))).toBe(
+            true
+        );
     });
 
     it("exposes the marketing rail as `aria-hidden` so it does not double-announce on screen readers", () => {
@@ -470,9 +468,11 @@ describe("UI quality :: TaskModal at desktop", () => {
             // descendant divs for the inline `flex-direction: column` style.
             const stacked = Array.from(
                 footer.querySelectorAll<HTMLElement>("div")
-            ).some((node) => /flex-direction:\s*column/.test(
-                node.getAttribute("style") ?? ""
-            ));
+            ).some((node) =>
+                /flex-direction:\s*column/.test(
+                    node.getAttribute("style") ?? ""
+                )
+            );
             expect(stacked).toBe(false);
         }
     });
