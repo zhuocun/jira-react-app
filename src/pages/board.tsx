@@ -250,6 +250,14 @@ const BoardTitle = styled(Typography.Title)`
          * 30+ char single token). The previous "anywhere" value happily
          * split "Roadmap" into "Roadma|p" on iPhone SE widths. */
         overflow-wrap: break-word;
+        /* Cap a pathologically long single-token project name (e.g. a
+         * 200-char paste) at two lines so it doesn't grow the heading to
+         * 4+ lines and push the entire board down. The clamp only kicks
+         * in once break-word has wrapped past two lines. */
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
     }
 
     @media (min-width: ${breakpoints.md}px) {
