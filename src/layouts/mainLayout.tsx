@@ -5,10 +5,24 @@ import Header from "../components/header";
 import ProjectModal from "../components/projectModal";
 import { fontSize, fontWeight, radius, space } from "../theme/tokens";
 
+/*
+ * Reads page-level theme tokens defined in App.css. AntD's own `--ant-*`
+ * vars are scoped to its component class so `body`/`html` never see them
+ * — the page chrome would stay in its light-mode fallback when the user
+ * toggled dark mode.
+ *
+ * `grid-template-columns: minmax(0, 1fr)` is required: a grid track
+ * defaults to `auto` minimums and will grow to fit its widest descendant.
+ * The board's kanban (which scrolls horizontally inside its own
+ * container) was therefore stretching the grid track past the viewport,
+ * which clipped the header's right edge under `body { overflow-x: hidden }`
+ * and pushed action buttons (Brief / Ask / Add column) off-screen.
+ */
 const Container = styled.div`
-    background: var(--ant-color-bg-layout, #f7f8fb);
-    color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
+    background: var(--pulse-bg-page);
+    color: var(--pulse-text-base);
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto 1fr;
     min-height: 100vh;
     min-height: 100dvh;
@@ -18,6 +32,7 @@ const Main = styled.main`
     display: flex;
     flex-direction: column;
     min-height: 0;
+    min-width: 0;
 `;
 
 /**

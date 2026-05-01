@@ -31,7 +31,7 @@ const Page = styled.div`
             ${accent.bgMedium},
             transparent 60%
         ),
-        var(--ant-color-bg-layout, #f7f8fb);
+        var(--pulse-bg-page);
 
     /*
      * Show the marketing rail on tablet+ instead of waiting for desktop —

@@ -50,21 +50,34 @@ const FilterRow = styled.div`
     }
 `;
 
+/*
+ * `flex: 1 1 14rem` only makes sense in row direction where the basis
+ * sets the preferred WIDTH. In the mobile column layout the basis would
+ * be applied vertically and reserve a 14 rem-tall empty slot above each
+ * sibling. We start with `auto` and switch to the proportional row
+ * basis at the `md` breakpoint where the row reflows.
+ */
 const FlexInput = styled.div`
-    flex: 1 1 14rem;
+    flex: 0 0 auto;
     min-width: 0;
+    width: 100%;
 
     @media (min-width: ${breakpoints.md}px) {
+        flex: 1 1 14rem;
         max-width: 22rem;
+        width: auto;
     }
 `;
 
 const FlexSelect = styled.div`
-    flex: 1 1 12rem;
+    flex: 0 0 auto;
     min-width: 0;
+    width: 100%;
 
     @media (min-width: ${breakpoints.md}px) {
+        flex: 1 1 12rem;
         max-width: 14rem;
+        width: auto;
     }
 `;
 
