@@ -1,7 +1,6 @@
 import { MoreOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import {
-    Avatar,
     Badge,
     Dropdown,
     MenuProps,
@@ -34,6 +33,7 @@ import { NoPaddingButton } from "../projectList";
 import Row from "../row";
 import TaskCreator from "../taskCreator";
 import { TaskSearchParam } from "../taskSearchPanel";
+import UserAvatar from "../userAvatar";
 
 export const ColumnContainer = styled.div`
     background: var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
@@ -93,6 +93,12 @@ const TaskCardOuter = styled.button`
         border-color: var(--ant-color-primary-border, rgba(94, 106, 210, 0.4));
         box-shadow: ${shadow.md};
         transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+        border-color: var(--ant-color-primary, #5e6ad2);
+        outline: none;
+        box-shadow: ${shadow.focus}, ${shadow.md};
     }
 
     &:active:not(:disabled) {
@@ -199,14 +205,6 @@ const dotForColumn = (id: string): string => {
     return STATUS_PALETTE[Math.abs(hash) % STATUS_PALETTE.length];
 };
 
-const initialsOf = (username: string | undefined): string => {
-    if (!username) return "?";
-    const parts = username.trim().split(/\s+/);
-    const head = parts[0]?.[0] ?? "";
-    const tail = parts.length > 1 ? parts[parts.length - 1][0] : "";
-    return (head + tail).toUpperCase() || username[0].toUpperCase();
-};
-
 const DeleteDropDown: React.FC<{ columnId: string; columnName: string }> = ({
     columnId,
     columnName
@@ -299,25 +297,27 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                 ) : null}
                 <CardTitle>{task.taskName}</CardTitle>
                 <CardFooter>
-                    <Tooltip title={isBug ? "Bug" : "Task"}>
-                        <span
-                            style={{
-                                alignItems: "center",
-                                color: isBug ? "#DB2777" : "#5E6AD2",
-                                display: "inline-flex",
-                                fontWeight: 500,
-                                gap: space.xxs
-                            }}
-                        >
-                            <img
-                                alt=""
-                                aria-hidden
-                                src={isBug ? bugIcon : taskIcon}
-                                style={{ height: 14, width: 14 }}
-                            />
-                            <span>{isBug ? "Bug" : "Task"}</span>
-                        </span>
-                    </Tooltip>
+                    {/* The label "Bug"/"Task" reads as the visible text and
+                     * the icon is decorative, so no Tooltip is needed —
+                     * the previous Tooltip duplicated the label and
+                     * announced it twice to screen readers. */}
+                    <span
+                        style={{
+                            alignItems: "center",
+                            color: isBug ? "#DB2777" : "#5E6AD2",
+                            display: "inline-flex",
+                            fontWeight: fontWeight.medium,
+                            gap: space.xxs
+                        }}
+                    >
+                        <img
+                            alt=""
+                            aria-hidden
+                            src={isBug ? bugIcon : taskIcon}
+                            style={{ height: 14, width: 14 }}
+                        />
+                        <span>{isBug ? "Bug" : "Task"}</span>
+                    </span>
                     <span
                         style={{
                             alignItems: "center",
@@ -330,7 +330,7 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                                 variant="filled"
                                 style={{
                                     margin: 0,
-                                    fontWeight: 600,
+                                    fontWeight: fontWeight.semibold,
                                     fontVariantNumeric: "tabular-nums"
                                 }}
                             >
@@ -341,18 +341,11 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                             <Tooltip
                                 title={`Assigned to ${coordinator.username}`}
                             >
-                                <Avatar
-                                    size="small"
-                                    style={{
-                                        background:
-                                            "linear-gradient(135deg, #7C5CFF 0%, #5E6AD2 100%)",
-                                        color: "#fff",
-                                        fontSize: 11,
-                                        fontWeight: 600
-                                    }}
-                                >
-                                    {initialsOf(coordinator.username)}
-                                </Avatar>
+                                <UserAvatar
+                                    aria-label={`Assigned to ${coordinator.username}`}
+                                    id={coordinator._id}
+                                    name={coordinator.username}
+                                />
                             </Tooltip>
                         ) : null}
                     </span>

@@ -57,10 +57,15 @@ describe("ErrorBoundary", () => {
             </ErrorBoundary>
         );
 
-        expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+        expect(
+            screen.getByText(/this page couldn't render/i)
+        ).toBeInTheDocument();
         expect(screen.getByText(/network down/i)).toBeInTheDocument();
         expect(
             screen.getByRole("button", { name: /retry/i })
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /reload page/i })
         ).toBeInTheDocument();
     });
 

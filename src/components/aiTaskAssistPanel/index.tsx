@@ -12,7 +12,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
-import { fontSize, space } from "../../theme/tokens";
+import { accent, fontSize, fontWeight, space } from "../../theme/tokens";
 import useAi from "../../utils/hooks/useAi";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useDebounce from "../../utils/hooks/useDebounce";
@@ -158,15 +158,16 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
         <Card
             size="small"
             style={{
-                background:
-                    "linear-gradient(180deg, rgba(124, 92, 255, 0.04) 0%, transparent 100%)",
-                borderColor: "rgba(124, 92, 255, 0.18)",
+                background: `linear-gradient(180deg, ${accent.bgSubtle} 0%, transparent 100%)`,
+                borderColor: accent.bgMedium,
                 marginTop: space.md
             }}
             title={
                 <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />
-                    <span style={{ fontWeight: 600 }}>Board Copilot</span>
+                    <span style={{ fontWeight: fontWeight.semibold }}>
+                        Board Copilot
+                    </span>
                     <Tag variant="filled" color="purple">
                         {microcopy.a11y.aiBadge}
                     </Tag>

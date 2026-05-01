@@ -44,10 +44,15 @@ const CreateLink = styled.button`
         color 120ms ease-out,
         border-color 120ms ease-out;
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
         background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.06));
         color: var(--ant-color-primary, #5e6ad2);
     }
+
+    /* Keyboard focus ring is handled globally in App.css; this rule
+     * just adds the brand-tinted hover background so the focused state
+     * matches the hover state visually. */
 
     &:disabled {
         cursor: default;

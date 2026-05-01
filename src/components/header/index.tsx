@@ -6,7 +6,7 @@ import {
     SunOutlined
 } from "@ant-design/icons";
 import styled from "@emotion/styled";
-import { Avatar, Dropdown, MenuProps, Space, Switch, Typography } from "antd";
+import { Dropdown, MenuProps, Space, Switch, Typography } from "antd";
 import { useLocation } from "react-router";
 
 import Logo from "../../assets/logo-software.svg?react";
@@ -25,6 +25,7 @@ import useColorScheme from "../../utils/hooks/useColorScheme";
 import resetRoute from "../../utils/resetRoute";
 import MemberPopover from "../memberPopover";
 import { NoPaddingButton } from "../projectList";
+import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
     align-items: center;
@@ -226,14 +227,6 @@ const SettingsRow = styled.div`
     min-width: 240px;
 `;
 
-const initialsOf = (username: string | undefined): string => {
-    if (!username) return "?";
-    const parts = username.trim().split(/\s+/);
-    const head = parts[0]?.[0] ?? "";
-    const tail = parts.length > 1 ? parts[parts.length - 1][0] : "";
-    return (head + tail).toUpperCase() || username[0].toUpperCase();
-};
-
 const Header: React.FC = () => {
     const { user, logout } = useAuth();
     const {
@@ -342,17 +335,11 @@ const Header: React.FC = () => {
                         onClick={(event) => event.preventDefault()}
                         type="button"
                     >
-                        <Avatar
+                        <UserAvatar
+                            id={user?._id ?? user?.username ?? "anon"}
+                            name={user?.username}
                             size="small"
-                            style={{
-                                background:
-                                    "linear-gradient(135deg, #7C5CFF 0%, #5E6AD2 100%)",
-                                color: "#fff",
-                                fontWeight: 600
-                            }}
-                        >
-                            {initialsOf(user?.username)}
-                        </Avatar>
+                        />
                         <HiddenOnTiny>
                             <Greeting>Hi, {user?.username}</Greeting>
                         </HiddenOnTiny>

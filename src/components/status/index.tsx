@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
-import { Spin, Typography } from "antd";
+import { Button, Spin, Typography } from "antd";
 
+import { microcopy } from "../../constants/microcopy";
 import { fontSize, fontWeight, space } from "../../theme/tokens";
 
 const FullPage = styled.div`
@@ -19,16 +20,19 @@ const FullPage = styled.div`
 
 const PageSpin: React.FC = () => {
     return (
-        <FullPage>
-            <Spin size="large" />
+        <FullPage role="status" aria-live="polite">
+            <Spin size="large" aria-label="Loading page" />
             <Typography.Text type="secondary">Loading…</Typography.Text>
         </FullPage>
     );
 };
 
-const PageError: React.FC<{ error: Error | null }> = ({ error }) => {
+const PageError: React.FC<{ error: Error | null; onRetry?: () => void }> = ({
+    error,
+    onRetry
+}) => {
     return (
-        <FullPage>
+        <FullPage role="alert">
             <Typography.Text
                 style={{
                     fontSize: fontSize.lg,
@@ -39,6 +43,11 @@ const PageError: React.FC<{ error: Error | null }> = ({ error }) => {
                 {error?.message ||
                     "Page failed to load, please try again later."}
             </Typography.Text>
+            {onRetry ? (
+                <Button onClick={onRetry} type="primary">
+                    {microcopy.actions.retry}
+                </Button>
+            ) : null}
         </FullPage>
     );
 };

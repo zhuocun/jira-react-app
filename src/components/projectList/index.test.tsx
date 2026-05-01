@@ -182,8 +182,8 @@ describe("ProjectList", () => {
         expect(screen.getByText("Alice")).toBeInTheDocument();
         expect(screen.getByText("Apr 25, 2026")).toBeInTheDocument();
         expect(screen.getByText("Design System")).toBeInTheDocument();
-        expect(screen.getByText("unknown")).toBeInTheDocument();
-        expect(screen.getByText("Null")).toBeInTheDocument();
+        expect(screen.getByText("No manager")).toBeInTheDocument();
+        expect(screen.getByText("No date")).toBeInTheDocument();
         await waitFor(() => expect(refreshUser).toHaveBeenCalledTimes(1));
     });
 

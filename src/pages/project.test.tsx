@@ -252,9 +252,7 @@ describe("ProjectPage", () => {
         renderPage();
 
         expect(
-            await screen.findByText(
-                /data fetching failed, please try again later/i
-            )
+            await screen.findByText(/couldn't load\. please try again\./i)
         ).toBeInTheDocument();
     });
 

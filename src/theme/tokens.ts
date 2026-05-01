@@ -77,11 +77,23 @@ export const brand = {
 /**
  * Accent gradient used for AI surfaces (sparkle icon, badges, highlights).
  * Sits beside the indigo brand without competing with it.
+ *
+ * The translucent variants exist as named tokens so AI-themed surfaces
+ * (assist panel, sparkle dots, hero gradients) can reach for them by name
+ * instead of duplicating raw `rgba(124, 92, 255, …)` literals across the
+ * codebase. All values use the same hue (~262°) as `accent.start`.
  */
 export const accent = {
     start: "#7C5CFF",
     end: "#C084FC",
-    glow: "rgba(124, 92, 255, 0.18)"
+    glow: "rgba(124, 92, 255, 0.18)",
+    bgSubtle: "rgba(124, 92, 255, 0.04)",
+    bgSoft: "rgba(124, 92, 255, 0.10)",
+    bgMedium: "rgba(124, 92, 255, 0.18)",
+    bgStrong: "rgba(124, 92, 255, 0.35)",
+    border: "rgba(124, 92, 255, 0.22)",
+    secondaryStrong: "rgba(94, 106, 210, 0.35)",
+    selectionBg: "rgba(94, 106, 210, 0.22)"
 } as const;
 
 /**
@@ -177,6 +189,31 @@ export const columnMinWidthRem = 18;
  * ultra-wide monitors. The board page opts out and lets columns scroll.
  */
 export const pageMaxWidthRem = 88;
+
+/**
+ * Standard "modal-on-mobile" formula. AntD's Modal reserves ~16 px breathing
+ * room on each side of the viewport on phones; we centralize that math so
+ * every modal lands at the same width and we don't sprinkle `32` literals
+ * through component code.
+ */
+export const modalGutterPx = space.md * 2; // 16 px each side
+export const modalWidthCss = (max: number) =>
+    `min(${max}px, calc(100vw - ${modalGutterPx}px))`;
+
+/**
+ * Brand-aligned gradient palette for user / project avatars. Six steps in
+ * the indigo → violet → pink range so every distinct id reads as a unique
+ * monogram without straying outside the brand hue. Centralizing the list
+ * here means a future palette change is one edit (Phase 1.1 of the plan).
+ */
+export const avatarGradients = [
+    `linear-gradient(135deg, ${accent.start} 0%, ${brand.primary} 100%)`,
+    `linear-gradient(135deg, ${accent.end} 0%, #6366F1 100%)`,
+    `linear-gradient(135deg, #F472B6 0%, ${accent.start} 100%)`,
+    `linear-gradient(135deg, #38BDF8 0%, ${brand.primary} 100%)`,
+    `linear-gradient(135deg, #34D399 0%, ${brand.primary} 100%)`,
+    `linear-gradient(135deg, #FB923C 0%, ${accent.end} 100%)`
+] as const;
 
 /**
  * Modern sans-serif stack. We load Inter from Google Fonts; the rest is a

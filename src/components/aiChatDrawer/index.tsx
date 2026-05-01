@@ -11,6 +11,7 @@ import {
     Typography
 } from "antd";
 import type { TextAreaRef } from "antd/es/input/TextArea";
+import styled from "@emotion/styled";
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 
 import { microcopy } from "../../constants/microcopy";
@@ -18,7 +19,42 @@ import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
 import useAiChat from "../../utils/hooks/useAiChat";
 import AiSparkleIcon from "../aiSparkleIcon";
 
-const { Text, Paragraph } = Typography;
+const MessageRow = styled.div<{ isUser: boolean }>`
+    margin-bottom: ${space.sm}px;
+    text-align: ${(props) => (props.isUser ? "right" : "left")};
+`;
+
+/**
+ * Chat bubble. Centralizing the bubble's background, padding, and width
+ * cap here means a tweak to the chat visual language is one edit instead
+ * of three duplicated inline-style objects.
+ */
+const MessageBubble = styled(Typography.Paragraph)<{ isUser: boolean }>`
+    && {
+        background: ${(props) =>
+            props.isUser
+                ? "var(--ant-color-primary-bg, rgba(94, 106, 210, 0.10))"
+                : "var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.04))"};
+        border-radius: ${radius.md}px;
+        color: var(--ant-color-text, inherit);
+        display: inline-block;
+        margin-bottom: 0;
+        max-width: min(100%, 36rem);
+        padding: ${space.xs}px ${space.sm}px;
+        text-align: left;
+        white-space: pre-wrap;
+    }
+`;
+
+const SamplePrompt = styled(Tag.CheckableTag)`
+    && {
+        border-radius: ${radius.pill}px;
+        font-weight: ${fontWeight.medium};
+        padding: ${space.xxs}px ${space.sm}px;
+    }
+`;
+
+const { Text } = Typography;
 
 const SAMPLE_PROMPTS = [
     "What's at risk?",
@@ -204,19 +240,14 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                         </Text>
                         <Space size={space.xs} wrap>
                             {SAMPLE_PROMPTS.map((prompt) => (
-                                <Tag.CheckableTag
+                                <SamplePrompt
                                     aria-label={`Try sample prompt: ${prompt}`}
                                     checked={false}
                                     key={prompt}
                                     onChange={() => dispatch(prompt)}
-                                    style={{
-                                        borderRadius: radius.pill,
-                                        fontWeight: 500,
-                                        padding: `4px 12px`
-                                    }}
                                 >
                                     {prompt}
-                                </Tag.CheckableTag>
+                                </SamplePrompt>
                             ))}
                         </Space>
                     </Space>
@@ -251,31 +282,11 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                     }
                     const isUser = m.role === "user";
                     return (
-                        <div
-                            key={`msg-${index}`}
-                            style={{
-                                marginBottom: space.sm,
-                                textAlign: isUser ? "right" : "left"
-                            }}
-                        >
-                            <Paragraph
-                                style={{
-                                    background: isUser
-                                        ? "var(--ant-color-primary-bg, rgba(94, 106, 210, 0.10))"
-                                        : "var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.04))",
-                                    borderRadius: radius.md,
-                                    color: "var(--ant-color-text, inherit)",
-                                    display: "inline-block",
-                                    marginBottom: 0,
-                                    maxWidth: "min(100%, 36rem)",
-                                    padding: `${space.xs}px ${space.sm}px`,
-                                    textAlign: "left",
-                                    whiteSpace: "pre-wrap"
-                                }}
-                            >
+                        <MessageRow isUser={isUser} key={`msg-${index}`}>
+                            <MessageBubble isUser={isUser}>
                                 {m.content}
-                            </Paragraph>
-                        </div>
+                            </MessageBubble>
+                        </MessageRow>
                     );
                 })}
                 {isLoading && (
@@ -284,7 +295,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                         gap={space.xs}
                         style={{ marginTop: space.xs }}
                     >
-                        <Spin size="small" />
+                        <Spin size="small" aria-label="Generating response" />
                         {streamingText ? (
                             <Text type="secondary">{streamingText}</Text>
                         ) : null}

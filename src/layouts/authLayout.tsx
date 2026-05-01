@@ -3,6 +3,8 @@ import { Button, Card } from "antd";
 import { Outlet } from "react-router";
 
 import {
+    accent,
+    brand,
     breakpoints,
     fontSize,
     fontWeight,
@@ -21,12 +23,12 @@ const Page = styled.div`
     background:
         radial-gradient(
             1200px 600px at 0% 0%,
-            rgba(124, 92, 255, 0.18),
+            ${accent.bgMedium},
             transparent 60%
         ),
         radial-gradient(
             900px 500px at 100% 100%,
-            rgba(94, 106, 210, 0.18),
+            ${accent.bgMedium},
             transparent 60%
         ),
         var(--ant-color-bg-layout, #f7f8fb);
@@ -60,15 +62,15 @@ const HeroRail = styled.aside`
         background:
             radial-gradient(
                 700px 700px at 30% 30%,
-                rgba(124, 92, 255, 0.35),
+                ${accent.bgStrong},
                 transparent 70%
             ),
             radial-gradient(
                 500px 500px at 80% 80%,
-                rgba(94, 106, 210, 0.35),
+                ${accent.secondaryStrong},
                 transparent 70%
             ),
-            #1c1f3d;
+            ${brand.primaryBgDark};
         color: #fff;
         display: flex;
         justify-content: center;
@@ -119,9 +121,9 @@ const HeroBadge = styled.div`
 `;
 
 const HeroBadgeDot = styled.span`
-    background: #7c5cff;
+    background: ${accent.start};
     border-radius: 50%;
-    box-shadow: 0 0 12px #7c5cff;
+    box-shadow: 0 0 12px ${accent.start};
     display: inline-block;
     height: 6px;
     width: 6px;
@@ -129,16 +131,17 @@ const HeroBadgeDot = styled.span`
 
 const HeroTitle = styled.h2`
     color: #fff;
-    /* 32 px on tablet, 40 px on desktop. The smaller value keeps the
-     * headline within the rail's available width on a portrait iPad. */
-    font-size: 32px;
+    /* xxl (28 px) on tablet, display (36 px) on desktop. The smaller value
+     * keeps the headline within the rail's available width on a portrait
+     * iPad without overflowing the rail's left padding. */
+    font-size: ${fontSize.xxl}px;
     font-weight: ${fontWeight.semibold};
     letter-spacing: ${letterSpacing.tight};
-    line-height: 1.1;
+    line-height: ${lineHeight.tight};
     margin: ${space.lg}px 0 ${space.md}px;
 
     @media (min-width: ${breakpoints.lg}px) {
-        font-size: 40px;
+        font-size: ${fontSize.display}px;
     }
 `;
 
@@ -168,9 +171,9 @@ const HeroFeature = styled.li`
 
 const HeroFeatureIcon = styled.span`
     align-items: center;
-    background: rgba(124, 92, 255, 0.22);
+    background: ${accent.border};
     border-radius: ${radius.md}px;
-    color: #c084fc;
+    color: ${accent.end};
     display: inline-flex;
     flex: 0 0 auto;
     height: 32px;
@@ -212,7 +215,11 @@ const BrandHeader = styled.header`
 
 const BrandIcon = styled.span`
     align-items: center;
-    background: linear-gradient(135deg, #7c5cff 0%, #5e6ad2 100%);
+    background: linear-gradient(
+        135deg,
+        ${accent.start} 0%,
+        ${brand.primary} 100%
+    );
     border-radius: ${radius.md}px;
     box-shadow: ${shadow.md};
     color: #fff;

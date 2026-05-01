@@ -1,13 +1,21 @@
 import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
-import { Form, Input } from "antd";
+import styled from "@emotion/styled";
+import { Form, Input, message } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
 import { microcopy } from "../../constants/microcopy";
 import { AuthButton } from "../../layouts/authLayout";
+import { lineHeight } from "../../theme/tokens";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 
 const inputSize = "large" as const;
+
+const CapsLockSlot = styled.span`
+    display: inline-block;
+    line-height: ${lineHeight.snug};
+    min-height: ${lineHeight.snug}em;
+`;
 
 const RegisterForm: React.FC<{
     onError: React.Dispatch<React.SetStateAction<Error | null | IError>>;
@@ -29,6 +37,10 @@ const RegisterForm: React.FC<{
     }) => {
         try {
             await mutateAsync(input);
+            // Confirm success before navigating so the user knows the
+            // request was received — without this the redirect can read
+            // as a navigation glitch on a slow connection.
+            message.success("Account created. Please log in.");
             navigate("/login");
         } catch {
             // Error state is set by useReactMutation's onError callback.
@@ -82,14 +94,13 @@ const RegisterForm: React.FC<{
             </Form.Item>
             <Form.Item
                 extra={
-                    <span
+                    <CapsLockSlot
                         aria-atomic="true"
                         aria-live="polite"
                         role="status"
-                        style={{ minHeight: "1.25em", display: "inline-block" }}
                     >
                         {capsLockOn ? microcopy.a11y.capsLockOn : ""}
-                    </span>
+                    </CapsLockSlot>
                 }
                 label={microcopy.fields.password}
                 name="password"
