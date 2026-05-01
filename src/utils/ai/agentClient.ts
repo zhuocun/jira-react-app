@@ -394,6 +394,19 @@ interface RawAgentHealthResponse {
     latencyMs?: number;
 }
 
+/**
+ * Coerce the server-side health flag. Returns `undefined` (not `false`)
+ * when the body has no opinion so the caller can fall back to the HTTP
+ * status. A naive `body.ok ?? body.status === "ok" ?? response.ok`
+ * collapses by precedence into `?? false ?? response.ok` and the third
+ * branch is unreachable.
+ */
+const inferOkFromBody = (body: RawAgentHealthResponse): boolean | undefined => {
+    if (typeof body.ok === "boolean") return body.ok;
+    if (typeof body.status === "string") return body.status === "ok";
+    return undefined;
+};
+
 export const getAgentHealth = async ({
     baseUrl,
     headers,
@@ -417,7 +430,7 @@ export const getAgentHealth = async ({
     const json = (await response.json()) as RawAgentHealthResponse;
     const latencyMs = Date.now() - started;
     return {
-        ok: json.ok ?? json.status === "ok" ?? response.ok,
+        ok: inferOkFromBody(json) ?? response.ok,
         agentsLoaded: json.agentsLoaded ?? json.agents_loaded ?? 0,
         latencyMs: json.latencyMs ?? latencyMs
     };
