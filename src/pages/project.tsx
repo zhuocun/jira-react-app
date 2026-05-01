@@ -165,12 +165,14 @@ const ProjectPage = () => {
     const {
         isLoading: pLoading,
         error: pError,
-        data: projects
+        data: projects,
+        refetch: refetchProjects
     } = useReactQuery<IProject[]>("projects", fetchParam);
     const {
         isLoading: mLoading,
         error: mError,
-        data: members
+        data: members,
+        refetch: refetchMembers
     } = useReactQuery<IMember[]>("users/members");
 
     const stats = useMemo(() => {
@@ -269,6 +271,18 @@ const ProjectPage = () => {
             />
             {pError || mError ? (
                 <Alert
+                    action={
+                        <Button
+                            onClick={() => {
+                                if (pError) refetchProjects();
+                                if (mError) refetchMembers();
+                            }}
+                            size="small"
+                            type="primary"
+                        >
+                            {microcopy.actions.retry}
+                        </Button>
+                    }
                     description={microcopy.feedback.retryHint}
                     showIcon
                     style={{ marginBottom: space.sm }}
@@ -278,6 +292,7 @@ const ProjectPage = () => {
             ) : null}
             <ProjectList
                 dataSource={filteredProjects}
+                error={Boolean(pError || mError)}
                 members={members ?? []}
                 loading={pLoading || mLoading}
             />
