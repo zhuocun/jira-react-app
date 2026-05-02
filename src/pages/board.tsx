@@ -273,13 +273,19 @@ const BoardTitle = styled(Typography.Title)`
  * on phone-sized viewports so the Brief / Ask buttons get a usable target
  * size and do not crowd the project name. From md upwards the cluster
  * shrinks to its natural width and aligns to the right of the title row.
+ *
+ * `flex-wrap: nowrap` keeps the settings cog inline with the Brief/Ask
+ * compact group on every viewport — when the cluster could wrap, the
+ * 100 %-width Space.Compact pushed the cog onto its own row where it
+ * floated, orphaned, between the title and the search panel.
  */
 const BoardActions = styled.div`
     align-items: center;
     display: flex;
     flex: 1 1 100%;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: ${themeSpace.xs}px;
+    min-width: 0;
 
     .ant-space-compact {
         flex: 1 1 auto;
@@ -292,6 +298,15 @@ const BoardActions = styled.div`
 
         .ant-space-compact {
             flex: 0 0 auto;
+            /*
+             * Space.Compact ships with the \`block\` prop on this surface so
+             * Brief / Ask stretch full-width on phones. \`block\` writes
+             * \`width: 100%\` inline, which on tablet+ would have the compact
+             * group claim the entire BoardActions row and crush the
+             * settings cog beside it down to a 2 px sliver. Reset the
+             * width here so each child sizes to its content instead.
+             */
+            width: auto;
         }
     }
 `;

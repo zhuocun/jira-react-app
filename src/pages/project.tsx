@@ -132,6 +132,13 @@ const StatLabel = styled.span`
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
     letter-spacing: ${letterSpacing.wide};
+    /* The card uses align-items: flex-start (so values don't stretch),
+     * which sizes children to their content on the cross axis. Without
+     * this cap, "TEAM MEMBERS" sizes to its 103 px max-content and
+     * spills past the 91 px card at 320 px viewport — the
+     * text-overflow: ellipsis below only fires when the element is
+     * actually narrower than its content. */
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     text-transform: uppercase;
