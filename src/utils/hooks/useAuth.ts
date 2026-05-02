@@ -33,7 +33,7 @@ const useAuth = () => {
                 });
             } catch {
                 await clear();
-                navigate("/login");
+                navigate("/login", { viewTransition: true });
             }
         }
     }, [clear, navigate, queryClient, token, user]);

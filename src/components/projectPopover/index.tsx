@@ -104,7 +104,11 @@ const ProjectPopover: React.FC = () => {
                 {projects?.map((project) => (
                     <ProjectItemButton
                         key={project._id}
-                        onClick={() => navigate(`/projects/${project._id}`)}
+                        onClick={() =>
+                            navigate(`/projects/${project._id}`, {
+                                viewTransition: true
+                            })
+                        }
                         type="text"
                     >
                         {project.projectName}

@@ -30,6 +30,13 @@ import UserAvatar from "../userAvatar";
 const PageHeader = styled.header`
     align-items: center;
     backdrop-filter: saturate(180%) blur(12px);
+    /*
+     * Opt the sticky header out of the route cross-fade. With its own
+     * view-transition-name the browser keeps it in place while the body
+     * cross-fades, which is what makes the page change feel like a native
+     * push transition rather than a full-page swap.
+     */
+    view-transition-name: pulse-header;
     background: color-mix(
         in srgb,
         var(--ant-color-bg-container, #fff) 86%,

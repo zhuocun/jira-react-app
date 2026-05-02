@@ -25,7 +25,7 @@ const LoginPage = () => {
     const [error, setError] = useState<Error | IError | null>(null);
     const errorRef = useRef<HTMLDivElement | null>(null);
     const handleSwitch = () => {
-        navigate("/register");
+        navigate("/register", { viewTransition: true });
     };
 
     // When a server error appears, move focus to the alert so screen-reader

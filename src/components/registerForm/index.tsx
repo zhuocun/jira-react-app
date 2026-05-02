@@ -45,7 +45,7 @@ const RegisterForm: React.FC<{
             // request was received — without this the redirect can read
             // as a navigation glitch on a slow connection.
             message.success("Account created. Please log in.");
-            navigate("/login");
+            navigate("/login", { viewTransition: true });
         } catch {
             // Error state is set by useReactMutation's onError callback.
         }

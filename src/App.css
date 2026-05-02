@@ -237,6 +237,38 @@ video {
 }
 
 /*
+ * View Transitions for SPA route changes. React Router 7 wraps any
+ * navigation marked `viewTransition` in `document.startViewTransition()`,
+ * which gives us a GPU-cheap cross-fade between routes — the single biggest
+ * "feels native" cue for navigation. The default UA animation is a 250 ms
+ * fade; we tighten it to 200 ms with the same standard easing the rest of
+ * the system uses (motion.medium / easing.standard).
+ *
+ * The sticky page header opts out via `view-transition-name: pulse-header`
+ * (set in components/header/index.tsx) so it stays still while the body
+ * cross-fades, mirroring how native iOS/Android tab bars persist across
+ * pushes.
+ *
+ * The reduced-motion block above zeros animation duration globally; we add
+ * an explicit `none` here so the snapshot is replaced instantly rather than
+ * lingering for 1 ms.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 200ms;
+        animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}
+
+/*
  * Forced-colors / High-contrast mode (Windows). Ensure interactive
  * surfaces still have visible borders rather than relying on subtle
  * tints that get filtered out.

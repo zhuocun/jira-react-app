@@ -365,7 +365,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
     const handleEntrySelect = useCallback(
         (entry: PaletteEntry) => {
             if (entry.href) {
-                navigate(entry.href);
+                navigate(entry.href, { viewTransition: true });
             }
             onClose();
         },

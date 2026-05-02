@@ -333,7 +333,9 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
                             {initialsOf(data.projectName)}
                         </ProjectAvatar>
                         <ProjectMeta>
-                            <Link to={`${data._id}`}>{data.projectName}</Link>
+                            <Link to={`${data._id}`} viewTransition>
+                                {data.projectName}
+                            </Link>
                         </ProjectMeta>
                     </ProjectCell>
                 );
