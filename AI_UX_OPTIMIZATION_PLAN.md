@@ -1,802 +1,1019 @@
-# UI/UX Optimization Plan — Jira React App
+# Board Copilot AI UX Audit and Optimization Plan
 
-Audit of the codebase against `AI_UX_BEST_PRACTICES.md`, organized by severity.
-Each finding references the violated principle and affected file(s).
+Updated: 2026-05-02
 
----
+This document audits the current `jira-react-app` Board Copilot implementation
+against current AI UI/UX best practices and red flags from Google PAIR,
+Microsoft HAX, NN/g, NIST AI RMF, OpenAI app UX guidance, W3C accessibility
+guidance, IBM explainability guidance, Apple privacy guidance, and Anthropic
+agent-safety patterns.
 
-## Table of Contents
-
-1. [Audit Methodology](#1-audit-methodology)
-2. [Executive Summary](#2-executive-summary)
-3. [Critical Issues (P0)](#3-critical-issues-p0)
-4. [High-Priority Issues (P1)](#4-high-priority-issues-p1)
-5. [Medium-Priority Issues (P2)](#5-medium-priority-issues-p2)
-6. [Low-Priority / Polish (P3)](#6-low-priority--polish-p3)
-7. [What the App Already Does Well](#7-what-the-app-already-does-well)
-8. [Implementation Roadmap](#8-implementation-roadmap)
+The previous version of this file was stale: several listed issues have since
+been fixed in the codebase. This version reflects the current implementation.
 
 ---
 
-## 1. Audit Methodology
-
-Every page, component, hook, and utility under `src/` was read and mapped
-against the principles in `AI_UX_BEST_PRACTICES.md`, with particular focus on:
-
-- **Microsoft HAX Toolkit** 18 guidelines (G1–G18)
-- **Google PAIR** guidebook principles
-- **Krux audit** 8 common AI UX failures
-- **Smashing Magazine** agentic AI patterns (Intent Preview, Autonomy Dial,
-  Explainable Rationale, Confidence Signal, Action Audit & Undo, Escalation
-  Pathway)
-- **NN/g** AI product design guidelines
-- **Trust calibration** anti-patterns (uniform confidence, hidden sources,
-  cosmetic verification, etc.)
-
-Files examined: all of `src/pages/`, `src/components/`, `src/utils/`,
-`src/routes/`, `src/store/`, `src/theme/`, `src/constants/`, `src/layouts/`,
-plus `vite.config.ts` and `package.json`.
-
----
-
-## 2. Executive Summary
-
-### Strengths
-
-The app has a mature foundation: centralized microcopy, AI tokens/theming,
-accessibility landmarks, live regions, focus management, responsive breakpoints,
-safe-area insets, dark/light mode, reduced motion, forced-colors, coarse-pointer
-targets, View Transitions, and optimistic updates. AI features include: privacy
-disclosure, per-project opt-out, autonomy levels, undo toasts, confidence bands,
-citation chips, tool-call transparency, welcome banner, sample prompts, and
-analytics tracking.
-
-### Gap Areas
-
-The gaps cluster around four themes:
-
-1. **Silent failures** — Multiple mutation and query error paths produce no
-   user-visible feedback, violating HAX G9 (support efficient correction) and
-   the graceful degradation principle.
-2. **Incomplete AI trust calibration** — Confidence indicators exist in utilities
-   but are not consistently surfaced on all AI output surfaces; the chat drawer
-   lacks confidence signals and the regenerate flow lacks version history.
-3. **Performance / bundle** — No route-level code splitting, elevated Vite chunk
-   warning limit, no QueryClient cache tuning, long filter debounce.
-4. **Consistency gaps** — Hardcoded English strings alongside microcopy, mixed
-   error handling patterns, uneven loading skeletons.
-
-### Counts
-
-| Priority          | Issues |
-| ----------------- | ------ |
-| P0 — Critical     | 4      |
-| P1 — High         | 7      |
-| P2 — Medium       | 9      |
-| P3 — Low / Polish | 6      |
-| **Total**         | **26** |
-
----
-
-## 3. Critical Issues (P0)
-
-These directly cause user-visible data loss, silent failures, or broken trust.
-
----
-
-### P0-1: Task update failures are invisible to the user
-
-**Principle violated:** HAX G9 (support efficient correction), Krux #7 (missing
-error states), graceful degradation.
-
-**Files:** `src/components/taskModal/index.tsx`
-
-**Current behavior:** `onOk` calls `update(merged).then(closeModal)` with no
-`.catch()` and no error display. If the PUT fails, the modal stays open with no
-error message. Users may re-click Save or assume it saved and close manually.
-
-**Impact:** Silent failure destroys trust.
-
-**Fix:**
-
-- Add an `ErrorBox` component inside the modal (same pattern as `loginForm` and
-  `registerForm`) that displays the mutation error.
-- Wire the `useReactMutation` `onError` callback to set a local error state.
-- Show a retry affordance inline and clear the error on successful save.
-- Consider adding a toast notification on success to confirm the save completed
-  (currently the modal just closes, giving no positive confirmation either).
-
----
-
-### P0-2: Like mutation has no error handling — UI hangs in pending state
-
-**Principle violated:** HAX G9, Krux #7, graceful degradation.
-
-**Files:** `src/components/projectList/index.tsx`
-
-**Current behavior:** `onLike` calls `update({ projectId }).then(...)` with no
-`.catch()`. On failure, `pendingLikeId` is never cleared — the heart icon stays
-in its inverted (pending) state indefinitely with no error message.
-
-**Impact:** The like button appears stuck with no recovery path.
-
-**Fix:**
-
-- Add a `.catch()` that clears `pendingLikeId` and shows a brief
-  `message.error()` toast.
-- Consider using `useReactMutation`'s `onError` callback instead of raw
-  `.then()` to get automatic rollback.
-
----
-
-### P0-3: Network errors surface cryptic browser messages
-
-**Principle violated:** Graceful degradation, Krux #7 (missing error states).
-
-**Files:** `src/utils/hooks/useApi.ts`, `src/utils/authApis.ts`
-
-**Current behavior:** When the network is down, `fetch()` rejects with a
-`TypeError("Failed to fetch")`. React Query catches this for queries (and
-surfaces it via `query.error`), and auth forms display it in their `ErrorBox`.
-However, the error message shown to the user is the raw browser string
-`"Failed to fetch"` — not a helpful, actionable message.
-
-**Impact:** Users see a technical error string instead of guidance like "Check
-your internet connection and try again." This erodes trust and leaves users
-without a clear recovery path.
-
-**Fix:**
-
-- In `api()`, wrap the `fetch` call so that `TypeError` is converted into a
-  user-friendly `Error("Unable to connect. Check your internet connection and
-try again.")`.
-- Apply the same treatment in `authApis.ts` login/register functions.
-
----
-
-### P0-4: Optimistic update rollbacks produce no user feedback
-
-**Principle violated:** HAX G9 (support efficient correction), trust calibration
-(invisible error anti-pattern).
-
-**Files:** `src/utils/hooks/useReactMutation.ts`,
-`src/utils/optimisticUpdate/*.ts`
-
-**Current behavior:** When an optimistic mutation fails, `useReactMutation`
-restores the previous cache state silently — no toast, no notification. The UI
-reverts (e.g., a reordered column snaps back) with no explanation.
-
-**Impact:** The "invisible error" anti-pattern. Users see the UI change and then
-mysteriously revert with no indication of what happened.
-
-**Fix:**
-
-- Add a `message.error()` or `notification.error()` call in the
-  `useReactMutation` `onError` path when a `callback` (optimistic updater)
-  was supplied, so users always see a "Couldn't save — your changes were
-  reverted" notice.
-- For drag-and-drop reorders specifically, show a brief toast: "Couldn't
-  reorder. The board has been restored."
-
----
-
-## 4. High-Priority Issues (P1)
-
-These degrade the experience noticeably but don't cause data loss.
-
----
-
-### P1-1: No 404 / catch-all route
-
-**Principle violated:** HAX G10 (scope services when in doubt / gracefully
-degrade), error handling best practices.
-
-**Files:** `src/routes/index.tsx`
-
-**Current behavior:** No catch-all route. Navigating to `/settings`, `/foo`, or
-any undefined path renders a blank page.
-
-**Fix:**
-
-- Add a catch-all route (`path: "*"`) that renders a `PageError` component with
-  a "Page not found" message and a link back to `/projects`.
-- Use the existing `EmptyState` component with a relevant illustration.
-
----
-
-### P1-2: AI chat regenerate doesn't preserve versions (Regenerate Trap)
-
-**Principle violated:** Krux #2 (destructive "Regenerate" button), trust
-calibration.
-
-**Files:** `src/components/aiChatDrawer/index.tsx`
-
-**Current behavior:** `handleRegenerate` re-dispatches the previous user message,
-appending a new assistant bubble below the original. The old version is preserved
-in scroll history, but there is no visual grouping, no version indicator, and
-no way to compare responses.
-
-**Impact:** Users see two similar-looking responses with no indication which is
-the regenerated one.
-
-**Fix:**
-
-- Add a visual indicator on regenerated responses: "Regenerated response" badge
-  or a subtle divider with "↻ Regenerated" label.
-- Consider collapsing the previous response with an "Show earlier version"
-  toggle, or add a "Version 1 / Version 2" tab group.
-
----
-
-### P1-3: Chat drawer loading uses generic spinner instead of content-shaped skeleton
-
-**Principle violated:** Loading state best practices (never use bare spinners
-for AI operations), Krux #1 (no feedback during AI processing).
-
-**Files:** `src/components/aiChatDrawer/index.tsx` (lines 569–583)
-
-**Current behavior:** While the AI is generating, the drawer shows a `<Spin>`
-component with "Board Copilot is thinking…" text. The `streamingText` state
-from `useAiChat` is shown next to the spinner, but it only contains tool-name
-status labels (e.g., "Get tasks…") — not actual response content. The response
-arrives all at once as a complete message bubble after the spinner disappears.
-
-**Impact:** Users stare at a spinner during the 2-8 second AI response time. Per
-the research, perceived wait drops by 55-70% with streaming, and users begin
-trying to interact or leaving after 3-5 seconds of a spinner.
-
-**Fix:**
-
-- Replace the loading spinner with a chat-bubble-shaped skeleton (shimmer
-  animation in the approximate shape of an assistant message bubble).
-- If `streamingText` contains actual response content (not just a status label),
-  render it progressively inside a message bubble as it arrives.
-- Show staged progress: "Reading your board data…" → "Analyzing tasks…" →
-  "Writing response…"
-
----
-
-### P1-4: ProjectDetail page has no error state for failed project query
-
-**Principle violated:** HAX G9, graceful degradation, Krux #7.
-
-**Files:** `src/pages/projectDetail.tsx`
-
-**Current behavior:** The query's `error` return is not destructured or used. If
-the project fetch fails, the breadcrumb shows "Project" (fallback) and the body
-renders `<Outlet />` with no error alert, no retry, and no failure indication.
-
-**Fix:**
-
-- Destructure `error` and `refetch` from the query.
-- When `error` is truthy, render an `Alert` with retry (same pattern as
-  `board.tsx` and `project.tsx`).
-- Show a `PageError` component when the project is not found (404 from API).
-
----
-
-### P1-5: No positive confirmation on destructive actions completing
-
-**Principle violated:** Trust calibration (feedback loop closure), HAX G16
-(convey consequences of user actions).
-
-**Files:** `src/components/projectList/index.tsx`,
-`src/components/taskModal/index.tsx`
-
-**Current behavior:** After deleting via `Modal.confirm`, the item disappears
-optimistically with no success toast. If the deletion fails, the item reappears
-with no explanation.
-
-**Fix:**
-
-- Add `message.success("Project deleted")` and `message.success("Task deleted")`
-  on successful mutation completion.
-- If the deletion is optimistic, show the toast immediately with an undo option
-  (leveraging the existing `useUndoToast` pattern used in AI flows).
-
----
-
-### P1-6: QueryClient has no default configuration
-
-**Principle violated:** Performance best practices, unnecessary re-fetches.
-
-**Files:** `src/utils/appProviders.tsx`
-
-**Current behavior:** `new QueryClient()` with no configuration. Defaults:
-`staleTime: 0` (data stale on every mount), `retry: 3` (including non-idempotent
-mutations). Every navigation back to `/projects` triggers a refetch even if data
-was loaded seconds ago.
-
-**Fix:**
-
-- Set `staleTime: 30_000` (30s) as a global default so repeated mounts within
-  30 seconds use cached data.
-- Set `retry: 1` or configure retry only for queries (not mutations) to avoid
-  retrying non-idempotent operations.
-- Consider `refetchOnWindowFocus: false` for a calmer UX.
-
-```tsx
-const [queryClient] = useState(
-    () =>
-        new QueryClient({
-            defaultOptions: {
-                queries: {
-                    staleTime: 30_000,
-                    retry: 1,
-                    refetchOnWindowFocus: false
-                },
-                mutations: {
-                    retry: false
-                }
-            }
-        })
-);
+## 1. Scope and methodology
+
+### Surfaces audited
+
+- Global enablement and route entry points:
+  - `src/components/header/index.tsx`
+  - `src/pages/board.tsx`
+  - `src/components/commandPalette/index.tsx`
+- AI feature components:
+  - `src/components/aiChatDrawer/index.tsx`
+  - `src/components/aiSearchInput/index.tsx`
+  - `src/components/boardBriefDrawer/index.tsx`
+  - `src/components/aiTaskDraftModal/index.tsx`
+  - `src/components/aiTaskAssistPanel/index.tsx`
+  - `src/components/aiSuggestedBadge/index.tsx`
+  - `src/components/copilotPrivacyPopover/index.tsx`
+- AI hooks and data contracts:
+  - `src/utils/hooks/useAi.ts`
+  - `src/utils/hooks/useAiChat.ts`
+  - `src/utils/hooks/useAgent.ts`
+  - `src/utils/ai/engine.ts`
+  - `src/utils/ai/chatEngine.ts`
+  - `src/utils/ai/chatTools.ts`
+  - `src/utils/ai/validate.ts`
+  - `src/utils/ai/projectAiStorage.ts`
+- Planning and reference docs:
+  - `docs/prd/board-copilot-v3.md`
+  - `docs/prd/board-copilot-progress.md`
+  - `docs/ui-ux-optimization-plan.md`
+  - `AI_UX_BEST_PRACTICES.md`
+  - `AI_UX_PATTERNS_REPORT.md`
+
+### Verification note
+
+I attempted a targeted Jest run for the main AI components, but the current
+cloud image does not have `npm` available:
+
+```text
+npm test ... -> npm: command not found
 ```
 
----
-
-### P1-7: No feedback acknowledgment on AI chat thumbs up/down
-
-**Principle violated:** Feedback loop closure (Google PAIR: "acknowledge that you
-received feedback"), trust calibration.
-
-**Files:** `src/components/aiChatDrawer/index.tsx`
-
-**Current behavior:** Clicking 👍/👎 toggles `aria-pressed` and fires an
-analytics event, but shows no visible acknowledgment. The
-`microcopy.ai.feedbackThanks` string exists but is never rendered.
-
-**Impact:** Users who provide feedback never see it was received.
-
-**Fix:**
-
-- Show a brief `message.success(microcopy.ai.feedbackThanks)` when feedback
-  is submitted.
-- Alternatively, render a brief inline acknowledgment below the rated message
-  that fades after 2 seconds.
+The findings below are therefore based on static source inspection and existing
+project documentation, not a live browser sweep or executable test run.
 
 ---
 
-## 5. Medium-Priority Issues (P2)
+## 2. Executive summary
+
+Board Copilot is no longer a naive AI add-on. The current implementation already
+contains many best-practice patterns:
+
+- AI output is visibly attributed to Board Copilot.
+- The app has global and per-project disable controls.
+- AI prompts, drafts, estimates, brief generation, and search are guarded by
+  project opt-out checks.
+- Structured outputs are validated before rendering or applying.
+- Confidence bands are used for task draft and estimate surfaces.
+- AI-filled fields can show "Suggested by Copilot" provenance.
+- Chat has sample prompts, stop, regenerate, feedback buttons, retry, character
+  limit, and collapsed tool details.
+- Privacy disclosure is available across major AI surfaces.
+- AI drawers use responsive widths and safe-area padding.
+- Several AI surfaces now use live regions, skeletons, and delayed spinners.
+
+The remaining issues are subtler and mostly concern **trust calibration,
+governance, consistency, and agent-readiness**:
+
+1. Chat and board brief answers can still look more authoritative than their
+   deterministic local engine and weak citation model justify.
+2. Remote AI mode sends the same bearer auth token to `REACT_APP_AI_BASE_URL`,
+   but the UI does not distinguish local vs remote processing or third-party
+   data flow.
+3. "What is shared" copy conflicts with actual payloads in some surfaces,
+   especially task notes.
+4. AI feedback is too shallow to improve quality or explain what user feedback
+   changes.
+5. Some AI writes have incomplete undo/revert semantics.
+6. Agentic infrastructure exists but is not integrated into product surfaces,
+   which creates future risk if shipped partially.
+7. Analytics constants exist, but `track` is still a no-op, so trust and safety
+   UX cannot be measured.
+8. AI entry points remain fragmented across header, board header, filters,
+   modals, drawers, and command palette.
 
 ---
 
-### P2-1: No route-level code splitting
+## 3. What the project already does well
 
-**Principle violated:** Performance best practices.
+These strengths should be preserved while optimizing.
 
-**Files:** `src/routes/index.tsx`
+### 3.1 AI attribution and expectations
 
-**Current behavior:** All page components are eagerly imported (comment defers
-`React.lazy` citing test compatibility). Vite `chunkSizeWarningLimit` was raised
-to 1600. The initial bundle includes all page and AI code even for the login
-page.
+- Assistant turns are labeled with the Board Copilot attribution in
+  `src/components/aiChatDrawer/index.tsx:579-635`.
+- Assistant output includes the explicit `AI · review before using` disclaimer
+  in `src/components/aiChatDrawer/index.tsx:632-635`.
+- Draft and estimate surfaces show AI badges in
+  `src/components/aiTaskDraftModal/index.tsx:491-508` and
+  `src/components/aiTaskAssistPanel/index.tsx:290-298`.
 
-**Fix:**
+Why it matters: this follows Google PAIR, Microsoft HAX, IBM, and NN/g guidance
+that AI involvement should be visible and users should not mistake generated
+content for human-authored content.
 
-- Wrap page imports with `React.lazy()` and add `<Suspense>` boundaries at
-  the route level with appropriate fallbacks (e.g., `PageSpin`).
-- Update affected tests to handle asynchronous component loading (wrap renders
-  in `Suspense` or use `waitFor`).
-- Consider splitting the heavy AI components (chat drawer, task assist panel,
-  brief drawer) into a separate chunk since they're conditionally rendered.
+### 3.2 User control and reversibility
 
----
+- Chat has stop and regenerate controls in
+  `src/components/aiChatDrawer/index.tsx:646-686` and
+  `src/components/aiChatDrawer/index.tsx:818-836`.
+- Drafted tasks are shown in a form for user review before creation in
+  `src/components/aiTaskDraftModal/index.tsx:481-622`.
+- Task estimate application uses a toast undo path in
+  `src/components/aiTaskAssistPanel/index.tsx:173-191`.
+- Bulk task creation attempts a best-effort undo in
+  `src/components/aiTaskDraftModal/index.tsx:264-289`.
+- Project-level AI opt-out is enforced in
+  `src/utils/hooks/useAi.ts:253-283`,
+  `src/utils/hooks/useAiChat.ts:111-119`, and
+  `src/utils/ai/projectAiStorage.ts:26-40`.
 
-### P2-2: AI confidence indicators not shown on chat responses
+Why it matters: these patterns reduce the risk of overautomation and align with
+NIST, Anthropic, OpenAI, and Google PAIR recommendations on human control.
 
-**Principle violated:** Confidence signal pattern (Smashing Magazine), trust
-calibration, HAX G2 (make clear how well the system can do what it can do).
+### 3.3 Validation and constrained outputs
 
-**Files:** `src/components/aiChatDrawer/index.tsx`,
-`src/utils/ai/confidenceBand.ts`
+- Structured AI responses are validated before use in
+  `src/utils/ai/validate.ts:15-125`.
+- Drafts clamp story points and replace invalid column/member ids in
+  `src/utils/ai/validate.ts:15-49`.
+- Search ids are intersected with known cache ids in
+  `src/utils/ai/validate.ts:119-125`.
+- Chat tool calls are allowlisted and read-only in
+  `src/utils/ai/chatTools.ts:3-122`.
 
-**Current behavior:** `confidenceBand` utility and `microcopy.ai.confidenceBands`
-exist, and `AiTaskAssistPanel`/`AiSearchInput` use them. However, the chat
-drawer — the primary AI surface — shows no confidence signal. All responses
-appear with equal visual weight.
+Why it matters: this is a strong product-level safety layer, not just a model
+safety assumption.
 
-**Impact:** The "uniform confidence" anti-pattern on the most-used AI surface.
+### 3.4 Discoverability and onboarding
 
-**Fix:**
+- Empty chat includes sample prompts in
+  `src/components/aiChatDrawer/index.tsx:514-534`.
+- Follow-up prompt chips appear after chat turns in
+  `src/components/aiChatDrawer/index.tsx:692-715`.
+- Draft modal offers sample prompts in
+  `src/components/aiTaskDraftModal/index.tsx:377-389`.
+- Command palette supports AI mode through `/` or a sparkle toggle in
+  `src/components/commandPalette/index.tsx:423-433` and
+  `src/components/commandPalette/index.tsx:521-542`.
 
-- If the chat engine can provide confidence metadata, render a subtle confidence
-  badge (High/Moderate/Low) on each assistant response.
-- At minimum, add a static "AI-generated · verify before using" label on each
-  assistant bubble (the `microcopy.a11y.aiBadge` string already exists).
-- Show the "Board Copilot uses read-only data" disclosure more prominently.
+Why it matters: these reduce the blank-page problem common in AI chat UIs.
 
----
+### 3.5 Latency and failure states
 
-### P2-3: 1000ms filter debounce feels sluggish
+- Chat displays staged loading/skeleton UI in
+  `src/components/aiChatDrawer/index.tsx:717-769`.
+- Search has retryable no-match and error states in
+  `src/components/aiSearchInput/index.tsx:338-401`.
+- Brief drawer caches results and exposes regenerate/copy controls in
+  `src/components/boardBriefDrawer/index.tsx:235-280` and
+  `src/components/boardBriefDrawer/index.tsx:366-418`.
+- Task assist uses delayed spinners in
+  `src/components/aiTaskAssistPanel/index.tsx:83-90`.
 
-**Principle violated:** Responsiveness best practices (perceived latency).
-
-**Files:** `src/pages/board.tsx` (line 325), `src/pages/project.tsx` (line 188)
-
-**Current behavior:** Both pages use `useDebounce(param, 1000)` — a full
-1-second debounce before any visual feedback. Client-side filtering of
-already-loaded data also waits 1 second.
-
-**Impact:** Users expect < 200ms visual feedback for keystrokes.
-
-**Fix:**
-
-- Separate the concerns: debounce the API request parameters but apply
-  client-side filtering immediately on the raw `param`.
-- Reduce the debounce to 300-500ms for the API-triggering params.
-- Show a "Searching…" indicator during the debounce window.
-
----
-
-### P2-4: Inconsistent hardcoded English vs. microcopy
-
-**Principle violated:** Consistency (HAX G5, match relevant social norms),
-maintainability.
-
-**Files:** Widespread across components
-
-**Examples of hardcoded strings that should be in `microcopy`:**
-
-- `src/pages/project.tsx`: "Projects", "Browse the boards your team is
-  shipping…", stat labels ("Total projects", "Organizations", "Team members")
-- `src/pages/board.tsx`: "Board", "Swipe to see more columns", "Enable on this
-  board", Copilot settings description text
-- `src/components/taskModal/index.tsx`: "Edit task · {name}" construction,
-  "Notes / acceptance criteria" placeholder
-- `src/components/projectModal/index.tsx`: "Edit project" / "Create project"
-  title, subtitle sentences
-- `src/components/aiChatDrawer/index.tsx`: "Ask a question… (Shift+Enter for a
-  new line)" placeholder, "Regenerate response", "Helpful answer", "Not helpful"
-- `src/components/commandPalette/index.tsx`: "Command palette", "No matches",
-  section headers
-- `src/components/columnCreator/index.tsx`: "Create column name" placeholder
-- `src/components/boardBriefDrawer/index.tsx`: "Board Copilot brief" title,
-  section headings
-
-**Impact:** Copy changes or future i18n require touching 15+ files individually.
-
-**Fix:**
-
-- Audit all user-facing strings and migrate them to `microcopy.ts`.
-- Group new strings under logical namespaces (e.g., `microcopy.pages.projects`,
-  `microcopy.board.settings`).
-- This is a large but mechanical change that can be done incrementally.
+Why it matters: AI features must treat waiting, failure, retry, and empty states
+as normal paths.
 
 ---
 
-### P2-5: AI chat drawer shows no "AI-generated" label on responses
+## 4. Current issues and red flags
 
-**Principle violated:** Transparency (label AI-generated content explicitly),
-IBM Carbon for AI guidelines, HAX G1.
+### P0-1: Privacy disclosure is not fully accurate for every AI surface
 
-**Files:** `src/components/aiChatDrawer/index.tsx`
+**Best-practice violation:** transparent data use, privacy control, no privacy
+surprises.
 
-**Current behavior:** The drawer title includes a purple "AI · review before
-using" tag, but individual assistant messages have no per-message AI label.
-Messages are differentiated only by alignment and background color.
+**Evidence**
 
-**Fix:**
+- Global AI microcopy says Board Copilot sees "task names, columns, and member
+  names" and "No notes, emails, or attachments" in
+  `src/constants/microcopy.ts:178-180`.
+- `CopilotPrivacyPopover` similarly says no task notes are ever sent in
+  `src/components/copilotPrivacyPopover/index.tsx:73-83`.
+- But several AI payloads do include `note` values:
+  - Task estimate includes `note` in
+    `src/utils/ai/engine.ts:253-256`.
+  - Semantic task search includes `task.note` in
+    `src/utils/ai/engine.ts:501-505`.
+  - Draft/estimate/readiness payloads pass full task context from
+    `src/components/aiTaskDraftModal/index.tsx:147-155` and
+    `src/components/aiTaskAssistPanel/index.tsx:123-153`.
+  - Chat tool `getTask` can return `t.note` in
+    `src/utils/ai/chatEngine.ts:259-270`.
 
-- Add a small "Board Copilot" or sparkle icon prefix on each assistant message
-  bubble (similar to how ChatGPT shows the model name).
-- This is especially important if the product ever adds human-in-the-loop
-  escalation — users must always be able to distinguish AI from human responses.
+**Impact**
 
----
+Users are told notes are not shared, while actual local/remote AI payloads can
+include notes. In local mode this is less risky, but in remote mode it becomes a
+material privacy and trust issue.
 
-### P2-6: Delete actions lack undo — only confirmation
+**Optimization plan**
 
-**Principle violated:** Undo/redo best practices (Smashing Magazine: "The single
-most powerful mechanism for building user confidence is the ability to easily
-reverse an agent's action").
+1. Define a single `AiDataScope` contract per route:
+   - `chat`
+   - `search`
+   - `board-brief`
+   - `task-draft`
+   - `task-breakdown`
+   - `estimate`
+   - `readiness`
+2. Update privacy copy to be route-aware:
+   - Chat/search/estimate/readiness: disclose whether task notes are included.
+   - Draft from prompt: disclose prompt text and selected board context.
+   - Brief: disclose aggregate task, column, and member data.
+3. If notes should not be shared remotely, sanitize contexts before
+   `remoteResolve` and `remoteChatStep`.
+4. Add tests asserting the privacy disclosure matches the route payload.
+5. Add a "Manage data sources" affordance later if users can choose whether
+   notes are included.
 
-**Files:** `src/components/projectList/index.tsx`,
-`src/components/taskModal/index.tsx`, `src/components/column/index.tsx`
+**Acceptance criteria**
 
-**Current behavior:** All delete actions use `Modal.confirm` as the only
-safeguard. No undo after confirmation.
-
-**Impact:** Confirmation dialogs become reflexive clicks (modal blindness). The
-real safety net is undo.
-
-**Fix (incremental):**
-
-- Phase 1: After deletion, show a 5-second undo toast (leveraging
-  `useUndoToast` already in the codebase). Keep the deleted item in local
-  state during the undo window; only fire the DELETE API call after the
-  window expires.
-- Phase 2: Add a soft-delete mechanism on the API side to enable true undo.
-- Phase 3: Add an "Action History" panel that logs recent destructive actions
-  with undo timestamps.
-
----
-
-### P2-7: Auth token stored with no expiry or refresh mechanism
-
-**Principle violated:** Security best practices, session management.
-
-**Files:** `src/utils/authApis.ts`, `src/utils/hooks/useAuth.ts`
-
-**Current behavior:** JWT stored in localStorage with no expiry check. If the
-token expires server-side, API calls fail with 401s but the UI keeps showing
-the authenticated layout until a hard refresh.
-
-**Fix:**
-
-- Decode the JWT expiry (`exp` claim) client-side and schedule a refresh or
-  redirect before expiry.
-- Add a response interceptor that catches 401s globally and redirects to login
-  with a "Session expired" message.
-- Consider using `httpOnly` cookies instead of localStorage for token storage
-  (requires API changes).
+- No UI text says notes are excluded on a surface that sends notes.
+- Every AI surface has route-specific "What is shared?" copy.
+- Remote payload tests prove excluded fields are actually omitted.
 
 ---
 
-### P2-8: No loading skeleton for the project list table
+### P0-2: Remote AI mode lacks explicit third-party / server-processing disclosure
 
-**Principle violated:** Loading state best practices (content-shaped skeletons).
+**Best-practice violation:** hidden data transfer, unclear consent, weak privacy
+surface.
 
-**Files:** `src/components/projectList/index.tsx`, `src/pages/project.tsx`
+**Evidence**
 
-**Current behavior:** Uses Ant Design Table's built-in `loading` prop — a generic
-spinner overlay that doesn't match the table's layout.
+- `REACT_APP_AI_BASE_URL` switches the app from local deterministic engine to
+  remote `POST ${aiBaseUrl}/api/ai/{route}` in
+  `src/constants/env.ts:12-20` and `src/utils/hooks/useAi.ts:202-220`.
+- Remote calls include the same bearer auth header in
+  `src/utils/hooks/useAi.ts:207-213` and
+  `src/utils/hooks/useAiChat.ts:38-59`.
+- User-facing privacy copy describes categories of data but not local vs remote
+  processing, retention, training, or recipient service.
 
-**Fix:**
+**Impact**
 
-- Replace the `loading` prop with a custom skeleton that renders 3-5 placeholder
-  rows with shimmer animations matching the column layout (avatar + text for
-  Project, gray bar for Organization, pill for Manager, etc.).
-- Ant Design Table supports `locale.emptyText` for empty state; use a similar
-  approach with `loading` rendering skeleton rows.
+Users and deployers cannot tell whether Board Copilot is local-only or sending
+data and auth credentials to an external AI proxy. This is a governance risk and
+a possible enterprise blocker.
 
----
+**Optimization plan**
 
-### P2-9: Board empty column state gives no guidance when filters yield zero tasks
+1. Add an environment-derived processing mode label:
+   - "Runs locally in this app" when `aiUseLocalEngine` is true.
+   - "Processed by your configured AI service" when remote mode is active.
+2. Add remote-specific privacy text:
+   - service/base origin,
+   - data categories sent,
+   - auth/permission behavior,
+   - retention/training policy link or "configured by workspace admin".
+3. In remote mode, show first-use consent per user/workspace before first AI
+   request.
+4. Consider proxy-scoped tokens instead of forwarding the primary REST bearer
+   token directly.
+5. Document required DPA/security expectations next to
+   `REACT_APP_AI_BASE_URL` setup docs.
 
-**Principle violated:** Empty state best practices, HAX G10 (scope services when
-in doubt).
+**Acceptance criteria**
 
-**Files:** `src/components/column/index.tsx`, `src/pages/board.tsx`
-
-**Current behavior:** When filters yield zero tasks in a column, it renders empty
-with no indication that tasks exist but are hidden. The screen-reader live
-region announces the count, but sighted users get no guidance.
-
-**Fix:**
-
-- Show a subtle inline message in each empty-after-filtering column: "No tasks
-  match the current filters" with a "Reset filters" link.
-- Differentiate visually between "column is empty" (never had tasks) and
-  "column has tasks but none match" (filtered out).
-
----
-
-## 6. Low-Priority / Polish (P3)
-
----
-
-### P3-1: No success toast on login
-
-**Files:** `src/components/loginForm/index.tsx`
-
-**Current behavior:** The register form shows `message.success("Registration
-successful")` on success, but the login form silently navigates to `/projects`
-with no success feedback.
-
-**Fix:** Add `message.success("Welcome back!")` or similar on login success,
-consistent with the register flow.
+- Users can tell local vs remote mode before sending an AI prompt.
+- Remote mode has a consent/disclosure checkpoint.
+- Security docs explain why the auth header is forwarded and how to scope it.
 
 ---
 
-### P3-2: Sparkle icon used without text label on some surfaces
+### P0-3: Chat answers lack robust claim-level citations
 
-**Files:** `src/pages/board.tsx` (Brief and Ask buttons do have labels, but the
-header Copilot toggle and AiSearchInput entry point use icon-only affordances
-on narrow viewports)
+**Best-practice violation:** black-box AI, hallucination risk, weak
+verification.
 
-**Current behavior:** The sparkle icon is used consistently, but NN/g research
-shows 17% of users confuse it with "favorite." Some surfaces use the sparkle
-with a text label, others are icon-only.
+**Evidence**
 
-**Fix:** Ensure every sparkle-icon affordance has an adjacent text label or at
-minimum a tooltip. Audit all `<AiSparkleIcon>` usages for label coverage.
+- Chat citations are derived best-effort only from preceding tool messages in
+  `src/components/aiChatDrawer/index.tsx:404-463`.
+- Citation chips are rendered only for the most recent assistant message in
+  `src/components/aiChatDrawer/index.tsx:612-630`.
+- Local chat finalization joins summarized tool output in
+  `src/utils/ai/chatEngine.ts:49-65`.
+- Tool summaries include ids in markdown but not structured claim-to-source
+  mappings in `src/utils/ai/chatEngine.ts:210-283`.
 
----
+**Impact**
 
-### P3-3: Command palette shows "No matches" instead of loading indicator
+The UI has a citation affordance, but it is not strong enough to support
+verification of specific claims. Users may see a polished answer and trust it
+without knowing which task, member, or column supports each statement.
 
-**Files:** `src/components/commandPalette/index.tsx`
+**Optimization plan**
 
-**Current behavior:** The palette reads from cached query data. If the cache is
-cold (first visit, before queries complete), the palette shows "No matches"
-which is misleading — there are matches, the data just hasn't loaded yet.
+1. Extend `AiChatMessage` or assistant turn payloads with `citations:
+   CitationRef[]` and optionally claim spans.
+2. Require the remote chat route to return structured citations for factual
+   statements.
+3. For local mode, emit structured citations directly from tool summaries rather
+   than reconstructing them in the drawer.
+4. Render citations adjacent to the sentence or bullet they support, not only at
+   the end of the latest bubble.
+5. Add "Open source task/column/member" behavior to each citation chip.
+6. Add a "No sources available" state for answers that are generic or
+   heuristic, so absence of citations is explicit.
 
-**Fix:** Check if underlying queries are still loading and show a skeleton or
-"Loading…" indicator instead of "No matches" while data is pending.
+**Acceptance criteria**
 
----
-
-### P3-4: `deleteProject.ts` naming inconsistency
-
-**Files:** `src/utils/optimisticUpdate/deleteProject.ts`
-
-**Current behavior:** The file is named `deleteProject.ts` but the component
-that imports it (`projectList/index.tsx`) imports it as `deleteTaskCallback`,
-creating confusion about what the function does.
-
-**Fix:** Rename the export to `deleteProjectCallback` for clarity.
-
----
-
-### P3-5: Missing `<title>` on projectDetail page
-
-**Files:** `src/pages/projectDetail.tsx`
-
-**Current behavior:** The `projectDetail` page does not call `useTitle()`. The
-browser tab title stays as whatever the previous page set (likely "Projects" or
-"Board" from the nested board page).
-
-**Fix:** Add `useTitle(project?.projectName ?? "Project")` so the tab title
-reflects the current project while on the detail shell.
+- Every board-data claim in chat has a nearby source or a visible "no source"
+  caveat.
+- Older assistant messages keep their citations.
+- Tests cover citations for list tasks, get task, workload, and unowned-task
+  answers.
 
 ---
 
-### P3-6: AI draft modal sample prompts are static
+### P1-1: Board brief recommendations lack confidence and source provenance
 
-**Files:** `src/components/aiTaskDraftModal/index.tsx`
+**Best-practice violation:** uncalibrated recommendations, insufficient
+explainability.
 
-**Current behavior:** The sample prompts ("Draft a bug fix task", "Plan a new
-feature", "Create a research spike") are static strings that don't adapt to the
-board's context.
+**Evidence**
 
-**Impact:** Per NN/g, "prompt suggestions must be contextually relevant,
-personalized, and specific both to the task and to the user's level of
-experience."
+- Board brief displays a headline and recommendation in
+  `src/components/boardBriefDrawer/index.tsx:449-462`.
+- `IBoardBrief` validation does not include confidence, assumptions, or source
+  references in `src/utils/ai/validate.ts:84-106`.
+- Local brief recommendations are deterministic heuristics in
+  `src/utils/ai/engine.ts:373-470`, but the UI does not label them as such.
 
-**Fix:** Generate 1-2 contextual sample prompts based on the board's current
-columns and task types (e.g., "Draft a bug for [most recent column name]" or
-"Plan a follow-up to [latest task]"). Keep 1-2 static prompts as fallbacks.
+**Impact**
 
----
+Recommendations like "consider reassigning" can feel authoritative even when
+they are simple heuristics over current board counts.
 
-## 7. What the App Already Does Well
+**Optimization plan**
 
-Credit where it's due — these areas are strong and should be preserved:
+1. Add a brief-level "Basis" section:
+   - "Based on current task count, column placement, owner, and story points."
+   - "Generated just now from local board data" or remote equivalent.
+2. Add confidence/strength labels for recommendations:
+   - "Strong signal"
+   - "Moderate signal"
+   - "Low signal / review manually"
+3. Add source chips to recommendation cards:
+   - unowned tasks,
+   - overloaded member workload,
+   - large unstarted task.
+4. Use "Suggested next step" language instead of implicit command language.
 
-| Area                              | Implementation                                                                             | Best Practice Alignment                            |
-| --------------------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------- |
-| **Privacy disclosure**            | `CopilotPrivacyPopover` + `CopilotPrivacyDisclosure` explain exactly what data the AI sees | Google PAIR: communicate data usage transparently  |
-| **Per-project AI opt-out**        | `useAiProjectDisabled` + settings toggle per board                                         | HAX G17: provide global controls                   |
-| **Autonomy levels**               | `useAutonomyLevel` stores suggest/plan/auto preference                                     | Smashing Magazine Autonomy Dial pattern            |
-| **Undo toasts for AI actions**    | `useUndoToast` on story point and readiness suggestions                                    | Smashing Magazine Action Audit & Undo              |
-| **Confidence bands utility**      | `confidenceBand.ts` + microcopy labels (High/Moderate/Low)                                 | Qualitative confidence indicators                  |
-| **AI suggestion badges**          | `AiSuggestedBadge` with rationale + revert                                                 | Transparency: label AI-generated content           |
-| **Citation chips**                | `CitationChip` with source attribution                                                     | Perplexity-style trust ratchet                     |
-| **Tool-call transparency**        | Collapsed `<details>` showing what tools the AI used                                       | HAX G11: make clear why the system did what it did |
-| **Accessibility landmarks**       | Skip links, live regions, ARIA labels, focus management                                    | WCAG compliance                                    |
-| **Reduced motion**                | `useReducedMotion` hook + CSS `prefers-reduced-motion`                                     | Accessibility best practice                        |
-| **Forced-colors support**         | CSS rules for high-contrast mode                                                           | Accessibility best practice                        |
-| **Touch targets**                 | 44px minimum on coarse pointers                                                            | WCAG 2.5.5                                         |
-| **Safe-area insets**              | All surfaces respect `env(safe-area-inset-*)`                                              | Mobile UX best practice                            |
-| **Dark mode**                     | Full theming with CSS variables + Ant Design algorithm                                     | Modern UX expectation                              |
-| **Sample prompts**                | Chat drawer and draft modal show clickable examples                                        | NN/g: show what the AI can do                      |
-| **Centralized microcopy**         | `constants/microcopy.ts` for actions, validation, AI strings                               | Consistency and future i18n                        |
-| **Optimistic updates**            | Dedicated callback files for reorder, create, delete                                       | Perceived performance                              |
-| **Analytics tracking**            | `ANALYTICS_EVENTS` constants for Copilot metrics                                           | Measurement infrastructure                         |
-| **Welcome banner**                | `CopilotWelcomeBanner` for first-visit onboarding                                          | AI discoverability                                 |
-| **Error boundary**                | Class component wrapping the app shell                                                     | Graceful degradation                               |
-| **Destructive action safeguards** | Mobile footer reorders Save/Cancel/Delete to prevent mis-taps                              | Mobile UX best practice                            |
-| **View Transitions**              | Route transitions use the View Transitions API                                             | Modern navigation UX                               |
+**Acceptance criteria**
+
+- Brief recommendation shows basis, timestamp, and source entities.
+- Low-data boards show an explicit low-confidence empty-state explanation.
 
 ---
 
-## 8. Implementation Roadmap
+### P1-2: AI search overpromises semantic understanding
 
-### Batch 1: Silent Failure Fixes (P0-1 through P0-4)
+**Best-practice violation:** misleading capability framing, hidden uncertainty.
 
-**Components:** `taskModal`, `projectList`, `useApi`, `useReactMutation`
+**Evidence**
 
-These four issues share a common root: error paths that produce no user-visible
-feedback. They can be addressed together because the patterns are identical:
-add error state display or toast notifications where mutations currently fail
-silently.
+- UI copy says "Ask Board Copilot a question..." in
+  `src/components/aiSearchInput/index.tsx:239-245`.
+- Local implementation is deterministic token/Jaccard overlap in
+  `src/utils/ai/engine.ts:478-556`.
+- Rationale says "Ranked ... by similarity to your phrase" in
+  `src/utils/ai/engine.ts:520-525` and
+  `src/utils/ai/engine.ts:549-554`.
 
-**Changes:**
+**Impact**
 
-- `useApi.ts`: Wrap `fetch()` in `try/catch` for network errors
-- `useReactMutation.ts`: Add optional toast on optimistic rollback
-- `taskModal/index.tsx`: Add `ErrorBox` for mutation errors
-- `projectList/index.tsx`: Add `.catch()` on like mutation
+The feature is useful, but "Ask a question" can imply richer natural-language
+understanding than the local engine provides. This risks disappointment for
+synonyms, negation, or analytical questions.
 
-**Testing:** Existing test suites + new tests for error scenarios.
-**Risk:** Low — additive changes with no architectural impact.
+**Optimization plan**
 
----
+1. Rename the input in local mode to a capability-accurate label:
+   - "Find related tasks with Copilot"
+   - "Describe tasks to filter"
+2. Use remote-specific copy only when an actual LLM/embedding service is
+   configured.
+3. Add visible explanation after first use:
+   - "Matched by task names, epics, types, and notes."
+4. Add confidence or match quality:
+   - "Best match"
+   - "Weak match"
+   - "No close matches"
+5. Improve local matching with a small synonym map for project-management terms
+   before investing in a remote embedding service.
 
-### Batch 2: Core UX Improvements (P1-1, P1-4, P1-5, P1-6)
+**Acceptance criteria**
 
-**Components:** Routes, `projectDetail`, `projectList`/`taskModal`, `appProviders`
-
-**Changes:**
-
-- Add catch-all 404 route
-- Add error state to `projectDetail` page
-- Add success toasts on delete completion
-- Configure `QueryClient` defaults
-
-**Testing:** Route tests, query behavior tests.
-**Risk:** Low to medium — QueryClient changes affect caching behavior globally
-and should be validated across all pages.
-
----
-
-### Batch 3: AI Trust Calibration (P1-2, P1-3, P1-7, P2-2, P2-5)
-
-**Components:** `aiChatDrawer`, `aiTaskAssistPanel`
-
-**Changes:**
-
-- Regenerate version indicator
-- Chat skeleton loading / streaming improvements
-- Feedback acknowledgment toast
-- Confidence badge on chat responses
-- AI-generated label on assistant messages
-
-**Testing:** Chat drawer tests, visual regression.
-**Risk:** Medium — changes to the chat rendering pipeline may affect existing
-AI flow tests.
+- Local search copy does not imply broad Q&A.
+- Match rationale names fields and match strength.
+- No-match state suggests useful alternatives based on detected terms.
 
 ---
 
-### Batch 4: Performance (P2-1, P2-3)
+### P1-3: Feedback controls are too shallow to improve trust or quality
 
-**Components:** Routes, debounce hooks
+**Best-practice violation:** weak feedback loop, no visible impact of feedback.
 
-**Changes:**
+**Evidence**
 
-- Implement `React.lazy` + `Suspense` for route-level code splitting
-- Split client-side filtering from API debounce; reduce debounce to 300ms
+- Chat feedback is only thumbs up/down in
+  `src/components/aiChatDrawer/index.tsx:385-397` and
+  `src/components/aiChatDrawer/index.tsx:653-686`.
+- `track` is a no-op in `src/constants/analytics.ts:43-50`.
+- Feedback toast says only "Thanks for your feedback" via
+  `src/constants/microcopy.ts:189-190`.
 
-**Testing:** All page-mount tests need `Suspense` wrappers.
-**Risk:** Medium — the route comment explicitly warns about test compatibility.
-Needs a dedicated pass through the test suite.
+**Impact**
+
+Users can express dissatisfaction, but cannot say why. Product teams cannot
+measure or fix failure categories, and users do not learn whether feedback
+affects the current answer, future personalization, or nothing yet.
+
+**Optimization plan**
+
+1. Replace plain thumbs-down with a small feedback sheet:
+   - Incorrect
+   - Missing source
+   - Outdated data
+   - Not actionable
+   - Unsafe/risky
+   - Privacy concern
+   - Other
+2. For thumbs-up, optionally ask "What worked?" after repeated positive use.
+3. Show feedback impact copy:
+   - "Feedback is saved for product review."
+   - "This does not train the model yet."
+   - or "This will personalize future suggestions" if true later.
+4. Wire `track` to a privacy-preserving sink before using metrics in
+   acceptance criteria.
+5. Add a citation-specific "source wrong" flag, since
+   `CITATION_FLAGGED` exists but is not wired.
+
+**Acceptance criteria**
+
+- Negative feedback has at least five actionable categories.
+- Feedback events include route, surface, category, confidence band, and whether
+  citations were present, without raw prompt/output text.
+- UI states clearly tell users what feedback changes.
 
 ---
 
-### Batch 5: Consistency and Polish (P2-4 through P2-9, P3-\*)
+### P1-4: Incomplete undo for readiness suggestions can mislead users
 
-**Components:** All pages and components (microcopy migration), column empty
-states, auth token handling, project list skeleton, command palette loading
+**Best-practice violation:** user control, reversible AI actions.
 
-**Changes:**
+**Evidence**
 
-- Migrate hardcoded strings to `microcopy.ts`
-- Add filtered-empty column indicator
-- Implement token expiry checking
-- Table loading skeleton
-- Command palette loading state
-- Remaining P3 items
+- Readiness suggestions call `onApplySuggestion` in
+  `src/components/aiTaskAssistPanel/index.tsx:194-211`.
+- The undo callback is intentionally passive and does not revert the field in
+  `src/components/aiTaskAssistPanel/index.tsx:198-209`.
 
-**Testing:** Microcopy migration is mechanical but touches many files.
-**Risk:** Low individually but high total surface area.
+**Impact**
+
+The toast presents an undo surface, but the field stays changed. This violates
+the expectation that undo reverses the AI action.
+
+**Optimization plan**
+
+1. Capture previous field values before applying readiness suggestions.
+2. Pass previous values into `undoToast.show`.
+3. Make undo restore the exact previous value.
+4. If a value cannot be restored, do not label the action Undo; use "AI change
+   applied" with a "Review field" action instead.
+
+**Acceptance criteria**
+
+- Every visible Undo on an AI-applied field actually reverts the field.
+- Tests cover readiness apply + undo for note, epic, type, and coordinator.
 
 ---
 
-## Appendix: Mapping to AI_UX_BEST_PRACTICES.md Sections
+### P1-5: AI-created bulk tasks use best-effort undo without user-visible partial failure
 
-| Best Practice Section                       | Status in This App                                                                                                                               |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2.1 Transparency and Explainability         | Partially implemented: citations, tool transparency, privacy disclosure ✅; missing confidence on chat, AI labels on responses ⚠️                |
-| 2.2 User Control and Autonomy               | Strong: autonomy dial, per-project opt-out, privacy controls ✅; missing undo on deletes ⚠️                                                      |
-| 2.3 Trust Calibration                       | Partial: confidence bands utility exists ✅; not surfaced on primary AI surface ⚠️; feedback loop not closed ⚠️                                  |
-| 2.4 Loading States and Latency              | Good: board skeleton, breadcrumb skeleton, stat placeholders ✅; chat uses spinner ⚠️; table uses spinner ⚠️                                     |
-| 2.5 Error Handling and Graceful Degradation | Mixed: page-level alerts with retry ✅; multiple mutation paths have no error display ❌                                                         |
-| 2.6 Onboarding and Discoverability          | Good: welcome banner, sample prompts, command palette ✅                                                                                         |
-| 2.7 AI Interaction Patterns                 | Good: chat drawer, inline search, command palette AI mode, task assist panel ✅                                                                  |
-| 2.8 Feedback Mechanisms                     | Partial: thumbs up/down exists ✅; no acknowledgment shown ⚠️                                                                                    |
-| 2.9 AI Content and Output Design            | Good: structured tool details, citation chips ✅                                                                                                 |
-| 2.10 Accessibility and Inclusivity          | Strong: landmarks, live regions, focus management, touch targets, reduced motion, forced colors ✅                                               |
-| 2.11 Privacy and Ethical UX                 | Strong: privacy disclosure, per-project control, clear data scope ✅                                                                             |
-| 3.1 Common AI UX Failures (Krux 8)          | #1 (no loading feedback): partially ⚠️; #2 (Regenerate trap): partially ⚠️; #7 (missing error states): multiple instances ❌; others: handled ✅ |
-| 3.2 Trust Anti-Patterns                     | Uniform confidence on chat ⚠️; invisible errors on mutations ❌                                                                                  |
+**Best-practice violation:** rollback clarity, auditability.
+
+**Evidence**
+
+- Bulk breakdown creates tasks sequentially in
+  `src/components/aiTaskDraftModal/index.tsx:233-293`.
+- Undo deletes created tasks with raw `fetch` and swallows failures in
+  `src/components/aiTaskDraftModal/index.tsx:267-287`.
+
+**Impact**
+
+If undo partially fails, users may believe all generated subtasks were removed
+when some remain.
+
+**Optimization plan**
+
+1. Route undo deletes through the app API/mutation abstraction so errors are
+   normalized.
+2. Track deletion outcomes and show:
+   - "3 subtasks removed"
+   - "2 removed, 1 could not be removed"
+3. Add a generated-task audit list with links to created tasks.
+4. Add metadata to created tasks if backend supports it:
+   - `source: "board-copilot"`
+   - `promptHash`
+   - `createdByAiAt`
+
+**Acceptance criteria**
+
+- Partial undo failure is visible.
+- Users can navigate to generated tasks after bulk creation.
+- Bulk creation and undo are covered by tests.
+
+---
+
+### P1-6: AI surfaces are fragmented across too many entry points
+
+**Best-practice violation:** discoverability overload, inconsistent IA,
+feature-dump onboarding.
+
+**Evidence**
+
+- Board header exposes Brief, Ask, and settings in
+  `src/pages/board.tsx:521-599`.
+- AI search is injected into the task filter panel in
+  `src/pages/board.tsx:603-619`.
+- Draft with AI is in task creation.
+- AI assist is inside task editing.
+- Command palette has a separate AI mode in
+  `src/components/commandPalette/index.tsx:571-578`.
+- The PRD already recommends unified AI surface architecture in
+  `docs/prd/board-copilot-v3.md:26-34`.
+
+**Impact**
+
+The product has many individually reasonable AI entry points, but the overall
+mental model is scattered. Users may not know which Copilot surface to use for a
+given task.
+
+**Optimization plan**
+
+1. Consolidate board-level controls into one `Copilot` menu:
+   - Ask
+   - Brief
+   - Find related tasks
+   - Draft task
+   - Settings
+2. Keep context-specific AI affordances inline where they reduce work:
+   - task estimate/readiness inside task modal,
+   - draft from task creator.
+3. Add one right-rail Copilot shell with tabs:
+   - Chat
+   - Brief
+   - Activity/History
+   - Settings
+4. Make command palette dispatch to the same shell, not a separate mental model.
+
+**Acceptance criteria**
+
+- Board-level AI is reachable from one primary Copilot entry.
+- Context-specific inline AI remains near the task it affects.
+- First-time onboarding explains the three primary Copilot jobs, not every
+  feature.
+
+---
+
+### P1-7: Agentic infrastructure is present but product integration is incomplete
+
+**Best-practice violation:** half-wired AI affordances, unclear autonomy,
+future overautomation risk.
+
+**Evidence**
+
+- `MutationProposalCard` exists in
+  `src/components/mutationProposalCard/index.tsx:10-17`.
+- `NudgeCard` exists in `src/components/nudgeCard/index.tsx:14-19`.
+- `useAgent` and `streamAgent` exist in `src/utils/hooks/useAgent.ts` and
+  `src/utils/ai/agentClient.ts`.
+- Search shows no page imports for `MutationProposalCard` / `NudgeCard`; they
+  appear to be scaffolding for a future surface.
+
+**Impact**
+
+The components themselves are useful, but if agentic capabilities ship without
+a unified surface, users may encounter proposals, nudges, or autonomy controls
+without a clear model of what the agent can do.
+
+**Optimization plan**
+
+1. Keep agentic components hidden until a complete "Copilot Activity" or
+   "Review proposals" surface exists.
+2. Define autonomy levels in UI before enabling write tools:
+   - Suggest only
+   - Propose changes
+   - Apply with confirmation
+3. Mutation proposals must include:
+   - source data,
+   - diff,
+   - risk,
+   - undoability,
+   - why this is suggested,
+   - exact affected records.
+4. Add an agent activity log before write tools:
+   - started,
+   - tool called,
+   - proposal shown,
+   - accepted/rejected,
+   - undone,
+   - failed.
+5. Add red-team tests for prompt injection and disallowed write attempts.
+
+**Acceptance criteria**
+
+- No agentic write proposal appears outside a reviewable proposal surface.
+- Every proposal has accept/reject and risk copy.
+- Activity log can explain what happened after the fact.
+
+---
+
+### P2-1: Confidence is inconsistent across surfaces
+
+**Best-practice violation:** inconsistent trust calibration.
+
+**Evidence**
+
+- Confidence bands are defined in `src/utils/ai/confidenceBand.ts:1-41`.
+- Draft modal uses confidence in
+  `src/components/aiTaskDraftModal/index.tsx:491-508`.
+- Task estimate uses confidence in
+  `src/components/aiTaskAssistPanel/index.tsx:274-388`.
+- Chat and brief do not expose confidence/basis at answer level.
+- Search does not expose match confidence, only rationale.
+
+**Optimization plan**
+
+1. Define a shared `AiConfidenceIndicator` component.
+2. Use it on:
+   - draft suggestions,
+   - estimates,
+   - search results,
+   - brief recommendations,
+   - future mutation proposals.
+3. Do not force confidence onto every chat answer. For chat, use confidence only
+   for factual board-data answers or when sources are thin.
+4. Add guidance:
+   - high confidence: normal CTA,
+   - moderate: normal CTA plus "review",
+   - low: secondary CTA "Apply anyway" or ask clarification.
+
+**Acceptance criteria**
+
+- Every structured AI recommendation has a confidence/basis indicator.
+- Numeric percentages never appear without a plain-language band.
+
+---
+
+### P2-2: Collapsed tool details still expose internal ids and implementation framing
+
+**Best-practice violation:** explanations should support user decisions, not
+technical completeness.
+
+**Evidence**
+
+- Tool details render summaries and expandable content in
+  `src/components/aiChatDrawer/index.tsx:536-556`.
+- Tool summaries include raw ids in `src/utils/ai/chatEngine.ts:218-270`.
+
+**Impact**
+
+The current collapse is much better than raw JSON by default, but expanded
+details still emphasize ids and tool names rather than user-relevant evidence.
+
+**Optimization plan**
+
+1. Rename "Looked up List tasks" style summaries to plain-language evidence:
+   - "Checked 12 tasks"
+   - "Checked board columns"
+   - "Opened task: Fix login redirect"
+2. Replace raw ids with linked display labels when possible.
+3. Put raw diagnostics behind a second "Developer details" disclosure in dev
+   builds only.
+
+**Acceptance criteria**
+
+- Default and first-level expanded tool details are understandable to non-
+  technical users.
+- Raw ids are available only when they help disambiguate or debug.
+
+---
+
+### P2-3: AI copy still uses first-person error language in one path
+
+**Best-practice violation:** avoid anthropomorphism that inflates trust or
+emotional framing.
+
+**Evidence**
+
+- `microcopy.ai.chatErrorRecovery` says "I couldn't find an answer..." in
+  `src/constants/microcopy.ts:220-221`.
+- The project otherwise documents tool-like language in
+  `src/constants/microcopy.ts:161-166`.
+
+**Optimization plan**
+
+Change to neutral copy:
+
+```text
+Board Copilot could not find an answer. Try rephrasing, or check the sources it reviewed.
+```
+
+Then run a microcopy audit for `I `, `I'm`, `I think`, `I understand`, and
+similar first-person phrases in AI surfaces.
+
+**Acceptance criteria**
+
+- AI system copy is consistently neutral and tool-like.
+- Tests/lint prevent new anthropomorphic AI phrases.
+
+---
+
+### P2-4: AI search and command palette share overlapping mental models
+
+**Best-practice violation:** confusing affordances.
+
+**Evidence**
+
+- AI search says "Ask Board Copilot a question..." in
+  `src/components/aiSearchInput/index.tsx:239-245`.
+- Command palette AI mode says "Ask Board Copilot..." in
+  `src/components/commandPalette/index.tsx:488-491` and
+  `src/components/commandPalette/index.tsx:571-578`.
+- One path filters tasks/projects; the other opens chat.
+
+**Impact**
+
+The same "Ask Board Copilot" language leads to different outcomes: filtering vs
+chat response.
+
+**Optimization plan**
+
+1. Reserve "Ask Board Copilot" for chat.
+2. Rename AI search to "Find related tasks" / "Find related projects".
+3. In command palette, show explicit action:
+   - "Ask Copilot in chat"
+4. Add helper text under AI search:
+   - "Filters this list; it will not open a chat."
+
+**Acceptance criteria**
+
+- The same verb does not trigger different interaction models.
+- Users can predict whether an AI action will filter, draft, summarize, or chat.
+
+---
+
+### P2-5: Observability is not actionable yet
+
+**Best-practice violation:** no measurement of trust, error recovery, or safety.
+
+**Evidence**
+
+- Analytics events are defined in `src/constants/analytics.ts:9-38`.
+- `track` is a no-op in `src/constants/analytics.ts:43-50`.
+- `AGENT_TTFT`, `CITATION_CLICKED`, `CITATION_FLAGGED`, and
+  `COPILOT_REWRITE_ACCEPT` are not meaningfully connected to a sink.
+
+**Optimization plan**
+
+1. Implement a privacy-preserving analytics adapter.
+2. Track:
+   - time to first visible status,
+   - time to final answer,
+   - retry rate,
+   - stop rate,
+   - regeneration rate,
+   - apply/undo rate,
+   - low-confidence apply-anyway rate,
+   - citation click rate,
+   - feedback categories,
+   - project/global AI disable rate.
+3. Do not send raw prompts, notes, task names, or generated answers.
+4. Add a local debug console sink in development for QA.
+
+**Acceptance criteria**
+
+- Product can measure whether AI UX changes improve trust calibration.
+- Analytics payload review confirms no raw user content is emitted.
+
+---
+
+### P2-6: The local deterministic engine is branded like full AI
+
+**Best-practice violation:** capability mismatch, inflated expectations.
+
+**Evidence**
+
+- `environment.aiUseLocalEngine` defaults to true when no AI base URL is set in
+  `src/constants/env.ts:12-20`.
+- Local behavior is deterministic rules/Jaccard in `src/utils/ai/engine.ts`.
+- UI still uses full Board Copilot branding across all modes.
+
+**Impact**
+
+Local mode is valuable for demos and offline behavior, but users may attribute
+rule-based mistakes to "AI" and lose trust.
+
+**Optimization plan**
+
+1. In development/local mode, label as "Board Copilot preview" or "Local
+   Copilot rules".
+2. In production local mode, explain limitations in the privacy/capability
+   popover:
+   - "Uses deterministic project rules; no external model is configured."
+3. Keep the same surface, but calibrate expectations by mode.
+
+**Acceptance criteria**
+
+- Users can distinguish local deterministic behavior from remote AI behavior.
+- Support/debug screenshots reveal which mode is active.
+
+---
+
+## 5. Recommended target architecture
+
+### 5.1 Unified Copilot surface
+
+Move toward one right-rail Copilot shell:
+
+- **Chat**: conversational Q&A with sources.
+- **Brief**: board summary and recommendations.
+- **Activity**: generated drafts, applied suggestions, undoable actions,
+  feedback status.
+- **Settings**: data scope, local/remote mode, project enablement, privacy.
+
+Keep inline AI where the user is already working:
+
+- Task draft from task creator.
+- Estimate/readiness inside task edit.
+- Suggested badges next to fields.
+- AI search as a filter affordance, but rename it to clarify behavior.
+
+### 5.2 Trust model
+
+Every AI output should declare:
+
+1. **What it is**: answer, draft, estimate, search filter, recommendation,
+   proposal.
+2. **What it used**: board fields, notes, members, columns, current task, prompt.
+3. **How certain it is** when structured enough to know.
+4. **What the user can do**: accept, edit, reject, undo, retry, check sources,
+   flag issue.
+
+### 5.3 Data governance model
+
+Introduce route-level payload builders:
+
+```text
+buildAiPayload(route, rawContext, dataScopeSettings) -> sanitizedPayload
+```
+
+This avoids each component deciding independently what to send.
+
+Add tests for:
+
+- included fields,
+- excluded fields,
+- project disable,
+- remote vs local disclosure,
+- auth behavior.
+
+---
+
+## 6. Phased roadmap
+
+### Phase 1 — Trust and privacy corrections
+
+1. Fix route-specific privacy copy and note-disclosure mismatch.
+2. Add local vs remote processing disclosure.
+3. Rename AI search to avoid implying chat/Q&A.
+4. Replace first-person AI error copy.
+5. Make readiness Undo actually revert fields.
+
+### Phase 2 — Evidence and calibration
+
+1. Add structured citations to chat payloads and UI.
+2. Add source/basis section to board brief recommendations.
+3. Create shared `AiConfidenceIndicator`.
+4. Add match quality to AI search.
+5. Replace tool summaries with user-facing evidence summaries.
+
+### Phase 3 — Feedback and observability
+
+1. Implement privacy-preserving analytics sink.
+2. Expand feedback categories.
+3. Wire citation clicked/flagged events.
+4. Add trust-calibration dashboard metrics for internal QA.
+5. Measure stop, retry, regenerate, apply-anyway, and undo rates.
+
+### Phase 4 — Surface consolidation
+
+1. Consolidate board-level AI controls into one Copilot menu.
+2. Build right-rail Copilot shell with Chat / Brief / Activity / Settings.
+3. Route command palette AI mode into the shell.
+4. Add action history for AI-generated changes.
+
+### Phase 5 — Agentic readiness
+
+1. Keep agent write tools disabled until proposal review exists.
+2. Integrate `MutationProposalCard` only inside the activity/review surface.
+3. Integrate `NudgeCard` into an inbox/history surface.
+4. Add autonomy settings before any write-capable agent ships.
+5. Add prompt-injection and disallowed-action test cases.
+
+---
+
+## 7. Test and validation plan
+
+### Static/unit tests
+
+- Privacy copy matches actual route payload fields.
+- Remote payload sanitization excludes forbidden fields.
+- Project disable prevents every AI route.
+- Readiness suggestion undo restores previous field values.
+- Confidence indicator renders band + percentage for structured outputs.
+- Chat citations persist per assistant message.
+- Feedback categories emit safe analytics payloads.
+
+### Integration tests
+
+- Board: open Copilot menu, ask chat, inspect citations, send feedback.
+- Board: run AI search, inspect match rationale, clear semantic filter.
+- Task modal: edit fields, apply estimate, undo, apply readiness, undo.
+- Draft modal: generate task, edit AI field, badge clears, create task.
+- Brief: generate, refresh, inspect sources, copy markdown.
+
+### Accessibility tests
+
+- `jest-axe` for every AI component.
+- Keyboard-only flow:
+  - open command palette,
+  - switch to Copilot mode,
+  - ask prompt,
+  - stop generation,
+  - regenerate,
+  - provide feedback.
+- Screen-reader live-region checks for chat, search, brief, and task assist.
+- Reduced-motion checks for streaming cursor and loading states.
+
+### Runtime/manual checks
+
+- Local mode and remote mode privacy copy.
+- Mobile drawer/bottom-sheet behavior.
+- Long task names and long generated notes.
+- No-data boards.
+- Low-confidence estimates.
+- Remote timeout, 429, 500, and network failure states.
+
+---
+
+## 8. Source mapping to AI UX best practices
+
+| Best practice / red flag | Current status | Plan sections |
+| --- | --- | --- |
+| Visible AI involvement | Mostly strong | Preserve; 3.1 |
+| User control / undo | Good but uneven | P1-4, P1-5 |
+| Privacy and data-use clarity | Needs correction | P0-1, P0-2 |
+| Claim-level verification | Partial | P0-3, P1-1 |
+| Confidence calibration | Partial | P2-1 |
+| Avoid misleading affordances | Needs copy cleanup | P1-2, P2-4 |
+| Feedback loops | Too shallow | P1-3, P2-5 |
+| Graceful failure | Mostly good | Continue in tests |
+| Avoid anthropomorphism | Mostly good | P2-3 |
+| Avoid half-wired agentic features | Needs governance | P1-7, Phase 5 |
+| Accessibility of dynamic AI UI | Improving | Test plan |
+| Measurement and monitoring | Not actionable | P2-5 |
+
+---
+
+## 9. Definition of done
+
+The AI UX optimization work is complete when:
+
+1. Users can see what Board Copilot is doing, what data it used, and whether it
+   ran locally or remotely.
+2. Every structured AI recommendation has confidence or basis copy.
+3. Every factual chat answer has source citations or an explicit no-source
+   caveat.
+4. Every visible AI Undo actually reverses the action or is renamed to avoid a
+   false promise.
+5. AI search, chat, draft, brief, and task assist use distinct labels that match
+   their outcomes.
+6. Feedback captures actionable categories without sending raw private content.
+7. No agentic write action can ship without preview, risk, accept/reject, undo,
+   and audit history.
+8. Accessibility tests cover dynamic AI states.
+9. Local and remote modes have separate, accurate privacy and capability
+   disclosures.
+10. Analytics can measure trust-calibration signals without leaking task/user
+    content.
