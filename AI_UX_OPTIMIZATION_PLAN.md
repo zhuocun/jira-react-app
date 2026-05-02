@@ -18,32 +18,32 @@ been fixed in the codebase. This version reflects the current implementation.
 ### Surfaces audited
 
 - Global enablement and route entry points:
-  - `src/components/header/index.tsx`
-  - `src/pages/board.tsx`
-  - `src/components/commandPalette/index.tsx`
+    - `src/components/header/index.tsx`
+    - `src/pages/board.tsx`
+    - `src/components/commandPalette/index.tsx`
 - AI feature components:
-  - `src/components/aiChatDrawer/index.tsx`
-  - `src/components/aiSearchInput/index.tsx`
-  - `src/components/boardBriefDrawer/index.tsx`
-  - `src/components/aiTaskDraftModal/index.tsx`
-  - `src/components/aiTaskAssistPanel/index.tsx`
-  - `src/components/aiSuggestedBadge/index.tsx`
-  - `src/components/copilotPrivacyPopover/index.tsx`
+    - `src/components/aiChatDrawer/index.tsx`
+    - `src/components/aiSearchInput/index.tsx`
+    - `src/components/boardBriefDrawer/index.tsx`
+    - `src/components/aiTaskDraftModal/index.tsx`
+    - `src/components/aiTaskAssistPanel/index.tsx`
+    - `src/components/aiSuggestedBadge/index.tsx`
+    - `src/components/copilotPrivacyPopover/index.tsx`
 - AI hooks and data contracts:
-  - `src/utils/hooks/useAi.ts`
-  - `src/utils/hooks/useAiChat.ts`
-  - `src/utils/hooks/useAgent.ts`
-  - `src/utils/ai/engine.ts`
-  - `src/utils/ai/chatEngine.ts`
-  - `src/utils/ai/chatTools.ts`
-  - `src/utils/ai/validate.ts`
-  - `src/utils/ai/projectAiStorage.ts`
+    - `src/utils/hooks/useAi.ts`
+    - `src/utils/hooks/useAiChat.ts`
+    - `src/utils/hooks/useAgent.ts`
+    - `src/utils/ai/engine.ts`
+    - `src/utils/ai/chatEngine.ts`
+    - `src/utils/ai/chatTools.ts`
+    - `src/utils/ai/validate.ts`
+    - `src/utils/ai/projectAiStorage.ts`
 - Planning and reference docs:
-  - `docs/prd/board-copilot-v3.md`
-  - `docs/prd/board-copilot-progress.md`
-  - `docs/ui-ux-optimization-plan.md`
-  - `AI_UX_BEST_PRACTICES.md`
-  - `AI_UX_PATTERNS_REPORT.md`
+    - `docs/prd/board-copilot-v3.md`
+    - `docs/prd/board-copilot-progress.md`
+    - `docs/ui-ux-optimization-plan.md`
+    - `AI_UX_BEST_PRACTICES.md`
+    - `AI_UX_PATTERNS_REPORT.md`
 
 ### Verification note
 
@@ -196,15 +196,15 @@ surprises.
 - `CopilotPrivacyPopover` similarly says no task notes are ever sent in
   `src/components/copilotPrivacyPopover/index.tsx:73-83`.
 - But several AI payloads do include `note` values:
-  - Task estimate includes `note` in
-    `src/utils/ai/engine.ts:253-256`.
-  - Semantic task search includes `task.note` in
-    `src/utils/ai/engine.ts:501-505`.
-  - Draft/estimate/readiness payloads pass full task context from
-    `src/components/aiTaskDraftModal/index.tsx:147-155` and
-    `src/components/aiTaskAssistPanel/index.tsx:123-153`.
-  - Chat tool `getTask` can return `t.note` in
-    `src/utils/ai/chatEngine.ts:259-270`.
+    - Task estimate includes `note` in
+      `src/utils/ai/engine.ts:253-256`.
+    - Semantic task search includes `task.note` in
+      `src/utils/ai/engine.ts:501-505`.
+    - Draft/estimate/readiness payloads pass full task context from
+      `src/components/aiTaskDraftModal/index.tsx:147-155` and
+      `src/components/aiTaskAssistPanel/index.tsx:123-153`.
+    - Chat tool `getTask` can return `t.note` in
+      `src/utils/ai/chatEngine.ts:259-270`.
 
 **Impact**
 
@@ -215,17 +215,17 @@ material privacy and trust issue.
 **Optimization plan**
 
 1. Define a single `AiDataScope` contract per route:
-   - `chat`
-   - `search`
-   - `board-brief`
-   - `task-draft`
-   - `task-breakdown`
-   - `estimate`
-   - `readiness`
+    - `chat`
+    - `search`
+    - `board-brief`
+    - `task-draft`
+    - `task-breakdown`
+    - `estimate`
+    - `readiness`
 2. Update privacy copy to be route-aware:
-   - Chat/search/estimate/readiness: disclose whether task notes are included.
-   - Draft from prompt: disclose prompt text and selected board context.
-   - Brief: disclose aggregate task, column, and member data.
+    - Chat/search/estimate/readiness: disclose whether task notes are included.
+    - Draft from prompt: disclose prompt text and selected board context.
+    - Brief: disclose aggregate task, column, and member data.
 3. If notes should not be shared remotely, sanitize contexts before
    `remoteResolve` and `remoteChatStep`.
 4. Add tests asserting the privacy disclosure matches the route payload.
@@ -265,13 +265,13 @@ a possible enterprise blocker.
 **Optimization plan**
 
 1. Add an environment-derived processing mode label:
-   - "Runs locally in this app" when `aiUseLocalEngine` is true.
-   - "Processed by your configured AI service" when remote mode is active.
+    - "Runs locally in this app" when `aiUseLocalEngine` is true.
+    - "Processed by your configured AI service" when remote mode is active.
 2. Add remote-specific privacy text:
-   - service/base origin,
-   - data categories sent,
-   - auth/permission behavior,
-   - retention/training policy link or "configured by workspace admin".
+    - service/base origin,
+    - data categories sent,
+    - auth/permission behavior,
+    - retention/training policy link or "configured by workspace admin".
 3. In remote mode, show first-use consent per user/workspace before first AI
    request.
 4. Consider proxy-scoped tokens instead of forwarding the primary REST bearer
@@ -312,7 +312,7 @@ without knowing which task, member, or column supports each statement.
 **Optimization plan**
 
 1. Extend `AiChatMessage` or assistant turn payloads with `citations:
-   CitationRef[]` and optionally claim spans.
+CitationRef[]` and optionally claim spans.
 2. Require the remote chat route to return structured citations for factual
    statements.
 3. For local mode, emit structured citations directly from tool summaries rather
@@ -355,16 +355,16 @@ they are simple heuristics over current board counts.
 **Optimization plan**
 
 1. Add a brief-level "Basis" section:
-   - "Based on current task count, column placement, owner, and story points."
-   - "Generated just now from local board data" or remote equivalent.
+    - "Based on current task count, column placement, owner, and story points."
+    - "Generated just now from local board data" or remote equivalent.
 2. Add confidence/strength labels for recommendations:
-   - "Strong signal"
-   - "Moderate signal"
-   - "Low signal / review manually"
+    - "Strong signal"
+    - "Moderate signal"
+    - "Low signal / review manually"
 3. Add source chips to recommendation cards:
-   - unowned tasks,
-   - overloaded member workload,
-   - large unstarted task.
+    - unowned tasks,
+    - overloaded member workload,
+    - large unstarted task.
 4. Use "Suggested next step" language instead of implicit command language.
 
 **Acceptance criteria**
@@ -397,16 +397,16 @@ synonyms, negation, or analytical questions.
 **Optimization plan**
 
 1. Rename the input in local mode to a capability-accurate label:
-   - "Find related tasks with Copilot"
-   - "Describe tasks to filter"
+    - "Find related tasks with Copilot"
+    - "Describe tasks to filter"
 2. Use remote-specific copy only when an actual LLM/embedding service is
    configured.
 3. Add visible explanation after first use:
-   - "Matched by task names, epics, types, and notes."
+    - "Matched by task names, epics, types, and notes."
 4. Add confidence or match quality:
-   - "Best match"
-   - "Weak match"
-   - "No close matches"
+    - "Best match"
+    - "Weak match"
+    - "No close matches"
 5. Improve local matching with a small synonym map for project-management terms
    before investing in a remote embedding service.
 
@@ -440,18 +440,18 @@ affects the current answer, future personalization, or nothing yet.
 **Optimization plan**
 
 1. Replace plain thumbs-down with a small feedback sheet:
-   - Incorrect
-   - Missing source
-   - Outdated data
-   - Not actionable
-   - Unsafe/risky
-   - Privacy concern
-   - Other
+    - Incorrect
+    - Missing source
+    - Outdated data
+    - Not actionable
+    - Unsafe/risky
+    - Privacy concern
+    - Other
 2. For thumbs-up, optionally ask "What worked?" after repeated positive use.
 3. Show feedback impact copy:
-   - "Feedback is saved for product review."
-   - "This does not train the model yet."
-   - or "This will personalize future suggestions" if true later.
+    - "Feedback is saved for product review."
+    - "This does not train the model yet."
+    - or "This will personalize future suggestions" if true later.
 4. Wire `track` to a privacy-preserving sink before using metrics in
    acceptance criteria.
 5. Add a citation-specific "source wrong" flag, since
@@ -518,13 +518,13 @@ when some remain.
 1. Route undo deletes through the app API/mutation abstraction so errors are
    normalized.
 2. Track deletion outcomes and show:
-   - "3 subtasks removed"
-   - "2 removed, 1 could not be removed"
+    - "3 subtasks removed"
+    - "2 removed, 1 could not be removed"
 3. Add a generated-task audit list with links to created tasks.
 4. Add metadata to created tasks if backend supports it:
-   - `source: "board-copilot"`
-   - `promptHash`
-   - `createdByAiAt`
+    - `source: "board-copilot"`
+    - `promptHash`
+    - `createdByAiAt`
 
 **Acceptance criteria**
 
@@ -561,19 +561,19 @@ given task.
 **Optimization plan**
 
 1. Consolidate board-level controls into one `Copilot` menu:
-   - Ask
-   - Brief
-   - Find related tasks
-   - Draft task
-   - Settings
+    - Ask
+    - Brief
+    - Find related tasks
+    - Draft task
+    - Settings
 2. Keep context-specific AI affordances inline where they reduce work:
-   - task estimate/readiness inside task modal,
-   - draft from task creator.
+    - task estimate/readiness inside task modal,
+    - draft from task creator.
 3. Add one right-rail Copilot shell with tabs:
-   - Chat
-   - Brief
-   - Activity/History
-   - Settings
+    - Chat
+    - Brief
+    - Activity/History
+    - Settings
 4. Make command palette dispatch to the same shell, not a separate mental model.
 
 **Acceptance criteria**
@@ -611,23 +611,23 @@ without a clear model of what the agent can do.
 1. Keep agentic components hidden until a complete "Copilot Activity" or
    "Review proposals" surface exists.
 2. Define autonomy levels in UI before enabling write tools:
-   - Suggest only
-   - Propose changes
-   - Apply with confirmation
+    - Suggest only
+    - Propose changes
+    - Apply with confirmation
 3. Mutation proposals must include:
-   - source data,
-   - diff,
-   - risk,
-   - undoability,
-   - why this is suggested,
-   - exact affected records.
+    - source data,
+    - diff,
+    - risk,
+    - undoability,
+    - why this is suggested,
+    - exact affected records.
 4. Add an agent activity log before write tools:
-   - started,
-   - tool called,
-   - proposal shown,
-   - accepted/rejected,
-   - undone,
-   - failed.
+    - started,
+    - tool called,
+    - proposal shown,
+    - accepted/rejected,
+    - undone,
+    - failed.
 5. Add red-team tests for prompt injection and disallowed write attempts.
 
 **Acceptance criteria**
@@ -656,17 +656,17 @@ without a clear model of what the agent can do.
 
 1. Define a shared `AiConfidenceIndicator` component.
 2. Use it on:
-   - draft suggestions,
-   - estimates,
-   - search results,
-   - brief recommendations,
-   - future mutation proposals.
+    - draft suggestions,
+    - estimates,
+    - search results,
+    - brief recommendations,
+    - future mutation proposals.
 3. Do not force confidence onto every chat answer. For chat, use confidence only
    for factual board-data answers or when sources are thin.
 4. Add guidance:
-   - high confidence: normal CTA,
-   - moderate: normal CTA plus "review",
-   - low: secondary CTA "Apply anyway" or ask clarification.
+    - high confidence: normal CTA,
+    - moderate: normal CTA plus "review",
+    - low: secondary CTA "Apply anyway" or ask clarification.
 
 **Acceptance criteria**
 
@@ -694,9 +694,9 @@ details still emphasize ids and tool names rather than user-relevant evidence.
 **Optimization plan**
 
 1. Rename "Looked up List tasks" style summaries to plain-language evidence:
-   - "Checked 12 tasks"
-   - "Checked board columns"
-   - "Opened task: Fix login redirect"
+    - "Checked 12 tasks"
+    - "Checked board columns"
+    - "Opened task: Fix login redirect"
 2. Replace raw ids with linked display labels when possible.
 3. Put raw diagnostics behind a second "Developer details" disclosure in dev
    builds only.
@@ -762,9 +762,9 @@ chat response.
 1. Reserve "Ask Board Copilot" for chat.
 2. Rename AI search to "Find related tasks" / "Find related projects".
 3. In command palette, show explicit action:
-   - "Ask Copilot in chat"
+    - "Ask Copilot in chat"
 4. Add helper text under AI search:
-   - "Filters this list; it will not open a chat."
+    - "Filters this list; it will not open a chat."
 
 **Acceptance criteria**
 
@@ -788,16 +788,16 @@ chat response.
 
 1. Implement a privacy-preserving analytics adapter.
 2. Track:
-   - time to first visible status,
-   - time to final answer,
-   - retry rate,
-   - stop rate,
-   - regeneration rate,
-   - apply/undo rate,
-   - low-confidence apply-anyway rate,
-   - citation click rate,
-   - feedback categories,
-   - project/global AI disable rate.
+    - time to first visible status,
+    - time to final answer,
+    - retry rate,
+    - stop rate,
+    - regeneration rate,
+    - apply/undo rate,
+    - low-confidence apply-anyway rate,
+    - citation click rate,
+    - feedback categories,
+    - project/global AI disable rate.
 3. Do not send raw prompts, notes, task names, or generated answers.
 4. Add a local debug console sink in development for QA.
 
@@ -830,7 +830,7 @@ rule-based mistakes to "AI" and lose trust.
    Copilot rules".
 2. In production local mode, explain limitations in the privacy/capability
    popover:
-   - "Uses deterministic project rules; no external model is configured."
+    - "Uses deterministic project rules; no external model is configured."
 3. Keep the same surface, but calibrate expectations by mode.
 
 **Acceptance criteria**
@@ -957,12 +957,12 @@ Add tests for:
 
 - `jest-axe` for every AI component.
 - Keyboard-only flow:
-  - open command palette,
-  - switch to Copilot mode,
-  - ask prompt,
-  - stop generation,
-  - regenerate,
-  - provide feedback.
+    - open command palette,
+    - switch to Copilot mode,
+    - ask prompt,
+    - stop generation,
+    - regenerate,
+    - provide feedback.
 - Screen-reader live-region checks for chat, search, brief, and task assist.
 - Reduced-motion checks for streaming cursor and loading states.
 
@@ -979,20 +979,20 @@ Add tests for:
 
 ## 8. Source mapping to AI UX best practices
 
-| Best practice / red flag | Current status | Plan sections |
-| --- | --- | --- |
-| Visible AI involvement | Mostly strong | Preserve; 3.1 |
-| User control / undo | Good but uneven | P1-4, P1-5 |
-| Privacy and data-use clarity | Needs correction | P0-1, P0-2 |
-| Claim-level verification | Partial | P0-3, P1-1 |
-| Confidence calibration | Partial | P2-1 |
-| Avoid misleading affordances | Needs copy cleanup | P1-2, P2-4 |
-| Feedback loops | Too shallow | P1-3, P2-5 |
-| Graceful failure | Mostly good | Continue in tests |
-| Avoid anthropomorphism | Mostly good | P2-3 |
-| Avoid half-wired agentic features | Needs governance | P1-7, Phase 5 |
-| Accessibility of dynamic AI UI | Improving | Test plan |
-| Measurement and monitoring | Not actionable | P2-5 |
+| Best practice / red flag          | Current status     | Plan sections     |
+| --------------------------------- | ------------------ | ----------------- |
+| Visible AI involvement            | Mostly strong      | Preserve; 3.1     |
+| User control / undo               | Good but uneven    | P1-4, P1-5        |
+| Privacy and data-use clarity      | Needs correction   | P0-1, P0-2        |
+| Claim-level verification          | Partial            | P0-3, P1-1        |
+| Confidence calibration            | Partial            | P2-1              |
+| Avoid misleading affordances      | Needs copy cleanup | P1-2, P2-4        |
+| Feedback loops                    | Too shallow        | P1-3, P2-5        |
+| Graceful failure                  | Mostly good        | Continue in tests |
+| Avoid anthropomorphism            | Mostly good        | P2-3              |
+| Avoid half-wired agentic features | Needs governance   | P1-7, Phase 5     |
+| Accessibility of dynamic AI UI    | Improving          | Test plan         |
+| Measurement and monitoring        | Not actionable     | P2-5              |
 
 ---
 
