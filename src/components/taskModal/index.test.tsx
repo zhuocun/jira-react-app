@@ -382,4 +382,29 @@ describe("TaskModal", () => {
             jest.useRealTimers();
         }
     });
+
+    it("restores the previous field value when undoing a readiness suggestion", async () => {
+        jest.useFakeTimers();
+        try {
+            renderModal();
+            const noteInput = (await screen.findByPlaceholderText(
+                "Notes / acceptance criteria"
+            )) as HTMLTextAreaElement;
+
+            fireEvent.change(noteInput, {
+                target: { value: "Keep this note" }
+            });
+            jest.advanceTimersByTime(1000);
+            const noteSuggestion = await screen.findByLabelText(
+                /Apply readiness suggestion for note/
+            );
+            fireEvent.click(noteSuggestion);
+            expect(noteInput.value).toMatch(/## Acceptance criteria/);
+
+            fireEvent.click(await screen.findByText("Undo"));
+            await waitFor(() => expect(noteInput.value).toBe("Keep this note"));
+        } finally {
+            jest.useRealTimers();
+        }
+    });
 });

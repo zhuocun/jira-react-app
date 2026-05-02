@@ -82,7 +82,8 @@ const mountPanel = (
         onApplyStoryPoints: (value: StoryPoints) => void;
         onApplySuggestion: (
             field: IReadinessIssue["field"],
-            suggestion: string
+            suggestion: string | undefined,
+            options?: { replace?: boolean }
         ) => void;
         onOpenSimilarTask: (taskId: string) => void;
         excludeTaskId?: string;

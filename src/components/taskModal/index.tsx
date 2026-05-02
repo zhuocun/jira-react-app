@@ -385,9 +385,13 @@ const TaskModal: React.FC<{
                             form.setFieldsValue({ storyPoints: value });
                             setFormTick((tick) => tick + 1);
                         }}
-                        onApplySuggestion={(field, suggestion) => {
+                        onApplySuggestion={(field, suggestion, options) => {
                             const current = form.getFieldValue(field) ?? "";
-                            if (field === "note") {
+                            if (options?.replace) {
+                                form.setFieldValue(field, suggestion);
+                            } else if (suggestion === undefined) {
+                                return;
+                            } else if (field === "note") {
                                 const appended = `${current}${
                                     current ? "\n\n" : ""
                                 }## Acceptance criteria\n- ${suggestion}`;
