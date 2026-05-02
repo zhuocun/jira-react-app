@@ -77,7 +77,7 @@ describe("useAi remote transport", () => {
         });
 
         expect(fetchSpy).toHaveBeenCalledWith(
-            "https://copilot.example/api/ai/task-draft",
+            "https://copilot.example/api/v1/ai/task-draft",
             expect.objectContaining({ method: "POST" })
         );
         expect(result.current.data?.taskName).toBe("Remote draft");
@@ -213,7 +213,7 @@ describe("useAi remote transport", () => {
         });
 
         expect(fetchSpy).toHaveBeenCalledWith(
-            "https://copilot.example/api/ai/search",
+            "https://copilot.example/api/v1/ai/search",
             expect.objectContaining({ method: "POST" })
         );
         expect(result.current.data?.ids).toEqual(["t1"]);
