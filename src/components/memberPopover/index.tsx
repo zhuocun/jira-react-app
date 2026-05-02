@@ -16,7 +16,10 @@ import EmptyState from "../emptyState";
 import UserAvatar from "../userAvatar";
 
 const ContentContainer = styled.div`
+    /* Dynamic viewport unit keeps the popover from jumping when the iOS
+     * Safari URL bar collapses. The vh declaration stays as a fallback. */
     max-height: 60vh;
+    max-height: 60dvh;
     max-width: min(30rem, calc(100vw - ${modalGutterPx}px));
     min-width: min(20rem, calc(100vw - ${modalGutterPx}px));
     overflow-y: auto;

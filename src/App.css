@@ -200,6 +200,28 @@ video {
 }
 
 /*
+ * Prevent iOS Safari auto-zoom on focused form controls. Mobile Safari
+ * forces a viewport zoom whenever a focused input's computed font-size is
+ * below 16 px, which makes every form interaction feel "web-y". AntD's
+ * `fontSize.base` is 14 px to keep the desktop look dense; this rule lifts
+ * controls to 16 px only on coarse pointers (touch devices) so desktop
+ * density is preserved.
+ */
+@media (pointer: coarse) {
+    input,
+    textarea,
+    select,
+    .ant-input,
+    .ant-input-affix-wrapper input,
+    .ant-input-number-input,
+    .ant-select-selection-search-input,
+    .ant-select-selection-item,
+    .ant-picker-input > input {
+        font-size: 16px;
+    }
+}
+
+/*
  * Honor user motion preference. Components opting in to motion read
  * useReducedMotion() directly; this rule is a defense-in-depth.
  */

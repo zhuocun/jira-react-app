@@ -127,6 +127,8 @@ const ColumnCreator: React.FC = () => {
             <Input
                 aria-label="New column name"
                 disabled={isLoading}
+                enterKeyHint="done"
+                inputMode="text"
                 onBlur={submit}
                 onChange={(e) => setColumnName(e.target.value)}
                 onKeyDown={(event) => {

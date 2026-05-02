@@ -36,7 +36,10 @@ interface PaletteEntry {
 const ListContainer = styled.ul`
     list-style: none;
     margin: 0;
+    /* Dynamic viewport unit keeps the list from jumping when the iOS Safari
+     * URL bar collapses. The vh declaration stays as a fallback. */
     max-height: 50vh;
+    max-height: 50dvh;
     overflow-y: auto;
     padding: 0;
 `;
@@ -654,7 +657,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
         return (
             <Drawer
                 destroyOnClose
-                height="65vh"
+                height="65dvh"
                 onClose={onClose}
                 open={open}
                 placement="bottom"
