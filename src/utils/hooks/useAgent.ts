@@ -254,14 +254,17 @@ const useAgent = (
         }
     }, []);
 
-    useEffect(
-        () => () => {
+    useEffect(() => {
+        // Re-arm on every mount so React.StrictMode's mount→unmount→remount
+        // dev cycle doesn't leave `mountedRef` stuck at `false`. Otherwise
+        // every async setState below the unmount would be silently dropped.
+        mountedRef.current = true;
+        return () => {
             mountedRef.current = false;
             controllerRef.current?.abort();
             clearWatchdog();
-        },
-        [clearWatchdog]
-    );
+        };
+    }, [clearWatchdog]);
 
     const safeSetState = useCallback(
         (updater: (prev: UseAgentState) => UseAgentState) => {

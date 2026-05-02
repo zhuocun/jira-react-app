@@ -14,10 +14,10 @@ import {
 import useAuth from "../../utils/hooks/useAuth";
 
 export interface TaskSearchParam {
-    taskName: string;
-    coordinatorId: string;
-    type: string;
-    semanticIds?: string;
+    taskName: string | null;
+    coordinatorId: string | null;
+    type: string | null;
+    semanticIds?: string | null;
 }
 
 interface Props {
@@ -205,7 +205,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                             />
                         }
                         type="search"
-                        value={param.taskName}
+                        value={param.taskName ?? ""}
                     />
                 </FlexInput>
                 <FlexSelect>

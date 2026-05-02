@@ -228,13 +228,15 @@ const useAi = <T>(options: UseAiOptions) => {
     const controllerRef = useRef<AbortController | null>(null);
     const mountedRef = useRef(true);
 
-    useEffect(
-        () => () => {
+    useEffect(() => {
+        // Re-arm `mountedRef` on every mount so React.StrictMode's
+        // mount→unmount→remount dev cycle doesn't leave it stuck at `false`.
+        mountedRef.current = true;
+        return () => {
             mountedRef.current = false;
             controllerRef.current?.abort();
-        },
-        []
-    );
+        };
+    }, []);
 
     const abort = useCallback(() => {
         controllerRef.current?.abort();

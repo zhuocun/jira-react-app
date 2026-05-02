@@ -101,7 +101,7 @@ const CitationChip: React.FC<CitationChipProps> = ({
                 aria-label={`Citation ${index}: ${sourceLabel[citation.source]} ${citation.id}`}
                 onClick={handleActivate}
                 onKeyDown={onKeyDown}
-                role={onNavigate ? "link" : "note"}
+                role={onNavigate ? "button" : "note"}
                 tabIndex={onNavigate ? 0 : -1}
             >
                 [{index}]

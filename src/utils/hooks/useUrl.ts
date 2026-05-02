@@ -26,7 +26,7 @@ const useUrl = <K extends string>(keys: K[]) => {
                     (prev, key) => {
                         return { ...prev, [key]: searchParams.get(key) };
                     },
-                    {} as { [key in K]: string }
+                    {} as { [key in K]: string | null }
                 ),
             [searchParams, stateKeys]
         ),
