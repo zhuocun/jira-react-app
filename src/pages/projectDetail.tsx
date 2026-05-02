@@ -108,7 +108,16 @@ const Body = styled.div`
     overflow: auto;
 `;
 
-const tabItems = [{ key: "board", label: <Link to="board">Board</Link> }];
+const tabItems = [
+    {
+        key: "board",
+        label: (
+            <Link to="board" viewTransition>
+                Board
+            </Link>
+        )
+    }
+];
 
 /**
  * Replaces the previous duplicated grid + sidebar shell with a breadcrumb +

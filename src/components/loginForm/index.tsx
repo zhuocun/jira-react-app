@@ -40,7 +40,7 @@ const LoginForm: React.FC<{
         try {
             const res = await mutateAsync(input);
             localStorage.setItem("Token", res.jwt);
-            navigate("/projects");
+            navigate("/projects", { viewTransition: true });
         } catch {
             // Error state is set by useReactMutation's onError callback.
         }

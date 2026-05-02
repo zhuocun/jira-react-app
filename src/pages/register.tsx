@@ -25,7 +25,7 @@ const RegisterPage = () => {
     const [error, setError] = useState<Error | null | IError>(null);
     const errorRef = useRef<HTMLDivElement | null>(null);
     const handleSwitch = () => {
-        navigate("/login");
+        navigate("/login", { viewTransition: true });
     };
 
     useEffect(() => {
