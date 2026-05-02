@@ -9,7 +9,9 @@ import {
     Button,
     Dropdown,
     MenuProps,
+    message,
     Modal,
+    Skeleton,
     Table,
     TableProps,
     Typography
@@ -31,7 +33,7 @@ import {
 import useAuth from "../../utils/hooks/useAuth";
 import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactMutation from "../../utils/hooks/useReactMutation";
-import deleteTaskCallback from "../../utils/optimisticUpdate/deleteProject";
+import deleteProjectCallback from "../../utils/optimisticUpdate/deleteProject";
 import EmptyState from "../emptyState";
 import UserAvatar, { gradientFor, initialsOf } from "../userAvatar";
 
@@ -212,9 +214,27 @@ const formatDate = (raw?: string): string => {
     }).format(date);
 };
 
+const SKELETON_ROW_COUNT = 4;
+const SKELETON_KEY_PREFIX = "__skeleton__";
+
+const isSkeletonRow = (row: ProjectIntro): boolean =>
+    typeof row._id === "string" && row._id.startsWith(SKELETON_KEY_PREFIX);
+
+const SkeletonProjectCell = () => (
+    <ProjectCell>
+        <Skeleton.Avatar active shape="square" size={36} />
+        <Skeleton.Input active size="small" style={{ width: 160 }} />
+    </ProjectCell>
+);
+
+const SkeletonBar = ({ width = 96 }: { width?: number }) => (
+    <Skeleton.Input active size="small" style={{ width }} />
+);
+
 const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
     const { user, refreshUser } = useAuth();
     const [pendingLikeId, setPendingLikeId] = useState("");
+    const showSkeleton = Boolean(props.loading) && !error;
     const { mutateAsync: update } = useReactMutation(
         "users/likes",
         "PUT",
@@ -224,7 +244,12 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
         "projects",
         "DELETE",
         ["projects", {}],
-        deleteTaskCallback
+        deleteProjectCallback,
+        () => {
+            // Suppress useReactMutation's auto-revert toast; we surface a
+            // dedicated success/failure toast below so the user sees the
+            // outcome of the explicit confirm-to-delete.
+        }
     );
     const { startEditing, openModal } = useProjectModal();
     const onEdit = (projectId: string) => {
@@ -247,9 +272,16 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
     const onLike = useCallback(
         (projectId: string) => {
             setPendingLikeId(projectId);
-            update({ projectId }).then(() => {
-                setPendingLikeId("");
-            });
+            update({ projectId })
+                .catch(() => {
+                    // Without this catch the heart icon stays stuck in its
+                    // optimistic flipped state because `pendingLikeId` is
+                    // never cleared on rejection.
+                    message.error(microcopy.feedback.likeFailed);
+                })
+                .finally(() => {
+                    setPendingLikeId("");
+                });
         },
         [update]
     );
@@ -263,7 +295,15 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
             title: microcopy.confirm.deleteProject.title,
             content: microcopy.confirm.deleteProject.description,
             onOk() {
-                remove({ projectId });
+                remove(
+                    { projectId },
+                    {
+                        onSuccess: () =>
+                            message.success(microcopy.feedback.projectDeleted),
+                        onError: () =>
+                            message.error(microcopy.feedback.saveFailed)
+                    }
+                );
             }
         });
     };
@@ -288,6 +328,9 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
             ),
             width: 56,
             render(_, data) {
+                if (isSkeletonRow(data)) {
+                    return <SkeletonBar width={20} />;
+                }
                 const liked = isLiked(data._id);
                 return (
                     <Button
@@ -322,8 +365,13 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
             // Created off-screen. Cap the column so `word-break: break-word`
             // on the link wraps the run inside the cell.
             width: 360,
-            sorter: (a, b) => a.projectName.localeCompare(b.projectName),
+            sorter: showSkeleton
+                ? undefined
+                : (a, b) => a.projectName.localeCompare(b.projectName),
             render(_, data) {
+                if (isSkeletonRow(data)) {
+                    return <SkeletonProjectCell />;
+                }
                 return (
                     <ProjectCell>
                         <ProjectAvatar
@@ -346,6 +394,9 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
             title: "Organization",
             dataIndex: "organization",
             render(_, data) {
+                if (isSkeletonRow(data)) {
+                    return <SkeletonBar width={120} />;
+                }
                 return (
                     <Typography.Text type="secondary">
                         {data.organization}
@@ -357,6 +408,9 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
             key: "Manager",
             title: microcopy.fields.manager,
             render(_, data) {
+                if (isSkeletonRow(data)) {
+                    return <SkeletonBar width={140} />;
+                }
                 const manager = members.find(
                     (member) => member._id === data.managerId
                 );
@@ -383,6 +437,9 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
             key: "Created At",
             title: "Created",
             render(_, data) {
+                if (isSkeletonRow(data)) {
+                    return <SkeletonBar width={84} />;
+                }
                 if (!data.createdAt) {
                     return (
                         <Typography.Text type="secondary">
@@ -402,6 +459,9 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
             width: 56,
             align: "right",
             render(_, data) {
+                if (isSkeletonRow(data)) {
+                    return <SkeletonBar width={20} />;
+                }
                 const items: MenuProps["items"] = [
                     {
                         key: "edit",
@@ -443,13 +503,33 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
         }
     ];
 
+    const skeletonRows: ProjectIntro[] = useMemo(
+        () =>
+            Array.from({ length: SKELETON_ROW_COUNT }, (_, idx) => ({
+                _id: `${SKELETON_KEY_PREFIX}${idx}`,
+                createdAt: "",
+                managerId: "",
+                organization: "",
+                projectName: "",
+                key: idx
+            })),
+        []
+    );
+
+    const renderedDataSource = showSkeleton ? skeletonRows : dataSource;
+
     return (
-        <ListSurface>
+        <ListSurface aria-busy={showSkeleton || undefined}>
             <Table<ProjectIntro>
                 {...props}
-                pagination={{ pageSize: 10, hideOnSinglePage: true }}
+                loading={false}
+                pagination={
+                    showSkeleton
+                        ? false
+                        : { pageSize: 10, hideOnSinglePage: true }
+                }
                 columns={ListColumns}
-                dataSource={dataSource}
+                dataSource={renderedDataSource}
                 scroll={{ x: "max-content" }}
                 locale={{
                     emptyText: error ? (

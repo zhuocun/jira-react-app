@@ -1,4 +1,4 @@
-const deleteTaskCallback = (
+const deleteProjectCallback = (
     target: { projectId: string },
     old: IProject[] | undefined
 ) => {
@@ -10,4 +10,4 @@ const deleteTaskCallback = (
     return old.filter((project) => project._id !== target.projectId);
 };
 
-export default deleteTaskCallback;
+export default deleteProjectCallback;

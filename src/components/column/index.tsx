@@ -80,6 +80,37 @@ const TaskContainer = styled.div`
     padding-bottom: ${space.xs}px;
 `;
 
+const FilteredEmpty = styled.div`
+    align-items: center;
+    background: var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
+    border: 1px dashed var(--ant-color-border-secondary, rgba(15, 23, 42, 0.12));
+    border-radius: ${radius.md}px;
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.55));
+    display: flex;
+    flex-direction: column;
+    font-size: ${fontSize.xs}px;
+    gap: ${space.xxs}px;
+    padding: ${space.sm}px ${space.md}px;
+    text-align: center;
+`;
+
+const FilteredEmptyButton = styled.button`
+    background: transparent;
+    border: 0;
+    border-radius: ${radius.sm}px;
+    color: var(--ant-color-primary, #5e6ad2);
+    cursor: pointer;
+    font-size: ${fontSize.xs}px;
+    font-weight: ${fontWeight.medium};
+    padding: ${space.xxs}px ${space.xs}px;
+
+    &:hover,
+    &:focus-visible {
+        background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.1));
+        outline: none;
+    }
+`;
+
 const TaskCardOuter = styled.button`
     background: var(--ant-color-bg-container, #fff);
     border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
@@ -381,6 +412,7 @@ const Column = React.forwardRef<
         isDragDisabled: boolean;
         boardAiOn?: boolean;
         members?: IMember[];
+        onResetFilters?: () => void;
     }
 >(
     (
@@ -391,6 +423,7 @@ const Column = React.forwardRef<
             isDragDisabled,
             boardAiOn = true,
             members = [],
+            onResetFilters,
             ...props
         },
         ref
@@ -408,6 +441,8 @@ const Column = React.forwardRef<
                         .filter(Boolean)
                         .includes(task._id))
         );
+        const hasTasksHiddenByFilter =
+            tasks.length > 0 && filteredTasks.length === 0;
         return (
             <ColumnContainer {...props} ref={ref}>
                 <ColumnHeader between>
@@ -473,6 +508,21 @@ const Column = React.forwardRef<
                                     />
                                 </Drag>
                             ))}
+                            {hasTasksHiddenByFilter ? (
+                                <FilteredEmpty aria-live="polite" role="status">
+                                    <span>
+                                        {microcopy.empty.filteredColumn.title}
+                                    </span>
+                                    {onResetFilters ? (
+                                        <FilteredEmptyButton
+                                            onClick={onResetFilters}
+                                            type="button"
+                                        >
+                                            {microcopy.empty.filteredColumn.cta}
+                                        </FilteredEmptyButton>
+                                    ) : null}
+                                </FilteredEmpty>
+                            ) : null}
                             <TaskCreator
                                 boardAiOn={boardAiOn}
                                 columnId={column._id}

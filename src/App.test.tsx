@@ -92,22 +92,24 @@ describe("App", () => {
         await waitFor(() => {
             expect(window.location.pathname).toBe("/login");
         });
-        expect(screen.getByTestId("home-route")).toBeInTheDocument();
-        expect(screen.getByText("Login Route")).toBeInTheDocument();
+        expect(await screen.findByTestId("home-route")).toBeInTheDocument();
+        expect(await screen.findByText("Login Route")).toBeInTheDocument();
     });
 
-    it("renders a known auth route through the route tree", () => {
+    it("renders a known auth route through the route tree", async () => {
         renderAppAt("/register");
 
-        expect(screen.getByTestId("home-route")).toBeInTheDocument();
-        expect(screen.getByText("Register Route")).toBeInTheDocument();
+        expect(await screen.findByTestId("home-route")).toBeInTheDocument();
+        expect(await screen.findByText("Register Route")).toBeInTheDocument();
     });
 
-    it("renders nested project board routes", () => {
+    it("renders nested project board routes", async () => {
         renderAppAt("/projects/p1/board");
 
-        expect(screen.getByTestId("home-route")).toBeInTheDocument();
-        expect(screen.getByTestId("project-detail-route")).toBeInTheDocument();
-        expect(screen.getByText("Board Route")).toBeInTheDocument();
+        expect(await screen.findByTestId("home-route")).toBeInTheDocument();
+        expect(
+            await screen.findByTestId("project-detail-route")
+        ).toBeInTheDocument();
+        expect(await screen.findByText("Board Route")).toBeInTheDocument();
     });
 });

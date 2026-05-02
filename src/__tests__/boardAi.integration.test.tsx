@@ -5,6 +5,12 @@ import userEvent from "@testing-library/user-event";
 import App from "../App";
 import AppProviders from "../utils/appProviders";
 
+// Lazy route loading + multi-step navigation chains (login → projects →
+// board → drawer) push these end-to-end flows past the 5s default,
+// especially under jest parallelism. 60s gives enough headroom on slow CI
+// when other suites are competing for the worker pool.
+jest.setTimeout(60000);
+
 jest.mock("../constants/env", () => ({
     __esModule: true,
     default: {
@@ -207,7 +213,12 @@ describe("Board AI integration (App + local engine)", () => {
         const user = userEvent.setup();
         renderAppAt("/login");
 
-        await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
+        await user.type(
+            await screen.findByLabelText(/^email$/i, undefined, {
+                timeout: 5000
+            }),
+            "alice@example.com"
+        );
         await user.type(screen.getByLabelText(/^password$/i), "secret");
         await user.click(screen.getByRole("button", { name: /^log in$/i }));
 
@@ -227,11 +238,13 @@ describe("Board AI integration (App + local engine)", () => {
             expect(window.location.pathname).toBe("/projects/p1/board");
         });
 
-        await waitFor(() => {
-            expect(
-                screen.getByRole("heading", { name: /alpha board/i })
-            ).toBeInTheDocument();
-        });
+        expect(
+            await screen.findByRole(
+                "heading",
+                { name: /alpha board/i },
+                { timeout: 5000 }
+            )
+        ).toBeInTheDocument();
 
         return user;
     };
@@ -247,7 +260,9 @@ describe("Board AI integration (App + local engine)", () => {
             "Message Board Copilot"
         );
         await user.type(messageInput, "Give me a quick board summary");
-        await user.click(screen.getByRole("button", { name: /send message/i }));
+        await user.click(
+            await screen.findByRole("button", { name: /send message/i })
+        );
 
         await waitFor(() => {
             expect(screen.getByText(/task on the board/i)).toBeInTheDocument();

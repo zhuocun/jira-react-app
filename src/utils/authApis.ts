@@ -1,10 +1,33 @@
 import environment from "../constants/env";
+import { microcopy } from "../constants/microcopy";
 
 import getAuthErrorMessage from "./getAuthErrorMessage";
 import { parseFetchBody } from "./parseFetchBody";
 
+/**
+ * Mirrors the network-error narrowing in `useApi.ts` so offline / DNS / CORS
+ * failures surface a friendly message in the auth forms instead of the raw
+ * `TypeError("Failed to fetch")` browser string.
+ */
+const isNetworkError = (err: unknown): boolean =>
+    err instanceof TypeError && err.message.toLowerCase().includes("fetch");
+
+const authFetch = async (
+    endpoint: string,
+    init: RequestInit
+): Promise<Response> => {
+    try {
+        return await fetch(`${environment.apiBaseUrl}/${endpoint}`, init);
+    } catch (err) {
+        if (isNetworkError(err)) {
+            throw new Error(microcopy.feedback.networkError, { cause: err });
+        }
+        throw err;
+    }
+};
+
 const login = async (param: { email: string; password: string }) => {
-    const res = await fetch(`${environment.apiBaseUrl}/auth/login`, {
+    const res = await authFetch("auth/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -27,7 +50,7 @@ const register = async (param: {
     email: string;
     password: string;
 }) => {
-    const res = await fetch(`${environment.apiBaseUrl}/auth/register`, {
+    const res = await authFetch("auth/register", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

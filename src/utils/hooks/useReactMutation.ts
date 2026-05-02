@@ -1,5 +1,7 @@
 import { QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
+import { message } from "antd";
 
+import { microcopy } from "../../constants/microcopy";
 import filterRequest from "../filterRequest";
 import getError from "../getError";
 
@@ -50,8 +52,13 @@ const useReactMutation = <D>(
             if (callback && context) {
                 queryClient.setQueryData(cacheKey, context.previousItems);
             }
+            // Precedence: a caller-supplied `onError` owns the user-visible
+            // feedback (forms surface it inline); we only auto-toast when an
+            // optimistic update silently rolled back without anyone watching.
             if (onError) {
                 onError(err instanceof Error ? err : getError(err));
+            } else if (callback) {
+                message.error(microcopy.feedback.optimisticReverted);
             }
         },
         onSuccess: setCache

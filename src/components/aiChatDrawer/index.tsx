@@ -2,14 +2,15 @@ import { ReloadOutlined, StopOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import {
     Alert,
+    App,
     Button,
     Drawer,
-    Flex,
     Grid,
     Input,
+    Skeleton,
     Space,
-    Spin,
     Tag,
+    Tooltip,
     Typography
 } from "antd";
 import type { TextAreaRef } from "antd/es/input/TextArea";
@@ -64,6 +65,55 @@ const MessageBubble = styled(Typography.Paragraph)<{ $isUser: boolean }>`
         max-width: 100%;
         overflow-x: auto;
     }
+`;
+
+/**
+ * AntD's `Typography.Text` with `code` looks heavy here; this is a
+ * lightweight pseudo-cursor that pulses while tokens stream in. The
+ * bare span avoids a re-render storm from CSS animations on every chunk.
+ */
+const StreamingCursor = styled.span`
+    display: inline-block;
+    margin-inline-start: 2px;
+    animation: aiCursorBlink 1s steps(1) infinite;
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.65));
+
+    @keyframes aiCursorBlink {
+        50% {
+            opacity: 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+`;
+
+/**
+ * Attribution row above each assistant bubble (P2-5). The sparkle is
+ * decorative — the visible "Board Copilot" label is what screen readers
+ * announce. Pairing the model name with the bubble matches the
+ * ChatGPT/Claude convention so users always know the source of the text.
+ */
+const AssistantAttribution = styled.div`
+    align-items: center;
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.65));
+    display: inline-flex;
+    font-size: ${fontSize.xs}px;
+    font-weight: ${fontWeight.medium};
+    gap: 4px;
+    margin-bottom: ${space.xxs}px;
+`;
+
+/**
+ * "AI · review before using" footnote below each assistant bubble (P2-2).
+ * Kept intentionally low-contrast so it sits out of the reading flow but
+ * remains discoverable when users are calibrating trust on a response.
+ */
+const AssistantDisclaimer = styled.div`
+    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.45));
+    font-size: ${fontSize.xs}px;
+    margin-top: 2px;
 `;
 
 const SamplePrompt = styled(Tag.CheckableTag)`
@@ -161,6 +211,22 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     const [input, setInput] = useState("");
     const [feedback, setFeedback] = useState<ChatTurnFeedback[]>([]);
     /**
+     * Set of message indices that arrived as the result of a Regenerate
+     * click (P1-2). Tracked instead of derived so an out-of-band reset or
+     * a stream interruption can't desync the badge from the bubble it
+     * decorates. The set is wiped on `resetAll`.
+     */
+    const [regeneratedIndices, setRegeneratedIndices] = useState<Set<number>>(
+        () => new Set()
+    );
+    /**
+     * Length of `messages` at the moment Regenerate was clicked. The
+     * `useEffect` watching `messages.length` uses this to identify the
+     * freshly-arrived assistant turn (the next assistant role beyond this
+     * length) and tag it.
+     */
+    const pendingRegenAfter = useRef<number | null>(null);
+    /**
      * Citations indexed by assistant turn (C-R7). The drawer renders a
      * `CitationChip` superscript for each item right after the bubble.
      * Until the agent emits real citations on the chat route, we extract
@@ -171,6 +237,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     const screens = Grid.useBreakpoint();
     const drawerWidth = screens.md ? 420 : "100%";
     const initialPromptHandled = useRef<string | null>(null);
+    const { message } = App.useApp();
 
     useEffect(() => {
         if (!open) {
@@ -222,6 +289,8 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     const resetAll = useCallback(() => {
         reset();
         setFeedback([]);
+        setRegeneratedIndices(new Set());
+        pendingRegenAfter.current = null;
     }, [reset]);
 
     /**
@@ -284,16 +353,47 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
         track(ANALYTICS_EVENTS.COPILOT_CHAT_REGENERATE, {
             surface: "chat-drawer"
         });
+        // Mark the next assistant message as regenerated so the user can
+        // tell which bubble is the fresh answer (P1-2).
+        pendingRegenAfter.current = messages.length;
         dispatch(previous.content);
     };
 
+    /**
+     * After a Regenerate, watch for the first assistant message that
+     * lands beyond the recorded length and tag it. We compare lengths
+     * (not roles) so an interleaving tool message can't trip the marker.
+     */
+    useEffect(() => {
+        if (pendingRegenAfter.current === null) return;
+        if (isLoading) return;
+        if (messages.length <= pendingRegenAfter.current) return;
+        const next = messages
+            .slice(pendingRegenAfter.current)
+            .findIndex((m) => m.role === "assistant");
+        if (next < 0) return;
+        const absoluteIndex = pendingRegenAfter.current + next;
+        setRegeneratedIndices((prev) => {
+            if (prev.has(absoluteIndex)) return prev;
+            const updated = new Set(prev);
+            updated.add(absoluteIndex);
+            return updated;
+        });
+        pendingRegenAfter.current = null;
+    }, [isLoading, messages]);
+
     const handleFeedback = (turnIndex: number, value: "up" | "down") => {
+        const existing = feedback.find((entry) => entry.index === turnIndex);
+        // De-dupe repeat clicks on the same value so we don't fire the
+        // toast or analytics for an effectively no-op interaction (P1-7).
+        if (existing?.value === value) return;
         track(ANALYTICS_EVENTS.THUMBS_FEEDBACK, { value, index: turnIndex });
         setFeedback((prev) => {
             const next = prev.filter((entry) => entry.index !== turnIndex);
             next.push({ index: turnIndex, value });
             return next;
         });
+        message.success(microcopy.ai.feedbackThanks);
     };
 
     const errorView = error ? aiErrorView(error) : null;
@@ -462,8 +562,51 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                     const turnFeedback = feedback.find(
                         (entry) => entry.index === index
                     );
+                    const isRegenerated =
+                        isAssistant && regeneratedIndices.has(index);
+                    const groupAriaLabel = isAssistant
+                        ? isRegenerated
+                            ? `${microcopy.ai.copilotLabel} · ${microcopy.ai.regeneratedBadge}`
+                            : microcopy.ai.copilotLabel
+                        : undefined;
                     return (
-                        <MessageRow $isUser={isUser} key={`msg-${index}`}>
+                        <MessageRow
+                            $isUser={isUser}
+                            key={`msg-${index}`}
+                            aria-label={groupAriaLabel}
+                            role={isAssistant ? "group" : undefined}
+                        >
+                            {isAssistant && (
+                                <AssistantAttribution>
+                                    <AiSparkleIcon aria-hidden />
+                                    <span>{microcopy.ai.copilotLabel}</span>
+                                    {isRegenerated && (
+                                        <Tooltip
+                                            title={
+                                                microcopy.ai.regeneratedTooltip
+                                            }
+                                        >
+                                            <Tag
+                                                color="purple"
+                                                style={{
+                                                    marginInlineStart: 4,
+                                                    marginInlineEnd: 0
+                                                }}
+                                            >
+                                                <ReloadOutlined
+                                                    aria-hidden
+                                                    style={{
+                                                        fontSize:
+                                                            fontSize.xs - 1,
+                                                        marginInlineEnd: 4
+                                                    }}
+                                                />
+                                                {microcopy.ai.regeneratedBadge}
+                                            </Tag>
+                                        </Tooltip>
+                                    )}
+                                </AssistantAttribution>
+                            )}
                             <MessageBubble $isUser={isUser}>
                                 {m.content}
                                 {isLastAssistant &&
@@ -486,6 +629,11 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                         </span>
                                     )}
                             </MessageBubble>
+                            {isAssistant && (
+                                <AssistantDisclaimer>
+                                    {microcopy.a11y.aiBadge}
+                                </AssistantDisclaimer>
+                            )}
                             {isAssistant && !isLoading && (
                                 <Space
                                     size={4}
@@ -567,19 +715,58 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                     </Space>
                 )}
                 {isLoading && (
-                    <Flex
-                        align="center"
-                        gap={space.xs}
-                        style={{ marginTop: space.xs }}
+                    <MessageRow
+                        $isUser={false}
+                        aria-label={`${microcopy.ai.copilotLabel} · ${microcopy.ai.streaming}`}
+                        role="group"
                     >
-                        <Spin
-                            aria-label={microcopy.ai.streaming}
-                            size="small"
-                        />
-                        <Text type="secondary">
-                            {streamingText || microcopy.ai.streaming}
-                        </Text>
-                    </Flex>
+                        <AssistantAttribution>
+                            <AiSparkleIcon aria-hidden />
+                            <span>{microcopy.ai.copilotLabel}</span>
+                            {!streamingText && (
+                                /* Pre-token stage label sits next to the model
+                                   name so users see *something* descriptive
+                                   before the first character lands. Once the
+                                   bubble has its own streaming text, hide
+                                   this label to avoid duplicating the same
+                                   string in two places. */
+                                <Text
+                                    style={{
+                                        color: "var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.45))",
+                                        fontSize: fontSize.xs,
+                                        fontWeight: fontWeight.regular,
+                                        marginInlineStart: 4
+                                    }}
+                                    type="secondary"
+                                >
+                                    {microcopy.ai.thinkingDefault}
+                                </Text>
+                            )}
+                        </AssistantAttribution>
+                        <MessageBubble $isUser={false}>
+                            {streamingText ? (
+                                <>
+                                    {streamingText}
+                                    <StreamingCursor aria-hidden>
+                                        ▍
+                                    </StreamingCursor>
+                                </>
+                            ) : (
+                                <Skeleton
+                                    active
+                                    aria-label={microcopy.ai.streaming}
+                                    paragraph={{
+                                        rows: 2,
+                                        width: ["80%", "55%"]
+                                    }}
+                                    title={false}
+                                />
+                            )}
+                        </MessageBubble>
+                        <AssistantDisclaimer>
+                            {microcopy.a11y.aiBadge}
+                        </AssistantDisclaimer>
+                    </MessageRow>
                 )}
             </div>
 

@@ -185,7 +185,13 @@ const ProjectPage = () => {
         "managerId",
         "semanticIds"
     ]);
-    const debouncedParam = useDebounce(param, 1000);
+    /*
+     * Only the API-triggering params (projectName, managerId) are debounced;
+     * the client-side semanticIds filter applies immediately so users see
+     * keystroke-rate feedback. 300 ms is the sweet spot between perceived
+     * snappiness and avoiding a request per keystroke.
+     */
+    const debouncedParam = useDebounce(param, 300);
     const { projectName, managerId } = debouncedParam;
     const fetchParam = { projectName, managerId };
     const {

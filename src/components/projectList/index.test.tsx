@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { Modal } from "antd";
+import { message, Modal } from "antd";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
@@ -289,10 +289,51 @@ describe("ProjectList", () => {
                 title: "Delete this project?"
             })
         );
-        expect(removeProject).toHaveBeenCalledWith({
-            projectId: "project-1"
-        });
+        expect(removeProject).toHaveBeenCalledWith(
+            { projectId: "project-1" },
+            expect.objectContaining({
+                onError: expect.any(Function),
+                onSuccess: expect.any(Function)
+            })
+        );
 
         confirmSpy.mockRestore();
+    });
+
+    it("clears the pending heart and toasts when the like mutation rejects", async () => {
+        likeProject.mockRejectedValueOnce(new Error("offline"));
+        const errorSpy = jest
+            .spyOn(message, "error")
+            .mockImplementation(() => "" as never);
+        renderList();
+
+        const likeButton = screen.getByRole("button", {
+            name: /like roadmap/i
+        });
+
+        fireEvent.click(likeButton);
+
+        await waitFor(() => expect(errorSpy).toHaveBeenCalledTimes(1));
+        expect(errorSpy.mock.calls[0][0]).toMatch(/like/i);
+        await waitFor(() => {
+            expect(
+                screen.getByRole("button", { name: /like roadmap/i })
+            ).toHaveAttribute("aria-pressed", "false");
+        });
+
+        errorSpy.mockRestore();
+    });
+
+    it("renders skeleton placeholder rows while loading", () => {
+        const { container } = renderList({
+            dataSource: [],
+            loading: true
+        });
+
+        // The skeleton dataset replaces the empty state when loading.
+        expect(screen.queryByText(/no projects yet/i)).not.toBeInTheDocument();
+        expect(
+            container.querySelectorAll(".ant-skeleton").length
+        ).toBeGreaterThan(0);
     });
 });

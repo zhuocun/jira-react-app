@@ -68,13 +68,13 @@ The gaps cluster around four themes:
 
 ### Counts
 
-| Priority | Issues |
-|----------|--------|
-| P0 — Critical | 4 |
-| P1 — High | 7 |
-| P2 — Medium | 9 |
-| P3 — Low / Polish | 6 |
-| **Total** | **26** |
+| Priority          | Issues |
+| ----------------- | ------ |
+| P0 — Critical     | 4      |
+| P1 — High         | 7      |
+| P2 — Medium       | 9      |
+| P3 — Low / Polish | 6      |
+| **Total**         | **26** |
 
 ---
 
@@ -98,6 +98,7 @@ error message. Users may re-click Save or assume it saved and close manually.
 **Impact:** Silent failure destroys trust.
 
 **Fix:**
+
 - Add an `ErrorBox` component inside the modal (same pattern as `loginForm` and
   `registerForm`) that displays the mutation error.
 - Wire the `useReactMutation` `onError` callback to set a local error state.
@@ -120,6 +121,7 @@ in its inverted (pending) state indefinitely with no error message.
 **Impact:** The like button appears stuck with no recovery path.
 
 **Fix:**
+
 - Add a `.catch()` that clears `pendingLikeId` and shows a brief
   `message.error()` toast.
 - Consider using `useReactMutation`'s `onError` callback instead of raw
@@ -144,9 +146,10 @@ your internet connection and try again." This erodes trust and leaves users
 without a clear recovery path.
 
 **Fix:**
+
 - In `api()`, wrap the `fetch` call so that `TypeError` is converted into a
   user-friendly `Error("Unable to connect. Check your internet connection and
-  try again.")`.
+try again.")`.
 - Apply the same treatment in `authApis.ts` login/register functions.
 
 ---
@@ -167,6 +170,7 @@ reverts (e.g., a reordered column snaps back) with no explanation.
 mysteriously revert with no indication of what happened.
 
 **Fix:**
+
 - Add a `message.error()` or `notification.error()` call in the
   `useReactMutation` `onError` path when a `callback` (optimistic updater)
   was supplied, so users always see a "Couldn't save — your changes were
@@ -193,6 +197,7 @@ degrade), error handling best practices.
 any undefined path renders a blank page.
 
 **Fix:**
+
 - Add a catch-all route (`path: "*"`) that renders a `PageError` component with
   a "Page not found" message and a link back to `/projects`.
 - Use the existing `EmptyState` component with a relevant illustration.
@@ -215,6 +220,7 @@ no way to compare responses.
 the regenerated one.
 
 **Fix:**
+
 - Add a visual indicator on regenerated responses: "Regenerated response" badge
   or a subtle divider with "↻ Regenerated" label.
 - Consider collapsing the previous response with an "Show earlier version"
@@ -240,6 +246,7 @@ the research, perceived wait drops by 55-70% with streaming, and users begin
 trying to interact or leaving after 3-5 seconds of a spinner.
 
 **Fix:**
+
 - Replace the loading spinner with a chat-bubble-shaped skeleton (shimmer
   animation in the approximate shape of an assistant message bubble).
 - If `streamingText` contains actual response content (not just a status label),
@@ -260,6 +267,7 @@ the project fetch fails, the breadcrumb shows "Project" (fallback) and the body
 renders `<Outlet />` with no error alert, no retry, and no failure indication.
 
 **Fix:**
+
 - Destructure `error` and `refetch` from the query.
 - When `error` is truthy, render an `Alert` with retry (same pattern as
   `board.tsx` and `project.tsx`).
@@ -280,6 +288,7 @@ optimistically with no success toast. If the deletion fails, the item reappears
 with no explanation.
 
 **Fix:**
+
 - Add `message.success("Project deleted")` and `message.success("Task deleted")`
   on successful mutation completion.
 - If the deletion is optimistic, show the toast immediately with an undo option
@@ -299,6 +308,7 @@ mutations). Every navigation back to `/projects` triggers a refetch even if data
 was loaded seconds ago.
 
 **Fix:**
+
 - Set `staleTime: 30_000` (30s) as a global default so repeated mounts within
   30 seconds use cached data.
 - Set `retry: 1` or configure retry only for queries (not mutations) to avoid
@@ -306,18 +316,21 @@ was loaded seconds ago.
 - Consider `refetchOnWindowFocus: false` for a calmer UX.
 
 ```tsx
-const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-        queries: {
-            staleTime: 30_000,
-            retry: 1,
-            refetchOnWindowFocus: false,
-        },
-        mutations: {
-            retry: false,
-        },
-    },
-}));
+const [queryClient] = useState(
+    () =>
+        new QueryClient({
+            defaultOptions: {
+                queries: {
+                    staleTime: 30_000,
+                    retry: 1,
+                    refetchOnWindowFocus: false
+                },
+                mutations: {
+                    retry: false
+                }
+            }
+        })
+);
 ```
 
 ---
@@ -336,6 +349,7 @@ analytics event, but shows no visible acknowledgment. The
 **Impact:** Users who provide feedback never see it was received.
 
 **Fix:**
+
 - Show a brief `message.success(microcopy.ai.feedbackThanks)` when feedback
   is submitted.
 - Alternatively, render a brief inline acknowledgment below the rated message
@@ -359,6 +373,7 @@ to 1600. The initial bundle includes all page and AI code even for the login
 page.
 
 **Fix:**
+
 - Wrap page imports with `React.lazy()` and add `<Suspense>` boundaries at
   the route level with appropriate fallbacks (e.g., `PageSpin`).
 - Update affected tests to handle asynchronous component loading (wrap renders
@@ -384,6 +399,7 @@ appear with equal visual weight.
 **Impact:** The "uniform confidence" anti-pattern on the most-used AI surface.
 
 **Fix:**
+
 - If the chat engine can provide confidence metadata, render a subtle confidence
   badge (High/Moderate/Low) on each assistant response.
 - At minimum, add a static "AI-generated · verify before using" label on each
@@ -405,6 +421,7 @@ already-loaded data also waits 1 second.
 **Impact:** Users expect < 200ms visual feedback for keystrokes.
 
 **Fix:**
+
 - Separate the concerns: debounce the API request parameters but apply
   client-side filtering immediately on the raw `param`.
 - Reduce the debounce to 300-500ms for the API-triggering params.
@@ -420,6 +437,7 @@ maintainability.
 **Files:** Widespread across components
 
 **Examples of hardcoded strings that should be in `microcopy`:**
+
 - `src/pages/project.tsx`: "Projects", "Browse the boards your team is
   shipping…", stat labels ("Total projects", "Organizations", "Team members")
 - `src/pages/board.tsx`: "Board", "Swipe to see more columns", "Enable on this
@@ -439,6 +457,7 @@ maintainability.
 **Impact:** Copy changes or future i18n require touching 15+ files individually.
 
 **Fix:**
+
 - Audit all user-facing strings and migrate them to `microcopy.ts`.
 - Group new strings under logical namespaces (e.g., `microcopy.pages.projects`,
   `microcopy.board.settings`).
@@ -458,6 +477,7 @@ using" tag, but individual assistant messages have no per-message AI label.
 Messages are differentiated only by alignment and background color.
 
 **Fix:**
+
 - Add a small "Board Copilot" or sparkle icon prefix on each assistant message
   bubble (similar to how ChatGPT shows the model name).
 - This is especially important if the product ever adds human-in-the-loop
@@ -481,6 +501,7 @@ safeguard. No undo after confirmation.
 real safety net is undo.
 
 **Fix (incremental):**
+
 - Phase 1: After deletion, show a 5-second undo toast (leveraging
   `useUndoToast` already in the codebase). Keep the deleted item in local
   state during the undo window; only fire the DELETE API call after the
@@ -502,6 +523,7 @@ token expires server-side, API calls fail with 401s but the UI keeps showing
 the authenticated layout until a hard refresh.
 
 **Fix:**
+
 - Decode the JWT expiry (`exp` claim) client-side and schedule a refresh or
   redirect before expiry.
 - Add a response interceptor that catches 401s globally and redirects to login
@@ -521,6 +543,7 @@ the authenticated layout until a hard refresh.
 spinner overlay that doesn't match the table's layout.
 
 **Fix:**
+
 - Replace the `loading` prop with a custom skeleton that renders 3-5 placeholder
   rows with shimmer animations matching the column layout (avatar + text for
   Project, gray bar for Organization, pill for Manager, etc.).
@@ -541,6 +564,7 @@ with no indication that tasks exist but are hidden. The screen-reader live
 region announces the count, but sighted users get no guidance.
 
 **Fix:**
+
 - Show a subtle inline message in each empty-after-filtering column: "No tasks
   match the current filters" with a "Reset filters" link.
 - Differentiate visually between "column is empty" (never had tasks) and
@@ -640,30 +664,30 @@ columns and task types (e.g., "Draft a bug for [most recent column name]" or
 
 Credit where it's due — these areas are strong and should be preserved:
 
-| Area | Implementation | Best Practice Alignment |
-|------|---------------|------------------------|
-| **Privacy disclosure** | `CopilotPrivacyPopover` + `CopilotPrivacyDisclosure` explain exactly what data the AI sees | Google PAIR: communicate data usage transparently |
-| **Per-project AI opt-out** | `useAiProjectDisabled` + settings toggle per board | HAX G17: provide global controls |
-| **Autonomy levels** | `useAutonomyLevel` stores suggest/plan/auto preference | Smashing Magazine Autonomy Dial pattern |
-| **Undo toasts for AI actions** | `useUndoToast` on story point and readiness suggestions | Smashing Magazine Action Audit & Undo |
-| **Confidence bands utility** | `confidenceBand.ts` + microcopy labels (High/Moderate/Low) | Qualitative confidence indicators |
-| **AI suggestion badges** | `AiSuggestedBadge` with rationale + revert | Transparency: label AI-generated content |
-| **Citation chips** | `CitationChip` with source attribution | Perplexity-style trust ratchet |
-| **Tool-call transparency** | Collapsed `<details>` showing what tools the AI used | HAX G11: make clear why the system did what it did |
-| **Accessibility landmarks** | Skip links, live regions, ARIA labels, focus management | WCAG compliance |
-| **Reduced motion** | `useReducedMotion` hook + CSS `prefers-reduced-motion` | Accessibility best practice |
-| **Forced-colors support** | CSS rules for high-contrast mode | Accessibility best practice |
-| **Touch targets** | 44px minimum on coarse pointers | WCAG 2.5.5 |
-| **Safe-area insets** | All surfaces respect `env(safe-area-inset-*)` | Mobile UX best practice |
-| **Dark mode** | Full theming with CSS variables + Ant Design algorithm | Modern UX expectation |
-| **Sample prompts** | Chat drawer and draft modal show clickable examples | NN/g: show what the AI can do |
-| **Centralized microcopy** | `constants/microcopy.ts` for actions, validation, AI strings | Consistency and future i18n |
-| **Optimistic updates** | Dedicated callback files for reorder, create, delete | Perceived performance |
-| **Analytics tracking** | `ANALYTICS_EVENTS` constants for Copilot metrics | Measurement infrastructure |
-| **Welcome banner** | `CopilotWelcomeBanner` for first-visit onboarding | AI discoverability |
-| **Error boundary** | Class component wrapping the app shell | Graceful degradation |
-| **Destructive action safeguards** | Mobile footer reorders Save/Cancel/Delete to prevent mis-taps | Mobile UX best practice |
-| **View Transitions** | Route transitions use the View Transitions API | Modern navigation UX |
+| Area                              | Implementation                                                                             | Best Practice Alignment                            |
+| --------------------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| **Privacy disclosure**            | `CopilotPrivacyPopover` + `CopilotPrivacyDisclosure` explain exactly what data the AI sees | Google PAIR: communicate data usage transparently  |
+| **Per-project AI opt-out**        | `useAiProjectDisabled` + settings toggle per board                                         | HAX G17: provide global controls                   |
+| **Autonomy levels**               | `useAutonomyLevel` stores suggest/plan/auto preference                                     | Smashing Magazine Autonomy Dial pattern            |
+| **Undo toasts for AI actions**    | `useUndoToast` on story point and readiness suggestions                                    | Smashing Magazine Action Audit & Undo              |
+| **Confidence bands utility**      | `confidenceBand.ts` + microcopy labels (High/Moderate/Low)                                 | Qualitative confidence indicators                  |
+| **AI suggestion badges**          | `AiSuggestedBadge` with rationale + revert                                                 | Transparency: label AI-generated content           |
+| **Citation chips**                | `CitationChip` with source attribution                                                     | Perplexity-style trust ratchet                     |
+| **Tool-call transparency**        | Collapsed `<details>` showing what tools the AI used                                       | HAX G11: make clear why the system did what it did |
+| **Accessibility landmarks**       | Skip links, live regions, ARIA labels, focus management                                    | WCAG compliance                                    |
+| **Reduced motion**                | `useReducedMotion` hook + CSS `prefers-reduced-motion`                                     | Accessibility best practice                        |
+| **Forced-colors support**         | CSS rules for high-contrast mode                                                           | Accessibility best practice                        |
+| **Touch targets**                 | 44px minimum on coarse pointers                                                            | WCAG 2.5.5                                         |
+| **Safe-area insets**              | All surfaces respect `env(safe-area-inset-*)`                                              | Mobile UX best practice                            |
+| **Dark mode**                     | Full theming with CSS variables + Ant Design algorithm                                     | Modern UX expectation                              |
+| **Sample prompts**                | Chat drawer and draft modal show clickable examples                                        | NN/g: show what the AI can do                      |
+| **Centralized microcopy**         | `constants/microcopy.ts` for actions, validation, AI strings                               | Consistency and future i18n                        |
+| **Optimistic updates**            | Dedicated callback files for reorder, create, delete                                       | Perceived performance                              |
+| **Analytics tracking**            | `ANALYTICS_EVENTS` constants for Copilot metrics                                           | Measurement infrastructure                         |
+| **Welcome banner**                | `CopilotWelcomeBanner` for first-visit onboarding                                          | AI discoverability                                 |
+| **Error boundary**                | Class component wrapping the app shell                                                     | Graceful degradation                               |
+| **Destructive action safeguards** | Mobile footer reorders Save/Cancel/Delete to prevent mis-taps                              | Mobile UX best practice                            |
+| **View Transitions**              | Route transitions use the View Transitions API                                             | Modern navigation UX                               |
 
 ---
 
@@ -679,6 +703,7 @@ add error state display or toast notifications where mutations currently fail
 silently.
 
 **Changes:**
+
 - `useApi.ts`: Wrap `fetch()` in `try/catch` for network errors
 - `useReactMutation.ts`: Add optional toast on optimistic rollback
 - `taskModal/index.tsx`: Add `ErrorBox` for mutation errors
@@ -694,6 +719,7 @@ silently.
 **Components:** Routes, `projectDetail`, `projectList`/`taskModal`, `appProviders`
 
 **Changes:**
+
 - Add catch-all 404 route
 - Add error state to `projectDetail` page
 - Add success toasts on delete completion
@@ -710,6 +736,7 @@ and should be validated across all pages.
 **Components:** `aiChatDrawer`, `aiTaskAssistPanel`
 
 **Changes:**
+
 - Regenerate version indicator
 - Chat skeleton loading / streaming improvements
 - Feedback acknowledgment toast
@@ -727,6 +754,7 @@ AI flow tests.
 **Components:** Routes, debounce hooks
 
 **Changes:**
+
 - Implement `React.lazy` + `Suspense` for route-level code splitting
 - Split client-side filtering from API debounce; reduce debounce to 300ms
 
@@ -736,12 +764,13 @@ Needs a dedicated pass through the test suite.
 
 ---
 
-### Batch 5: Consistency and Polish (P2-4 through P2-9, P3-*)
+### Batch 5: Consistency and Polish (P2-4 through P2-9, P3-\*)
 
 **Components:** All pages and components (microcopy migration), column empty
 states, auth token handling, project list skeleton, command palette loading
 
 **Changes:**
+
 - Migrate hardcoded strings to `microcopy.ts`
 - Add filtered-empty column indicator
 - Implement token expiry checking
@@ -756,18 +785,18 @@ states, auth token handling, project list skeleton, command palette loading
 
 ## Appendix: Mapping to AI_UX_BEST_PRACTICES.md Sections
 
-| Best Practice Section | Status in This App |
-|-----------------------|--------------------|
-| 2.1 Transparency and Explainability | Partially implemented: citations, tool transparency, privacy disclosure ✅; missing confidence on chat, AI labels on responses ⚠️ |
-| 2.2 User Control and Autonomy | Strong: autonomy dial, per-project opt-out, privacy controls ✅; missing undo on deletes ⚠️ |
-| 2.3 Trust Calibration | Partial: confidence bands utility exists ✅; not surfaced on primary AI surface ⚠️; feedback loop not closed ⚠️ |
-| 2.4 Loading States and Latency | Good: board skeleton, breadcrumb skeleton, stat placeholders ✅; chat uses spinner ⚠️; table uses spinner ⚠️ |
-| 2.5 Error Handling and Graceful Degradation | Mixed: page-level alerts with retry ✅; multiple mutation paths have no error display ❌ |
-| 2.6 Onboarding and Discoverability | Good: welcome banner, sample prompts, command palette ✅ |
-| 2.7 AI Interaction Patterns | Good: chat drawer, inline search, command palette AI mode, task assist panel ✅ |
-| 2.8 Feedback Mechanisms | Partial: thumbs up/down exists ✅; no acknowledgment shown ⚠️ |
-| 2.9 AI Content and Output Design | Good: structured tool details, citation chips ✅ |
-| 2.10 Accessibility and Inclusivity | Strong: landmarks, live regions, focus management, touch targets, reduced motion, forced colors ✅ |
-| 2.11 Privacy and Ethical UX | Strong: privacy disclosure, per-project control, clear data scope ✅ |
-| 3.1 Common AI UX Failures (Krux 8) | #1 (no loading feedback): partially ⚠️; #2 (Regenerate trap): partially ⚠️; #7 (missing error states): multiple instances ❌; others: handled ✅ |
-| 3.2 Trust Anti-Patterns | Uniform confidence on chat ⚠️; invisible errors on mutations ❌ |
+| Best Practice Section                       | Status in This App                                                                                                                               |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2.1 Transparency and Explainability         | Partially implemented: citations, tool transparency, privacy disclosure ✅; missing confidence on chat, AI labels on responses ⚠️                |
+| 2.2 User Control and Autonomy               | Strong: autonomy dial, per-project opt-out, privacy controls ✅; missing undo on deletes ⚠️                                                      |
+| 2.3 Trust Calibration                       | Partial: confidence bands utility exists ✅; not surfaced on primary AI surface ⚠️; feedback loop not closed ⚠️                                  |
+| 2.4 Loading States and Latency              | Good: board skeleton, breadcrumb skeleton, stat placeholders ✅; chat uses spinner ⚠️; table uses spinner ⚠️                                     |
+| 2.5 Error Handling and Graceful Degradation | Mixed: page-level alerts with retry ✅; multiple mutation paths have no error display ❌                                                         |
+| 2.6 Onboarding and Discoverability          | Good: welcome banner, sample prompts, command palette ✅                                                                                         |
+| 2.7 AI Interaction Patterns                 | Good: chat drawer, inline search, command palette AI mode, task assist panel ✅                                                                  |
+| 2.8 Feedback Mechanisms                     | Partial: thumbs up/down exists ✅; no acknowledgment shown ⚠️                                                                                    |
+| 2.9 AI Content and Output Design            | Good: structured tool details, citation chips ✅                                                                                                 |
+| 2.10 Accessibility and Inclusivity          | Strong: landmarks, live regions, focus management, touch targets, reduced motion, forced colors ✅                                               |
+| 2.11 Privacy and Ethical UX                 | Strong: privacy disclosure, per-project control, clear data scope ✅                                                                             |
+| 3.1 Common AI UX Failures (Krux 8)          | #1 (no loading feedback): partially ⚠️; #2 (Regenerate trap): partially ⚠️; #7 (missing error states): multiple instances ❌; others: handled ✅ |
+| 3.2 Trust Anti-Patterns                     | Uniform confidence on chat ⚠️; invisible errors on mutations ❌                                                                                  |

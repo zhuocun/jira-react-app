@@ -5,6 +5,7 @@ import {
     screen,
     waitFor
 } from "@testing-library/react";
+import { message } from "antd";
 import { BrowserRouter } from "react-router-dom";
 
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -162,6 +163,23 @@ describe("LoginForm", () => {
             expect(window.location.pathname).toBe("/projects");
         });
         expect(localStorage.getItem("Token")).toBe("jwt-login");
+    });
+
+    it("shows a welcome-back toast on successful login", async () => {
+        mutateAsync.mockResolvedValue(user({ jwt: "jwt-login" }));
+        const successSpy = jest
+            .spyOn(message, "success")
+            .mockImplementation(() => "" as never);
+        renderLoginForm();
+
+        await changeField(/^email$/i, "alice@example.com");
+        await changeField(/^password$/i, "secret");
+        await submitLogin();
+
+        await waitFor(() => expect(successSpy).toHaveBeenCalledTimes(1));
+        expect(successSpy.mock.calls[0][0]).toMatch(/welcome back/i);
+
+        successSpy.mockRestore();
     });
 
     it("keeps login failures on the current page for inline error handling", async () => {

@@ -159,4 +159,25 @@ describe("auth API helpers", () => {
             })
         ).rejects.toThrow("Registration failed");
     });
+
+    it("converts a login network failure into a friendly error message", async () => {
+        fetchMock().mockRejectedValue(new TypeError("Failed to fetch"));
+
+        await expect(
+            login({ email: "alice@example.com", password: "secret" })
+        ).rejects.toThrow(/unable to connect/i);
+        expect(localStorage.getItem("Token")).toBeNull();
+    });
+
+    it("converts a register network failure into a friendly error message", async () => {
+        fetchMock().mockRejectedValue(new TypeError("Failed to fetch"));
+
+        await expect(
+            register({
+                email: "alice@example.com",
+                password: "secret",
+                username: "Alice"
+            })
+        ).rejects.toThrow(/unable to connect/i);
+    });
 });

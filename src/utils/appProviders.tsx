@@ -80,7 +80,19 @@ const ThemedShell = ({ children }: { children: ReactNode }) => {
 };
 
 const AppProviders = ({ children }: { children: ReactNode }) => {
-    const [queryClient] = useState(() => new QueryClient());
+    const [queryClient] = useState(
+        () =>
+            new QueryClient({
+                defaultOptions: {
+                    queries: {
+                        staleTime: 30_000,
+                        retry: 1,
+                        refetchOnWindowFocus: false
+                    },
+                    mutations: { retry: false }
+                }
+            })
+    );
     return (
         <Provider store={store}>
             <QueryClientProvider client={queryClient}>

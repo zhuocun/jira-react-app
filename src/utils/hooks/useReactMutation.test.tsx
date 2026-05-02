@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { message } from "antd";
 import { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -302,5 +303,92 @@ describe("useReactMutation", () => {
         });
 
         expect(queryClient.getQueryData(["items"])).toEqual(previousItems);
+    });
+
+    it("toasts a revert notice when an optimistic mutation rolls back without a custom onError", async () => {
+        const queryClient = createQueryClient();
+        const callback = jest.fn((item, old?: unknown[]) => [
+            ...(old ?? []),
+            item
+        ]);
+        const errorSpy = jest
+            .spyOn(message, "error")
+            .mockImplementation(() => "" as never);
+        apiMock.mockRejectedValue(new Error("oops"));
+
+        const { result } = renderHook(
+            () => useReactMutation("items", "POST", ["items"], callback),
+            {
+                wrapper: createWrapper(queryClient)
+            }
+        );
+
+        await act(async () => {
+            await expect(
+                result.current.mutateAsync({ _id: "new" })
+            ).rejects.toThrow("oops");
+        });
+
+        await waitFor(() => expect(errorSpy).toHaveBeenCalledTimes(1));
+        expect(errorSpy.mock.calls[0][0]).toMatch(/reverted/i);
+
+        errorSpy.mockRestore();
+    });
+
+    it("does not toast a revert notice when the caller supplies onError", async () => {
+        const queryClient = createQueryClient();
+        const callback = jest.fn((item, old?: unknown[]) => [
+            ...(old ?? []),
+            item
+        ]);
+        const errorSpy = jest
+            .spyOn(message, "error")
+            .mockImplementation(() => "" as never);
+        const onError = jest.fn();
+        apiMock.mockRejectedValue(new Error("oops"));
+
+        const { result } = renderHook(
+            () =>
+                useReactMutation("items", "POST", ["items"], callback, onError),
+            {
+                wrapper: createWrapper(queryClient)
+            }
+        );
+
+        await act(async () => {
+            await expect(
+                result.current.mutateAsync({ _id: "new" })
+            ).rejects.toThrow("oops");
+        });
+
+        await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
+        expect(errorSpy).not.toHaveBeenCalled();
+
+        errorSpy.mockRestore();
+    });
+
+    it("does not toast a revert notice when there is no optimistic callback", async () => {
+        const queryClient = createQueryClient();
+        const errorSpy = jest
+            .spyOn(message, "error")
+            .mockImplementation(() => "" as never);
+        apiMock.mockRejectedValue(new Error("oops"));
+
+        const { result } = renderHook(
+            () => useReactMutation("items", "POST", ["items"]),
+            {
+                wrapper: createWrapper(queryClient)
+            }
+        );
+
+        await act(async () => {
+            await expect(
+                result.current.mutateAsync({ _id: "new" })
+            ).rejects.toThrow("oops");
+        });
+
+        expect(errorSpy).not.toHaveBeenCalled();
+
+        errorSpy.mockRestore();
     });
 });

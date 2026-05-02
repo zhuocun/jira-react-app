@@ -284,6 +284,65 @@ describe("Column", () => {
         expect(screen.queryByText("Fix bug")).not.toBeInTheDocument();
     });
 
+    it("shows the filtered-empty hint when filters hide every task in the column", () => {
+        renderColumn({
+            param: {
+                ...defaultParam,
+                taskName: "no-such-task"
+            }
+        });
+
+        expect(
+            screen.getByText("No tasks match the current filters")
+        ).toBeInTheDocument();
+        // No reset callback supplied — the CTA must be hidden.
+        expect(
+            screen.queryByRole("button", { name: /reset filters/i })
+        ).not.toBeInTheDocument();
+    });
+
+    it("does not show the filtered-empty hint when the column has no tasks at all", () => {
+        renderColumn({ tasks: [] });
+
+        expect(
+            screen.queryByText("No tasks match the current filters")
+        ).not.toBeInTheDocument();
+    });
+
+    it("invokes onResetFilters when the reset button is clicked", () => {
+        const onResetFilters = jest.fn();
+        mockedUseReactMutation.mockReturnValue({ mutate: removeColumn });
+        mockedUseTaskModal.mockReturnValue({ startEditing });
+
+        render(
+            <MemoryRouter initialEntries={["/projects/project-1/board"]}>
+                <Routes>
+                    <Route
+                        path="/projects/:projectId/board"
+                        element={
+                            <Column
+                                column={column()}
+                                isDragDisabled={false}
+                                onResetFilters={onResetFilters}
+                                param={{
+                                    ...defaultParam,
+                                    taskName: "no-such-task"
+                                }}
+                                tasks={[task()]}
+                            />
+                        }
+                    />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        const resetBtn = screen.getByRole("button", {
+            name: /reset filters/i
+        });
+        fireEvent.click(resetBtn);
+        expect(onResetFilters).toHaveBeenCalledTimes(1);
+    });
+
     it("disables delete for the optimistic mock column", () => {
         const confirmSpy = jest.spyOn(Modal, "confirm");
         renderColumn({
