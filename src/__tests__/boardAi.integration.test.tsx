@@ -7,8 +7,9 @@ import AppProviders from "../utils/appProviders";
 
 // Lazy route loading + multi-step navigation chains (login → projects →
 // board → drawer) push these end-to-end flows past the 5s default,
-// especially under jest parallelism. 30s gives enough headroom on slow CI.
-jest.setTimeout(30000);
+// especially under jest parallelism. 60s gives enough headroom on slow CI
+// when other suites are competing for the worker pool.
+jest.setTimeout(60000);
 
 jest.mock("../constants/env", () => ({
     __esModule: true,
@@ -259,7 +260,9 @@ describe("Board AI integration (App + local engine)", () => {
             "Message Board Copilot"
         );
         await user.type(messageInput, "Give me a quick board summary");
-        await user.click(screen.getByRole("button", { name: /send message/i }));
+        await user.click(
+            await screen.findByRole("button", { name: /send message/i })
+        );
 
         await waitFor(() => {
             expect(screen.getByText(/task on the board/i)).toBeInTheDocument();

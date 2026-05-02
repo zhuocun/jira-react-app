@@ -7,8 +7,9 @@ import AppProviders from "../utils/appProviders";
 
 // Lazy route loading + multi-step navigation chains (login → projects →
 // board → drawer) push these end-to-end flows past the 5s default,
-// especially under jest parallelism. 30s gives enough headroom on slow CI.
-jest.setTimeout(30000);
+// especially under jest parallelism. 60s gives enough headroom on slow CI
+// when other suites are competing for the worker pool.
+jest.setTimeout(60000);
 
 jest.mock("../constants/env", () => ({
     __esModule: true,
