@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Modal } from "antd";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -344,7 +344,9 @@ describe("TaskModal", () => {
         try {
             renderModal();
             const taskNameInput = await screen.findByDisplayValue("Build task");
-            jest.advanceTimersByTime(1000);
+            act(() => {
+                jest.advanceTimersByTime(1000);
+            });
             const applyPoints = await screen.findByLabelText(
                 "Apply suggested story points"
             );
@@ -354,7 +356,9 @@ describe("TaskModal", () => {
                 screen.getByPlaceholderText("Notes / acceptance criteria"),
                 { target: { value: "" } }
             );
-            jest.advanceTimersByTime(1000);
+            act(() => {
+                jest.advanceTimersByTime(1000);
+            });
             const noteSuggestion = await screen.findByLabelText(
                 /Apply readiness suggestion for note/
             );
@@ -369,7 +373,9 @@ describe("TaskModal", () => {
             fireEvent.change(screen.getByLabelText("Epic"), {
                 target: { value: "" }
             });
-            jest.advanceTimersByTime(1000);
+            act(() => {
+                jest.advanceTimersByTime(1000);
+            });
             const epicSuggestion = await screen.findByLabelText(
                 /Apply readiness suggestion for epic/
             );
@@ -394,14 +400,17 @@ describe("TaskModal", () => {
             fireEvent.change(noteInput, {
                 target: { value: "Keep this note" }
             });
-            jest.advanceTimersByTime(1000);
+            act(() => {
+                jest.advanceTimersByTime(1000);
+            });
             const noteSuggestion = await screen.findByLabelText(
                 /Apply readiness suggestion for note/
             );
             fireEvent.click(noteSuggestion);
             expect(noteInput.value).toMatch(/## Acceptance criteria/);
 
-            fireEvent.click(await screen.findByText("Undo"));
+            const undoButtons = await screen.findAllByText("Undo");
+            fireEvent.click(undoButtons[undoButtons.length - 1]);
             await waitFor(() => expect(noteInput.value).toBe("Keep this note"));
         } finally {
             jest.useRealTimers();

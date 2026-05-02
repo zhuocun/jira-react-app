@@ -418,8 +418,7 @@ describe("UI quality :: AiSearchInput guards", () => {
 
     it("AI filter button label is sourced from AI microcopy", () => {
         renderInput();
-        const search = (microcopy.ai as Record<string, string | undefined>)
-            .findRelatedTasks;
+        const search = microcopy.ai.findRelatedTasks;
         expect(search).toBeTruthy();
         if (search) {
             // Either as visible text or as `aria-label` — match by name.
