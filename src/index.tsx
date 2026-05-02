@@ -17,7 +17,11 @@ root.render(
     </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// In dev, log Core Web Vitals (LCP, INP, CLS, FCP, TTFB) to the console so
+// regressions are visible during local testing. The dynamic import inside
+// reportWebVitals() only fires when a callback is supplied, so production
+// builds without an analytics beacon stay zero-cost.
+reportWebVitals(
+    // eslint-disable-next-line no-console
+    process.env.NODE_ENV !== "production" ? console.log : undefined
+);

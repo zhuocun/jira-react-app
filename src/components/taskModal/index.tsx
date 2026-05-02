@@ -9,7 +9,7 @@ import {
     Typography
 } from "antd";
 import { useForm } from "antd/lib/form/Form";
-import _ from "lodash";
+import isEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -78,7 +78,7 @@ const TaskModal: React.FC<{
             ...fieldValues,
             taskName: trimmedName
         };
-        if (_.isEqual(merged, editingTask)) {
+        if (isEqual(merged, editingTask)) {
             closeModal();
         } else {
             await update(merged).then(closeModal);

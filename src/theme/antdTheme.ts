@@ -73,10 +73,13 @@ export const buildAntdTheme = (
         lineHeightHeading3: lineHeight.snug,
         lineHeightHeading4: lineHeight.snug,
 
-        // Controls
+        // Controls. On coarse pointers (touch) we collapse all three sizes to
+        // the 44 px Apple HIG minimum so `size="small"` buttons in dropdowns,
+        // banners and AI panels are still comfortably tappable. Desktop keeps
+        // the dense Linear-style 36 / 44 / 28 ladder.
         controlHeight: coarsePointer ? touchTargetCoarse : 36,
         controlHeightLG: coarsePointer ? touchTargetCoarse + 8 : 44,
-        controlHeightSM: coarsePointer ? touchTargetCoarse - 8 : 28,
+        controlHeightSM: coarsePointer ? touchTargetCoarse : 28,
         controlOutlineWidth: 3,
         controlOutline:
             mode === "dark"

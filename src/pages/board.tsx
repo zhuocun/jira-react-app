@@ -39,6 +39,7 @@ import {
 } from "../theme/tokens";
 import useAiEnabled from "../utils/hooks/useAiEnabled";
 import useAiProjectDisabled from "../utils/hooks/useAiProjectDisabled";
+import useBoardBriefDrawer from "../utils/hooks/useBoardBriefDrawer";
 import useDebounce from "../utils/hooks/useDebounce";
 import useDragEnd from "../utils/hooks/useDragEnd";
 import useReactQuery from "../utils/hooks/useReactQuery";
@@ -397,7 +398,14 @@ const BoardPage = () => {
                   members: members ?? []
               }
             : null;
-    const [briefOpen, setBriefOpen] = useState(false);
+    // Brief drawer state lives in the URL so the system back button (iOS
+    // swipe-back, Android hardware back) dismisses it before exiting the
+    // route.
+    const {
+        open: briefOpen,
+        openDrawer: openBriefDrawer,
+        closeDrawer: closeBriefDrawer
+    } = useBoardBriefDrawer();
     const [chatOpen, setChatOpen] = useState(false);
     const [chatInitialPrompt, setChatInitialPrompt] = useState<
         string | undefined
@@ -479,7 +487,7 @@ const BoardPage = () => {
                 {boardAiOn && (
                     <CopilotWelcomeBanner
                         onCta={() => {
-                            setBriefOpen(true);
+                            openBriefDrawer();
                         }}
                     />
                 )}
@@ -519,7 +527,7 @@ const BoardPage = () => {
                                         <Button
                                             aria-label="Open Board Copilot brief"
                                             icon={<AiSparkleIcon />}
-                                            onClick={() => setBriefOpen(true)}
+                                            onClick={openBriefDrawer}
                                             type="default"
                                         >
                                             Brief
@@ -739,7 +747,7 @@ const BoardPage = () => {
                         <BoardBriefDrawer
                             columns={board ?? []}
                             members={members ?? []}
-                            onClose={() => setBriefOpen(false)}
+                            onClose={closeBriefDrawer}
                             open={briefOpen}
                             project={currentProject}
                             tasks={visibleTasks}

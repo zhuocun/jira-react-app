@@ -59,6 +59,10 @@ describe("index entry", () => {
         expect(screen.getByTestId("app-providers")).toContainElement(
             screen.getByTestId("app")
         );
-        expect(mockReportWebVitals).toHaveBeenCalledWith();
+        // In non-production environments we wire the metrics through
+        // `console.log` so INP/LCP/CLS show up during local development. The
+        // test runner sets NODE_ENV="test", which is not "production", so
+        // a callback should be supplied.
+        expect(mockReportWebVitals).toHaveBeenCalledWith(expect.any(Function));
     });
 });

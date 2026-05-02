@@ -16,7 +16,10 @@ import useReactQuery from "../../utils/hooks/useReactQuery";
 import { NoPaddingButton } from "../projectList";
 
 const ContentContainer = styled.div`
+    /* Dynamic viewport unit keeps the popover from jumping when the iOS
+     * Safari URL bar collapses. The vh declaration stays as a fallback. */
     max-height: 60vh;
+    max-height: 60dvh;
     max-width: min(22rem, calc(100vw - ${modalGutterPx}px));
     min-width: min(18rem, calc(100vw - ${modalGutterPx}px));
     overflow-y: auto;

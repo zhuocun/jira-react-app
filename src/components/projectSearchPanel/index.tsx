@@ -138,6 +138,8 @@ const ProjectSearchPanel: React.FC<Props> = ({
                     <Input
                         aria-label="Search projects by name"
                         allowClear
+                        enterKeyHint="search"
+                        inputMode="search"
                         onChange={(e) =>
                             setParam({
                                 ...param,

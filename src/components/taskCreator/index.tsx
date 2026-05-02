@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
 import { fontWeight, radius, space } from "../../theme/tokens";
+import useAiDraftModal from "../../utils/hooks/useAiDraftModal";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useReactMutation from "../../utils/hooks/useReactMutation";
@@ -80,7 +81,16 @@ const TaskCreator: React.FC<{
     const { user } = useAuth();
     const [taskName, setTaskName] = useState("");
     const [inputMode, setInputMode] = useState(false);
-    const [aiOpen, setAiOpen] = useState(false);
+    // The AI draft modal opens via a URL query param so the system back
+    // button dismisses it. The query value is the column id so multiple
+    // per-column triggers on the same board don't cross-talk.
+    const {
+        activeColumnId: aiDraftColumnId,
+        openModal: openAiDraft,
+        closeModal: closeAiDraft
+    } = useAiDraftModal();
+    const aiOpen =
+        aiDraftColumnId !== undefined && aiDraftColumnId === columnId;
     const { enabled: aiEnabled } = useAiEnabled();
     const { projectId } = useParams<{ projectId: string }>();
     const { mutateAsync, isLoading } = useReactMutation(
@@ -136,7 +146,7 @@ const TaskCreator: React.FC<{
                             aria-label={microcopy.actions.draftWithAi}
                             disabled={disabled}
                             icon={<AiSparkleIcon />}
-                            onClick={() => setAiOpen(true)}
+                            onClick={() => columnId && openAiDraft(columnId)}
                             size="small"
                             type="link"
                         >
@@ -145,7 +155,7 @@ const TaskCreator: React.FC<{
                         {aiOpen && (
                             <AiTaskDraftModal
                                 columnId={columnId}
-                                onClose={() => setAiOpen(false)}
+                                onClose={closeAiDraft}
                                 open
                             />
                         )}
@@ -158,6 +168,8 @@ const TaskCreator: React.FC<{
         <Input
             aria-label="New task name"
             disabled={isLoading || disabled}
+            enterKeyHint="done"
+            inputMode="text"
             onBlur={toggle}
             placeholder="What needs to be done?"
             autoFocus
