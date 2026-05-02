@@ -211,9 +211,12 @@ const ProjectDetailPage = () => {
                         title={microcopy.empty.notFound.title}
                         description={microcopy.empty.notFound.description}
                         cta={
-                            <Link to="/projects">
+                            <Button
+                                onClick={() => navigate("/projects")}
+                                type="primary"
+                            >
                                 {microcopy.empty.notFound.cta}
-                            </Link>
+                            </Button>
                         }
                     />
                 ) : (

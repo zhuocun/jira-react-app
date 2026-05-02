@@ -1,5 +1,6 @@
+import { Button } from "antd";
 import { lazy, Suspense } from "react";
-import { Link, Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 
 import EmptyState from "../components/emptyState";
 import { PageSpin } from "../components/status";
@@ -41,14 +42,21 @@ const RootRedirect = () => {
     );
 };
 
-const NotFoundRoute = () => (
-    <EmptyState
-        data-testid="not-found"
-        title={microcopy.empty.notFound.title}
-        description={microcopy.empty.notFound.description}
-        cta={<Link to="/projects">{microcopy.empty.notFound.cta}</Link>}
-    />
-);
+const NotFoundRoute = () => {
+    const navigate = useNavigate();
+    return (
+        <EmptyState
+            data-testid="not-found"
+            title={microcopy.empty.notFound.title}
+            description={microcopy.empty.notFound.description}
+            cta={
+                <Button onClick={() => navigate("/projects")} type="primary">
+                    {microcopy.empty.notFound.cta}
+                </Button>
+            }
+        />
+    );
+};
 
 const SuspenseShell = () => (
     <Suspense fallback={<PageSpin />}>
