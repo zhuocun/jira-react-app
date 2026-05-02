@@ -97,7 +97,7 @@ describe("useAiChat remote transport", () => {
         });
 
         expect(fetchSpy).toHaveBeenCalledWith(
-            "https://copilot.example/api/ai/chat",
+            "https://copilot.example/api/v1/ai/chat",
             expect.objectContaining({
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
