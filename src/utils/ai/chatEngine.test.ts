@@ -75,7 +75,7 @@ describe("chatAssistantTurn", () => {
             chatAssistantFinalizeAfterTools([
                 { content: "Hello", role: "user" }
             ])
-        ).toBe("I could not load that data.");
+        ).toBe("The requested data could not be loaded.");
     });
 
     it("requests listBoard for board structure prompts", () => {

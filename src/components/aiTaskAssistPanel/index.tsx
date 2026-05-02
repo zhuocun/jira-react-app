@@ -50,7 +50,8 @@ interface AiTaskAssistPanelProps {
     onApplyStoryPoints: (value: StoryPoints) => void;
     onApplySuggestion: (
         field: IReadinessIssue["field"],
-        suggestion: string
+        suggestion: string | undefined,
+        options?: { replace?: boolean }
     ) => void;
     onOpenSimilarTask: (taskId: string) => void;
 }
@@ -194,22 +195,19 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
     const handleApplyReadiness = useCallback(
         (issue: IReadinessIssue) => {
             if (!issue.suggestion) return;
+            const previous = values[issue.field];
             onApplySuggestion(issue.field, issue.suggestion);
             undoToast.show({
                 description: `Updated ${issue.field}.`,
                 analyticsTag: "copilot.readiness.apply",
                 undo: () => {
-                    /*
-                     * Readiness suggestions don't carry a "previous" value
-                     * (the form drives that itself), so the undo here is a
-                     * passive notification — the field stays where the user
-                     * left it. Keeping the toast still gives users a clear
-                     * tracking surface that an AI change happened.
-                     */
+                    onApplySuggestion(issue.field, previous, {
+                        replace: true
+                    });
                 }
             });
         },
-        [onApplySuggestion, undoToast]
+        [onApplySuggestion, undoToast, values]
     );
 
     const handleRegenerate = useCallback(() => {

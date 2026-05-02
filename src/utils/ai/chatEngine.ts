@@ -60,7 +60,7 @@ export const chatAssistantFinalizeAfterTools = (
             chunks.push(messages[i].content.trim());
         }
     }
-    if (chunks.length === 0) return "I could not load that data.";
+    if (chunks.length === 0) return "The requested data could not be loaded.";
     return chunks.join("\n\n---\n\n");
 };
 

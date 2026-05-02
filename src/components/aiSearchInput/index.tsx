@@ -225,6 +225,20 @@ const AiSearchInput: React.FC<Props> = (props) => {
     const errorView = searchAi.error
         ? aiErrorView(searchAi.error, "Search failed")
         : null;
+    const labels =
+        props.kind === "tasks"
+            ? {
+                  aria: microcopy.ai.findRelatedTasksAria,
+                  helper: microcopy.ai.findRelatedTasksHelper,
+                  placeholder: microcopy.ai.findRelatedTasksPlaceholder,
+                  submit: microcopy.ai.findRelatedTasks
+              }
+            : {
+                  aria: microcopy.ai.findRelatedProjectsAria,
+                  helper: microcopy.ai.findRelatedProjectsHelper,
+                  placeholder: microcopy.ai.findRelatedProjectsPlaceholder,
+                  submit: microcopy.ai.findRelatedProjects
+              };
 
     return (
         <div style={{ marginBottom: themeSpace.md }}>
@@ -238,10 +252,11 @@ const AiSearchInput: React.FC<Props> = (props) => {
             >
                 <Input
                     allowClear={{ clearIcon: <CloseCircleFilled /> }}
-                    aria-label="Ask Board Copilot a question about tasks or projects"
+                    aria-describedby={`${announcerId}-helper`}
+                    aria-label={labels.aria}
                     onChange={(e) => setDraft(e.target.value)}
                     onPressEnter={() => void performSearch(draft)}
-                    placeholder="Ask Board Copilot a question…"
+                    placeholder={labels.placeholder}
                     /*
                      * Sparkle prefix is the only thing that visually separates
                      * this AI input from the plain text filter that often sits
@@ -270,7 +285,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     onClick={() => void performSearch(draft)}
                     type="default"
                 >
-                    {microcopy.actions.search}
+                    {labels.submit}
                 </Button>
                 {semanticActive ? (
                     <Button
@@ -281,6 +296,13 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     </Button>
                 ) : null}
             </div>
+            <Typography.Paragraph
+                id={`${announcerId}-helper`}
+                style={{ marginBottom: 0, marginTop: themeSpace.xs }}
+                type="secondary"
+            >
+                {labels.helper}
+            </Typography.Paragraph>
             <span
                 aria-live="assertive"
                 id={announcerId}

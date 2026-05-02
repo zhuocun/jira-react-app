@@ -69,13 +69,15 @@ describe("AiSearchInput remote search transport", () => {
         );
 
         fireEvent.change(
-            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            screen.getByRole("textbox", { name: /Find related tasks/i }),
             {
                 target: { value: "login flaky" }
             }
         );
         fireEvent.click(
-            screen.getByRole("button", { name: microcopy.actions.search })
+            screen.getByRole("button", {
+                name: microcopy.ai.findRelatedTasks
+            })
         );
 
         await waitFor(() => {
@@ -98,13 +100,15 @@ describe("AiSearchInput remote search transport", () => {
         );
 
         fireEvent.change(
-            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            screen.getByRole("textbox", { name: /Find related tasks/i }),
             {
                 target: { value: "login" }
             }
         );
         fireEvent.click(
-            screen.getByRole("button", { name: microcopy.actions.search })
+            screen.getByRole("button", {
+                name: microcopy.ai.findRelatedTasks
+            })
         );
 
         await waitFor(() => {

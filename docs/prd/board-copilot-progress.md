@@ -2,34 +2,36 @@
 
 Companion to [`docs/prd/board-copilot.md`](board-copilot.md). Tracks what has shipped to `main`, what is still open, and the concrete file/test inventory so a new contributor can pick up cleanly. For a section-by-section design vs implementation audit (verdicts with file/line evidence, deltas, gaps), see [`docs/prd/board-copilot-review.md`](board-copilot-review.md).
 
-| Field        | Value                                                                                                                     |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| Status       | Phases 0–4: semantic search ships on branch `cursor/board-copilot-semantic-search-1b36` (this work); Phases 0–3 on `main` |
-| Last updated | 2026-04-29                                                                                                                |
-| Owner        | TBD (frontend)                                                                                                            |
+| Field        | Value                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------- |
+| Status       | Phases 0–4 shipped; AI UX Phase 1 trust/privacy corrections are in-flight on `cursor/ai-ux-current-audit-da9f` |
+| Last updated | 2026-05-02                                                                                                     |
+| Owner        | TBD (frontend)                                                                                                 |
 
 ---
 
 ## Main vs in-flight
 
-| Location                                                                                | What it contains                                                                                                                                                                            |
-| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`main`** (through merge of [PR #3](https://github.com/zhuocun/jira-react-app/pull/3)) | Phases 0–3: everything through the conversational assistant (`AiChatDrawer`, `useAiChat`, `chatTools` / `chatEngine`, `Ask` on board + project list, optional remote `POST …/api/ai/chat`). |
-| **Branch `cursor/board-copilot-semantic-search-1b36`** (this work)                      | Phase 4 — **Capability E**: `AiSearchInput`, `semanticSearch` in `engine.ts`, `search` route on `useAi`, URL param `semanticIds`, task + project panel integration, tests.                  |
+| Location                                                                                | What it contains                                                                                                                                                                                                                   |
+| --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`main`** (through merge of [PR #3](https://github.com/zhuocun/jira-react-app/pull/3)) | Phases 0–3: everything through the conversational assistant (`AiChatDrawer`, `useAiChat`, `chatTools` / `chatEngine`, `Ask` on board + project list, optional remote `POST …/api/ai/chat`).                                        |
+| **Branch `cursor/board-copilot-semantic-search-1b36`** (this work)                      | Phase 4 — **Capability E**: `AiSearchInput`, `semanticSearch` in `engine.ts`, `search` route on `useAi`, URL param `semanticIds`, task + project panel integration, tests.                                                         |
+| **Branch `cursor/ai-ux-current-audit-da9f`**                                            | Current work — AI UX audit refresh plus Phase 1 trust/privacy corrections: accurate data-scope disclosure, local/remote processing copy, clearer AI search labels, neutral AI error copy, and real Undo for readiness suggestions. |
 
 ---
 
 ## At a glance
 
-| Phase    | Capability                                                 | PRD section | Status                                                                              |
-| -------- | ---------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------- |
-| Phase 0  | Plumbing (env, hook, validators, runtime toggle)           | §7, §3.5    | ✅ Shipped                                                                          |
-| Phase 1  | Capability C — Board summary brief                         | §5.3        | ✅ Shipped                                                                          |
-| Phase 2A | Capability A — Smart task drafting                         | §5.1        | ✅ Shipped                                                                          |
-| Phase 2B | Capability B — AI estimation + readiness                   | §5.2        | ✅ Shipped                                                                          |
-| Phase 3  | Capability D — Conversational assistant                    | §5.4        | ✅ Shipped on `main` ([PR #3](https://github.com/zhuocun/jira-react-app/pull/3))    |
-| Phase 4  | Capability E — Semantic search                             | §5.5        | ✅ Shipped on `cursor/board-copilot-semantic-search-1b36` (merge to `main` pending) |
-| Backend  | Vercel `api/ai/[route].ts` proxy with provider abstraction | §7.2        | ⏳ Not started (FE works against the deterministic local engine in the meantime)    |
+| Phase    | Capability                                                 | PRD section | Status                                                                           |
+| -------- | ---------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| Phase 0  | Plumbing (env, hook, validators, runtime toggle)           | §7, §3.5    | ✅ Shipped                                                                       |
+| Phase 1  | Capability C — Board summary brief                         | §5.3        | ✅ Shipped                                                                       |
+| Phase 2A | Capability A — Smart task drafting                         | §5.1        | ✅ Shipped                                                                       |
+| Phase 2B | Capability B — AI estimation + readiness                   | §5.2        | ✅ Shipped                                                                       |
+| Phase 3  | Capability D — Conversational assistant                    | §5.4        | ✅ Shipped on `main` ([PR #3](https://github.com/zhuocun/jira-react-app/pull/3)) |
+| Phase 4  | Capability E — Semantic search                             | §5.5        | ✅ Shipped                                                                       |
+| AI UX P1 | Trust/privacy corrections from AI UX audit                 | v3 §2 P3/P7 | ✅ Implemented on `cursor/ai-ux-current-audit-da9f`; awaiting merge              |
+| Backend  | Vercel `api/ai/[route].ts` proxy with provider abstraction | §7.2        | ⏳ Not started (FE works against the deterministic local engine in the meantime) |
 
 ---
 
@@ -99,6 +101,42 @@ Remote proxy (optional): `POST ${REACT_APP_AI_BASE_URL}/api/ai/search` with JSON
 - `src/components/aiSparkleIcon/index.tsx` — single shared "AI" affordance used wherever AI initiates an action.
 - `README.md` — Board Copilot section: backends, env vars, safety, link to the PRD.
 
+### AI UX Phase 1 — trust and privacy corrections
+
+Tracked by [`AI_UX_OPTIMIZATION_PLAN.md`](../../AI_UX_OPTIMIZATION_PLAN.md).
+This work is in-flight on branch `cursor/ai-ux-current-audit-da9f`.
+
+- `AI_UX_OPTIMIZATION_PLAN.md` — refreshed the audit to reflect the current
+  implementation instead of stale pre-v3 gaps. The remaining roadmap is now
+  organized around trust/privacy, evidence/calibration, feedback/observability,
+  surface consolidation, and agentic readiness.
+- `src/constants/microcopy.ts` — updated Board Copilot copy so privacy
+  disclosure matches the actual payload shape. It now discloses task notes
+  where present and member usernames/emails/user IDs where needed; it no longer
+  claims that notes are never shared.
+- `src/components/copilotPrivacyPopover/index.tsx` — the "What is shared?"
+  popover and first-use disclosure now include local-vs-remote processing
+  context. Local mode says requests use deterministic in-app rules; remote mode
+  names the configured AI service origin when available.
+- `src/components/aiSearchInput/index.tsx` — renamed list-filtering AI search
+  from chat-like "Ask Board Copilot" language to "Find related tasks/projects",
+  with helper text clarifying that the action filters the current list and does
+  not open chat.
+- `src/utils/ai/chatEngine.ts` and `src/constants/microcopy.ts` — replaced the
+  remaining first-person AI recovery copy with neutral, tool-like language.
+- `src/components/aiTaskAssistPanel/index.tsx` and
+  `src/components/taskModal/index.tsx` — readiness suggestion Undo now restores
+  the exact previous field value instead of showing a passive Undo toast.
+- Tests updated for the new copy and Undo behavior:
+    - `src/components/aiSearchInput/index.test.tsx`
+    - `src/components/aiSearchInput/remoteSearch.test.tsx`
+    - `src/components/aiTaskAssistPanel/index.test.tsx`
+    - `src/components/taskModal/index.test.tsx`
+    - `src/__tests__/boardAi.integration.test.tsx`
+    - `src/__tests__/uiResilience.strict.test.tsx`
+    - `src/pages/project.ai.test.tsx`
+    - `src/utils/ai/chatEngine.test.ts`
+
 ### Test coverage
 
 - 76 suites, 340 tests.
@@ -161,6 +199,7 @@ Not started — **no `api/` routes in this repo** yet. The client posts to `${RE
 
 - ~~**Runtime toggle UI** (PRD §7.3)~~: shipped in `src/components/header` (`Switch` + `useAiEnabled`).
 - ~~**“Disable AI for this project”** (PRD §8)~~: shipped — `boardCopilot:disabledProjectIds` in `localStorage`, `useAiProjectDisabled` + **Project AI** switch on the board header, guards in `useAi` / `useAiChat`, `boardAiOn` passed to `Column` / `TaskCreator` / `TaskModal`.
+- ~~**AI UX Phase 1 trust/privacy corrections**~~: implemented on `cursor/ai-ux-current-audit-da9f`; see "AI UX Phase 1" above.
 - **Observability** (PRD §7.7, §9): client/server counters — lands with proxy.
 - **Chat write-tools** (PRD §5.4 follow-up): out of scope until a later version.
 
@@ -190,7 +229,7 @@ To exercise Board Copilot in the browser:
 4. Click `+ Create task` → `Draft with AI`, type a prompt, click `Draft task` (Capability A) or `Break down` for subtasks.
 5. Open any existing task to see the Board Copilot sidebar (Capability B).
 6. Click `Ask` in the board or project list header to open the conversational assistant (Capability D).
-7. Use **Ask in natural language** above the board or project filters, then **Search** (Capability E); **Clear AI search** removes only the semantic filter.
+7. Use **Find related tasks/projects** above the board or project filters, then clear with **Clear AI search**. This filters the list only; chat still opens through **Ask** / command palette AI mode.
 
 To turn AI off without rebuilding, use the **Board Copilot** switch in the app header (when `REACT_APP_AI_ENABLED` is not `false`), or:
 

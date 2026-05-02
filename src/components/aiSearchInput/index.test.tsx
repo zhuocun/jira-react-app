@@ -125,13 +125,17 @@ describe("AiSearchInput", () => {
         );
 
         fireEvent.change(
-            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            screen.getByRole("textbox", {
+                name: /Find related tasks with AI/i
+            }),
             {
                 target: { value: "login token flaky" }
             }
         );
         fireEvent.click(
-            screen.getByRole("button", { name: microcopy.actions.search })
+            screen.getByRole("button", {
+                name: microcopy.ai.findRelatedTasks
+            })
         );
 
         await waitFor(() => {
@@ -156,13 +160,17 @@ describe("AiSearchInput", () => {
         );
 
         fireEvent.change(
-            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            screen.getByRole("textbox", {
+                name: /Find related tasks with AI/i
+            }),
             {
                 target: { value: "login token flaky" }
             }
         );
         fireEvent.click(
-            screen.getByRole("button", { name: microcopy.actions.search })
+            screen.getByRole("button", {
+                name: microcopy.ai.findRelatedTasks
+            })
         );
 
         await waitFor(() => {
@@ -184,13 +192,17 @@ describe("AiSearchInput", () => {
         );
 
         fireEvent.change(
-            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            screen.getByRole("textbox", {
+                name: /Find related tasks with AI/i
+            }),
             {
                 target: { value: "login token flaky" }
             }
         );
         fireEvent.keyDown(
-            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            screen.getByRole("textbox", {
+                name: /Find related tasks with AI/i
+            }),
             {
                 key: "Enter",
                 code: "Enter"
@@ -214,13 +226,17 @@ describe("AiSearchInput", () => {
         );
 
         fireEvent.change(
-            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            screen.getByRole("textbox", {
+                name: /Find related tasks with AI/i
+            }),
             {
                 target: { value: "quantum entanglement" }
             }
         );
         fireEvent.click(
-            screen.getByRole("button", { name: microcopy.actions.search })
+            screen.getByRole("button", {
+                name: microcopy.ai.findRelatedTasks
+            })
         );
 
         await waitFor(() => {
