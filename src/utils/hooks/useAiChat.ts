@@ -41,7 +41,10 @@ const remoteChatStep = async (
     signal: AbortSignal
 ): Promise<ChatTurnResult> => {
     const authHeader = getStoredBearerAuthHeader();
-    const response = await fetch(`${environment.aiBaseUrl}/api/ai/chat`, {
+    // Use the modern `/api/v1/ai/*` surface (matches `apiBaseUrl` and the
+    // agent endpoints). The BE legacy `/api/ai/*` alias is scheduled for
+    // removal — see jira-python-server app/main.py.
+    const response = await fetch(`${environment.aiBaseUrl}/api/v1/ai/chat`, {
         body: JSON.stringify({ messages, context }),
         headers: {
             "Content-Type": "application/json",
