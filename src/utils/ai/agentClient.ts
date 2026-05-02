@@ -121,9 +121,22 @@ const parseRetryAfter = (raw: string | null): number => {
     return 0;
 };
 
-const safeReadBudgetReason = (response: Response): boolean => {
-    const reason = response.headers.get("X-Reason") ?? "";
-    return reason.toLowerCase() === "budget";
+/**
+ * Read RFC 8594 / RFC 9745 deprecation signalling and emit a console
+ * warning so legacy callers get one breadcrumb per response. The agent
+ * runtime in jira-python-server emits these on routes scheduled for
+ * removal; we don't surface the strings into UI yet (PRD owner: §13).
+ */
+const warnIfDeprecated = (response: Response, url: string): void => {
+    const deprecation = response.headers.get("Deprecation");
+    if (!deprecation) return;
+    const sunset = response.headers.get("Sunset");
+    // eslint-disable-next-line no-console
+    console.warn(
+        `Agent endpoint ${url} is deprecated (Deprecation: ${deprecation}` +
+            (sunset ? `, Sunset: ${sunset}` : "") +
+            "). Migrate to the latest agent surface."
+    );
 };
 
 /**
@@ -163,9 +176,9 @@ const mapErrorResponse = async (response: Response): Promise<Error> => {
         return new AgentBudgetError(messageFromBody);
     }
     if (status === 429) {
-        if (safeReadBudgetReason(response)) {
-            return new AgentBudgetError(messageFromBody);
-        }
+        // The BE only emits `X-Reason: budget` on 402 (see
+        // jira-python-server app/routers/ai.py), so 429 is always rate
+        // limit. Don't re-check the header here.
         const retryAfter = parseRetryAfter(response.headers.get("Retry-After"));
         return new AgentRateLimitError(retryAfter, messageFromBody);
     }
@@ -265,6 +278,7 @@ export async function* streamAgent({
     if (!response.ok) {
         throw await mapErrorResponse(response);
     }
+    warnIfDeprecated(response, response.url || `agents/${name}/stream`);
     const reader = response.body?.getReader();
     if (!reader) {
         throw new AgentTransportError("Agent stream has no readable body");
@@ -328,6 +342,7 @@ export const invokeAgent = async <T = unknown>({
     if (!response.ok) {
         throw await mapErrorResponse(response);
     }
+    warnIfDeprecated(response, response.url || `agents/${name}/invoke`);
     return (await response.json()) as T;
 };
 
