@@ -186,15 +186,11 @@ export const validateResponse = (
 };
 
 /**
- * Remote v1 AI route. The Python `jira-python-server` only exposes
- * `/api/v1/agents/{name}/(invoke|stream)` (PRD §5.3) -- it does NOT
- * mount `/api/ai/*`. We keep this function so a future bridge server
- * (or a managed proxy that translates `/api/ai/{route}` into agent
- * runs) can be plugged in by setting `REACT_APP_AI_BASE_URL`, but in
- * the canonical deployment the `aiUseLocalEngine` branch in `run`
- * shortcuts here and the deterministic stub in `utils/ai/engine.ts`
- * answers locally. The block below should never run with the bundled
- * server.
+ * Remote v1 AI route. The Python `jira-python-server` exposes the same
+ * routes under both `/api/v1/ai/*` (modern, PRD §5.3) and `/api/ai/*`
+ * (legacy alias, scheduled for removal). We hit the v1 surface to match
+ * the rest of the FE (`apiBaseUrl`, agent endpoints) and so that when
+ * the alias is dropped the FE keeps working without redeploys.
  *
  * TODO(v2.x): collapse `useAi` onto `streamAgent` so all AI traffic
  * goes through the LangGraph agent surface and this fork disappears.
@@ -205,15 +201,18 @@ const remoteResolve = async (
     signal: AbortSignal
 ): Promise<unknown> => {
     const authHeader = getStoredBearerAuthHeader();
-    const response = await fetch(`${environment.aiBaseUrl}/api/ai/${route}`, {
-        body: JSON.stringify(payload),
-        headers: {
-            "Content-Type": "application/json",
-            ...(authHeader ? { Authorization: authHeader } : {})
-        },
-        method: "POST",
-        signal
-    });
+    const response = await fetch(
+        `${environment.aiBaseUrl}/api/v1/ai/${route}`,
+        {
+            body: JSON.stringify(payload),
+            headers: {
+                "Content-Type": "application/json",
+                ...(authHeader ? { Authorization: authHeader } : {})
+            },
+            method: "POST",
+            signal
+        }
+    );
     if (!response.ok) {
         throw new Error(`AI request failed (${response.status})`);
     }
