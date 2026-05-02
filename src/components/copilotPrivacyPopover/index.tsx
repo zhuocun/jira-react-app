@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { Button, Popover, Typography } from "antd";
 import React from "react";
 
+import environment from "../../constants/env";
 import { microcopy } from "../../constants/microcopy";
 import { fontSize, fontWeight, space } from "../../theme/tokens";
 
@@ -44,6 +45,28 @@ const List = styled.ul`
     padding-inline-start: ${space.lg}px;
 `;
 
+const getAiServiceOrigin = (baseUrl: string): string | null => {
+    if (!baseUrl.trim()) return null;
+    try {
+        return new URL(baseUrl).origin;
+    } catch {
+        return null;
+    }
+};
+
+export const getCopilotProcessingDisclosure = () => {
+    if (environment.aiUseLocalEngine) {
+        return microcopy.ai.localProcessingDisclosure;
+    }
+    const origin = getAiServiceOrigin(environment.aiBaseUrl);
+    return origin
+        ? microcopy.ai.remoteProcessingDisclosureWithOrigin.replace(
+              "{origin}",
+              origin
+          )
+        : microcopy.ai.remoteProcessingDisclosure;
+};
+
 interface CopilotPrivacyPopoverProps {
     /**
      * Optional override for the trigger label. Defaults to the standard
@@ -65,21 +88,28 @@ const CopilotPrivacyPopover: React.FC<CopilotPrivacyPopoverProps> = ({
     label,
     placement = "topRight"
 }) => {
+    const processingDisclosure = getCopilotProcessingDisclosure();
     const content = (
         <div>
             <Typography.Title level={5} style={{ marginTop: 0 }}>
                 {microcopy.ai.privacyTitle}
             </Typography.Title>
             <List>
-                <li>Board name and column titles</li>
-                <li>Task names, types, story points, and column placement</li>
-                <li>Member usernames and your own user id</li>
+                {microcopy.ai.privacyDataScope.map((item) => (
+                    <li key={item}>{item}</li>
+                ))}
             </List>
             <Typography.Paragraph
-                style={{ marginBottom: 0, marginTop: space.xs }}
+                style={{ marginBottom: space.xs, marginTop: space.xs }}
                 type="secondary"
             >
-                No task notes, member emails, or attachments are ever sent.
+                {processingDisclosure}
+            </Typography.Paragraph>
+            <Typography.Paragraph
+                style={{ marginBottom: 0, marginTop: 0 }}
+                type="secondary"
+            >
+                {microcopy.ai.privacyExclusions}
             </Typography.Paragraph>
         </div>
     );
@@ -121,6 +151,7 @@ export const CopilotPrivacyDisclosure: React.FC<
         }
     });
     if (shown) return null;
+    const processingDisclosure = getCopilotProcessingDisclosure();
     const acknowledge = () => {
         try {
             window.localStorage.setItem(storageKey, "1");
@@ -149,6 +180,18 @@ export const CopilotPrivacyDisclosure: React.FC<
                 type="secondary"
             >
                 {microcopy.ai.privacyDisclosure}
+            </Typography.Paragraph>
+            <Typography.Paragraph
+                style={{ marginBottom: space.xs, marginTop: 0 }}
+                type="secondary"
+            >
+                {processingDisclosure}
+            </Typography.Paragraph>
+            <Typography.Paragraph
+                style={{ marginBottom: space.xs, marginTop: 0 }}
+                type="secondary"
+            >
+                {microcopy.ai.privacyExclusions}
             </Typography.Paragraph>
             <div
                 style={{

@@ -134,12 +134,14 @@ describe("ProjectPage with Board Copilot enabled", () => {
         ).toBeInTheDocument();
 
         fireEvent.change(
-            screen.getByRole("textbox", { name: /Ask Board Copilot/i }),
+            screen.getByRole("textbox", { name: /Find related projects/i }),
             {
                 target: { value: "billing finance" }
             }
         );
-        fireEvent.click(screen.getByRole("button", { name: /^Search$/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: /Find related projects/i })
+        );
 
         await waitFor(() => {
             expect(screen.getByText("Billing Portal")).toBeInTheDocument();

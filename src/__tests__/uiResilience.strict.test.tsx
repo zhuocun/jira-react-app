@@ -396,7 +396,7 @@ describe("UI quality :: AiSearchInput guards", () => {
     it("does not call the AI run when the user presses Enter on an empty query", () => {
         const { run } = renderInput();
         const input = screen.getByLabelText(
-            /Ask Board Copilot a question about tasks or projects/i
+            /Find related tasks with AI and filter the task list/i
         );
 
         fireEvent.keyDown(input, { code: "Enter", key: "Enter" });
@@ -405,20 +405,21 @@ describe("UI quality :: AiSearchInput guards", () => {
         expect(run).not.toHaveBeenCalled();
     });
 
-    it("disables the Search button while the query is empty so a single-click can't fire a wasted request", () => {
+    it("disables the AI filter button while the query is empty so a single-click can't fire a wasted request", () => {
         renderInput();
-        // §2.A.1 — the Search button should only enable when there's a
-        // non-whitespace query. The button uses `microcopy.actions.search`
-        // ("Search") as its accessible name; we anchor the regex so we
-        // never accidentally match the "Clear AI search" sibling.
-        const searchBtn = screen.getByRole("button", { name: /^Search$/i });
+        // §2.A.1 — the AI filter button should only enable when there's a
+        // non-whitespace query, and its accessible name must distinguish the
+        // filter action from opening Board Copilot chat.
+        const searchBtn = screen.getByRole("button", {
+            name: microcopy.ai.findRelatedTasks
+        });
         expect(searchBtn).toBeDisabled();
     });
 
-    it("Search button label is sourced from microcopy.actions.search, not a hand-rolled 'Search' literal", () => {
+    it("AI filter button label is sourced from AI microcopy", () => {
         renderInput();
-        const search = (microcopy.actions as Record<string, string | undefined>)
-            .search;
+        const search = (microcopy.ai as Record<string, string | undefined>)
+            .findRelatedTasks;
         expect(search).toBeTruthy();
         if (search) {
             // Either as visible text or as `aria-label` — match by name.

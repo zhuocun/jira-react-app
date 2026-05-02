@@ -177,7 +177,20 @@ export const microcopy = {
         ] as readonly string[],
         privacyTitle: "What Board Copilot sees",
         privacyDisclosure:
-            "Board Copilot sees your board's task names, columns, and member names. No notes, emails, or attachments are shared.",
+            "Board Copilot uses board and project names, columns, task names, types, story points, epics, notes when present, and member usernames or user IDs where needed.",
+        privacyDataScope: [
+            "Board and project names, plus column titles",
+            "Task names, types, story points, epics, notes when present, and column placement",
+            "Member usernames and user IDs where needed"
+        ] as readonly string[],
+        privacyExclusions:
+            "Attachments are not included in Board Copilot requests.",
+        localProcessingDisclosure:
+            "This build uses local deterministic Board Copilot rules. No external AI service processes these requests.",
+        remoteProcessingDisclosure:
+            "Requests are processed by the configured AI service.",
+        remoteProcessingDisclosureWithOrigin:
+            "Requests are processed by the configured AI service at {origin}.",
         privacyLink: "What is shared?",
         privacyAcknowledge: "Got it",
         privacySuppress: "Don't remind me",
@@ -218,9 +231,21 @@ export const microcopy = {
         projectDisabled:
             "Board Copilot is turned off for this project. An admin can enable it in Settings.",
         chatErrorRecovery:
-            "I couldn't find an answer. Try rephrasing, or check sources for what I looked at.",
+            "No answer was found. Try rephrasing, or check the listed sources.",
         copilotLabel: "Board Copilot",
         askCopilot: "Ask Board Copilot",
+        findRelatedTasks: "Find related tasks",
+        findRelatedProjects: "Find related projects",
+        findRelatedTasksAria:
+            "Find related tasks with AI and filter the task list",
+        findRelatedProjectsAria:
+            "Find related projects with AI and filter the project list",
+        findRelatedTasksPlaceholder: "Describe tasks to find…",
+        findRelatedProjectsPlaceholder: "Describe projects to find…",
+        findRelatedTasksHelper:
+            "Filters this task list with AI search; it does not open chat.",
+        findRelatedProjectsHelper:
+            "Filters this project list with AI search; it does not open chat.",
         newConversation: "New conversation",
         stopResponse: "Stop response",
         characterCounterMax: 2000,

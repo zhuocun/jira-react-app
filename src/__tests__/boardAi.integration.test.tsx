@@ -273,10 +273,12 @@ describe("Board AI integration (App + local engine)", () => {
         const user = await loginAndOpenBoard();
 
         const nlInput = screen.getByRole("textbox", {
-            name: /Ask Board Copilot/i
+            name: /Find related tasks/i
         });
         await user.type(nlInput, "first task");
-        await user.click(screen.getByRole("button", { name: /^Search$/i }));
+        await user.click(
+            screen.getByRole("button", { name: /Find related tasks/i })
+        );
 
         await waitFor(() => {
             expect(screen.getByText("First task")).toBeInTheDocument();
@@ -287,7 +289,7 @@ describe("Board AI integration (App + local engine)", () => {
         const user = await loginAndOpenBoard();
 
         expect(
-            screen.getByRole("textbox", { name: /Ask Board Copilot/i })
+            screen.getByRole("textbox", { name: /Find related tasks/i })
         ).toBeInTheDocument();
 
         await user.click(
@@ -301,7 +303,7 @@ describe("Board AI integration (App + local engine)", () => {
 
         await waitFor(() => {
             expect(
-                screen.queryByRole("textbox", { name: /Ask Board Copilot/i })
+                screen.queryByRole("textbox", { name: /Find related tasks/i })
             ).not.toBeInTheDocument();
         });
     });
