@@ -461,7 +461,10 @@ const useAgent = (
                 config: {
                     configurable: {
                         thread_id: threadIdRef.current,
-                        user_id: options.userId ?? "",
+                        // user_id is derived from the JWT subject by the
+                        // backend; sending it here triggers a 400 (see
+                        // jira-python-server app/routers/agents.py
+                        // _normalize_payload).
                         project_id: options.projectId ?? "",
                         autonomy: autonomyRef.current
                     }
@@ -481,7 +484,7 @@ const useAgent = (
                 config: {
                     configurable: {
                         thread_id: threadIdRef.current,
-                        user_id: options.userId ?? "",
+                        // See note above: user_id is server-derived.
                         project_id: options.projectId ?? "",
                         autonomy: autonomyRef.current
                     }
