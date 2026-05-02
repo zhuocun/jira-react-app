@@ -177,11 +177,11 @@ export const microcopy = {
         ] as readonly string[],
         privacyTitle: "What Board Copilot sees",
         privacyDisclosure:
-            "Board Copilot uses board and project names, columns, task names, types, story points, epics, notes when present, and member usernames or user IDs where needed.",
+            "Board Copilot uses board and project names, columns, task names, types, story points, epics, notes when present, and member usernames, emails, or user IDs where needed.",
         privacyDataScope: [
             "Board and project names, plus column titles",
             "Task names, types, story points, epics, notes when present, and column placement",
-            "Member usernames and user IDs where needed"
+            "Member usernames, emails, and user IDs where needed"
         ] as readonly string[],
         privacyExclusions:
             "Attachments are not included in Board Copilot requests.",
