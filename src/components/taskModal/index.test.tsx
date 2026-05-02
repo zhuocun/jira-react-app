@@ -211,6 +211,29 @@ describe("TaskModal", () => {
         );
     });
 
+    it("surfaces a save error and keeps the modal open when the update fails", async () => {
+        fetchMock.mockReset();
+        fetchMock.mockResolvedValue(
+            response({ error: "Save failed on server" }, false)
+        );
+        renderModal();
+        const taskNameInput = await screen.findByDisplayValue("Build task");
+
+        fireEvent.change(taskNameInput, {
+            target: { value: "Build task details" }
+        });
+        fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+        await waitFor(() =>
+            expect(
+                screen.getByText(/save failed on server/i)
+            ).toBeInTheDocument()
+        );
+        expect(screen.getByTestId("location")).toHaveTextContent(
+            "editingTaskId=task-1"
+        );
+    });
+
     it("resets and clears the URL when cancelled", async () => {
         renderModal();
 

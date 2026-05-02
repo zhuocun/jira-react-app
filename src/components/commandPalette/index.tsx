@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { useIsFetching } from "@tanstack/react-query";
 import { Drawer, Grid, Input, Modal, Tag, Typography } from "antd";
 import {
     useCallback,
@@ -310,6 +311,22 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
     );
 
     /**
+     * Cold-cache detection (P3-3). The palette reads cached query data; on
+     * first visit before any board/project page has populated the cache,
+     * those queries may still be fetching. Surface a "Loading…" state
+     * instead of "No matches" so users don't think the palette is broken.
+     * `useIsFetching` returns the count of in-flight queries matching
+     * each prefix; sum > 0 means we're waiting on at least one source.
+     */
+    const projectsFetching = useIsFetching({ queryKey: ["projects"] });
+    const tasksFetching = useIsFetching({ queryKey: ["tasks"] });
+    const boardsFetching = useIsFetching({ queryKey: ["boards"] });
+    const membersFetching = useIsFetching({ queryKey: ["users/members"] });
+    const isAnyFetching =
+        projectsFetching + tasksFetching + boardsFetching + membersFetching > 0;
+    const isColdCache = isAnyFetching && entries.length === 0;
+
+    /**
      * Visible navigation results. CP-R11: trim before filtering so a
      * leading space isn't a false miss. CP-R7: only treat the leading
      * "/" as the AI sigil — embedded slashes (e.g. "v2/api") are normal
@@ -566,8 +583,14 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
                     role="listbox"
                 >
                     {renderedItems.length === 0 ? (
-                        <Typography.Paragraph type="secondary">
-                            No matches.
+                        <Typography.Paragraph
+                            aria-busy={isColdCache || undefined}
+                            aria-live="polite"
+                            type="secondary"
+                        >
+                            {isColdCache
+                                ? microcopy.empty.commandPalette.loading
+                                : microcopy.empty.commandPalette.empty}
                         </Typography.Paragraph>
                     ) : (
                         renderedItems.map((item, index) => {

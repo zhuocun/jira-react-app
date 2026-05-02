@@ -150,6 +150,68 @@ describe("CommandPalette", () => {
         expect(results).toHaveNoViolations();
     });
 
+    it("shows a loading indicator when the cache is cold and a query is in flight", async () => {
+        const onClose = jest.fn();
+        // Cold cache: no seeded data, but at least one query is in flight.
+        // Simulate by registering an active observer on the cache via a
+        // pending query state. The simplest path is to seed an actual
+        // query function that never resolves while the palette renders.
+        const qc = new QueryClient({
+            defaultOptions: { queries: { retry: false } }
+        });
+        // Kick off a fetch that stays pending. Tanstack Query exposes
+        // `useIsFetching` which reflects this in-flight count.
+        let resolveNever: ((v: IProject[]) => void) | undefined;
+        qc.fetchQuery<IProject[]>({
+            queryKey: ["projects", { managerId: "m1" }],
+            queryFn: () =>
+                new Promise<IProject[]>((resolve) => {
+                    resolveNever = resolve;
+                })
+        });
+        try {
+            render(
+                <QueryClientProvider client={qc}>
+                    <MemoryRouter>
+                        <CommandPalette onClose={onClose} open />
+                    </MemoryRouter>
+                </QueryClientProvider>
+            );
+            await screen.findByRole("combobox");
+            await waitFor(() => {
+                expect(screen.getByText("Loading…")).toBeInTheDocument();
+            });
+            expect(screen.queryByText("No matches.")).not.toBeInTheDocument();
+        } finally {
+            // Resolve the pending query so the worker exits cleanly.
+            resolveNever?.([]);
+        }
+    });
+
+    it("shows 'No matches.' when no queries are fetching and the cache is empty", async () => {
+        const onClose = jest.fn();
+        const qc = new QueryClient({
+            defaultOptions: { queries: { retry: false } }
+        });
+        render(
+            <QueryClientProvider client={qc}>
+                <MemoryRouter>
+                    <CommandPalette onClose={onClose} open />
+                </MemoryRouter>
+            </QueryClientProvider>
+        );
+        const input = (await screen.findByRole("combobox")).querySelector(
+            "input"
+        ) as HTMLInputElement;
+        // Type something so the visible list is forced to filter and
+        // produce zero results from the empty cache.
+        fireEvent.change(input, { target: { value: "anything" } });
+        await waitFor(() => {
+            expect(screen.getByText("No matches.")).toBeInTheDocument();
+        });
+        expect(screen.queryByText("Loading…")).not.toBeInTheDocument();
+    });
+
     it("indexes tasks and columns from parametric cache keys", async () => {
         const onClose = jest.fn();
         const qc = seedClient();

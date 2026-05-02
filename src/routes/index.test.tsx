@@ -1,5 +1,4 @@
 import { ReactElement } from "react";
-import { Outlet } from "react-router";
 
 import routes, { RootRedirect } from ".";
 
@@ -32,10 +31,12 @@ const element = <Props,>(route: { element?: unknown }) =>
     route.element as ReactElement<Props>;
 
 describe("routes", () => {
-    it("wraps the app in an outlet with an auth-aware index redirect", () => {
+    it("wraps the app in a Suspense shell with an auth-aware index redirect", () => {
         const root = routes[0];
         expect(root.path).toBe("/");
-        expect(element(root).type).toBe(Outlet);
+        // The root element wraps an Outlet in a Suspense boundary so the
+        // lazily-loaded page chunks can suspend without blanking the page.
+        expect(element(root).type).toBeInstanceOf(Function);
 
         const indexRedirect = root.children?.[0];
         expect(
@@ -49,7 +50,7 @@ describe("routes", () => {
         );
     });
 
-    it("contains auth and project child routes under the home shell", () => {
+    it("contains auth, project, and catch-all child routes under the home shell", () => {
         const homeShell = routes[0].children?.[1];
         expect(
             homeShell && "path" in homeShell ? homeShell.path : undefined
@@ -58,7 +59,8 @@ describe("routes", () => {
             "register",
             "login",
             "projects",
-            "projects/:projectId"
+            "projects/:projectId",
+            "*"
         ]);
     });
 

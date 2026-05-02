@@ -2,6 +2,7 @@ import qs from "qs";
 import { useCallback } from "react";
 
 import environment from "../../constants/env";
+import { microcopy } from "../../constants/microcopy";
 
 import { parseFetchBody } from "../parseFetchBody";
 
@@ -35,6 +36,16 @@ const getApiErrorMessage = (error: unknown): string => {
     return "Operation failed";
 };
 
+/**
+ * `fetch()` rejects with `TypeError("Failed to fetch")` on offline / DNS /
+ * CORS failures. Surface a friendly, actionable message instead of the raw
+ * browser string. We narrow on both the type and the message substring so
+ * unrelated TypeErrors thrown later in the response pipeline are not
+ * silently rewritten.
+ */
+const isNetworkError = (err: unknown): boolean =>
+    err instanceof TypeError && err.message.toLowerCase().includes("fetch");
+
 export const api = async (
     endpoint: string,
     { data, token, ...customConfig }: IConfig = {}
@@ -65,15 +76,22 @@ export const api = async (
         config.body = JSON.stringify(data);
     }
 
-    return fetch(`${environment.apiBaseUrl}/${apiEndpoint}`, config).then(
-        async (res) => {
-            const resData = await parseFetchBody(res);
-            if (res.ok) {
-                return resData;
-            }
-            return Promise.reject(new Error(getApiErrorMessage(resData)));
+    let res: Response;
+    try {
+        res = await fetch(`${environment.apiBaseUrl}/${apiEndpoint}`, config);
+    } catch (err) {
+        if (isNetworkError(err)) {
+            return Promise.reject(
+                new Error(microcopy.feedback.networkError, { cause: err })
+            );
         }
-    );
+        throw err;
+    }
+    const resData = await parseFetchBody(res);
+    if (res.ok) {
+        return resData;
+    }
+    return Promise.reject(new Error(getApiErrorMessage(resData)));
 };
 
 const useApi = () => {

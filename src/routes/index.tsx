@@ -1,12 +1,29 @@
-import { Navigate, Outlet } from "react-router";
+import { lazy, Suspense } from "react";
+import { Link, Navigate, Outlet } from "react-router-dom";
 
-import BoardPage from "../pages/board";
-import HomePage from "../pages/home";
-import LoginPage from "../pages/login";
-import ProjectPage from "../pages/project";
-import ProjectDetailPage from "../pages/projectDetail";
-import RegisterPage from "../pages/register";
+import EmptyState from "../components/emptyState";
+import { PageSpin } from "../components/status";
+import { microcopy } from "../constants/microcopy";
 import useAuth from "../utils/hooks/useAuth";
+
+/**
+ * Route-level code splitting (Phase B). Each page becomes its own chunk so the
+ * login screen does not have to download project / board / AI code on first
+ * paint. The Suspense boundary lives one level above HomePage so the layout
+ * chrome stays mounted while a page chunk fetches.
+ *
+ * Tests that exercise the routes (App.test, route integration suites) already
+ * use `jest.mock("../pages/...")` to swap each page for a sync stub. Combined
+ * with `findBy*` / `waitFor` they handle the one-tick suspension `lazy()`
+ * introduces. Page-only tests (board.test, project.test, projectDetail.test)
+ * import the page directly and are not affected.
+ */
+const HomePage = lazy(() => import("../pages/home"));
+const LoginPage = lazy(() => import("../pages/login"));
+const RegisterPage = lazy(() => import("../pages/register"));
+const ProjectPage = lazy(() => import("../pages/project"));
+const ProjectDetailPage = lazy(() => import("../pages/projectDetail"));
+const BoardPage = lazy(() => import("../pages/board"));
 
 /**
  * Resolves the root URL by consulting authentication once, at the route
@@ -24,18 +41,29 @@ const RootRedirect = () => {
     );
 };
 
+const NotFoundRoute = () => (
+    <EmptyState
+        data-testid="not-found"
+        title={microcopy.empty.notFound.title}
+        description={microcopy.empty.notFound.description}
+        cta={<Link to="/projects">{microcopy.empty.notFound.cta}</Link>}
+    />
+);
+
+const SuspenseShell = () => (
+    <Suspense fallback={<PageSpin />}>
+        <Outlet />
+    </Suspense>
+);
+
 /**
  * Single "/" match: index redirects to login; sibling branch renders the auth/main shell.
  * Nested paths use relative segments (e.g. projects/:projectId/board).
- *
- * Note: route-level code splitting (React.lazy) is intentionally deferred —
- * landing it would force an audit of every page-mount test (Suspense boundaries
- * defer first paint, breaking synchronous getBy* queries).
  */
 const routes = [
     {
         path: "/",
-        element: <Outlet />,
+        element: <SuspenseShell />,
         children: [
             { index: true, element: <RootRedirect /> },
             {
@@ -62,6 +90,10 @@ const routes = [
                                 element: <BoardPage />
                             }
                         ]
+                    },
+                    {
+                        path: "*",
+                        element: <NotFoundRoute />
                     }
                 ]
             }

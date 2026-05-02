@@ -1,7 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { App as AntdApp } from "antd";
 import { MemoryRouter } from "react-router-dom";
 
+import { microcopy } from "../../constants/microcopy";
 import type { AiChatMessage } from "../../utils/ai/chatEngine";
 import useAuth from "../../utils/hooks/useAuth";
 
@@ -101,15 +103,17 @@ describe("AiChatDrawer UI branches (mocked chat hook)", () => {
                 }
             >
                 <MemoryRouter>
-                    <AiChatDrawer
-                        columns={columns}
-                        knownProjectIds={["p1"]}
-                        members={members}
-                        onClose={jest.fn()}
-                        open
-                        project={project}
-                        tasks={tasks}
-                    />
+                    <AntdApp component={false}>
+                        <AiChatDrawer
+                            columns={columns}
+                            knownProjectIds={["p1"]}
+                            members={members}
+                            onClose={jest.fn()}
+                            open
+                            project={project}
+                            tasks={tasks}
+                        />
+                    </AntdApp>
                 </MemoryRouter>
             </QueryClientProvider>
         );
@@ -138,5 +142,155 @@ describe("AiChatDrawer UI branches (mocked chat hook)", () => {
         // The raw payload still renders inside the <details> body so power
         // users can expand to inspect it; the summary is the user-facing copy.
         expect(details!.textContent).toContain("payload");
+    });
+
+    it("renders the chat-bubble skeleton (not a Spin) while loading with no streaming text", () => {
+        mockedUseAiChat.mockReturnValue({
+            ...baseChat(),
+            isLoading: true,
+            streamingText: ""
+        });
+        renderDrawer();
+        // P1-3: loading swaps the legacy Spin for an AntD Skeleton inside an
+        // assistant-shaped bubble plus a static "thinking" stage label.
+        expect(document.querySelector(".ant-skeleton")).toBeTruthy();
+        expect(document.querySelector(".ant-spin")).toBeNull();
+        expect(
+            screen.getByText(microcopy.ai.thinkingDefault)
+        ).toBeInTheDocument();
+    });
+
+    it("renders streamingText inside the bubble with a blinking cursor while loading", () => {
+        mockedUseAiChat.mockReturnValue({
+            ...baseChat(),
+            isLoading: true,
+            streamingText: "Reading tasks…"
+        });
+        renderDrawer();
+        // The skeleton is replaced by partial output once tokens land.
+        expect(screen.getByText(/Reading tasks…/)).toBeInTheDocument();
+        // The cursor is decorative — assert by the glyph rather than role.
+        expect(document.body.textContent).toContain("▍");
+    });
+
+    it("labels each assistant bubble with 'Board Copilot' attribution and the AI disclaimer", () => {
+        mockedUseAiChat.mockReturnValue({
+            ...baseChat(),
+            messages: [
+                { role: "user", content: "Hi" },
+                { role: "assistant", content: "Hello back" }
+            ]
+        });
+        renderDrawer();
+        // P2-5: model attribution appears above the bubble exactly once.
+        const copilotLabels = screen
+            .getAllByText(microcopy.ai.copilotLabel)
+            .filter((el) => el.tagName.toLowerCase() === "span");
+        expect(copilotLabels.length).toBeGreaterThanOrEqual(1);
+        // P2-2: subtle "AI · review before using" disclaimer below the bubble.
+        // The drawer header already has it as a Tag; the per-message version
+        // is a sibling div of the bubble inside the assistant group.
+        const groups = screen.getAllByRole("group");
+        const assistantGroup = groups.find((g) =>
+            g.textContent?.includes("Hello back")
+        );
+        expect(assistantGroup).toBeTruthy();
+        expect(assistantGroup!.textContent).toContain(microcopy.a11y.aiBadge);
+    });
+
+    it("tags the freshly regenerated assistant message with a Regenerated badge", () => {
+        const send = jest.fn();
+        const baseTurn: AiChatMessage[] = [
+            { role: "user", content: "Summarize" },
+            { role: "assistant", content: "First answer" }
+        ];
+        mockedUseAiChat.mockReturnValue({
+            ...baseChat(),
+            messages: baseTurn,
+            send
+        });
+        const { rerender } = renderDrawer();
+
+        // No badge on the first turn.
+        expect(
+            screen.queryByText(microcopy.ai.regeneratedBadge)
+        ).not.toBeInTheDocument();
+
+        // Click the regenerate icon button on the assistant turn.
+        fireEvent.click(screen.getByLabelText("Regenerate response"));
+        expect(send).toHaveBeenCalledWith("Summarize");
+
+        // Simulate the chat hook appending a second assistant turn.
+        const afterRegen: AiChatMessage[] = [
+            ...baseTurn,
+            { role: "user", content: "Summarize" },
+            { role: "assistant", content: "Second answer" }
+        ];
+        mockedUseAiChat.mockReturnValue({
+            ...baseChat(),
+            messages: afterRegen,
+            send
+        });
+        act(() => {
+            rerender(
+                <QueryClientProvider
+                    client={
+                        new QueryClient({
+                            defaultOptions: { queries: { retry: false } }
+                        })
+                    }
+                >
+                    <MemoryRouter>
+                        <AntdApp component={false}>
+                            <AiChatDrawer
+                                columns={columns}
+                                knownProjectIds={["p1"]}
+                                members={members}
+                                onClose={jest.fn()}
+                                open
+                                project={project}
+                                tasks={tasks}
+                            />
+                        </AntdApp>
+                    </MemoryRouter>
+                </QueryClientProvider>
+            );
+        });
+
+        // The new assistant turn carries the Regenerated badge; the original
+        // turn does not (we'd see exactly one badge).
+        const badges = screen.getAllByText(microcopy.ai.regeneratedBadge);
+        expect(badges.length).toBe(1);
+    });
+
+    it("shows a feedback toast on thumbs up and de-dupes repeated clicks", () => {
+        mockedUseAiChat.mockReturnValue({
+            ...baseChat(),
+            messages: [
+                { role: "user", content: "Hi" },
+                { role: "assistant", content: "Hello back" }
+            ]
+        });
+        renderDrawer();
+
+        const thumbsUp = screen.getByLabelText("Helpful answer");
+        fireEvent.click(thumbsUp);
+        // The AntD App message appears in a portal under .ant-message.
+        const toasts = document.querySelectorAll(".ant-message-notice");
+        expect(toasts.length).toBeGreaterThan(0);
+        expect(document.body.textContent).toContain(
+            microcopy.ai.feedbackThanks
+        );
+
+        // A second click on the same value should be a no-op (de-duped) and
+        // not stack another toast.
+        const beforeCount = document.querySelectorAll(
+            ".ant-message-notice"
+        ).length;
+        fireEvent.click(thumbsUp);
+        const afterCount = document.querySelectorAll(
+            ".ant-message-notice"
+        ).length;
+        expect(afterCount).toBe(beforeCount);
     });
 });

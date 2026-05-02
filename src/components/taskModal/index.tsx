@@ -3,6 +3,7 @@ import {
     Form,
     Grid,
     Input,
+    message,
     Modal,
     Select,
     Tag,
@@ -21,6 +22,7 @@ import useReactMutation from "../../utils/hooks/useReactMutation";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import deleteTaskCallback from "../../utils/optimisticUpdate/deleteTask";
 import AiTaskAssistPanel from "../aiTaskAssistPanel";
+import ErrorBox from "../errorBox";
 
 const TYPE_OPTIONS = [
     { label: "Task", value: "Task" },
@@ -42,21 +44,29 @@ const TaskModal: React.FC<{
     const { enabled: aiEnabled } = useAiEnabled();
     const screens = Grid.useBreakpoint();
     const [formTick, setFormTick] = useState(0);
+    const [saveError, setSaveError] = useState<Error | null>(null);
     const { mutateAsync: update, isLoading: uLoading } = useReactMutation(
         "tasks",
-        "PUT"
+        "PUT",
+        undefined,
+        undefined,
+        (err) => setSaveError(err)
     );
     const { mutate: remove, isLoading: dLoading } = useReactMutation(
         "tasks",
         "DELETE",
         ["tasks", { projectId }],
-        deleteTaskCallback
+        deleteTaskCallback,
+        // Suppress useReactMutation's auto-revert toast; the per-call
+        // mutate(..., { onError }) below shows a task-specific message.
+        () => {}
     );
     const editingTask = tasks?.filter((task) => task._id === editingTaskId)[0];
     const members = useCachedQueryData<IMember[]>(["users/members"]) ?? [];
 
     const onClose = () => {
         form.resetFields();
+        setSaveError(null);
         closeModal();
     };
 
@@ -80,12 +90,23 @@ const TaskModal: React.FC<{
         };
         if (isEqual(merged, editingTask)) {
             closeModal();
-        } else {
-            await update(merged).then(closeModal);
+            return;
+        }
+        try {
+            await update(merged);
+            setSaveError(null);
+            message.success(microcopy.feedback.taskSaved);
+            onClose();
+        } catch {
+            // ErrorBox surfaces the message via the onError callback above;
+            // keep the modal open so the user can retry without re-entering
+            // their changes.
         }
     };
 
     const onDelete = () => {
+        const taskName = editingTask?.taskName;
+        const taskId = editingTaskId;
         onClose();
         Modal.confirm({
             centered: true,
@@ -95,7 +116,19 @@ const TaskModal: React.FC<{
             title: microcopy.confirm.deleteTask.title,
             content: microcopy.confirm.deleteTask.description,
             onOk() {
-                remove({ taskId: editingTaskId });
+                remove(
+                    { taskId },
+                    {
+                        onSuccess: () =>
+                            message.success(microcopy.feedback.taskDeleted),
+                        onError: () =>
+                            message.error(
+                                taskName
+                                    ? `Couldn't delete ${taskName}.`
+                                    : microcopy.feedback.saveFailed
+                            )
+                    }
+                );
             }
         });
     };
@@ -103,6 +136,12 @@ const TaskModal: React.FC<{
     useEffect(() => {
         form.setFieldsValue(editingTask);
     }, [form, editingTask]);
+
+    // Clear stale save errors when the user opens a different task; the
+    // previous error referred to the prior payload and would mislead.
+    useEffect(() => {
+        setSaveError(null);
+    }, [editingTaskId]);
 
     const liveValues = (() => {
         const fromForm = form.getFieldsValue();
@@ -258,11 +297,15 @@ const TaskModal: React.FC<{
             }}
             width={modalWidthCss(640)}
         >
+            <ErrorBox error={saveError} />
             <Form
                 form={form}
                 initialValues={editingTask}
                 layout="vertical"
-                onValuesChange={() => setFormTick((tick) => tick + 1)}
+                onValuesChange={() => {
+                    setFormTick((tick) => tick + 1);
+                    if (saveError) setSaveError(null);
+                }}
             >
                 <Form.Item
                     label={microcopy.fields.taskName}

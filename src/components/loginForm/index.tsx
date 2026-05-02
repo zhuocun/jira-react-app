@@ -1,6 +1,6 @@
 import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
-import { Form, Input } from "antd";
+import { Form, Input, message } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -40,6 +40,7 @@ const LoginForm: React.FC<{
         try {
             const res = await mutateAsync(input);
             localStorage.setItem("Token", res.jwt);
+            message.success(microcopy.feedback.welcomeBack);
             navigate("/projects", { viewTransition: true });
         } catch {
             // Error state is set by useReactMutation's onError callback.

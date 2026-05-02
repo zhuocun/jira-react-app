@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { App as AntdApp } from "antd";
 import { MemoryRouter } from "react-router-dom";
 
 import useAuth from "../../utils/hooks/useAuth";
@@ -82,15 +83,17 @@ const renderDrawer = (open = true) => {
     const utils = render(
         <QueryClientProvider client={queryClient}>
             <MemoryRouter>
-                <AiChatDrawer
-                    columns={columns}
-                    knownProjectIds={["p1"]}
-                    members={members}
-                    onClose={onClose}
-                    open={open}
-                    project={project}
-                    tasks={tasks}
-                />
+                <AntdApp component={false}>
+                    <AiChatDrawer
+                        columns={columns}
+                        knownProjectIds={["p1"]}
+                        members={members}
+                        onClose={onClose}
+                        open={open}
+                        project={project}
+                        tasks={tasks}
+                    />
+                </AntdApp>
             </MemoryRouter>
         </QueryClientProvider>
     );

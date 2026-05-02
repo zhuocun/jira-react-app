@@ -106,7 +106,15 @@ export const microcopy = {
         renderFailed: "This page couldn't render.",
         renderFailedHint:
             "Try again, or reload the page if the problem persists.",
-        reloadPage: "Reload page"
+        reloadPage: "Reload page",
+        networkError:
+            "Unable to connect. Check your internet connection and try again.",
+        optimisticReverted: "Couldn't save — your changes were reverted.",
+        projectDeleted: "Project deleted",
+        taskDeleted: "Task deleted",
+        likeFailed: "Couldn't update like. Please try again.",
+        taskSaved: "Task saved",
+        welcomeBack: "Welcome back!"
     },
     /**
      * ICU-style placeholder greeting. Header reads it as
@@ -134,6 +142,20 @@ export const microcopy = {
             title: "Ask Board Copilot",
             description:
                 "Try: 'What's at risk?' or 'Who has the most open tasks?' — answers come from your board data."
+        },
+        filteredColumn: {
+            title: "No tasks match the current filters",
+            cta: "Reset filters"
+        },
+        commandPalette: {
+            loading: "Loading…",
+            empty: "No matches."
+        },
+        notFound: {
+            title: "Page not found",
+            description:
+                "We couldn't find the page you're looking for. It may have moved, or the link might be out of date.",
+            cta: "Back to projects"
         }
     },
     /**
@@ -166,6 +188,10 @@ export const microcopy = {
         undoLabel: "Undo",
         copiedConfirm: "Copied to clipboard",
         feedbackThanks: "Thanks for your feedback",
+        regeneratedBadge: "Regenerated response",
+        regeneratedTooltip:
+            "Board Copilot generated a fresh answer to the same question. The earlier response is still above for comparison.",
+        thinkingDefault: "Reading your board data…",
         confidenceBands: {
             high: "High",
             moderate: "Moderate",

@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Breadcrumb, Skeleton, Tabs } from "antd";
+import { Alert, Breadcrumb, Button, Skeleton, Tabs } from "antd";
 import { useEffect } from "react";
 import {
     Link,
@@ -9,9 +9,12 @@ import {
     useParams
 } from "react-router-dom";
 
+import EmptyState from "../components/emptyState";
 import ProjectPopover from "../components/projectPopover";
+import { microcopy } from "../constants/microcopy";
 import { breakpoints, fontSize, fontWeight, space } from "../theme/tokens";
 import useReactQuery from "../utils/hooks/useReactQuery";
+import useTitle from "../utils/hooks/useTitle";
 
 const Container = styled.div`
     display: flex;
@@ -130,16 +133,34 @@ const ProjectDetailPage = () => {
     const segments = pathname.split("/").filter(Boolean);
     const activeTab = segments[segments.length - 1] || "board";
 
-    const { data: project, isLoading: pLoading } = useReactQuery<IProject>(
-        "projects",
-        { projectId }
-    );
+    const {
+        data: project,
+        isLoading: pLoading,
+        isSuccess: pSuccess,
+        error: pError,
+        refetch: refetchProject
+    } = useReactQuery<IProject>("projects", { projectId });
+    /*
+     * Browser tab title mirrors the current project. Until the query resolves
+     * we keep a generic "Project" so the previous page's title (likely
+     * "Projects") is replaced with something accurate to this shell.
+     */
+    useTitle(project?.projectName ?? "Project");
+
+    /*
+     * A successful query that returns a falsy body is treated as not-found —
+     * the JSON-server mock can return `null` / empty for an unknown id, and
+     * we should surface a friendly 404 rather than render the board outlet
+     * against a phantom project.
+     */
+    const isNotFound = pSuccess && !project;
 
     useEffect(() => {
+        if (pError || isNotFound) return;
         if (!pathname.endsWith("/board")) {
             navigate("board");
         }
-    }, [navigate, pathname]);
+    }, [navigate, pathname, pError, isNotFound]);
 
     return (
         <Container>
@@ -168,7 +189,36 @@ const ProjectDetailPage = () => {
                 <TabsRow activeKey={activeTab} items={tabItems} size="small" />
             </TopBar>
             <Body>
-                <Outlet />
+                {pError ? (
+                    <Alert
+                        action={
+                            <Button
+                                onClick={() => refetchProject()}
+                                size="small"
+                                type="primary"
+                            >
+                                {microcopy.actions.retry}
+                            </Button>
+                        }
+                        description={microcopy.feedback.retryHint}
+                        message={microcopy.feedback.loadFailed}
+                        showIcon
+                        style={{ margin: space.md }}
+                        type="error"
+                    />
+                ) : isNotFound ? (
+                    <EmptyState
+                        title={microcopy.empty.notFound.title}
+                        description={microcopy.empty.notFound.description}
+                        cta={
+                            <Link to="/projects">
+                                {microcopy.empty.notFound.cta}
+                            </Link>
+                        }
+                    />
+                ) : (
+                    <Outlet />
+                )}
             </Body>
         </Container>
     );

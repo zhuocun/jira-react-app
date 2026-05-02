@@ -24,19 +24,22 @@ The industry has moved beyond the "Chat-Only" era into what practitioners call *
 **How it works:** AI offers dimmed "ghost text" completions at the cursor location. The user accepts (Tab), partially accepts, or ignores by continuing to type. GitHub Copilot pioneered this for code; it now extends to writing tools and form fields.
 
 **Real-world examples:**
-- **GitHub Copilot** offers two variants: *ghost text suggestions* (classic autocomplete at cursor) and *Next Edit Suggestions (NES)*, which predict the *location* of the next edit and what that edit should be—indicated by a gutter arrow. NES spans symbols, lines, or multi-line blocks, and users navigate to suggestions with Tab.
+
+- **GitHub Copilot** offers two variants: _ghost text suggestions_ (classic autocomplete at cursor) and _Next Edit Suggestions (NES)_, which predict the _location_ of the next edit and what that edit should be—indicated by a gutter arrow. NES spans symbols, lines, or multi-line blocks, and users navigate to suggestions with Tab.
 - **Cursor** extends this with `Cmd+K` inline AI edits, where users select code and describe a transformation in natural language.
 - **Grammarly** shows inline actions when text is selected in any text field.
 
 **Pros:**
+
 - Zero context-switching—the user stays in their flow
 - Low cognitive load: validating is easier than prompting
 - Invisible when not needed; doesn't clutter the UI
 - Follows the principle of "Draft, Don't Ask"
 
 **Cons:**
+
 - Limited to predictable, short-form completions
-- Difficult to communicate *why* a suggestion was made
+- Difficult to communicate _why_ a suggestion was made
 - Can be disorienting if suggestions change rapidly or shift code layout
 - Not suitable for complex, multi-step or exploratory tasks
 
@@ -49,11 +52,13 @@ The industry has moved beyond the "Chat-Only" era into what practitioners call *
 **How it works:** A dedicated text input where users describe goals in natural language and receive structured responses. Modern chat is never just a text box—it includes suggested starting prompts, inline previews, follow-up chips, and smart code blocks.
 
 **Real-world examples:**
+
 - **ChatGPT / Claude** — full-screen conversational interfaces with follow-up suggestions, regeneration carousels, and artifact panels.
 - **Cursor Agent** — a chat panel embedded in the IDE that can read files, run commands, and make multi-file edits autonomously.
 - **Notion AI** — a chat interface that operates on the current document, offering inline rewrite, summarize, and translate actions.
 
 **Five key sub-patterns (from the AI Chat Interface Playbook):**
+
 1. **Slash Commands (`/`)** — Discoverability through browsable menus. Users learn what the AI can do by typing `/`.
 2. **Context Mentions (`@`)** — Users tag files, documents, or agents to build context without copy-paste. Used in Cursor (`@file`), Notion (`@page`), and enterprise tools.
 3. **Follow-up Chips** — Suggested next questions after each AI response. Reduces cognitive load and teaches users what's possible.
@@ -61,12 +66,14 @@ The industry has moved beyond the "Chat-Only" era into what practitioners call *
 5. **Regeneration Carousel** — Generate multiple variations and swipe between them. Transforms interaction from slot machine to buffet.
 
 **Pros:**
+
 - Handles "high-entropy" goals—millions of ways to express intent
 - Flexible and discoverable through suggested prompts
 - Good for exploration, brainstorming, multi-turn reasoning
 - Can combine with other patterns (inline previews, side panels)
 
 **Cons:**
+
 - The "blank page problem"—users don't know what to ask
 - Slower than buttons or dropdowns for predictable tasks
 - Conversation history becomes unwieldy for long sessions
@@ -81,17 +88,20 @@ The industry has moved beyond the "Chat-Only" era into what practitioners call *
 **How it works:** A keyboard-activated overlay (typically `Cmd+K`) that accepts both fixed commands (`/deploy`) and natural language queries ("Change all primary buttons to blue"). Combines the speed of structured actions with the flexibility of AI.
 
 **Real-world examples:**
+
 - **Cursor** — `Cmd+K` for inline AI edits, `Cmd+Shift+I` for the full Composer, plus Agent mode for autonomous multi-file tasks.
 - **Linear** — `Cmd+K` command palette for navigation, issue creation, and AI-powered search with hybrid semantic matching.
 - **VS Code** — Command Palette (`Cmd+Shift+P`) extended with Copilot-powered natural language commands.
 
 **Pros:**
+
 - Fastest interaction pattern for power users who know what they want
 - Combines discoverability (browsable command list) with flexibility (NL input)
 - Doesn't require a dedicated chat panel
 - Works well for internal tools, IDEs, and productivity apps
 
 **Cons:**
+
 - Invisible to new users—requires learning the keyboard shortcut
 - Needs a visible entry point (button or status bar indicator)
 - Complex to implement: must handle fixed commands, fuzzy search, and NL simultaneously
@@ -106,17 +116,20 @@ The industry has moved beyond the "Chat-Only" era into what practitioners call *
 **How it works:** The AI is invisible. Traditional UI elements (dropdowns, toggles, pre-filled fields) are powered by AI predictions behind the scenes. The user validates rather than prompts. A small "AI badge" indicates where predictions were made.
 
 **Real-world examples:**
+
 - **Linear Triage Intelligence** — When issues enter triage, AI pre-fills team, assignee, labels, project, and priority. Suggestions use the same visual language as the rest of Linear. Users accept or dismiss. Properties auto-applied by AI are clearly marked and distinguishable from human-set values.
 - **Adobe Photoshop** — Partner AI models (Google Gemini, FLUX, Topaz) are integrated into familiar workflows like Generative Fill and Generative Upscale. Users interact through the existing Photoshop interface, not a chat.
 - **Gmail Smart Compose** — AI pre-fills email text as you type, styled as gray ghost text.
 
 **Pros:**
+
 - Eliminates the "blank page problem"—users validate, not create
 - Fastest path to completion for predictable tasks
 - Doesn't require users to learn prompt engineering
 - Feels like the software "just works"
 
 **Cons:**
+
 - Users may not realize AI is involved (transparency concerns)
 - Hard to communicate confidence or uncertainty
 - Requires high accuracy—wrong pre-fills erode trust quickly
@@ -131,18 +144,21 @@ The industry has moved beyond the "Chat-Only" era into what practitioners call *
 **How it works:** A persistent or on-demand panel alongside the main workspace that shows AI recommendations, agent activity, approval workflows, and action history. Used for multi-step flows, auditable processes, and tasks requiring review before execution.
 
 **Real-world examples:**
+
 - **Cursor Agent** — Side panel showing agent activity, file changes, terminal commands, and a plan that the user can review and edit before building.
 - **Linear Triage Intelligence** — Dedicated module in the triage view with hoverable reasoning, alternative suggestions, and a thinking-state timer.
 - **Adobe Firefly AI Assistant** — Agentic tool that orchestrates multi-step workflows across Creative Cloud from a conversational side panel.
 - **Intercom Fin** — Agent proposes responses in a side panel; human edits and approves before sending.
 
 **Pros:**
+
 - Context preserved alongside the main workspace
 - Supports multi-step, auditable flows with role-based approvals
 - Shows reasoning, alternatives, and history
 - Can include approval inbox, undo capabilities, and audit trail
 
 **Cons:**
+
 - Consumes screen real estate
 - Can be ignored if not contextually relevant
 - Adds complexity to the layout
@@ -157,17 +173,20 @@ The industry has moved beyond the "Chat-Only" era into what practitioners call *
 **How it works:** A small, contextual card that appears where the user is working—containing a recommendation, a one-line rationale, and a clear action (accept/adjust). It hides after confirmation or silences itself if ignored.
 
 **Real-world examples:**
+
 - **Figma Make** — Select an area on the canvas; inline actions appear for AI-guided modifications.
 - **Atlassian Intelligence** — Inline preview of AI output targeted to a specific part of the document without updating the whole canvas.
 - **Sourcetable** — Inline actions on individual spreadsheet cells.
 
 **Pros:**
+
 - Minimal friction—appears right where the user is working
 - Short decision cycle: one recommendation, one action
 - Self-silencing prevents notification fatigue
 - Preserves user focus on the main task
 
 **Cons:**
+
 - Limited to short, frequent decisions
 - Can't handle complex multi-step reasoning
 - Risk of being missed if too subtle
@@ -182,18 +201,21 @@ The industry has moved beyond the "Chat-Only" era into what practitioners call *
 **How it works:** Users select a specific region of content (text, image area, code block) and direct the AI to modify only that region, leaving the rest untouched. Changes are previewed before committing.
 
 **Real-world examples:**
+
 - **Adobe Firefly** — Brush-based selection on the canvas for targeted generative fill and editing.
 - **Midjourney** — Inpainting directly on generated images to modify specific regions.
 - **Notion AI** — Highlight text and choose from restructuring, restyling, or transformational actions.
 - **Lovable** — Point at specific UI elements on the canvas to make targeted changes.
 
 **Pros:**
+
 - Precise control—users choose exactly what to change
 - Preserves context and surrounding content
 - Reduces rework from full regeneration
 - Positions AI as a collaborator, not a replacement
 
 **Cons:**
+
 - Requires clear selection mechanisms per medium (brush for images, highlight for text)
 - Preview-before-commit adds an interaction step
 - Complex to implement for different content types
@@ -205,15 +227,15 @@ The industry has moved beyond the "Chat-Only" era into what practitioners call *
 
 ### 1.8 Pattern Selection Decision Framework
 
-| User Goal | Best Pattern | Examples |
-|---|---|---|
-| Predictable, fast completion | Stealth AI / Form-Like | Linear auto-classification, Gmail Smart Compose |
-| Open-ended exploration | Chat Interface | ChatGPT, Claude, Notion AI chat |
-| Power user speed | Command Palette | Cursor Cmd+K, Linear Cmd+K |
-| In-flow micro-decisions | Inline Microinteraction | Figma Make, Atlassian Intelligence |
-| Continuous code writing | Ghost Text / Inline Suggestions | GitHub Copilot, Cursor autocomplete |
-| Multi-step auditable flows | Side Panel / Agent Control | Cursor Agent, Adobe Firefly Assistant |
-| Targeted content modification | Inpainting | Adobe Firefly, Midjourney, Notion AI |
+| User Goal                     | Best Pattern                    | Examples                                        |
+| ----------------------------- | ------------------------------- | ----------------------------------------------- |
+| Predictable, fast completion  | Stealth AI / Form-Like          | Linear auto-classification, Gmail Smart Compose |
+| Open-ended exploration        | Chat Interface                  | ChatGPT, Claude, Notion AI chat                 |
+| Power user speed              | Command Palette                 | Cursor Cmd+K, Linear Cmd+K                      |
+| In-flow micro-decisions       | Inline Microinteraction         | Figma Make, Atlassian Intelligence              |
+| Continuous code writing       | Ghost Text / Inline Suggestions | GitHub Copilot, Cursor autocomplete             |
+| Multi-step auditable flows    | Side Panel / Agent Control      | Cursor Agent, Adobe Firefly Assistant           |
+| Targeted content modification | Inpainting                      | Adobe Firefly, Midjourney, Notion AI            |
 
 **The Golden Rule:** "Show, Don't Tell; Draft, Don't Ask." If you can replace a text prompt with a button, do it. If you can replace a blank box with a suggested draft, do it.
 
@@ -228,17 +250,19 @@ AI latency is fundamentally different from traditional web latency. LLM response
 Streaming transforms AI interaction from "wait for complete response" to "watch the response emerge." It reduces perceived latency by **60–80%** because the first token appears within 200–500ms.
 
 **Key metrics:**
+
 - **Time to First Token (TTFT):** The metric that matters. Aim for <500ms.
 - **Tokens per Second (TPS):** Generation speed visible to the user.
 - **Stream Completion Rate:** Percentage of streams that complete without error.
 
-| Model | Avg. TTFT | Total Response Time (500 tokens) |
-|---|---|---|
-| GPT-4 Turbo | 0.5–1.5s | 8–15s |
-| Claude 3 Opus | 0.8–2.0s | 10–20s |
-| GPT-3.5 Turbo | 0.2–0.5s | 3–6s |
+| Model         | Avg. TTFT | Total Response Time (500 tokens) |
+| ------------- | --------- | -------------------------------- |
+| GPT-4 Turbo   | 0.5–1.5s  | 8–15s                            |
+| Claude 3 Opus | 0.8–2.0s  | 10–20s                           |
+| GPT-3.5 Turbo | 0.2–0.5s  | 3–6s                             |
 
 **Implementation best practices:**
+
 - Use **Server-Sent Events (SSE)** as the default (simpler than WebSockets, auto-reconnecting, works through proxies/CDNs). Use WebSockets only for bidirectional needs.
 - **Buffer token rendering** in 50–100ms batches to avoid janky DOM updates. On mobile, increase to 100ms.
 - **Batch DOM updates** by appending rather than replacing content.
@@ -248,14 +272,14 @@ Streaming transforms AI interaction from "wait for complete response" to "watch 
 
 **When to stream vs. not:**
 
-| Scenario | Benefit | Priority |
-|---|---|---|
-| Long responses (500+ tokens) | High — visible progress | Essential |
-| User-facing chat | High — immediate feedback | Essential |
-| Slow models (GPT-4, Claude Opus) | High — reduces perceived wait | High |
-| Fast models (GPT-4o-mini) | Medium — already fast | Nice to have |
-| Background processing | Low — user isn't watching | Skip |
-| Batch operations | None — no UI to update | Skip |
+| Scenario                         | Benefit                       | Priority     |
+| -------------------------------- | ----------------------------- | ------------ |
+| Long responses (500+ tokens)     | High — visible progress       | Essential    |
+| User-facing chat                 | High — immediate feedback     | Essential    |
+| Slow models (GPT-4, Claude Opus) | High — reduces perceived wait | High         |
+| Fast models (GPT-4o-mini)        | Medium — already fast         | Nice to have |
+| Background processing            | Low — user isn't watching     | Skip         |
+| Batch operations                 | None — no UI to update        | Skip         |
 
 ---
 
@@ -266,6 +290,7 @@ The 200–500ms before the first token is critical. Show a **typing indicator** 
 **Pattern:** Show typing indicator → first token arrives → indicator fades, streaming text appears.
 
 **Best practices for micro-animations (2026 consensus):**
+
 - Keep animations **100–300ms**
 - Each animation communicates a **specific state change**
 - Animations that run constantly become visual noise within minutes
@@ -298,16 +323,19 @@ For operations like document analysis, multi-step agent workflows, or batch proc
 Decompose the operation into visible, semantic stages: "Reading document structure" → "Extracting key entities" → "Analyzing relationships" → "Generating summary." Each stage resets the user's patience clock.
 
 **Progressive Background Transition:**
+
 - After **15 seconds:** Display a subtle "Continue in background?" option
 - After **30 seconds:** Make this option more prominent
 - After **60 seconds:** Proactively suggest background processing with estimated completion time
 
 **Time Estimates:**
+
 - For predictable operations: Show dynamic, conservative estimates that refine as processing continues
 - For unpredictable operations: Show a range: "Typically completes in 30–60 seconds"
 - Users tolerate underestimates poorly but respond well to "ahead of schedule" updates
 
 **Real-world examples:**
+
 - **Cursor Agent** — Shows a plan with visible steps, currently executing step highlighted, with terminal output streaming in real time.
 - **Linear Triage Intelligence** — Shows the model's "thinking state" with a timer at the bottom of the suggestions module, letting users track activity. Processing takes 1–4 minutes, which is acceptable because most issues aren't triaged within that window anyway.
 - **ChatGPT** — Shows "Searching...", "Reading...", "Analyzing..." stages during web browsing and code execution.
@@ -335,18 +363,18 @@ For AI-assisted actions where the outcome is highly predictable (e.g., auto-cate
 
 ## 3. Error Handling in AI Features
 
-AI errors are fundamentally different from traditional software errors. A 404 has clear cause and effect; AI errors feel mysterious, unpredictable, and—most dangerously—can be *confidently wrong.* **71% of enterprise employees won't use an AI tool they don't trust** (PwC, 2023), and a single badly handled error can permanently erode that trust.
+AI errors are fundamentally different from traditional software errors. A 404 has clear cause and effect; AI errors feel mysterious, unpredictable, and—most dangerously—can be _confidently wrong._ **71% of enterprise employees won't use an AI tool they don't trust** (PwC, 2023), and a single badly handled error can permanently erode that trust.
 
 ### 3.1 Taxonomy of AI Failures
 
-| Failure Type | Description | Danger Level | Detection |
-|---|---|---|---|
-| **Hallucination** | Confident, plausible but incorrect output | Highest — hardest for users to detect | Often undetectable by the system itself |
-| **Low Confidence** | Model can't fulfill task due to uncertainty | Medium — model knows it's uncertain | Detectable via confidence scores |
-| **Refusal** | Model declines to respond (safety filters, policy) | Low — clear failure signal | Fully detectable |
-| **Timeout / Infrastructure** | API failure, rate limit, connection drop | Low — standard error handling | Fully detectable |
-| **Off-Target Output** | Technically not wrong, but not useful | Medium — subjective quality issue | Partially detectable via user behavior |
-| **Silent Failure (False Negative)** | Model misses something it should have caught | High — user may never notice | Requires dedicated QA processes |
+| Failure Type                        | Description                                        | Danger Level                          | Detection                               |
+| ----------------------------------- | -------------------------------------------------- | ------------------------------------- | --------------------------------------- |
+| **Hallucination**                   | Confident, plausible but incorrect output          | Highest — hardest for users to detect | Often undetectable by the system itself |
+| **Low Confidence**                  | Model can't fulfill task due to uncertainty        | Medium — model knows it's uncertain   | Detectable via confidence scores        |
+| **Refusal**                         | Model declines to respond (safety filters, policy) | Low — clear failure signal            | Fully detectable                        |
+| **Timeout / Infrastructure**        | API failure, rate limit, connection drop           | Low — standard error handling         | Fully detectable                        |
+| **Off-Target Output**               | Technically not wrong, but not useful              | Medium — subjective quality issue     | Partially detectable via user behavior  |
+| **Silent Failure (False Negative)** | Model misses something it should have caught       | High — user may never notice          | Requires dedicated QA processes         |
 
 ---
 
@@ -355,17 +383,20 @@ AI errors are fundamentally different from traditional software errors. A 404 ha
 Design different interaction patterns based on confidence levels:
 
 **High Confidence (90%+):**
+
 - Present results directly with standard formatting
 - Subtle AI indicator (sparkle badge)
 - Auto-execute for low-stakes actions
 
 **Medium Confidence (60–89%):**
+
 - Show results with mild uncertainty indicators (dotted borders, yellow badges)
 - Include reasoning: "Based on partial matches"
 - Require confirmation before consequential actions
 - Present alternatives: "Did you mean...?"
 
 **Low Confidence (<60%):**
+
 - Ask for clarification with specific questions
 - Provide multiple options rather than a single answer
 - Explain uncertainty clearly: "I don't have enough information about..."
@@ -379,13 +410,13 @@ Design different interaction patterns based on confidence levels:
 
 Design fallback levels that maintain usefulness even when AI fails:
 
-| Level | Strategy | Speed | Capability |
-|---|---|---|---|
-| 1 | Primary AI model (Claude Sonnet, GPT-4o) | 1–3s | Full |
-| 2 | Smaller, faster model (Claude Haiku, GPT-4o-mini) | 200–500ms | 80% of use cases |
-| 3 | Semantic cache (similar past responses) | <50ms | Known queries |
-| 4 | Rule-based templates | Instant | Generic but functional |
-| 5 | Honest degradation message | Instant | User informed |
+| Level | Strategy                                          | Speed     | Capability             |
+| ----- | ------------------------------------------------- | --------- | ---------------------- |
+| 1     | Primary AI model (Claude Sonnet, GPT-4o)          | 1–3s      | Full                   |
+| 2     | Smaller, faster model (Claude Haiku, GPT-4o-mini) | 200–500ms | 80% of use cases       |
+| 3     | Semantic cache (similar past responses)           | <50ms     | Known queries          |
+| 4     | Rule-based templates                              | Instant   | Generic but functional |
+| 5     | Honest degradation message                        | Instant   | User informed          |
 
 **Real-world example:** Intercom's chatbots visibly degrade: first attempting AI responses, then offering "Here are some related help articles," then presenting "Talk to a human" buttons—each step clearly communicated.
 
@@ -398,20 +429,24 @@ Design fallback levels that maintain usefulness even when AI fails:
 Hallucination is the hardest AI failure to design for because the system often can't detect it.
 
 **Grounding with citations:**
+
 - **Perplexity AI** includes numbered citations `[1][2][3]` inline with claims and displays all sources, making it obvious when AI might be hallucinating by showing gaps in sourcing.
 - Every significant claim should link back to source material.
-- Sources make hallucinations *detectable* by users.
+- Sources make hallucinations _detectable_ by users.
 
 **Hedging language (prompt-level strategy):**
+
 - Instruct the model to use uncertain language: "appears to be," "based on the available information," "you may want to verify..."
 - This is a prompting strategy, not a UI element—it shapes the content of the output itself.
 
 **Verify-before-commit pattern:**
+
 - For inline edits that alter factual claims, citations, or data, include a "see how this was changed" view.
 - Show AI rewriting as traceable within context rather than hidden behind logs.
 - For high-stakes outputs (legal, medical, financial), require explicit user verification before applying.
 
 **Feedback mechanisms:**
+
 - Thumbs up/down on every AI response
 - "Was this helpful?" with quick-select options: "Too long / Too vague / Wrong topic / Other"
 - Show the original prompt in an editable input alongside the output for easy refinement
@@ -424,11 +459,13 @@ Hallucination is the hardest AI failure to design for because the system often c
 **Good:** "I'm not confident about this answer. Let me ask for more details."
 
 Every failure should communicate three things:
+
 1. **What happened** (in plain language)
 2. **Why it happened** (brief, honest explanation)
 3. **What to do next** (actionable recovery path)
 
 **Recovery actions to always provide:**
+
 - One-click "Try again" button
 - "Ask differently" suggestions with examples
 - Quick access to alternative approaches
@@ -437,6 +474,7 @@ Every failure should communicate three things:
 - Manual fallback path
 
 **Anti-patterns to avoid:**
+
 - Raw error messages from AI APIs
 - Stack traces or technical details
 - Apology-first language ("Sorry, I might be wrong...") — prefer: "Unclear because..." with an option to resolve
@@ -450,6 +488,7 @@ Every failure should communicate three things:
 **Circuit Breakers:** When an AI service starts failing, stop hammering it with requests. Detect sustained failures, route all requests to the fallback chain, and periodically probe to check if the service has recovered. Without circuit breakers, an AI service outage becomes a full application outage.
 
 **Retry Logic:**
+
 - **Exponential backoff:** Wait before retrying, wait longer with each attempt
 - **Jitter:** Add random delay to prevent thundering herd
 - **Budget:** Limit total retries (typically 2–3 max)
@@ -462,15 +501,18 @@ Every failure should communicate three things:
 Match the confidence UI treatment to the stakes of the task:
 
 **Low stakes (content, brainstorming):**
+
 - Minimal confidence indicators
 - Don't over-caveat—the cost of being wrong is low
 
 **Medium stakes (internal ops, analytics):**
+
 - Confidence bucket + reason
 - Range estimates ("Expected: 12–18%")
 - "Verify" action button
 
 **High stakes (money, identity, legal, health, production):**
+
 - Explicit uncertainty + constraints
 - Required confirmations
 - Tool-based verification
@@ -486,12 +528,14 @@ AI features that offer value won't be used if people don't notice them. Nielsen 
 ### 4.1 The Discoverability Challenge
 
 **The sparkle icon problem:**
+
 - The ✨ sparkle has become the near-universal symbol for AI features (pioneered by Google in the mid-2010s, standardized across products by 2023–2024).
 - By 2024, Google alone used nearly 100 different AI Sparkle icon variants across products, with usage increasing 37% each quarter.
 - **But:** As recently as September 2024, ~17% of people thought a sparkle icon signified favoriting/saving (NN/G research). The sparkle looks too much like a star, which 73% of people associate with favoriting.
-- **Key insight from Google's research:** Users recognize the sparkle signals AI, but they don't have a consistent definition of *what kind* of AI or *what action* it triggers. Users care most about whether they can *trust* the information.
+- **Key insight from Google's research:** Users recognize the sparkle signals AI, but they don't have a consistent definition of _what kind_ of AI or _what action_ it triggers. Users care most about whether they can _trust_ the information.
 
 **Amazon Rufus case study (NN/G):** Amazon's AI chat feature failed on discoverability because:
+
 - The hybrid chat/sparkles icon was ambiguous and unlabeled
 - On the busy Amazon page, the icon was invisible among competing information
 - AI-prompt suggestions blended in with regular search suggestions
@@ -512,6 +556,7 @@ AI features that offer value won't be used if people don't notice them. Nielsen 
 | Randomize prompt | 🎲 Dice | Emerging convention |
 
 **Design guidance from AWS Cloudscape and ShapeofAI:**
+
 - **Standalone sparkle** for features where AI is the primary or sole function ("Ask AI" button)
 - **Sparkle integrated with other icons** to indicate AI enhances an existing function (e.g., sparkle + magnifying glass for AI-enhanced search)
 - **Only one primary AI button per page** — if there's already a primary action, use a secondary button with AI affordance
@@ -531,6 +576,7 @@ AI features that offer value won't be used if people don't notice them. Nielsen 
 3. **Full View (Power Users):** Show all options—settings, model selection, advanced parameters, raw confidence scores. Accessible through settings or "Advanced" expander.
 
 **Best practices:**
+
 - Limit to **2–3 disclosure layers maximum** — more layers bury functionality
 - Use **clear triggers** (chevrons, "Show more" buttons, tooltips) — don't rely on users guessing
 - Add **smooth animations** for transitions between states (100–300ms)
@@ -538,6 +584,7 @@ AI features that offer value won't be used if people don't notice them. Nielsen 
 - **Monitor usage analytics** to refine what's hidden vs. revealed by default
 
 **Real-world examples:**
+
 - **Loom** shows basic video tools first, then reveals AI transcription when you click "More options."
 - **ChatGPT** starts with a simple text input; advanced settings (model selection, system prompts, temperature) are in a menu.
 - **Linear** — AI suggestions appear automatically when creating issues; hovering reveals reasoning and alternatives. No "AI mode" to activate.
@@ -548,12 +595,14 @@ AI features that offer value won't be used if people don't notice them. Nielsen 
 ### 4.4 First-Run Experiences for AI Features
 
 **Principles:**
+
 - **Value first, explanation second.** Show what the AI can do, not how it works.
 - **Every step skippable.** Even if users skip onboarding, the product should work with sensible AI defaults.
 - **Suggested starting points.** Don't present a blank chat—offer 3–5 contextual prompt suggestions.
 - **Learn by doing.** Follow-up chips and suggested prompts serve as micro-tutorials disguised as shortcuts.
 
 **Cherry Studio onboarding pattern (open-source reference):**
+
 1. Language + Theme selection
 2. Connect AI Provider (OAuth + API key + verification)
 3. Set Default Models (for different task types)
@@ -563,6 +612,7 @@ Key design decisions: Fixed card overlay (560×520), all steps skippable, all co
 
 **AI-native onboarding (emerging pattern):**
 Instead of static forms, the onboarding itself is conversational:
+
 - AI asks questions and adapts the flow based on responses
 - Handles uncertainty: when a user says "I'm not sure yet," the system explores that uncertainty
 - Captures intent signals, constraint signals, and uncertainty signals
@@ -577,9 +627,9 @@ Instead of static forms, the onboarding itself is conversational:
 2. **Use plain language.** Don't invent unnecessary labels, cute names, or inscrutable icons. "AI Assistant" beats "Rufus." "Write with AI" beats a sparkle icon alone.
 
 3. **Contextual triggers.** Surface AI features when they're most relevant:
-   - Empty state: "Need help getting started? Try AI..."
-   - After an error: "AI can help debug this"
-   - During tedious tasks: "Let AI handle the classification"
+    - Empty state: "Need help getting started? Try AI..."
+    - After an error: "AI can help debug this"
+    - During tedious tasks: "Let AI handle the classification"
 
 4. **Inline prompt suggestions** that appear in context (e.g., in search bars, text editors) but are visually distinct from non-AI suggestions.
 
@@ -593,12 +643,12 @@ Instead of static forms, the onboarding itself is conversational:
 
 Start new users at low autonomy and let them increase as trust builds:
 
-| Level | Name | Behavior | Default For |
-|---|---|---|---|
-| 1 | Observe & Suggest | AI observes and offers suggestions; user takes all actions | New users, high-stakes domains |
-| 2 | Propose & Confirm | AI proposes actions; user confirms before execution | Most users after initial trust |
-| 3 | Act & Notify | AI acts autonomously; user is notified after the fact | Trusted, repetitive tasks |
-| 4 | Full Autonomy | AI acts without notification | Only after explicit opt-in + proven track record |
+| Level | Name              | Behavior                                                   | Default For                                      |
+| ----- | ----------------- | ---------------------------------------------------------- | ------------------------------------------------ |
+| 1     | Observe & Suggest | AI observes and offers suggestions; user takes all actions | New users, high-stakes domains                   |
+| 2     | Propose & Confirm | AI proposes actions; user confirms before execution        | Most users after initial trust                   |
+| 3     | Act & Notify      | AI acts autonomously; user is notified after the fact      | Trusted, repetitive tasks                        |
+| 4     | Full Autonomy     | AI acts without notification                               | Only after explicit opt-in + proven track record |
 
 **Key principle:** Never increase autonomy without asking. Even if the agent has been 100% accurate, the user should consciously opt in.
 
@@ -617,6 +667,7 @@ The AI's personality, capabilities, and limitations should remain consistent reg
 
 **Modality-appropriate interaction:**
 Each modality has unique strengths:
+
 - **Text:** Precision, editability, persistent history, detail
 - **Voice:** Speed, hands-free operation, emotional nuance
 - **Vision/Image:** Rich context, spatial information, faster than verbal description
@@ -632,6 +683,7 @@ The AI should remember what you showed it in an image when you ask a follow-up b
 ### 5.2 Input Interface Patterns
 
 **The standard multimodal input layout:**
+
 - Main text box for typing
 - Small mic button for voice
 - Camera/upload icon for images
@@ -640,11 +692,13 @@ The AI should remember what you showed it in an image when you ask a follow-up b
 Keep the layout clean and consistent across web and mobile. All input options visible but not overwhelming.
 
 **Feedback for each modality:**
+
 - **Voice:** Show a waveform while listening; display "Listening..." state; show transcription of what the AI heard for verification
 - **Image:** Show thumbnails when images are uploaded; display "Processing image..." state; show what the system detected (text, objects, regions)
 - **Text:** Standard text input with streaming response
 
 **Cross-modal confirmation for error recovery:**
+
 - If speech-to-text is uncertain: confirm visually ("Did you say [text displayed]?")
 - If gesture recognition is uncertain: confirm through voice ("I detected a wave. Did you mean to dismiss this?")
 - Cross-modal checks prevent error accumulation
@@ -667,16 +721,19 @@ When multiple modalities are active simultaneously, the system needs clear prior
 ### 5.4 Voice-Specific Design Patterns
 
 **Design for natural speech, not commands:**
+
 - ❌ "Assistant, open profile mode alpha"
 - ✅ "Can you explain this screen?"
 - ✅ "Read the important points from this document"
 
 **Feedback and confirmation:**
+
 - Always confirm what the AI heard before taking consequential actions
 - Layer information: start with brief summaries, offer details on request
 - Provide visual fallbacks for sensitive information (passwords, personal data) that users might not want to speak aloud
 
 **Voice interface limitations to design around:**
+
 - No persistent visual feedback—users can't scroll back
 - Design for interruption and resumption
 - Keep responses brief for voice; offer "Would you like more detail?" rather than long monologues
@@ -686,11 +743,13 @@ When multiple modalities are active simultaneously, the system needs clear prior
 ### 5.5 Vision/Image Input Design Patterns
 
 **Show what the AI sees:**
+
 - Always display what image is being processed
 - Show what the system detected (text, objects, regions)
 - Provide options to correct: "This is not the issue," "Focus on the chart"
 
 **Real-world examples:**
+
 - **Cursor (VS Code)** — Vision support lets users paste screenshots, drag images, or attach window screenshots. Use cases: giving mockups for UI code generation, showing error screenshots, generating alt text.
 - **ChatGPT** — Image upload with object detection and analysis, combined with text follow-up.
 - **Adobe Photoshop** — Partner AI models process uploaded images for upscaling, fill, and enhancement with visual previews at each step.
@@ -708,6 +767,7 @@ Start with one modality done well. Add others deliberately:
 5. **Advanced:** Add voice output, multi-modal combinations
 
 **Key implementation considerations:**
+
 - Use WebRTC or Web Speech API for audio
 - File API or canvas for visuals
 - Rich text editors for text instructions
@@ -792,12 +852,14 @@ Because the system can listen and see, users must feel safe and in control:
 ## Sources and Further Reading
 
 ### Design System Documentation
+
 - [AWS Cloudscape GenAI Ingress Pattern](https://cloudscape.design/patterns/genai/ingress/)
 - [Google PAIR Guidebook: Errors + Graceful Failure](https://pair.withgoogle.com/guidebook-v2/chapter/errors-failing/)
 - [ShapeofAI Pattern Library](https://shapeof.ai/) — Inline Action, Iconography, Inpainting patterns
 - [AI UX Design Guide](https://www.aiuxdesign.guide/) — Trust Calibration, Autonomy Spectrum, Progressive Disclosure
 
 ### Research
+
 - Stanford HCI (2024) — Streaming interfaces perceived as 40% faster
 - MIT CSAIL (2024) — Confidence indicators increase recommendation following by 30%
 - IBM Research (2023) — Contextualized confidence indicators reduce override rates by 22%
@@ -807,6 +869,7 @@ Because the system can listen and see, users must feel safe and in control:
 - PwC (2023) — 71% of enterprise employees won't use AI tools they don't trust
 
 ### Product Case Studies
+
 - **GitHub Copilot:** Ghost text, Next Edit Suggestions (NES), gutter arrows, model switcher
 - **Cursor:** Cmd+K inline edits, Agent mode, Plan Mode (Shift+Tab), multi-file Composer, vision support
 - **Linear:** Triage Intelligence, auto-classification, semantic search, progressive automation
@@ -817,6 +880,7 @@ Because the system can listen and see, users must feel safe and in control:
 - **Perplexity AI:** Inline citation grounding `[1][2][3]`
 
 ### Articles and Guides
+
 - [The New UX Patterns of AI (ShShell)](https://shshell.com/blog/ai-ux-patterns)
 - [Agentic Interfaces (The Interactive Studio)](https://insights.theinteractive.studio/beyond-the-chat-agentic-interfaces-inside-your-product)
 - [The AI Chat Interface Playbook (AI UX Playground)](https://aiuxplayground.com/blog/ai-chat-playbook)

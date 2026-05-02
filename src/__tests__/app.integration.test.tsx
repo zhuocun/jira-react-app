@@ -5,6 +5,11 @@ import userEvent from "@testing-library/user-event";
 import App from "../App";
 import AppProviders from "../utils/appProviders";
 
+// Lazy route loading + multi-step navigation chains (login → projects →
+// board → drawer) push these end-to-end flows past the 5s default,
+// especially under jest parallelism. 30s gives enough headroom on slow CI.
+jest.setTimeout(30000);
+
 jest.mock("../constants/env", () => ({
     __esModule: true,
     default: {
@@ -207,7 +212,9 @@ describe("App integration (full providers + routes)", () => {
         });
 
         expect(
-            screen.getByRole("heading", { name: /log in to your account/i })
+            await screen.findByRole("heading", {
+                name: /log in to your account/i
+            })
         ).toBeInTheDocument();
     });
 
@@ -216,7 +223,12 @@ describe("App integration (full providers + routes)", () => {
         const user = userEvent.setup();
         renderAppAt("/login");
 
-        await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
+        await user.type(
+            await screen.findByLabelText(/^email$/i, undefined, {
+                timeout: 5000
+            }),
+            "alice@example.com"
+        );
         await user.type(screen.getByLabelText(/^password$/i), "secret");
         await user.click(screen.getByRole("button", { name: /^log in$/i }));
 
@@ -226,11 +238,13 @@ describe("App integration (full providers + routes)", () => {
 
         expect(localStorage.getItem("Token")).toBe("jwt-integration");
 
-        await waitFor(() => {
-            expect(
-                screen.getByRole("heading", { name: /^projects$/i, level: 1 })
-            ).toBeInTheDocument();
-        });
+        expect(
+            await screen.findByRole(
+                "heading",
+                { name: /^projects$/i, level: 1 },
+                { timeout: 5000 }
+            )
+        ).toBeInTheDocument();
 
         expect(
             await screen.findByRole(
@@ -244,14 +258,19 @@ describe("App integration (full providers + routes)", () => {
             (typeof req === "string" ? req : req.url).includes("/auth/login")
         );
         expect(loginCalls.length).toBeGreaterThanOrEqual(1);
-    });
+    }, 20000);
 
     it("opens the board for a project from the list", async () => {
         setupAuthenticatedSessionMocks();
         const user = userEvent.setup();
         renderAppAt("/login");
 
-        await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
+        await user.type(
+            await screen.findByLabelText(/^email$/i, undefined, {
+                timeout: 5000
+            }),
+            "alice@example.com"
+        );
         await user.type(screen.getByLabelText(/^password$/i), "secret");
         await user.click(screen.getByRole("button", { name: /^log in$/i }));
 
@@ -271,21 +290,28 @@ describe("App integration (full providers + routes)", () => {
             expect(window.location.pathname).toBe("/projects/p1/board");
         });
 
-        await waitFor(() => {
-            expect(
-                screen.getByRole("heading", { name: /alpha board/i })
-            ).toBeInTheDocument();
-        });
+        expect(
+            await screen.findByRole(
+                "heading",
+                { name: /alpha board/i },
+                { timeout: 5000 }
+            )
+        ).toBeInTheDocument();
 
         expect(screen.getByText("First task")).toBeInTheDocument();
-    });
+    }, 20000);
 
     it("logs out from the header and returns to login", async () => {
         setupAuthenticatedSessionMocks();
         const user = userEvent.setup();
         renderAppAt("/login");
 
-        await user.type(screen.getByLabelText(/^email$/i), "alice@example.com");
+        await user.type(
+            await screen.findByLabelText(/^email$/i, undefined, {
+                timeout: 5000
+            }),
+            "alice@example.com"
+        );
         await user.type(screen.getByLabelText(/^password$/i), "secret");
         await user.click(screen.getByRole("button", { name: /^log in$/i }));
 
@@ -294,13 +320,21 @@ describe("App integration (full providers + routes)", () => {
         });
 
         await user.click(
-            await screen.findByRole("button", {
-                name: /account menu for alice/i
-            })
+            await screen.findByRole(
+                "button",
+                {
+                    name: /account menu for alice/i
+                },
+                { timeout: 5000 }
+            )
         );
 
         await user.click(
-            await screen.findByRole("button", { name: /^log out$/i })
+            await screen.findByRole(
+                "button",
+                { name: /^log out$/i },
+                { timeout: 5000 }
+            )
         );
 
         await waitFor(() => {
@@ -308,5 +342,5 @@ describe("App integration (full providers + routes)", () => {
         });
 
         expect(localStorage.getItem("Token")).toBeNull();
-    });
+    }, 20000);
 });

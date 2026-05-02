@@ -288,7 +288,7 @@ describe("ProjectPage", () => {
 
         await act(async () => {
             await new Promise((resolve) => {
-                setTimeout(resolve, 1100);
+                setTimeout(resolve, 400);
             });
         });
 

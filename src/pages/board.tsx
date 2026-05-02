@@ -40,7 +40,6 @@ import {
 import useAiEnabled from "../utils/hooks/useAiEnabled";
 import useAiProjectDisabled from "../utils/hooks/useAiProjectDisabled";
 import useBoardBriefDrawer from "../utils/hooks/useBoardBriefDrawer";
-import useDebounce from "../utils/hooks/useDebounce";
 import useDragEnd from "../utils/hooks/useDragEnd";
 import useReactQuery from "../utils/hooks/useReactQuery";
 import useTitle from "../utils/hooks/useTitle";
@@ -322,7 +321,6 @@ const BoardPage = () => {
         "type",
         "semanticIds"
     ]);
-    const debouncedParam = useDebounce(param, 1000);
     const { data: currentProject, isLoading: pLoading } =
         useReactQuery<IProject>("projects", {
             projectId
@@ -724,7 +722,18 @@ const BoardPage = () => {
                                                         key={column._id}
                                                         column={column}
                                                         members={members ?? []}
-                                                        param={debouncedParam}
+                                                        param={param}
+                                                        onResetFilters={() =>
+                                                            setParam({
+                                                                taskName:
+                                                                    undefined,
+                                                                coordinatorId:
+                                                                    undefined,
+                                                                type: undefined,
+                                                                semanticIds:
+                                                                    undefined
+                                                            })
+                                                        }
                                                         isDragDisabled={
                                                             isTaskDragDisabled
                                                         }

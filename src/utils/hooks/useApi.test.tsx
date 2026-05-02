@@ -172,6 +172,19 @@ describe("api", () => {
         await expect(api("projects")).rejects.toThrow("Operation failed");
     });
 
+    it("converts a fetch network failure into a friendly error message", async () => {
+        fetchMock().mockRejectedValue(new TypeError("Failed to fetch"));
+
+        await expect(api("projects")).rejects.toThrow(/unable to connect/i);
+    });
+
+    it("rethrows non-network errors from fetch unchanged", async () => {
+        const otherError = new Error("Boom");
+        fetchMock().mockRejectedValue(otherError);
+
+        await expect(api("projects")).rejects.toBe(otherError);
+    });
+
     it("uses the authenticated user's JWT before the localStorage token fallback", async () => {
         fetchMock().mockResolvedValue(jsonResponse({ _id: "u1" }));
         mockedUseAuth.mockReturnValue({
