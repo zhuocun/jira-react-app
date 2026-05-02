@@ -17,7 +17,6 @@ const AppShell = () => {
     const element = useRoutes(routes);
     const [paletteOpen, setPaletteOpen] = useState(false);
 
-    const openPalette = useCallback(() => setPaletteOpen(true), []);
     const closePalette = useCallback(() => setPaletteOpen(false), []);
 
     useEffect(() => {
@@ -43,7 +42,7 @@ const AppShell = () => {
             window.removeEventListener("keydown", onKey);
             window.removeEventListener("commandPalette:open", onCustomOpen);
         };
-    }, [openPalette]);
+    }, []);
 
     return (
         <>

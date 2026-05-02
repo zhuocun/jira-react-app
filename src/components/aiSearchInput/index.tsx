@@ -92,6 +92,15 @@ const AiSearchInput: React.FC<Props> = (props) => {
         }
     }, [semanticActive]);
 
+    // Abort any in-flight remote search if the component unmounts so the
+    // resolved/rejected promise doesn't try to setState on an unmounted tree.
+    useEffect(
+        () => () => {
+            abortRef.current?.abort();
+        },
+        []
+    );
+
     /**
      * Track whether the underlying scope has any data at all so the
      * empty-state copy can disambiguate between "no AI hits" and "no
@@ -306,21 +315,23 @@ const AiSearchInput: React.FC<Props> = (props) => {
                             style={{ marginInlineEnd: 4 }}
                         />
                         Why this result?{" "}
-                        <span
+                        <Button
                             onClick={() =>
                                 track(
                                     ANALYTICS_EVENTS.SEARCH_RESULT_RATIONALE_VIEWED
                                 )
                             }
-                            onMouseEnter={() =>
-                                track(
-                                    ANALYTICS_EVENTS.SEARCH_RESULT_RATIONALE_VIEWED
-                                )
-                            }
-                            style={{ borderBottom: "1px dotted currentColor" }}
+                            size="small"
+                            style={{
+                                borderBottom: "1px dotted currentColor",
+                                borderRadius: 0,
+                                height: "auto",
+                                padding: 0
+                            }}
+                            type="link"
                         >
                             Show reasoning
-                        </span>
+                        </Button>
                     </Typography.Paragraph>
                 </Tooltip>
             )}

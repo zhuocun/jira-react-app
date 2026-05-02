@@ -1,4 +1,5 @@
 import { message } from "antd";
+import type { KeyboardEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
 
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
@@ -68,12 +69,19 @@ const useUndoToast = (): {
                 message.destroy(key);
             }
         };
+        const onUndoKey = (event: KeyboardEvent<HTMLAnchorElement>) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                void handleUndo();
+            }
+        };
         message.open({
             content: (
                 <span>
                     {options.description}{" "}
                     <a
                         onClick={handleUndo}
+                        onKeyDown={onUndoKey}
                         role="button"
                         style={{ marginInlineStart: 8 }}
                         tabIndex={0}

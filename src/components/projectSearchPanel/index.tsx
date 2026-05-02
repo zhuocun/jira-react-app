@@ -12,9 +12,9 @@ import {
 } from "../../theme/tokens";
 
 export interface ProjectSearchParam {
-    projectName: string;
-    managerId: string;
-    semanticIds?: string;
+    projectName: string | null;
+    managerId: string | null;
+    semanticIds?: string | null;
 }
 
 interface Props {
@@ -154,7 +154,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                             />
                         }
                         type="search"
-                        value={param.projectName}
+                        value={param.projectName ?? ""}
                     />
                 </FlexInput>
                 <FlexSelect>
