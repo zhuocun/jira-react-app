@@ -1,9 +1,7 @@
 # UI/UX Optimization Plan — Jira React App
 
-An audit of the current codebase against the best practices documented in
-`AI_UX_BEST_PRACTICES.md`, organized by severity and effort. Each finding
-references the specific best-practice principle it violates and the concrete
-file(s) affected.
+Audit of the codebase against `AI_UX_BEST_PRACTICES.md`, organized by severity.
+Each finding references the violated principle and affected file(s).
 
 ---
 
@@ -45,15 +43,13 @@ plus `vite.config.ts` and `package.json`.
 
 ### Strengths
 
-The app has a mature foundation: centralized microcopy, dedicated AI tokens
-and theming, accessibility landmarks, live regions, focus management, keyboard
-handling, responsive breakpoints, safe-area insets, dark/light mode, reduced
-motion support, forced-colors handling, coarse-pointer touch targets, View
-Transitions API usage, and comprehensive optimistic update patterns. The AI
-features follow many best practices: privacy disclosure, per-project AI opt-out,
-autonomy levels in storage, undo toasts, confidence bands in utilities, citation
-chips, tool-call transparency, welcome banner, sample prompts, and analytics
-tracking.
+The app has a mature foundation: centralized microcopy, AI tokens/theming,
+accessibility landmarks, live regions, focus management, responsive breakpoints,
+safe-area insets, dark/light mode, reduced motion, forced-colors, coarse-pointer
+targets, View Transitions, and optimistic updates. AI features include: privacy
+disclosure, per-project opt-out, autonomy levels, undo toasts, confidence bands,
+citation chips, tool-call transparency, welcome banner, sample prompts, and
+analytics tracking.
 
 ### Gap Areas
 
@@ -95,14 +91,11 @@ error states), graceful degradation.
 
 **Files:** `src/components/taskModal/index.tsx`
 
-**Current behavior:** The `onOk` handler calls `update(merged).then(closeModal)`
-with no `.catch()` handler and no error display in the modal. If the PUT request
-fails (network error, 500, validation error), the modal stays open but the user
-sees no error message and no indication of what happened. They may re-click Save
-repeatedly, or assume the change was saved and close manually.
+**Current behavior:** `onOk` calls `update(merged).then(closeModal)` with no
+`.catch()` and no error display. If the PUT fails, the modal stays open with no
+error message. Users may re-click Save or assume it saved and close manually.
 
-**Impact:** Users lose work silently. Trust in the system is destroyed because
-the UI behaves as if nothing happened when in fact an error occurred.
+**Impact:** Silent failure destroys trust.
 
 **Fix:**
 - Add an `ErrorBox` component inside the modal (same pattern as `loginForm` and
@@ -120,13 +113,11 @@ the UI behaves as if nothing happened when in fact an error occurred.
 
 **Files:** `src/components/projectList/index.tsx`
 
-**Current behavior:** The `onLike` callback calls
-`update({ projectId }).then(() => setPendingLikeId(""))` with no `.catch()`.
-If the PUT to `users/likes` fails, `pendingLikeId` is never cleared — the heart
-icon stays in an inverted (pending) state indefinitely. No error message appears.
+**Current behavior:** `onLike` calls `update({ projectId }).then(...)` with no
+`.catch()`. On failure, `pendingLikeId` is never cleared — the heart icon stays
+in its inverted (pending) state indefinitely with no error message.
 
-**Impact:** The like button appears stuck. Users may think the app is frozen.
-The optimistic toggle never reverts because there is no error path.
+**Impact:** The like button appears stuck with no recovery path.
 
 **Fix:**
 - Add a `.catch()` that clears `pendingLikeId` and shows a brief
@@ -136,31 +127,27 @@ The optimistic toggle never reverts because there is no error path.
 
 ---
 
-### P0-3: Network errors from `fetch()` are not caught
+### P0-3: Network errors surface cryptic browser messages
 
 **Principle violated:** Graceful degradation, Krux #7 (missing error states).
 
 **Files:** `src/utils/hooks/useApi.ts`, `src/utils/authApis.ts`
 
-**Current behavior:** The `api()` function calls
-`fetch(...).then(async (res) => { ... })` but does not wrap the `fetch` call in
-a `try/catch`. If the network is completely down, `fetch()` throws a `TypeError`
-("Failed to fetch") that propagates as an unhandled rejection. While React
-Query's default retry may mask this for queries, mutations will surface it as an
-uncaught error. The `authApis.ts` login/register functions have the same
-pattern.
+**Current behavior:** When the network is down, `fetch()` rejects with a
+`TypeError("Failed to fetch")`. React Query catches this for queries (and
+surfaces it via `query.error`), and auth forms display it in their `ErrorBox`.
+However, the error message shown to the user is the raw browser string
+`"Failed to fetch"` — not a helpful, actionable message.
 
-**Impact:** On flaky networks, users see browser-level unhandled rejection
-errors or React's error boundary instead of a friendly "Check your connection"
-message.
+**Impact:** Users see a technical error string instead of guidance like "Check
+your internet connection and try again." This erodes trust and leaves users
+without a clear recovery path.
 
 **Fix:**
-- Wrap the `fetch` call in a `try/catch` that converts `TypeError` into a
+- In `api()`, wrap the `fetch` call so that `TypeError` is converted into a
   user-friendly `Error("Unable to connect. Check your internet connection and
   try again.")`.
-- Add this to both `api()` in `useApi.ts` and the raw `fetch` calls in
-  `authApis.ts`.
-- Alternatively, add a global `fetch` wrapper or interceptor.
+- Apply the same treatment in `authApis.ts` login/register functions.
 
 ---
 
@@ -172,16 +159,12 @@ message.
 **Files:** `src/utils/hooks/useReactMutation.ts`,
 `src/utils/optimisticUpdate/*.ts`
 
-**Current behavior:** When a mutation that uses optimistic updates fails, the
-`onError` handler in `useReactMutation` restores the previous cache state
-silently. The UI reverts (e.g., a reordered column snaps back, a deleted task
-reappears), but no notification or toast tells the user what happened or why.
+**Current behavior:** When an optimistic mutation fails, `useReactMutation`
+restores the previous cache state silently — no toast, no notification. The UI
+reverts (e.g., a reordered column snaps back) with no explanation.
 
-**Impact:** Users experience the "invisible error" anti-pattern — the UI
-changes, then mysteriously changes back. This is deeply confusing and damages
-trust. Smashing Magazine's research specifically warns: "Without [an Action
-Audit & Undo], one error permanently destroys trust, as users realize they have
-no safety net."
+**Impact:** The "invisible error" anti-pattern. Users see the UI change and then
+mysteriously revert with no indication of what happened.
 
 **Fix:**
 - Add a `message.error()` or `notification.error()` call in the
@@ -206,10 +189,8 @@ degrade), error handling best practices.
 
 **Files:** `src/routes/index.tsx`
 
-**Current behavior:** The route config only defines specific paths. Navigating to
-`/settings`, `/foo`, or any other undefined path renders a blank page (the root
-`<Outlet />` has no matching child). There is no 404 page, no redirect, and no
-helpful error message.
+**Current behavior:** No catch-all route. Navigating to `/settings`, `/foo`, or
+any undefined path renders a blank page.
 
 **Fix:**
 - Add a catch-all route (`path: "*"`) that renders a `PageError` component with
@@ -225,17 +206,13 @@ calibration.
 
 **Files:** `src/components/aiChatDrawer/index.tsx`
 
-**Current behavior:** The `handleRegenerate` function finds the previous user
-message and re-dispatches it via `dispatch()`. This appends a new assistant
-bubble below the original — so the old version is preserved in the scroll
-history. However, there is no visual grouping, no "Version 1 / Version 2"
-indicator, and no way to compare the two responses side-by-side or navigate
-between them.
+**Current behavior:** `handleRegenerate` re-dispatches the previous user message,
+appending a new assistant bubble below the original. The old version is preserved
+in scroll history, but there is no visual grouping, no version indicator, and
+no way to compare responses.
 
-**Impact:** While not destructive (the old version is still visible), the UX
-is confusing. Users see two similar-looking responses with no clear indication
-which is the regenerated one. This partially falls into the "Regenerate Trap"
-anti-pattern.
+**Impact:** Users see two similar-looking responses with no indication which is
+the regenerated one.
 
 **Fix:**
 - Add a visual indicator on regenerated responses: "Regenerated response" badge
@@ -253,13 +230,10 @@ for AI operations), Krux #1 (no feedback during AI processing).
 **Files:** `src/components/aiChatDrawer/index.tsx` (lines 569–583)
 
 **Current behavior:** While the AI is generating, the drawer shows a `<Spin>`
-component with "Board Copilot is thinking…" text. This is a generic spinner —
-it doesn't communicate progress, doesn't show the expected shape of the response,
-and doesn't stream content as it arrives (despite `streamingText` being available
-in the hook).
-
-The `streamingText` state is shown next to the spinner, but only as a flat
-text label — it doesn't stream the actual response content into a message bubble.
+component with "Board Copilot is thinking…" text. The `streamingText` state
+from `useAiChat` is shown next to the spinner, but it only contains tool-name
+status labels (e.g., "Get tasks…") — not actual response content. The response
+arrives all at once as a complete message bubble after the spinner disappears.
 
 **Impact:** Users stare at a spinner during the 2-8 second AI response time. Per
 the research, perceived wait drops by 55-70% with streaming, and users begin
@@ -281,11 +255,9 @@ trying to interact or leaving after 3-5 seconds of a spinner.
 
 **Files:** `src/pages/projectDetail.tsx`
 
-**Current behavior:** The `useReactQuery` for the project is used, but the
-`error` return is not destructured or used. If the project fetch fails, the
-breadcrumb shows "Project" (the fallback) and the body renders `<Outlet />`
-(which shows the board page, which may also fail). There is no error alert,
-no retry button, and no indication that the project couldn't be loaded.
+**Current behavior:** The query's `error` return is not destructured or used. If
+the project fetch fails, the breadcrumb shows "Project" (fallback) and the body
+renders `<Outlet />` with no error alert, no retry, and no failure indication.
 
 **Fix:**
 - Destructure `error` and `refetch` from the query.
@@ -303,10 +275,8 @@ no retry button, and no indication that the project couldn't be loaded.
 **Files:** `src/components/projectList/index.tsx`,
 `src/components/taskModal/index.tsx`
 
-**Current behavior:** After deleting a project or task (via `Modal.confirm` →
-mutation), the item disappears from the list/board optimistically. No success
-toast or notification confirms the deletion completed on the server. If the
-deletion fails silently (the mutation error isn't surfaced), the item reappears
+**Current behavior:** After deleting via `Modal.confirm`, the item disappears
+optimistically with no success toast. If the deletion fails, the item reappears
 with no explanation.
 
 **Fix:**
@@ -323,17 +293,10 @@ with no explanation.
 
 **Files:** `src/utils/appProviders.tsx`
 
-**Current behavior:** `new QueryClient()` is created with zero configuration.
-React Query defaults to:
-- `staleTime: 0` — data is immediately stale on mount, causing a refetch
-  every time a component using `useReactQuery` mounts.
-- `retry: 3` — every failed query retries 3 times, including mutations that
-  might not be idempotent.
-- `gcTime: 300000` (5 min) — reasonable default.
-
-**Impact:** Excessive network requests. Every navigation back to `/projects`
-triggers a new fetch even if data was loaded seconds ago. On slow networks this
-causes visible loading spinners on every route transition.
+**Current behavior:** `new QueryClient()` with no configuration. Defaults:
+`staleTime: 0` (data stale on every mount), `retry: 3` (including non-idempotent
+mutations). Every navigation back to `/projects` triggers a refetch even if data
+was loaded seconds ago.
 
 **Fix:**
 - Set `staleTime: 30_000` (30s) as a global default so repeated mounts within
@@ -366,15 +329,11 @@ received feedback"), trust calibration.
 
 **Files:** `src/components/aiChatDrawer/index.tsx`
 
-**Current behavior:** When the user clicks 👍 or 👎 on a chat response, the
-button toggles its `aria-pressed` state and an analytics event fires
-(`ANALYTICS_EVENTS.THUMBS_FEEDBACK`). But there is no visible acknowledgment —
-no "Thanks for your feedback" toast, no micro-animation, no state change beyond
-the button itself. The `microcopy.ai.feedbackThanks` string exists but is never
-rendered.
+**Current behavior:** Clicking 👍/👎 toggles `aria-pressed` and fires an
+analytics event, but shows no visible acknowledgment. The
+`microcopy.ai.feedbackThanks` string exists but is never rendered.
 
-**Impact:** Users who provide feedback never see that it was received. Per the
-research, "Users who never see their feedback matter stop giving it."
+**Impact:** Users who provide feedback never see it was received.
 
 **Fix:**
 - Show a brief `message.success(microcopy.ai.feedbackThanks)` when feedback
@@ -394,15 +353,10 @@ research, "Users who never see their feedback matter stop giving it."
 
 **Files:** `src/routes/index.tsx`
 
-**Current behavior:** All page components are eagerly imported. A comment
-explicitly defers `React.lazy` citing test compatibility. The Vite
-`chunkSizeWarningLimit` was raised to 1600 instead of addressing the bundle
-size.
-
-**Impact:** The initial bundle includes all page code — login, register,
-projects, project detail, board, and all AI components — even if the user
-only visits the login page. On slow connections this delays First Contentful
-Paint.
+**Current behavior:** All page components are eagerly imported (comment defers
+`React.lazy` citing test compatibility). Vite `chunkSizeWarningLimit` was raised
+to 1600. The initial bundle includes all page and AI code even for the login
+page.
 
 **Fix:**
 - Wrap page imports with `React.lazy()` and add `<Suspense>` boundaries at
@@ -422,15 +376,12 @@ calibration, HAX G2 (make clear how well the system can do what it can do).
 **Files:** `src/components/aiChatDrawer/index.tsx`,
 `src/utils/ai/confidenceBand.ts`
 
-**Current behavior:** The app has a `confidenceBand` utility and
-`microcopy.ai.confidenceBands` with High/Moderate/Low labels, and the
-`AiTaskAssistPanel` and `AiSearchInput` components use confidence indicators.
-However, the **chat drawer** — the primary AI interaction surface — shows no
-confidence signal on assistant responses. All responses appear with equal visual
-weight regardless of the AI's certainty.
+**Current behavior:** `confidenceBand` utility and `microcopy.ai.confidenceBands`
+exist, and `AiTaskAssistPanel`/`AiSearchInput` use them. However, the chat
+drawer — the primary AI surface — shows no confidence signal. All responses
+appear with equal visual weight.
 
-**Impact:** This is the "uniform confidence" anti-pattern: "Users can't tell
-what's solid and what's speculative. They either trust everything or nothing."
+**Impact:** The "uniform confidence" anti-pattern on the most-used AI surface.
 
 **Fix:**
 - If the chat engine can provide confidence metadata, render a subtle confidence
@@ -448,13 +399,10 @@ what's solid and what's speculative. They either trust everything or nothing."
 **Files:** `src/pages/board.tsx` (line 325), `src/pages/project.tsx` (line 188)
 
 **Current behavior:** Both pages use `useDebounce(param, 1000)` — a full
-1-second debounce on URL search parameters. This means typing in the search
-field has a 1-second delay before any visual feedback (filtered results).
+1-second debounce before any visual feedback. Client-side filtering of
+already-loaded data also waits 1 second.
 
-**Impact:** Users perceive the search as unresponsive. Research shows users
-expect < 200ms visual feedback for keystrokes. While debouncing API calls is
-correct, the visual filtering of already-loaded client-side data should be
-immediate.
+**Impact:** Users expect < 200ms visual feedback for keystrokes.
 
 **Fix:**
 - Separate the concerns: debounce the API request parameters but apply
@@ -488,9 +436,7 @@ maintainability.
 - `src/components/boardBriefDrawer/index.tsx`: "Board Copilot brief" title,
   section headings
 
-**Impact:** Strings scattered across 15+ files means a copy change (or future
-i18n) requires touching every component individually. Inconsistent voice and
-terminology across surfaces.
+**Impact:** Copy changes or future i18n require touching 15+ files individually.
 
 **Fix:**
 - Audit all user-facing strings and migrate them to `microcopy.ts`.
@@ -508,10 +454,8 @@ IBM Carbon for AI guidelines, HAX G1.
 **Files:** `src/components/aiChatDrawer/index.tsx`
 
 **Current behavior:** The drawer title includes a purple "AI · review before
-using" tag, and the empty state explains what Copilot does. However, individual
-assistant messages in the conversation have no visual marker distinguishing them
-from a hypothetical human support agent. The messages are visually differentiated
-by alignment and background color, but there is no explicit "AI" label.
+using" tag, but individual assistant messages have no per-message AI label.
+Messages are differentiated only by alignment and background color.
 
 **Fix:**
 - Add a small "Board Copilot" or sparkle icon prefix on each assistant message
@@ -530,13 +474,11 @@ reverse an agent's action").
 **Files:** `src/components/projectList/index.tsx`,
 `src/components/taskModal/index.tsx`, `src/components/column/index.tsx`
 
-**Current behavior:** All delete actions (project, task, column) use
-`Modal.confirm` with "This action cannot be undone." The confirmation dialog
-is the only safeguard.
+**Current behavior:** All delete actions use `Modal.confirm` as the only
+safeguard. No undo after confirmation.
 
-**Impact:** `Modal.confirm` is a necessary but insufficient pattern. Per the
-trust calibration research, confirmation dialogs become reflexive clicks — users
-develop "modal blindness." The real safety net is undo.
+**Impact:** Confirmation dialogs become reflexive clicks (modal blindness). The
+real safety net is undo.
 
 **Fix (incremental):**
 - Phase 1: After deletion, show a 5-second undo toast (leveraging
@@ -555,11 +497,9 @@ develop "modal blindness." The real safety net is undo.
 
 **Files:** `src/utils/authApis.ts`, `src/utils/hooks/useAuth.ts`
 
-**Current behavior:** `localStorage.setItem("Token", user.jwt)` stores the JWT
-with no expiry check. `useAuth` reads the token from localStorage on every
-render. If the JWT expires server-side, API calls will start failing with 401s,
-but the UI will show the authenticated layout until a hard refresh triggers the
-error path in `refreshUser`.
+**Current behavior:** JWT stored in localStorage with no expiry check. If the
+token expires server-side, API calls fail with 401s but the UI keeps showing
+the authenticated layout until a hard refresh.
 
 **Fix:**
 - Decode the JWT expiry (`exp` claim) client-side and schedule a refresh or
@@ -577,9 +517,8 @@ error path in `refreshUser`.
 
 **Files:** `src/components/projectList/index.tsx`, `src/pages/project.tsx`
 
-**Current behavior:** The project list uses Ant Design Table's built-in `loading`
-prop, which shows a generic spinner overlay on the table. This doesn't match the
-table's layout and doesn't communicate what kind of content is coming.
+**Current behavior:** Uses Ant Design Table's built-in `loading` prop — a generic
+spinner overlay that doesn't match the table's layout.
 
 **Fix:**
 - Replace the `loading` prop with a custom skeleton that renders 3-5 placeholder
@@ -597,11 +536,9 @@ in doubt).
 
 **Files:** `src/components/column/index.tsx`, `src/pages/board.tsx`
 
-**Current behavior:** When filters are active and a column has zero matching
-tasks, the column renders empty with no indication that tasks exist but are
-hidden by the filter. The screen-reader live region announces the total
-filtered count, but sighted users may be confused about whether the column is
-truly empty or just filtered.
+**Current behavior:** When filters yield zero tasks in a column, it renders empty
+with no indication that tasks exist but are hidden. The screen-reader live
+region announces the count, but sighted users get no guidance.
 
 **Fix:**
 - Show a subtle inline message in each empty-after-filtering column: "No tasks

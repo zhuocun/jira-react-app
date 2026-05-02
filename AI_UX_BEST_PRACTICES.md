@@ -1,8 +1,7 @@
 # AI Feature UI/UX: Best Practices and Red Flags
 
-A comprehensive research compilation on designing AI-powered user experiences, drawn from
-Nielsen Norman Group, Google PAIR, Microsoft HAX Toolkit, Smashing Magazine, industry audits,
-and real-world product case studies (2024-2026).
+Research compilation on AI-powered UX design, drawn from Nielsen Norman Group, Google PAIR,
+Microsoft HAX Toolkit, Smashing Magazine, industry audits, and product case studies (2024-2026).
 
 ---
 
@@ -72,10 +71,9 @@ Before adding any AI feature, ask five questions (Mediusware framework):
 
 ### 2.1 Transparency and Explainability
 
-**Label AI-generated content explicitly.** Users must always know when they interact with AI
-output. Use consistent visual markers (badges, icons, subtle background shading) across the
-entire product. IBM Carbon for AI uses dedicated AI labels and consistent light gradients.
-PatternFly (Red Hat) mandates clear AI component identification.
+**Label AI-generated content explicitly.** Use consistent visual markers (badges, icons,
+subtle background shading) across the product. IBM Carbon for AI uses dedicated AI labels
+and consistent light gradients. PatternFly (Red Hat) mandates clear AI identification.
 
 **Show the AI's reasoning path using progressive disclosure:**
 
@@ -112,10 +110,9 @@ it quickly.
 
 ### 2.2 User Control and Autonomy
 
-**Default to copilot mode.** Let the AI suggest and the user decide. Autonomy is earned through
-demonstrated reliability, not given by default. GitHub Copilot exemplifies this: suggestions
-appear as grayed-out ghost text; press Tab to accept, keep typing to ignore. The cost of
-distrust is zero.
+**Default to copilot mode.** Let the AI suggest and the user decide. GitHub Copilot exemplifies
+this: suggestions appear as grayed-out ghost text; press Tab to accept, keep typing to ignore.
+The cost of distrust is zero.
 
 **Implement the Autonomy Dial** (Smashing Magazine, Feb 2026):
 
@@ -154,8 +151,7 @@ prominent, not buried.
 
 ### 2.3 Trust Calibration
 
-**The goal is appropriate trust, not maximum trust.** Users should trust the AI for tasks where
-it performs well and override it where it does not. Overtrust is as dangerous as undertrust.
+**The goal is appropriate trust, not maximum trust.** Overtrust is as dangerous as undertrust.
 
 **What destroys trust:**
 
@@ -191,13 +187,11 @@ When errors occur:
 ### 2.4 Loading States and Latency
 
 **Never use a generic spinner for AI operations.** A spinner is acceptable for sub-second
-operations. For 2-8 second AI responses, a spinner communicates nothing — users can't tell if
-the app is processing, frozen, or failing. After 3 seconds, users begin trying to interact with
-the UI. After 5 seconds, they consider leaving.
+operations. For 2-8 second AI responses, a spinner communicates nothing. After 3 seconds,
+users try to interact with the UI. After 5 seconds, they consider leaving.
 
-**Stream responses.** Streaming text output transforms a 4-second wait into a 4-second
-experience. The user reads while the AI writes. Perceived wait time drops by 55-70% even when
-total generation time is identical. Implementation:
+**Stream responses.** Perceived wait time drops by 55-70% with streaming even when total
+generation time is identical. Implementation:
 - Use Server-Sent Events (SSE) with 50-100ms buffering
 - Track Time to First Token (TTFT) as a key metric
 - Never wait for the full response before showing anything
@@ -219,8 +213,8 @@ happening: "Reading your document...", "Searching knowledge base...", "Checking 
 
 ### 2.5 Error Handling and Graceful Degradation
 
-**Design for AI failure as a certainty, not an edge case.** Models time out, rate limits get hit,
-content filters trigger, confidence drops. Every AI feature needs designed failure states.
+**Design for AI failure as a certainty, not an edge case.** Every AI feature needs designed
+failure states.
 
 **Implement a Graceful Degradation Fallback Chain:**
 
@@ -252,9 +246,8 @@ AI features where the stakes are higher than a failed API call.
 
 ### 2.6 Onboarding and Discoverability
 
-**Show what the AI can do with specific, realistic examples.** Most AI onboarding flows explain
-UI navigation but never show realistic AI capabilities. Users underuse AI because they don't
-know what to ask. The correct pattern: capability tours with concrete demonstrations.
+**Show what the AI can do with specific, realistic examples.** Users underuse AI because they
+don't know what to ask. The correct pattern: capability tours with concrete demonstrations.
 
 **NN/g guidelines for AI chatbot onboarding:**
 1. State capabilities clearly and concisely in the opening message
@@ -270,12 +263,10 @@ know what to ask. The correct pattern: capability tours with concrete demonstrat
 - Layer 3: Advanced features available on demand in settings or help
 
 **Make AI discoverable at the point of need.** Powerful features buried in menus have near-zero
-adoption. Amazon's Rufus demonstrates that even valuable AI features have low impact if users
-don't notice them. Surface AI suggestions where users are already working.
+adoption. Surface AI suggestions where users are already working.
 
-**Manage the sparkle icon carefully.** The sparkles icon (✨) has become the de facto AI
-indicator, but NN/g research shows widespread ambiguity — 17% of users think it means
-"favorite/save." Best practices:
+**Manage the sparkle icon carefully.** NN/g research shows widespread ambiguity — 17% of users
+think the sparkle icon means "favorite/save." Best practices:
 - Always pair the sparkle icon with a text label
 - Use tooltips as a fallback
 - Don't overload sparkles onto every feature — when applied everywhere, they lose meaning
@@ -323,8 +314,7 @@ indicator, but NN/g research shows widespread ambiguity — 17% of users think i
 ### 2.9 AI Content and Output Design
 
 **AI outputs must follow web-writing principles** (NN/g): concise, scannable, inverted pyramid,
-plain language. LLM output naturally tends toward verbose, essay-style prose that violates
-every readability guideline.
+plain language.
 
 **Structure AI output for scanning:**
 - Use headers, bullet points, and bold key terms
@@ -332,9 +322,8 @@ every readability guideline.
 - Keep paragraphs short (2-3 sentences max for AI responses)
 - Include clear next-action affordances: what should the user do with this output?
 
-**Never present a wall of text.** One of the most common AI UX failures is dumping long AI
-responses with no visual structure. If the AI generates a long response, apply progressive
-disclosure: summary first, with expandable detail sections.
+**Never present a wall of text.** Apply progressive disclosure for long responses: summary
+first, with expandable detail sections.
 
 **Include images and rich content where appropriate.** NN/g research found that AI chatbot
 responses with product images are significantly more useful than text-only or link-only
@@ -342,8 +331,7 @@ responses. Include visuals to help users evaluate options.
 
 ### 2.10 Accessibility and Inclusivity
 
-**The AI streaming gap is a fundamental accessibility problem.** Streaming responses that update
-character-by-character can overwhelm screen readers with rapid-fire announcements. Solutions:
+**Streaming can overwhelm screen readers** with rapid-fire announcements. Solutions:
 - Use `aria-live="polite"` regions that announce AI responses only after pauses or completion
 - Provide an option to disable streaming and show completed responses only
 - Ensure all AI status messages are accessible to screen readers
@@ -369,8 +357,7 @@ animations all meet WCAG 2.1 AA contrast and motion requirements.
 
 ### 2.11 Privacy and Ethical UX
 
-**Design consent to be granular and contextual.** Apple rejects AI proposals where consent is
-implicit rather than explicit. Best practices:
+**Design consent to be granular and contextual.** Best practices:
 - Separate data collection consent from AI feature usage consent
 - Show exactly what data each AI feature accesses
 - Allow per-feature, per-data-source privacy controls
@@ -381,9 +368,8 @@ implicit rather than explicit. Best practices:
 - Prefer on-device processing where feasible (Apple's Foundation Models framework processes
   entirely on-device)
 
-**The "privacy theater" anti-pattern:** Adding GDPR-style consent banners that users click
-through reflexively is not real privacy design. Real privacy UX makes the implications of
-consent understandable and the choices meaningful.
+**The "privacy theater" anti-pattern:** Consent banners that users click through reflexively
+are not real privacy design. Real privacy UX makes the choices meaningful.
 
 **Avoid dark patterns in AI consent:**
 - Don't make opting out of AI data collection harder than opting in
