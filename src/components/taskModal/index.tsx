@@ -239,7 +239,20 @@ const TaskModal: React.FC<{
             open={Boolean(editingTaskId)}
             styles={{
                 body: {
-                    maxHeight: "calc(100dvh - 220px)",
+                    /*
+                     * Phone widths render the title across two lines and
+                     * stack three full-height buttons in the footer
+                     * (Save / Cancel / Delete), which together consume
+                     * roughly 280 px of chrome — well over the 220 px the
+                     * desktop layout reserves. Without a tighter cap the
+                     * footer falls below the viewport on a 390 × 844
+                     * device and the destructive Delete control becomes
+                     * unreachable without scrolling the page behind the
+                     * modal.
+                     */
+                    maxHeight: screens.sm
+                        ? "calc(100dvh - 220px)"
+                        : "calc(100dvh - 320px)",
                     overflowY: "auto"
                 }
             }}

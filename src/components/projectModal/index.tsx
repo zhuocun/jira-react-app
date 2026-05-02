@@ -77,6 +77,32 @@ const ProjectModal: React.FC = () => {
             onCancel={onClose}
             onOk={submit}
             open={isModalOpened}
+            /*
+             * Phone-width footer: the default AntD footer keeps the two
+             * buttons in one flex row with `>*+* { margin-inline-start: 8px }`.
+             * When both are `block` (full-width) they wrap onto two rows but
+             * the OK button still gets the 8 px left margin and ends up
+             * visibly offset from the Cancel button. Render a stacked
+             * column without that inter-button margin so the two buttons
+             * line up edge-to-edge. Tablet / desktop keep the default
+             * right-aligned arrangement.
+             */
+            footer={
+                !screens.sm
+                    ? (_, { OkBtn, CancelBtn }) => (
+                          <div
+                              style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: space.xs
+                              }}
+                          >
+                              <OkBtn />
+                              <CancelBtn />
+                          </div>
+                      )
+                    : undefined
+            }
             styles={{
                 body: {
                     maxHeight: "calc(100dvh - 220px)",
