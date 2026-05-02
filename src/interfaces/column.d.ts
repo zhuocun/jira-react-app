@@ -3,4 +3,6 @@ interface IColumn {
     columnName: string;
     projectId: string;
     index: number;
+    createdAt?: string;
+    updatedAt?: string;
 }

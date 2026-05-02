@@ -4,4 +4,5 @@ interface IProject {
     managerId: string;
     organization: string;
     createdAt: string;
+    updatedAt?: string;
 }

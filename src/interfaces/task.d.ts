@@ -9,4 +9,6 @@ interface ITask {
     projectId: string;
     storyPoints: number;
     index: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
