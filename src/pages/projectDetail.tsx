@@ -26,33 +26,69 @@ const Container = styled.div`
 
 const TopBar = styled.div`
     align-items: center;
-    /* Transparent so the page-level peach gradient flows continuously
-     * from the main header's fade strip through this breadcrumb / tabs
-     * row into the board content below. The previous solid white +
-     * bottom border created a hard white band that interrupted the
-     * gradient and clashed with the iOS-native fade above it. */
-    background: transparent;
+    /*
+     * Sticky-opaque secondary chrome. Mirrors the main header's pattern:
+     * the surface uses --page-background with background-attachment:
+     * fixed, so the bar reads as a continuous extension of the page
+     * gradient when at rest, but the layer is fully opaque — content
+     * scrolling under it is cleanly hidden. The bar pins itself just
+     * below the main header by sticking at top: var(--header-height),
+     * which the main header publishes via a ResizeObserver.
+     *
+     * z-index 10 matches the main header. The bar is later in DOM order
+     * so it stacks above the main header's fade strip in the area
+     * between the chrome layers, which is what we want — the strip is
+     * decorative, the breadcrumb / tabs are content.
+     *
+     * Padding is symmetric (sm vertical, sm/md/lg horizontal) so the
+     * breadcrumb on the left and the tab on the right share a clean
+     * vertical centerline.
+     */
+    background: var(--page-background);
+    background-attachment: fixed;
     display: flex;
     flex-wrap: wrap;
     gap: ${space.xxs}px;
     justify-content: space-between;
     min-width: 0;
-    padding: ${space.xs}px ${space.sm}px 0;
+    padding: ${space.sm}px ${space.sm}px;
     padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
     padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
+    position: sticky;
+    top: var(--header-height, 44px);
+    z-index: 10;
 
     @media (min-width: ${breakpoints.sm}px) {
         gap: ${space.xs}px;
-        padding: ${space.sm}px ${space.md}px 0;
+        padding: ${space.sm}px ${space.md}px;
         padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
         padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
     }
 
     @media (min-width: ${breakpoints.md}px) {
         gap: ${space.md}px;
-        padding: ${space.sm}px ${space.lg}px 0;
+        padding: ${space.sm}px ${space.lg}px;
         padding-inline-start: max(${space.lg}px, env(safe-area-inset-left));
         padding-inline-end: max(${space.lg}px, env(safe-area-inset-right));
+    }
+
+    /*
+     * Soft fade strip below TopBar — same recipe as the main header's
+     * ::after. Lets content scrolling up dissolve into the chrome
+     * stack rather than meeting a hard edge below the tabs.
+     */
+    &::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        height: 24px;
+        background: var(--page-background);
+        background-attachment: fixed;
+        mask-image: linear-gradient(to bottom, black, transparent);
+        -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+        pointer-events: none;
     }
 `;
 
@@ -94,14 +130,17 @@ const BreadcrumbWrapper = styled.div`
 const TabsRow = styled(Tabs)`
     && {
         flex: 0 0 auto;
-        margin-bottom: -1px;
         min-width: 0;
     }
     /* AntD draws a 1 px rail under the tab list (.ant-tabs-nav::before)
-     * that the orange ink-bar slides on. With the surrounding TopBar now
-     * transparent, that gray rail would print a hard line over the peach
-     * gradient. Hide it — the orange ink-bar alone is enough to mark the
-     * active tab. */
+     * that the orange ink-bar slides on. With the surrounding TopBar
+     * now using the page gradient as a surface, that gray rail would
+     * print a hard line over the peach. Hide it — the orange ink-bar
+     * alone is enough to mark the active tab. AntD's nav also has a
+     * default margin-bottom we drop to keep the row centered. */
+    && .ant-tabs-nav {
+        margin: 0;
+    }
     && .ant-tabs-nav::before {
         border-bottom-color: transparent;
     }
