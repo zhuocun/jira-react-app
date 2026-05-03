@@ -117,8 +117,7 @@ export const aurora = {
     emeraldSoft: "rgba(16, 185, 129, 0.14)",
     amberSoft: "rgba(245, 158, 11, 0.14)",
     cinematicBase: "#042F2E",
-    gradLine:
-        "linear-gradient(135deg, #0D9488 0%, #14B8A6 45%, #06B6D4 100%)",
+    gradLine: "linear-gradient(135deg, #0D9488 0%, #14B8A6 45%, #06B6D4 100%)",
     gradLineSoft:
         "linear-gradient(135deg, rgba(13,148,136,0.18) 0%, rgba(6,182,212,0.14) 100%)"
 } as const;
