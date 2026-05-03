@@ -50,7 +50,12 @@ const NotFoundRoute = () => {
             title={microcopy.empty.notFound.title}
             description={microcopy.empty.notFound.description}
             cta={
-                <Button onClick={() => navigate("/projects")} type="primary">
+                <Button
+                    onClick={() =>
+                        navigate("/projects", { viewTransition: true })
+                    }
+                    type="primary"
+                >
                     {microcopy.empty.notFound.cta}
                 </Button>
             }

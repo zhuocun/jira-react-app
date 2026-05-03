@@ -1055,8 +1055,11 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
             <Space.Compact style={{ width: "100%" }}>
                 <Input.TextArea
                     aria-label={microcopy.a11y.messageBoardCopilot}
+                    autoComplete="off"
                     autoSize={{ maxRows: 4, minRows: 1 }}
                     disabled={isLoading}
+                    enterKeyHint="send"
+                    inputMode="text"
                     maxLength={microcopy.ai.characterCounterMax}
                     onChange={(e) => setInput(e.target.value)}
                     onPressEnter={(e) => {

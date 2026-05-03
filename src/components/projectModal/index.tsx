@@ -144,7 +144,11 @@ const ProjectModal: React.FC = () => {
                             }
                         ]}
                     >
-                        <Input autoComplete="off" autoFocus />
+                        <Input
+                            autoComplete="off"
+                            enterKeyHint="next"
+                            inputMode="text"
+                        />
                     </Form.Item>
                     <Form.Item
                         label={microcopy.fields.organization}
@@ -159,7 +163,11 @@ const ProjectModal: React.FC = () => {
                             }
                         ]}
                     >
-                        <Input autoComplete="organization" />
+                        <Input
+                            autoComplete="organization"
+                            enterKeyHint="next"
+                            inputMode="text"
+                        />
                     </Form.Item>
                     <Form.Item
                         label={microcopy.fields.manager}

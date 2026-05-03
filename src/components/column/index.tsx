@@ -111,6 +111,15 @@ const FilteredEmptyButton = styled.button`
         background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.1));
         outline: none;
     }
+
+    /* The "Reset filters" CTA is the recovery path out of an empty filtered
+     * column — fingers must land it without zoom. Lift to the 44 px touch
+     * floor (Apple HIG, WCAG 2.5.8) on coarse pointers without disturbing the
+     * dense desktop rhythm. */
+    @media (pointer: coarse) {
+        min-height: 44px;
+        padding: ${space.xs}px ${space.sm}px;
+    }
 `;
 
 const TaskCardOuter = styled.button`
@@ -384,10 +393,19 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                      * the previous Tooltip duplicated the label and
                      * announced it twice to screen readers. */}
                     <TaskTypeBadge $isBug={isBug}>
+                        {/* Explicit width/height attributes lock the badge's
+                         * aspect ratio so the card row never shifts while
+                         * the SVG asset is loading (CLS red flag, doc §3 —
+                         * Layout shift). The styled-component CSS still wins
+                         * for visual sizing, but the HTML hint prevents the
+                         * brief 0×0 reservation that would otherwise jump
+                         * neighbouring cards on slow networks. */}
                         <img
                             alt=""
                             aria-hidden
+                            height={14}
                             src={isBug ? bugIcon : taskIcon}
+                            width={14}
                         />
                         <span>{isBug ? "Bug" : "Task"}</span>
                     </TaskTypeBadge>

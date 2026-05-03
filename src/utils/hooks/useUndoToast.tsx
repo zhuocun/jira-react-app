@@ -1,5 +1,4 @@
 import { message } from "antd";
-import type { KeyboardEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
 
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
@@ -69,25 +68,37 @@ const useUndoToast = (): {
                 message.destroy(key);
             }
         };
-        const onUndoKey = (event: KeyboardEvent<HTMLAnchorElement>) => {
-            if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                void handleUndo();
-            }
-        };
         message.open({
             content: (
                 <span>
                     {options.description}{" "}
-                    <a
+                    {/*
+                     * Real <button> rather than an <a role="button"> so the
+                     * native Enter / Space activation comes for free and so
+                     * the control carries the AntD button focus ring on
+                     * keyboard tab. The min-height lift keeps the tap target
+                     * above the 44 px floor on coarse pointers — the toast
+                     * appears center-screen on mobile and a thumb has to
+                     * land it within the 10 s window.
+                     */}
+                    <button
                         onClick={handleUndo}
-                        onKeyDown={onUndoKey}
-                        role="button"
-                        style={{ marginInlineStart: 8 }}
-                        tabIndex={0}
+                        style={{
+                            background: "transparent",
+                            border: 0,
+                            color: "var(--ant-color-primary, #5e6ad2)",
+                            cursor: "pointer",
+                            font: "inherit",
+                            fontWeight: 500,
+                            marginInlineStart: 8,
+                            minHeight: 32,
+                            padding: "4px 8px",
+                            textDecoration: "underline"
+                        }}
+                        type="button"
                     >
                         {microcopy.ai.undoLabel}
-                    </a>
+                    </button>
                 </span>
             ),
             duration,

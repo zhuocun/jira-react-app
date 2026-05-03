@@ -327,7 +327,11 @@ const TaskModal: React.FC<{
                         }
                     ]}
                 >
-                    <Input autoFocus />
+                    <Input
+                        autoComplete="off"
+                        enterKeyHint="next"
+                        inputMode="text"
+                    />
                 </Form.Item>
                 <Form.Item
                     label={microcopy.fields.coordinator}
@@ -365,7 +369,11 @@ const TaskModal: React.FC<{
                     />
                 </Form.Item>
                 <Form.Item label={microcopy.fields.epic} name="epic">
-                    <Input />
+                    <Input
+                        autoComplete="off"
+                        enterKeyHint="next"
+                        inputMode="text"
+                    />
                 </Form.Item>
                 <Form.Item
                     label={microcopy.fields.storyPoints}
@@ -378,6 +386,8 @@ const TaskModal: React.FC<{
                 </Form.Item>
                 <Form.Item label={microcopy.fields.notes} name="note">
                     <Input.TextArea
+                        autoComplete="off"
+                        inputMode="text"
                         placeholder={
                             microcopy.placeholders.notesAcceptanceCriteria
                         }
