@@ -8,7 +8,6 @@ import {
     fontFamily,
     fontSize,
     fontWeight,
-    glass,
     lineHeight,
     motion,
     radius,
@@ -139,11 +138,10 @@ export const buildAntdTheme = (
                     : "rgba(15, 23, 42, 0.45)"
         },
         Drawer: {
-            paddingLG: space.lg,
-            // Drawer keeps its glass treatment — see App.css `.ant-drawer-
-            // content` for the matching backdrop-filter declaration.
-            colorBgElevated:
-                mode === "dark" ? glass.surfaceStrongDark : glass.surfaceStrong
+            paddingLG: space.lg
+            // Drawer is opaque. AntD's algorithm picks the elevated bg
+            // (white in light, near-black in dark); App.css's
+            // `.ant-drawer-content` rule layers the matching shadow.
         },
         Input: {
             paddingBlock: 6,
