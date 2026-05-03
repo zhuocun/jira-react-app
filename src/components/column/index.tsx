@@ -138,13 +138,26 @@ const TaskCardOuter = styled.button`
     width: 100%;
 
     &:hover:not(:disabled) {
-        border-color: var(--ant-color-primary-border, rgba(94, 106, 210, 0.4));
-        box-shadow: ${shadow.md};
+        border-color: rgba(139, 92, 246, 0.45);
+        /* Layered shadow: ambient + 1px violet ring + soft drop glow ties
+         * the hover state into the aurora palette without overwhelming a
+         * dense board (kept to subtle 5%/3% gradient over the card bg). */
+        box-shadow:
+            ${shadow.md},
+            0 0 0 1px rgba(139, 92, 246, 0.18),
+            0 8px 24px -10px rgba(139, 92, 246, 0.3);
+        background:
+            linear-gradient(
+                135deg,
+                rgba(139, 92, 246, 0.05) 0%,
+                rgba(6, 182, 212, 0.03) 100%
+            ),
+            var(--ant-color-bg-container, #fff);
         transform: translateY(-1px);
     }
 
     &:focus-visible {
-        border-color: var(--ant-color-primary, #5e6ad2);
+        border-color: var(--ant-color-primary, #8b5cf6);
         outline: none;
         box-shadow: ${shadow.focus}, ${shadow.md};
     }

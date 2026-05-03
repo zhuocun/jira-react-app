@@ -5,7 +5,7 @@ import React from "react";
 
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import { microcopy } from "../../constants/microcopy";
-import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
+import { blur, fontSize, fontWeight, radius, space } from "../../theme/tokens";
 import AiSparkleIcon from "../aiSparkleIcon";
 
 /**
@@ -18,13 +18,30 @@ import AiSparkleIcon from "../aiSparkleIcon";
  */
 const Wrap = styled.div`
     align-items: flex-start;
-    background: linear-gradient(
-        135deg,
-        var(--color-copilot-bg-subtle) 0%,
-        var(--color-copilot-bg-medium) 100%
-    );
-    border: 1px solid var(--color-copilot-bg-medium);
+    position: relative;
+    overflow: hidden;
+    /* Aurora mesh + glass: violet bleeds in from the top-left, cyan from
+     * the bottom-right, sitting on the strong glass surface so the banner
+     * reads as a frosted aurora pane, not a flat tint. */
+    background:
+        radial-gradient(
+            120% 200% at 0% 0%,
+            rgba(139, 92, 246, 0.18) 0%,
+            transparent 60%
+        ),
+        radial-gradient(
+            120% 200% at 100% 100%,
+            rgba(6, 182, 212, 0.14) 0%,
+            transparent 60%
+        ),
+        var(--glass-surface-strong);
+    backdrop-filter: blur(${blur.md}px) saturate(170%);
+    -webkit-backdrop-filter: blur(${blur.md}px) saturate(170%);
+    border: 1px solid var(--glass-border-strong);
     border-radius: ${radius.md}px;
+    box-shadow:
+        0 8px 28px -12px rgba(139, 92, 246, 0.28),
+        var(--glass-shine);
     display: flex;
     gap: ${space.sm}px;
     margin-bottom: ${space.md}px;

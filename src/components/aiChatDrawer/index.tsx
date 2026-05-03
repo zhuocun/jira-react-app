@@ -583,6 +583,11 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
             size={drawerWidth}
             styles={{
                 body: {
+                    /* Subtle violet wash from the top so the AI chat reads
+                     * as an aurora pane sitting on the glass drawer surface
+                     * applied via .ant-drawer-content in App.css. */
+                    background:
+                        "radial-gradient(60% 30% at 50% 0%, rgba(139, 92, 246, 0.10) 0%, transparent 70%), transparent",
                     display: "flex",
                     flexDirection: "column",
                     paddingBottom: `max(${space.md}px, env(safe-area-inset-bottom))`,

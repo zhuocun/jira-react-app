@@ -2,10 +2,12 @@ import { theme as antdTheme, ThemeConfig } from "antd";
 
 import {
     accent,
+    aurora,
     brand,
     fontFamily,
     fontSize,
     fontWeight,
+    glass,
     lineHeight,
     motion,
     radius,
@@ -44,9 +46,10 @@ export const buildAntdTheme = (
         colorWarning: semantic.warning,
         colorError: semantic.error,
 
-        // Surfaces — keep AntD's auto-derived neutrals; just nudge the page
-        // background so it does not read as the same color as elevated cards.
-        colorBgLayout: mode === "dark" ? "#0F1116" : "#F7F8FB",
+        // Surfaces — transparent so the aurora mesh painted on `body` shows
+        // through every Layout. Solid fallbacks live in App.css under
+        // `prefers-reduced-transparency` and `forced-colors`.
+        colorBgLayout: "transparent",
 
         // Radii — softer corners across the system
         borderRadius: radius.md,
@@ -83,8 +86,8 @@ export const buildAntdTheme = (
         controlOutlineWidth: 3,
         controlOutline:
             mode === "dark"
-                ? "rgba(94, 106, 210, 0.25)"
-                : "rgba(94, 106, 210, 0.20)",
+                ? "rgba(139, 92, 246, 0.32)"
+                : "rgba(139, 92, 246, 0.22)",
 
         // Motion
         motionDurationFast: `${motion.short}ms`,
@@ -114,10 +117,26 @@ export const buildAntdTheme = (
             paddingContentHorizontalLG: space.lg,
             borderRadiusLG: radius.lg,
             titleFontSize: fontSize.md,
-            titleLineHeight: lineHeight.snug
+            titleLineHeight: lineHeight.snug,
+            // Glass content surface; backdrop-filter is applied in App.css
+            // against `.ant-modal-content` because the AntD theme API has no
+            // backdropFilter token.
+            contentBg:
+                mode === "dark" ? glass.surfaceStrongDark : glass.surfaceStrong,
+            headerBg: "transparent",
+            footerBg: "transparent",
+            // Violet-tinted mask so the world behind the modal dissolves into
+            // aurora instead of a flat black overlay.
+            colorBgMask:
+                mode === "dark"
+                    ? "rgba(15, 11, 30, 0.58)"
+                    : "rgba(40, 24, 80, 0.32)"
         },
         Drawer: {
-            paddingLG: space.lg
+            paddingLG: space.lg,
+            // Glass body; backdrop-filter applied in App.css.
+            colorBgElevated:
+                mode === "dark" ? glass.surfaceStrongDark : glass.surfaceStrong
         },
         Input: {
             paddingBlock: 6,
@@ -125,8 +144,8 @@ export const buildAntdTheme = (
             borderRadius: radius.md,
             activeShadow: `0 0 0 3px ${
                 mode === "dark"
-                    ? "rgba(94, 106, 210, 0.30)"
-                    : "rgba(94, 106, 210, 0.18)"
+                    ? "rgba(139, 92, 246, 0.32)"
+                    : "rgba(139, 92, 246, 0.20)"
             }`
         },
         Select: {
@@ -145,8 +164,8 @@ export const buildAntdTheme = (
             headerSplitColor: "transparent",
             rowHoverBg:
                 mode === "dark"
-                    ? "rgba(94, 106, 210, 0.12)"
-                    : "rgba(94, 106, 210, 0.06)",
+                    ? "rgba(139, 92, 246, 0.14)"
+                    : "rgba(139, 92, 246, 0.07)",
             borderColor:
                 mode === "dark"
                     ? "rgba(255, 255, 255, 0.06)"
@@ -173,14 +192,14 @@ export const buildAntdTheme = (
         Tooltip: {
             colorBgSpotlight:
                 mode === "dark"
-                    ? "rgba(15, 23, 42, 0.92)"
-                    : "rgba(15, 23, 42, 0.92)",
+                    ? "rgba(15, 11, 30, 0.92)"
+                    : "rgba(40, 24, 80, 0.92)",
             colorTextLightSolid: "#FFFFFF",
             borderRadius: radius.sm
         },
         Layout: {
-            headerBg: mode === "dark" ? "#0F1116" : "#FFFFFF",
-            bodyBg: mode === "dark" ? "#0F1116" : "#F7F8FB"
+            headerBg: "transparent",
+            bodyBg: "transparent"
         },
         Form: {
             labelFontSize: fontSize.sm,
@@ -222,6 +241,40 @@ export const buildAntdTheme = (
 
 /**
  * Re-export the accent gradient as raw CSS so styled components can drop it
- * directly without re-importing the token module.
+ * directly without re-importing the token module. Now resolves to the
+ * violet → cyan aurora signature via the updated `accent` tokens.
  */
 export const accentGradientCss = `linear-gradient(135deg, ${accent.start} 0%, ${accent.end} 100%)`;
+
+/**
+ * Linear violet → indigo → cyan aurora gradient. Used for buttons, badges,
+ * and the sparkle icon when a single-stripe (rather than mesh) treatment
+ * fits better.
+ */
+export const auroraGradientCss = aurora.gradLine;
+
+/**
+ * Light-mode mesh background. Four aurora blobs (violet, cyan, pink,
+ * emerald) over a near-white base. Composed once here so styled components
+ * don't recompute the radial-gradient stack at every paint.
+ */
+export const auroraMeshLightCss = `
+    radial-gradient(at 18% 12%, ${aurora.violetSoft} 0px, transparent 55%),
+    radial-gradient(at 82% 18%, ${aurora.cyanSoft} 0px, transparent 55%),
+    radial-gradient(at 50% 88%, ${aurora.pinkSoft} 0px, transparent 55%),
+    radial-gradient(at 92% 92%, ${aurora.emeraldSoft} 0px, transparent 55%),
+    #FAFAFD
+`;
+
+/**
+ * Dark-mode mesh background. Same blob positions, deeper saturation, dark
+ * base. The violet blob is bumped up because it has to fight the dark
+ * canvas to read as light coming through.
+ */
+export const auroraMeshDarkCss = `
+    radial-gradient(at 18% 12%, rgba(139,92,246,0.35) 0px, transparent 55%),
+    radial-gradient(at 82% 18%, rgba(6,182,212,0.22) 0px, transparent 55%),
+    radial-gradient(at 50% 88%, rgba(236,72,153,0.18) 0px, transparent 55%),
+    radial-gradient(at 92% 92%, rgba(16,185,129,0.14) 0px, transparent 55%),
+    #0A0716
+`;

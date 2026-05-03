@@ -19,7 +19,10 @@ import { fontSize, fontWeight, radius, space } from "../theme/tokens";
  * and pushed action buttons (Brief / Ask / Add column) off-screen.
  */
 const Container = styled.div`
-    background: var(--pulse-bg-page);
+    /* Transparent so the aurora mesh painted on body shows through.
+     * The --pulse-bg-page variable still backs the body fallback under
+     * prefers-reduced-transparency (see App.css). */
+    background: transparent;
     color: var(--pulse-text-base);
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -41,7 +44,7 @@ const Main = styled.main`
  * and land on the routed page content (WCAG 2.4.1 Bypass Blocks).
  */
 const SkipLink = styled.a`
-    background: var(--ant-color-primary, #5e6ad2);
+    background: var(--ant-color-primary, #8b5cf6);
     border-radius: ${radius.md}px;
     color: #fff;
     font-size: ${fontSize.sm}px;

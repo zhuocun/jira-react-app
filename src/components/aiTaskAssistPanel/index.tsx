@@ -14,7 +14,6 @@ import { useParams } from "react-router-dom";
 
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import { microcopy } from "../../constants/microcopy";
-import { aiTokens } from "../../theme/aiTokens";
 import { fontSize, fontWeight, space } from "../../theme/tokens";
 import { confidenceBand } from "../../utils/ai/confidenceBand";
 import { aiErrorView } from "../../utils/ai/errorTemplate";
@@ -276,8 +275,16 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
         <Card
             size="small"
             style={{
-                background: `linear-gradient(180deg, ${aiTokens.bgSubtle} 0%, transparent 100%)`,
-                borderColor: "var(--color-copilot-bg-medium)",
+                background: `
+                    radial-gradient(80% 100% at 0% 0%, rgba(139, 92, 246, 0.16) 0%, transparent 65%),
+                    radial-gradient(80% 100% at 100% 100%, rgba(6, 182, 212, 0.12) 0%, transparent 65%),
+                    var(--glass-surface-strong)
+                `,
+                backdropFilter: "blur(20px) saturate(170%)",
+                WebkitBackdropFilter: "blur(20px) saturate(170%)",
+                borderColor: "var(--glass-border-strong)",
+                boxShadow:
+                    "0 8px 28px -12px rgba(139, 92, 246, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.45)",
                 marginTop: space.md
             }}
             title={
