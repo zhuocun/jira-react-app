@@ -8,6 +8,7 @@ import {
 import { message } from "antd";
 import { BrowserRouter } from "react-router-dom";
 
+import { getLoginJwtOrThrow } from "../../utils/authApis";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 
 import LoginForm from ".";
@@ -104,7 +105,8 @@ describe("LoginForm", () => {
             "users",
             undefined,
             onError,
-            true
+            true,
+            getLoginJwtOrThrow
         );
     });
 
@@ -198,6 +200,26 @@ describe("LoginForm", () => {
         });
         expect(window.location.pathname).toBe("/login");
         expect(localStorage.getItem("Token")).toBeNull();
+    });
+
+    it("rejects a successful mutation that omits jwt and does not store a token", async () => {
+        mutateAsync.mockRejectedValue(
+            new Error("Login response missing token")
+        );
+        renderLoginForm();
+
+        await changeField(/^email$/i, "alice@example.com");
+        await changeField(/^password$/i, "secret");
+        await submitLogin();
+
+        await waitFor(() => {
+            expect(mutateAsync).toHaveBeenCalledWith({
+                email: "alice@example.com",
+                password: "secret"
+            });
+        });
+        expect(localStorage.getItem("Token")).toBeNull();
+        expect(window.location.pathname).toBe("/login");
     });
 
     it("shows the submitting state from the mutation", () => {
