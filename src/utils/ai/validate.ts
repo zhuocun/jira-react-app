@@ -88,6 +88,32 @@ const RECOMMENDATION_STRENGTHS = new Set([
     "none"
 ] as const);
 
+const normalizeBoardBriefSourceEntry = (
+    entry: unknown,
+    taskIds: Set<string>
+): IBoardBriefTaskRef | null => {
+    if (!entry || typeof entry !== "object") return null;
+    const o = entry as Record<string, unknown>;
+    const taskId =
+        typeof o.taskId === "string" && o.taskId
+            ? o.taskId
+            : typeof o._id === "string" && o._id
+              ? o._id
+              : null;
+    if (!taskId || !taskIds.has(taskId)) return null;
+    const taskName =
+        typeof o.taskName === "string" && o.taskName.trim().length > 0
+            ? o.taskName
+            : taskId;
+    const storyPoints =
+        typeof o.storyPoints === "number" && Number.isFinite(o.storyPoints)
+            ? o.storyPoints
+            : undefined;
+    return storyPoints !== undefined
+        ? { taskId, taskName, storyPoints }
+        : { taskId, taskName };
+};
+
 const validateRecommendationDetail = (
     raw: IBoardBrief["recommendationDetail"],
     fallbackText: string,
@@ -101,7 +127,8 @@ const validateRecommendationDetail = (
         : "none";
     const sources = Array.isArray(raw.sources)
         ? raw.sources
-              .filter((entry) => entry && taskIds.has(entry.taskId))
+              .map((entry) => normalizeBoardBriefSourceEntry(entry, taskIds))
+              .filter((ref): ref is IBoardBriefTaskRef => ref !== null)
               .slice(0, 5)
         : [];
     return {

@@ -215,9 +215,60 @@ describe("validateBoardBrief", () => {
             headline: "",
             largestUnstarted: [],
             recommendation: "",
+            recommendationDetail: undefined,
             unowned: [],
             workload: []
         });
+    });
+
+    it("normalises recommendationDetail.sources that use _id (remote shape)", () => {
+        const out = validateBoardBrief(
+            {
+                headline: "h",
+                counts: [],
+                largestUnstarted: [],
+                unowned: [],
+                workload: [],
+                recommendation: "Assign coordinators.",
+                recommendationDetail: {
+                    text: "Assign coordinators.",
+                    strength: "moderate",
+                    basis: "Two unowned.",
+                    sources: [
+                        {
+                            _id: "t1",
+                            taskName: "T1",
+                            storyPoints: 3
+                        }
+                    ]
+                }
+            },
+            buildContext()
+        );
+        expect(out.recommendationDetail?.sources).toEqual([
+            { taskId: "t1", taskName: "T1", storyPoints: 3 }
+        ]);
+    });
+
+    it("drops recommendationDetail sources with unknown ids after normalisation", () => {
+        const out = validateBoardBrief(
+            {
+                headline: "h",
+                counts: [],
+                largestUnstarted: [],
+                unowned: [],
+                workload: [],
+                recommendation: "r",
+                recommendationDetail: {
+                    text: "r",
+                    strength: "strong",
+                    basis: "b",
+                    sources: [{ _id: "ghost", taskName: "Ghost" }]
+                }
+            },
+            buildContext()
+        );
+        expect(out.recommendationDetail?.sources).toEqual([]);
     });
 });
 
