@@ -26,9 +26,12 @@ const Container = styled.div`
 
 const TopBar = styled.div`
     align-items: center;
-    background: var(--ant-color-bg-container, #fff);
-    border-bottom: 1px solid
-        var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+    /* Transparent so the page-level peach gradient flows continuously
+     * from the main header's fade strip through this breadcrumb / tabs
+     * row into the board content below. The previous solid white +
+     * bottom border created a hard white band that interrupted the
+     * gradient and clashed with the iOS-native fade above it. */
+    background: transparent;
     display: flex;
     flex-wrap: wrap;
     gap: ${space.xxs}px;
@@ -93,6 +96,14 @@ const TabsRow = styled(Tabs)`
         flex: 0 0 auto;
         margin-bottom: -1px;
         min-width: 0;
+    }
+    /* AntD draws a 1 px rail under the tab list (.ant-tabs-nav::before)
+     * that the orange ink-bar slides on. With the surrounding TopBar now
+     * transparent, that gray rail would print a hard line over the peach
+     * gradient. Hide it — the orange ink-bar alone is enough to mark the
+     * active tab. */
+    && .ant-tabs-nav::before {
+        border-bottom-color: transparent;
     }
     && .ant-tabs-tab {
         font-weight: ${fontWeight.medium};
