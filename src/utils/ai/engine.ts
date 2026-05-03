@@ -443,20 +443,46 @@ export const boardBrief = (context: AiContextProject): IBoardBrief => {
 
     let recommendation =
         "Board looks balanced. Pick the next item from the top of Backlog.";
+    let recommendationDetail: IBoardBriefRecommendation = {
+        text: recommendation,
+        strength: "none",
+        basis: "No imbalance, oversized work, or unowned tasks detected.",
+        sources: []
+    };
     if (unowned.length > 0) {
         recommendation = `Assign coordinators to ${unowned.length} unowned task${
             unowned.length === 1 ? "" : "s"
         } before starting new work.`;
+        recommendationDetail = {
+            text: recommendation,
+            strength: unowned.length >= 3 ? "strong" : "moderate",
+            basis: `Counted ${unowned.length} task${
+                unowned.length === 1 ? "" : "s"
+            } with no coordinator on this board.`,
+            sources: unowned.slice(0, 3)
+        };
     } else if (
         largestUnstarted[0]?.storyPoints &&
         largestUnstarted[0].storyPoints >= 8
     ) {
         recommendation = `"${largestUnstarted[0].taskName}" is large (${largestUnstarted[0].storyPoints} pts). Consider breaking it down.`;
+        recommendationDetail = {
+            text: recommendation,
+            strength: "moderate",
+            basis: `Largest unstarted task is ${largestUnstarted[0].storyPoints} story points.`,
+            sources: [largestUnstarted[0]]
+        };
     } else if (workload.length > 1) {
         const top = workload[0];
         const bottom = workload[workload.length - 1];
         if (top.openPoints >= bottom.openPoints * 2 && top.openPoints >= 5) {
             recommendation = `${top.username} is carrying ${top.openPoints} pts; consider rebalancing toward ${bottom.username}.`;
+            recommendationDetail = {
+                text: recommendation,
+                strength: "moderate",
+                basis: `${top.username} holds ${top.openPoints} open pts vs ${bottom.openPoints} for ${bottom.username} — at least a 2:1 imbalance.`,
+                sources: []
+            };
         }
     }
 
@@ -466,7 +492,8 @@ export const boardBrief = (context: AiContextProject): IBoardBrief => {
         largestUnstarted,
         unowned,
         workload,
-        recommendation
+        recommendation,
+        recommendationDetail
     };
 };
 

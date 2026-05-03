@@ -16,17 +16,14 @@ import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import { microcopy } from "../../constants/microcopy";
 import { aiTokens } from "../../theme/aiTokens";
 import { fontSize, fontWeight, space } from "../../theme/tokens";
-import {
-    confidenceBand,
-    confidenceColor,
-    confidencePercent
-} from "../../utils/ai/confidenceBand";
+import { confidenceBand } from "../../utils/ai/confidenceBand";
 import { aiErrorView } from "../../utils/ai/errorTemplate";
 import useAi from "../../utils/hooks/useAi";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useDebounce from "../../utils/hooks/useDebounce";
 import useDelayedFlag from "../../utils/hooks/useDelayedFlag";
 import useUndoToast from "../../utils/hooks/useUndoToast";
+import AiConfidenceIndicator from "../aiConfidenceIndicator";
 import AiSparkleIcon from "../aiSparkleIcon";
 import AiSuggestedBadge from "../aiSuggestedBadge";
 import CopilotPrivacyPopover from "../copilotPrivacyPopover";
@@ -271,10 +268,6 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
 
     const estimateData = estimateAi.data;
     const band = estimateData ? confidenceBand(estimateData.confidence) : "Low";
-    const bandColor = confidenceColor(band);
-    const percent = estimateData
-        ? confidencePercent(estimateData.confidence)
-        : "0%";
     const lowConfidence = estimateData && band === "Low";
 
     return (
@@ -292,7 +285,7 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                         {microcopy.ai.copilotLabel}
                     </span>
                     <Tag color="purple">{microcopy.a11y.aiBadge}</Tag>
-                    <CopilotPrivacyPopover />
+                    <CopilotPrivacyPopover route="estimate" />
                 </Space>
             }
         >
@@ -369,11 +362,10 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                             >
                                 {estimateData.storyPoints}
                             </span>
-                            <Tooltip title="Based on similar tasks on this board.">
-                                <Tag color={bandColor}>
-                                    {`${band} (${percent})`}
-                                </Tag>
-                            </Tooltip>
+                            <AiConfidenceIndicator
+                                confidence={estimateData.confidence}
+                                tooltip="Based on similar tasks on this board."
+                            />
                             <Button
                                 aria-label="Apply suggested story points"
                                 onClick={handleApplyPoints}

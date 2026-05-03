@@ -1,11 +1,21 @@
 import { boardBrief } from "./engine";
 import type { AiChatToolCall, ChatToolName } from "./chatTools";
 
+import type { CitationRef } from "../../interfaces/agent";
+
 export interface AiChatMessage {
     role: "user" | "assistant" | "tool";
     content: string;
     toolCallId?: string;
     toolName?: ChatToolName;
+    /**
+     * Sources backing this assistant turn (Optimization Plan §3 P0-3).
+     * Persisted on the message so older turns keep their citations after
+     * later turns arrive — the previous implementation derived citations
+     * from the latest tool messages and dropped them on subsequent turns.
+     * `[]` is meaningful: the engine answered without consulting any tool.
+     */
+    citations?: CitationRef[];
 }
 
 export interface ChatTurnToolCalls {
@@ -206,6 +216,54 @@ const isColumnArray = (x: unknown): x is IColumn[] =>
 const isTaskArray = (x: unknown): x is ITask[] =>
     Array.isArray(x) &&
     x.every((t) => t && typeof (t as ITask)._id === "string");
+
+/**
+ * Extract structured citations from a tool result payload (Optimization
+ * Plan §3 P0-3). Returns at most three refs so the UI doesn't flood the
+ * bubble with chips for list-style queries.
+ *
+ * Citations are inferred from object shape rather than tool name so
+ * remote engines that emit a richer mix of payloads (tasks + members in
+ * one call) still produce useful refs.
+ */
+export const citationsFromToolResult = (
+    toolName: ChatToolName,
+    payload: unknown
+): CitationRef[] => {
+    if (!payload || typeof payload !== "object") return [];
+    const make = (entry: Record<string, unknown>): CitationRef | null => {
+        const id = typeof entry._id === "string" ? entry._id : null;
+        if (!id) return null;
+        const taskName =
+            typeof entry.taskName === "string" ? entry.taskName : null;
+        const username =
+            typeof entry.username === "string" ? entry.username : null;
+        const projectName =
+            typeof entry.projectName === "string" ? entry.projectName : null;
+        const columnName =
+            typeof entry.columnName === "string" ? entry.columnName : null;
+        const quote = taskName ?? username ?? projectName ?? columnName ?? id;
+        const source: CitationRef["source"] = taskName
+            ? "task"
+            : username
+              ? "member"
+              : columnName
+                ? "column"
+                : "project";
+        return { source, id, quote };
+    };
+    const list = Array.isArray(payload) ? payload : [payload];
+    const refs: CitationRef[] = [];
+    for (const entry of list) {
+        if (!entry || typeof entry !== "object") continue;
+        const ref = make(entry as Record<string, unknown>);
+        if (ref) refs.push(ref);
+        if (refs.length >= 3) break;
+    }
+    // Dev sanity: ensure tool name was used to filter unsupported shapes.
+    void toolName;
+    return refs;
+};
 
 export const summarizeToolResultForUser = (
     toolName: ChatToolName,

@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import environment from "../../constants/env";
+import type { CitationRef } from "../../interfaces/agent";
 import {
     chatAssistantTurn,
+    citationsFromToolResult,
     summarizeToolResultForUser,
     type AiChatMessage,
     type ChatEngineContext,
     type ChatTurnResult
 } from "../ai/chatEngine";
+import { sanitizeRemotePayloadForRoute } from "../ai/aiDataScope";
 import {
     executeChatToolCall,
     type AiChatExecutionContext,
@@ -41,8 +44,18 @@ const remoteChatStep = async (
     signal: AbortSignal
 ): Promise<ChatTurnResult> => {
     const authHeader = getStoredBearerAuthHeader();
+    /*
+     * Chat sends task notes today (see `AI_DATA_SCOPES.chat`) so the
+     * sanitizer is a no-op here. Wiring it through anyway means a future
+     * change to `AI_DATA_SCOPES.chat.sendsNotes = false` automatically
+     * scrubs the payload — the contract stays in one place.
+     */
+    const sanitized = sanitizeRemotePayloadForRoute("chat", {
+        messages,
+        context
+    });
     const response = await fetch(`${environment.aiBaseUrl}/api/ai/chat`, {
-        body: JSON.stringify({ messages, context }),
+        body: JSON.stringify(sanitized),
         headers: {
             "Content-Type": "application/json",
             ...(authHeader ? { Authorization: authHeader } : {})
@@ -134,6 +147,25 @@ const useAiChat = (ctx: UseAiChatContext | null) => {
             let thread = [...messagesRef.current, userMessage];
             setMessages(thread);
 
+            /*
+             * Per-turn citation buffer (Optimization Plan §3 P0-3). Each
+             * tool result populated by the loop below contributes typed
+             * citations; we attach the deduped set to the assistant
+             * message that finalizes the turn so older messages keep their
+             * sources after later turns arrive.
+             */
+            const turnCitations: CitationRef[] = [];
+            const seenCitationKey = new Set<string>();
+            const pushCitations = (refs: CitationRef[]) => {
+                for (const ref of refs) {
+                    const key = `${ref.source}:${ref.id}`;
+                    if (seenCitationKey.has(key)) continue;
+                    seenCitationKey.add(key);
+                    turnCitations.push(ref);
+                    if (turnCitations.length >= 4) return;
+                }
+            };
+
             try {
                 let finished = false;
                 for (let round = 0; round < MAX_TOOL_ROUNDS; round += 1) {
@@ -145,7 +177,8 @@ const useAiChat = (ctx: UseAiChatContext | null) => {
                     if (turn.kind === "text") {
                         const assistant: AiChatMessage = {
                             role: "assistant",
-                            content: turn.text
+                            content: turn.text,
+                            citations: turnCitations.slice()
                         };
                         thread = [...thread, assistant];
                         setMessages(thread);
@@ -157,7 +190,8 @@ const useAiChat = (ctx: UseAiChatContext | null) => {
                         const fallback: AiChatMessage = {
                             role: "assistant",
                             content:
-                                "Got an unexpected response from Board Copilot."
+                                "Got an unexpected response from Board Copilot.",
+                            citations: turnCitations.slice()
                         };
                         thread = [...thread, fallback];
                         setMessages(thread);
@@ -172,6 +206,9 @@ const useAiChat = (ctx: UseAiChatContext | null) => {
                             ctx.execution,
                             call as AiChatToolCall,
                             signal
+                        );
+                        pushCitations(
+                            citationsFromToolResult(call.name, payload)
                         );
                         const summary = summarizeToolResultForUser(
                             call.name,
@@ -199,7 +236,8 @@ const useAiChat = (ctx: UseAiChatContext | null) => {
                     const assistant: AiChatMessage = {
                         role: "assistant",
                         content:
-                            "Could not finish the answer (too many steps). Try a narrower question."
+                            "Could not finish the answer (too many steps). Try a narrower question.",
+                        citations: turnCitations.slice()
                     };
                     thread = [...thread, assistant];
                     setMessages(thread);

@@ -4,6 +4,7 @@ import environment from "../../constants/env";
 import { getStoredBearerAuthHeader } from "../aiAuthHeader";
 import { parseFetchBody } from "../parseFetchBody";
 
+import { sanitizeRemotePayloadForRoute } from "../ai/aiDataScope";
 import {
     AiContextProject,
     AiSearchProjectsContext,
@@ -205,8 +206,18 @@ const remoteResolve = async (
     signal: AbortSignal
 ): Promise<unknown> => {
     const authHeader = getStoredBearerAuthHeader();
+    /*
+     * Per-route sanitization (Optimization Plan §3 P0-1). Routes whose
+     * `AiDataScope.sendsNotes` is `false` (currently `board-brief`) must not
+     * forward task notes to a remote AI proxy even though the engine tolerates
+     * the extra field — privacy copy elsewhere relies on this guarantee.
+     */
+    const sanitized = sanitizeRemotePayloadForRoute(
+        route,
+        payload as unknown as Record<string, unknown>
+    );
     const response = await fetch(`${environment.aiBaseUrl}/api/ai/${route}`, {
-        body: JSON.stringify(payload),
+        body: JSON.stringify(sanitized),
         headers: {
             "Content-Type": "application/json",
             ...(authHeader ? { Authorization: authHeader } : {})

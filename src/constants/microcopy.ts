@@ -188,9 +188,15 @@ export const microcopy = {
         localProcessingDisclosure:
             "This build uses local deterministic Board Copilot rules. No external AI service processes these requests.",
         remoteProcessingDisclosure:
-            "Requests are processed by the configured AI service.",
+            "Requests are processed by the configured AI service. Your sign-in token is forwarded so the proxy can authorize your account.",
         remoteProcessingDisclosureWithOrigin:
-            "Requests are processed by the configured AI service at {origin}.",
+            "Requests are processed by the configured AI service at {origin}. Your sign-in token is forwarded so the proxy can authorize your account.",
+        processingModeLocalLabel: "Local engine",
+        processingModeRemoteLabel: "Remote AI service",
+        engineCapabilityLocal:
+            "Board Copilot in this build runs deterministic project rules locally — no external language model is configured. Suggestions reflect the rules, not a language model.",
+        engineCapabilityRemote:
+            "Board Copilot is connected to a configured AI service. Outputs may include generated language; review before applying.",
         privacyLink: "What is shared?",
         privacyAcknowledge: "Got it",
         privacySuppress: "Don't remind me",
@@ -201,6 +207,23 @@ export const microcopy = {
         undoLabel: "Undo",
         copiedConfirm: "Copied to clipboard",
         feedbackThanks: "Thanks for your feedback",
+        feedbackImpactNotice:
+            "Feedback is saved for product review — it does not change this answer or train a model.",
+        feedbackPromptDownTitle: "What went wrong?",
+        feedbackPromptDownHelper:
+            "Pick at least one — it helps us prioritize fixes without sending your message text.",
+        feedbackCategories: {
+            incorrect: "Incorrect or made-up information",
+            missingSource: "Missing or wrong source",
+            outdated: "Used outdated board data",
+            notActionable: "Not actionable",
+            unsafe: "Unsafe or risky suggestion",
+            privacy: "Privacy concern",
+            other: "Something else"
+        },
+        feedbackOptionalNote: "Add an optional note (no message text is sent)",
+        feedbackSubmit: "Send feedback",
+        feedbackSkip: "Skip",
         regeneratedBadge: "Regenerated response",
         regeneratedTooltip:
             "Board Copilot generated a fresh answer to the same question. The earlier response is still above for comparison.",
@@ -232,6 +255,8 @@ export const microcopy = {
             "Board Copilot is turned off for this project. An admin can enable it in Settings.",
         chatErrorRecovery:
             "No answer was found. Try rephrasing, or check the listed sources.",
+        chatNoSourcesCaveat:
+            "No board records were opened for this answer — verify before acting on it.",
         copilotLabel: "Board Copilot",
         askCopilot: "Ask Board Copilot",
         findRelatedTasks: "Find related tasks",

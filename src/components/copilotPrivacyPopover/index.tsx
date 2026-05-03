@@ -1,11 +1,13 @@
 import { InfoCircleOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
-import { Button, Popover, Typography } from "antd";
+import { Button, Popover, Tag, Typography } from "antd";
 import React from "react";
 
 import environment from "../../constants/env";
 import { microcopy } from "../../constants/microcopy";
 import { fontSize, fontWeight, space } from "../../theme/tokens";
+import { getAiDataScope } from "../../utils/ai/aiDataScope";
+import type { AiRoute } from "../../utils/hooks/useAi";
 
 /**
  * "What is shared?" disclosure (PRD v3 §9.7 X-R14, P7).
@@ -82,28 +84,60 @@ interface CopilotPrivacyPopoverProps {
         | "bottom"
         | "bottomLeft"
         | "bottomRight";
+    /**
+     * Route-aware scope (Optimization Plan §3 P0-1). When set, the popover
+     * shows the exact data this surface sends instead of the generic global
+     * scope. `chat` is treated as a route here even though it's served by a
+     * different hook. Omit for global affordances like the header link.
+     */
+    route?: AiRoute | "chat";
 }
 
 const CopilotPrivacyPopover: React.FC<CopilotPrivacyPopoverProps> = ({
     label,
-    placement = "topRight"
+    placement = "topRight",
+    route
 }) => {
     const processingDisclosure = getCopilotProcessingDisclosure();
+    const scope = route ? getAiDataScope(route) : null;
+    const items = scope ? scope.items : microcopy.ai.privacyDataScope;
+    const summary = scope ? scope.summary : microcopy.ai.privacyDisclosure;
     const content = (
         <div>
             <Typography.Title level={5} style={{ marginTop: 0 }}>
                 {microcopy.ai.privacyTitle}
             </Typography.Title>
+            <Typography.Paragraph
+                style={{ marginBottom: space.xs, marginTop: 0 }}
+                type="secondary"
+            >
+                {summary}
+            </Typography.Paragraph>
             <List>
-                {microcopy.ai.privacyDataScope.map((item) => (
+                {items.map((item) => (
                     <li key={item}>{item}</li>
                 ))}
             </List>
             <Typography.Paragraph
-                style={{ marginBottom: space.xs, marginTop: space.xs }}
+                style={{
+                    alignItems: "center",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 6,
+                    marginBottom: space.xs,
+                    marginTop: space.xs
+                }}
                 type="secondary"
             >
-                {processingDisclosure}
+                <Tag
+                    color={environment.aiUseLocalEngine ? "default" : "purple"}
+                    style={{ marginInlineEnd: 0 }}
+                >
+                    {environment.aiUseLocalEngine
+                        ? microcopy.ai.processingModeLocalLabel
+                        : microcopy.ai.processingModeRemoteLabel}
+                </Tag>
+                <span>{processingDisclosure}</span>
             </Typography.Paragraph>
             <Typography.Paragraph
                 style={{ marginBottom: 0, marginTop: 0 }}
@@ -137,11 +171,13 @@ const CopilotPrivacyPopover: React.FC<CopilotPrivacyPopoverProps> = ({
 interface CopilotPrivacyDisclosureProps {
     storageKey?: string;
     onAcknowledge?: () => void;
+    /** Route-aware scope, see {@link CopilotPrivacyPopover}. */
+    route?: AiRoute | "chat";
 }
 
 export const CopilotPrivacyDisclosure: React.FC<
     CopilotPrivacyDisclosureProps
-> = ({ storageKey = "boardCopilot:privacyShown", onAcknowledge }) => {
+> = ({ storageKey = "boardCopilot:privacyShown", onAcknowledge, route }) => {
     const [shown, setShown] = React.useState<boolean>(() => {
         if (typeof window === "undefined") return false;
         try {
@@ -152,6 +188,8 @@ export const CopilotPrivacyDisclosure: React.FC<
     });
     if (shown) return null;
     const processingDisclosure = getCopilotProcessingDisclosure();
+    const scope = route ? getAiDataScope(route) : null;
+    const summary = scope ? scope.summary : microcopy.ai.privacyDisclosure;
     const acknowledge = () => {
         try {
             window.localStorage.setItem(storageKey, "1");
@@ -179,13 +217,35 @@ export const CopilotPrivacyDisclosure: React.FC<
                 style={{ marginBottom: space.xs, marginTop: 4 }}
                 type="secondary"
             >
-                {microcopy.ai.privacyDisclosure}
+                {summary}
             </Typography.Paragraph>
+            {scope && (
+                <List>
+                    {scope.items.map((item) => (
+                        <li key={item}>{item}</li>
+                    ))}
+                </List>
+            )}
             <Typography.Paragraph
-                style={{ marginBottom: space.xs, marginTop: 0 }}
+                style={{
+                    alignItems: "center",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 6,
+                    marginBottom: space.xs,
+                    marginTop: scope ? space.xs : 0
+                }}
                 type="secondary"
             >
-                {processingDisclosure}
+                <Tag
+                    color={environment.aiUseLocalEngine ? "default" : "purple"}
+                    style={{ marginInlineEnd: 0 }}
+                >
+                    {environment.aiUseLocalEngine
+                        ? microcopy.ai.processingModeLocalLabel
+                        : microcopy.ai.processingModeRemoteLabel}
+                </Tag>
+                <span>{processingDisclosure}</span>
             </Typography.Paragraph>
             <Typography.Paragraph
                 style={{ marginBottom: space.xs, marginTop: 0 }}
