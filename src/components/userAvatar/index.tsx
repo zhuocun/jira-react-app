@@ -1,3 +1,4 @@
+import { UserOutlined } from "@ant-design/icons";
 import { Avatar } from "antd";
 import type { AvatarProps } from "antd";
 
@@ -40,11 +41,14 @@ interface UserAvatarProps extends Omit<AvatarProps, "children"> {
 }
 
 /**
- * Single-source-of-truth avatar. Replaces four near-identical `Avatar`
- * configurations that previously appeared in the header, kanban card,
- * project list, and member popover. Centralizing the gradient + initials +
- * white text + tabular monogram font keeps the visual language consistent
- * and gives a future palette refresh exactly one edit.
+ * Single-source-of-truth avatar.
+ *
+ * - When a `name` is provided, renders a brand-gradient monogram (initials
+ *   on a deterministic per-id colour) — keeps each entity visually distinct.
+ * - When `name` is missing or empty, renders the **default profile**
+ *   variant: a white tile with the brand-orange `UserOutlined` icon and a
+ *   1 px hairline border, mirroring the inverted brand-mark style. This
+ *   is the "no manager assigned / unknown user" fallback.
  */
 const UserAvatar: React.FC<UserAvatarProps> = ({
     id,
@@ -55,6 +59,22 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     ...rest
 }) => {
     const compact = size === "small" || size === "default";
+    const isDefault = !name || !name.trim();
+    if (isDefault) {
+        return (
+            <Avatar
+                icon={<UserOutlined />}
+                size={size}
+                style={{
+                    background: "var(--ant-color-bg-elevated, #ffffff)",
+                    border: "1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.08))",
+                    color: "var(--ant-color-primary, #ea580c)",
+                    ...style
+                }}
+                {...rest}
+            />
+        );
+    }
     return (
         <Avatar
             size={size}

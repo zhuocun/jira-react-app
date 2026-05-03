@@ -11,8 +11,6 @@ import { Link } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
 import {
-    accent,
-    brand,
     fontSize,
     fontWeight,
     letterSpacing,
@@ -24,7 +22,7 @@ import {
 } from "../../theme/tokens";
 import { getAiSearchStrength } from "../../utils/ai/aiSearchStrength";
 import AiMatchStrengthBadge from "../aiMatchStrengthBadge";
-import UserAvatar, { gradientFor, initialsOf } from "../userAvatar";
+import UserAvatar from "../userAvatar";
 
 interface ProjectCardProps {
     project: IProject;
@@ -51,10 +49,6 @@ const Card = styled.article`
 
     &:hover,
     &:focus-within {
-        /* Refined hover: a soft 1 px brand-accent ring + a slightly larger
-         * ambient shadow. The card stays clean white — the brand colour
-         * lives at the edge, not on the surface. Uses palette-derived
-         * --glass-border-strong so palette swaps cascade without edits. */
         border-color: var(--glass-border-strong);
         box-shadow:
             ${shadow.md},
@@ -73,71 +67,37 @@ const Card = styled.article`
     }
 `;
 
-const Cover = styled.div<{ background: string }>`
-    align-items: center;
-    background: ${(p) => p.background};
-    color: #fff;
-    display: flex;
-    /* Trimmed from 96 px to keep the cover proportional to the body: the
-     * card's purpose is the project name + manager, the gradient is just
-     * a tonal anchor. A shorter cover gives the title room to breathe. */
-    height: 72px;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
-
-    /* Subtle dotted overlay so the gradient doesn't read as flat. */
-    &::after {
-        background-image: radial-gradient(
-            circle at 1px 1px,
-            rgba(255, 255, 255, 0.18) 1px,
-            transparent 0
-        );
-        background-size: 12px 12px;
-        content: "";
-        inset: 0;
-        opacity: 0.35;
-        pointer-events: none;
-        position: absolute;
-    }
-`;
-
-const InitialsBadge = styled.span`
-    align-items: center;
-    /* Softer monogram: no visible border, slightly stronger translucent
-     * white surface, and an inset top shine for a hint of dimension. The
-     * smaller 48 px square reads as proportional to the trimmed cover
-     * without losing legibility of the two initial characters. */
-    background: rgba(255, 255, 255, 0.22);
-    border-radius: ${radius.md}px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
-    color: #fff;
-    display: inline-flex;
-    font-size: ${fontSize.lg}px;
-    font-weight: ${fontWeight.semibold};
-    height: 48px;
-    justify-content: center;
-    letter-spacing: ${letterSpacing.tight};
-    width: 48px;
-    z-index: 1;
-`;
-
 const Body = styled.div`
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: ${space.xs}px;
-    /* Generous vertical padding lets the title settle in the middle of
-     * the card rather than crowding the cover above and the footer below.
-     * The horizontal padding stays at lg so the title has full breathing
-     * room before it wraps. */
+    gap: ${space.sm}px;
     padding: ${space.lg}px ${space.lg}px ${space.md}px;
+`;
+
+/**
+ * Header row that anchors the card: a small project monogram avatar
+ * inline with the title stack. Replaces the previous 72 px gradient
+ * cover so the card reads content-first — title and organisation are
+ * the visual centre, the avatar is just a small per-project colour cue.
+ */
+const HeaderRow = styled.div`
+    align-items: center;
+    display: flex;
+    gap: ${space.md}px;
+    min-width: 0;
+`;
+
+const TitleStack = styled.div`
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
 `;
 
 const TitleLink = styled(Link)`
     color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
-    /* Bumped up from md (16 px) to lg (18 px) so the project name is the
-     * card's hero — supporting text sits in clear deference below. */
     font-size: ${fontSize.lg}px;
     font-weight: ${fontWeight.semibold};
     letter-spacing: ${letterSpacing.tight};
@@ -199,8 +159,6 @@ const ManagerRow = styled.div`
 
 const Footer = styled.footer`
     align-items: center;
-    /* Lighter separator so the footer reads as a quiet shelf rather than a
-     * hard line splitting the card in two. */
     border-top: 1px solid
         var(--ant-color-border-secondary, rgba(15, 23, 42, 0.04));
     color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
@@ -244,12 +202,14 @@ const formatDate = (raw?: string): string => {
 };
 
 /**
- * Single project card used inside the project list grid (Phase X redesign).
- * Replaces the dense table row with a richer surface that gives the project
- * its own gradient-tinted cover, generous typography, and a clear primary
- * action ("open project") via the card-as-link pattern. Secondary actions
- * (favorite, edit, delete) sit in the footer where they don't compete with
- * the title.
+ * Single project card used inside the project list grid.
+ *
+ * The card is now content-forward: a small per-project monogram avatar
+ * sits inline with the title stack (project name + organisation), the
+ * manager row floats below, and secondary actions (favorite, edit,
+ * delete) live in the footer. The previous gradient "cover" with a
+ * standalone first-character badge has been removed — it was decorative
+ * weight that competed with the title for attention.
  */
 const ProjectCard: React.FC<ProjectCardProps> = ({
     project,
@@ -315,18 +275,29 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
     return (
         <Card>
-            <Cover background={gradientFor(project._id)}>
-                <InitialsBadge aria-hidden>
-                    {initialsOf(project.projectName)}
-                </InitialsBadge>
-            </Cover>
             <Body>
-                <Organization>
-                    {project.organization || "No organization"}
-                </Organization>
-                <TitleLink to={`/projects/${project._id}`} viewTransition>
-                    {project.projectName}
-                </TitleLink>
+                <HeaderRow>
+                    <UserAvatar
+                        id={project._id}
+                        name={project.projectName}
+                        size={44}
+                        style={{
+                            borderRadius: radius.md,
+                            flex: "0 0 auto"
+                        }}
+                    />
+                    <TitleStack>
+                        <Organization>
+                            {project.organization || "No organization"}
+                        </Organization>
+                        <TitleLink
+                            to={`/projects/${project._id}`}
+                            viewTransition
+                        >
+                            {project.projectName}
+                        </TitleLink>
+                    </TitleStack>
+                </HeaderRow>
                 <ManagerRow>
                     {manager ? (
                         <>
@@ -405,12 +376,23 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
 export const ProjectCardSkeleton: React.FC = () => (
     <Card aria-hidden>
-        <Cover
-            background={`linear-gradient(135deg, ${accent.bgMedium}, ${brand.primaryBg})`}
-        />
         <Body>
-            <Skeleton.Input active size="small" style={{ width: 80 }} />
-            <Skeleton.Input active size="small" style={{ width: "80%" }} />
+            <HeaderRow>
+                <Skeleton.Avatar
+                    active
+                    shape="square"
+                    size={44}
+                    style={{ borderRadius: radius.md }}
+                />
+                <TitleStack>
+                    <Skeleton.Input active size="small" style={{ width: 80 }} />
+                    <Skeleton.Input
+                        active
+                        size="small"
+                        style={{ width: "80%" }}
+                    />
+                </TitleStack>
+            </HeaderRow>
             <ManagerRow>
                 <Skeleton.Avatar active size="small" />
                 <Skeleton.Input active size="small" style={{ width: 96 }} />
