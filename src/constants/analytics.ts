@@ -40,11 +40,67 @@ export const ANALYTICS_EVENTS = {
 export type AnalyticsEvent =
     (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS];
 
+/**
+ * Adapter contract for the analytics sink (Optimization Plan §3 P2-5).
+ *
+ * Production builds wire a concrete sink (Segment, PostHog, in-house) by
+ * calling {@link setAnalyticsSink} during bootstrap. Until then we route
+ * events through a dev-only `console.debug` so QA can verify the call
+ * sites without standing up a real backend, and tests stay deterministic
+ * because the default sink is a no-op in non-development environments.
+ *
+ * The contract intentionally takes only `event` + `payload`; sinks must
+ * not mutate the payload and must not throw — the wrapper {@link track}
+ * isolates failures so a misconfigured sink can never break product UX.
+ */
+export type AnalyticsSink = (
+    event: AnalyticsEvent,
+    payload?: Record<string, unknown>
+) => void;
+
+const isDevelopmentBuild = (): boolean => {
+    try {
+        return (
+            typeof process !== "undefined" &&
+            process.env?.NODE_ENV !== "production"
+        );
+    } catch {
+        return false;
+    }
+};
+
+const devConsoleSink: AnalyticsSink = (event, payload) => {
+    if (!isDevelopmentBuild()) return;
+    // eslint-disable-next-line no-console -- intentional dev-only sink
+    if (typeof console === "undefined" || !console.debug) return;
+    // eslint-disable-next-line no-console -- intentional dev-only sink
+    console.debug("[analytics]", event, payload ?? {});
+};
+
+let activeSink: AnalyticsSink = devConsoleSink;
+
+/**
+ * Replace the active sink. Returns the previous sink so callers (or
+ * tests) can restore it. Passing `null` resets to the default dev sink.
+ */
+export const setAnalyticsSink = (next: AnalyticsSink | null): AnalyticsSink => {
+    const previous = activeSink;
+    activeSink = next ?? devConsoleSink;
+    return previous;
+};
+
 export const track = (
     event: AnalyticsEvent,
     payload?: Record<string, unknown>
 ): void => {
-    /* no-op hook; concrete sink wires here */
-    void event;
-    void payload;
+    try {
+        activeSink(event, payload);
+    } catch {
+        /*
+         * A failing sink must never break product UX. Swallow the error
+         * here so the caller (which is usually wrapping a user-visible
+         * action) can continue. Sinks that need to know about their own
+         * failures should handle it internally before reaching this layer.
+         */
+    }
 };

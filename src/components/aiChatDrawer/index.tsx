@@ -25,13 +25,16 @@ import {
 
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import { microcopy } from "../../constants/microcopy";
-import type { CitationRef } from "../../interfaces/agent";
 import { fontSize, fontWeight, radius, space } from "../../theme/tokens";
 import { aiErrorView } from "../../utils/ai/errorTemplate";
 import useAiChat from "../../utils/hooks/useAiChat";
+import AiFeedbackPopover, {
+    type AiFeedbackSubmission
+} from "../aiFeedbackPopover";
 import AiSparkleIcon from "../aiSparkleIcon";
 import CitationChip from "../citationChip";
 import CopilotPrivacyPopover from "../copilotPrivacyPopover";
+import EngineModeTag from "../engineModeTag";
 
 const MessageRow = styled.div<{ $isUser: boolean }>`
     margin-bottom: ${space.sm}px;
@@ -382,18 +385,75 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
         pendingRegenAfter.current = null;
     }, [isLoading, messages]);
 
-    const handleFeedback = (turnIndex: number, value: "up" | "down") => {
-        const existing = feedback.find((entry) => entry.index === turnIndex);
-        // De-dupe repeat clicks on the same value so we don't fire the
-        // toast or analytics for an effectively no-op interaction (P1-7).
-        if (existing?.value === value) return;
-        track(ANALYTICS_EVENTS.THUMBS_FEEDBACK, { value, index: turnIndex });
+    /**
+     * Index of the assistant message whose thumbs-down popover is open
+     * (Optimization Plan §3 P1-3). `null` keeps every popover closed; this
+     * lets a click on one bubble's button close another bubble's panel
+     * cleanly without managing a per-row open state.
+     */
+    const [feedbackOpenFor, setFeedbackOpenFor] = useState<number | null>(null);
+
+    const recordFeedback = (
+        turnIndex: number,
+        value: "up" | "down",
+        extras?: { categories?: string[]; hasNote?: boolean }
+    ) => {
+        const turn = messages[turnIndex];
+        track(ANALYTICS_EVENTS.THUMBS_FEEDBACK, {
+            value,
+            index: turnIndex,
+            citationCount: turn?.citations?.length ?? 0,
+            ...extras
+        });
         setFeedback((prev) => {
             const next = prev.filter((entry) => entry.index !== turnIndex);
             next.push({ index: turnIndex, value });
             return next;
         });
+    };
+
+    const handleThumbsUp = (turnIndex: number) => {
+        const existing = feedback.find((entry) => entry.index === turnIndex);
+        // De-dupe repeat clicks on the same value so we don't fire the
+        // toast or analytics for an effectively no-op interaction.
+        if (existing?.value === "up") return;
+        recordFeedback(turnIndex, "up");
         message.success(microcopy.ai.feedbackThanks);
+    };
+
+    const handleThumbsDownClick = (turnIndex: number) => {
+        // Toggle the popover for this row. If the user clicks 👎 again we
+        // close the panel rather than re-record a vote, giving them an
+        // escape hatch from the form without needing the Skip button.
+        setFeedbackOpenFor((current) =>
+            current === turnIndex ? null : turnIndex
+        );
+    };
+
+    const handleFeedbackPopoverChange = (
+        turnIndex: number,
+        isOpen: boolean
+    ) => {
+        setFeedbackOpenFor(isOpen ? turnIndex : null);
+    };
+
+    const handleSubmitFeedbackDown = (
+        turnIndex: number,
+        submission: AiFeedbackSubmission
+    ) => {
+        recordFeedback(turnIndex, "down", {
+            categories: submission.categories,
+            hasNote: submission.note.length > 0
+        });
+        setFeedbackOpenFor(null);
+        message.success(microcopy.ai.feedbackThanks);
+    };
+
+    const handleSkipFeedbackDown = (turnIndex: number) => {
+        // Skip records the down vote without categories so we still know
+        // the user was unhappy, just not why.
+        recordFeedback(turnIndex, "down");
+        setFeedbackOpenFor(null);
     };
 
     const errorView = error ? aiErrorView(error) : null;
@@ -401,72 +461,29 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     const showCounter = input.length >= microcopy.ai.characterCounterShowAfter;
     const counterIsWarning = remainingChars < 0;
 
-    // Surface citations from the most recent assistant message if the
-    // engine populated them via tool messages. We project the embedded
-    // tool results into typed citation refs so CitationChip can render
-    // them — this is a graceful fallback until the chat-agent route
-    // joins the chat stream and emits real `CitationRef[]`.
-    const lastAssistantIndex = messages.findLastIndex(
-        (m) => m.role === "assistant"
-    );
-    const citationsFromTools: CitationRef[] = useMemo(() => {
-        if (lastAssistantIndex < 0) return [];
-        const refs: CitationRef[] = [];
-        for (let i = lastAssistantIndex - 1; i >= 0; i -= 1) {
-            const m = messages[i];
-            if (m.role === "user") break;
-            if (m.role !== "tool") continue;
-            try {
-                const parsed = JSON.parse(m.content) as unknown;
-                if (Array.isArray(parsed)) {
-                    parsed.slice(0, 3).forEach((entry, idx) => {
-                        if (
-                            entry &&
-                            typeof entry === "object" &&
-                            "_id" in entry &&
-                            ("taskName" in entry || "username" in entry)
-                        ) {
-                            const e = entry as {
-                                _id: string;
-                                taskName?: string;
-                                username?: string;
-                                projectName?: string;
-                                columnName?: string;
-                            };
-                            const quote =
-                                e.taskName ??
-                                e.username ??
-                                e.projectName ??
-                                e.columnName ??
-                                e._id;
-                            refs.push({
-                                source: e.taskName
-                                    ? "task"
-                                    : e.username
-                                      ? "member"
-                                      : e.columnName
-                                        ? "column"
-                                        : "project",
-                                id: e._id,
-                                quote
-                            });
-                            if (refs.length >= 4 && idx >= 2) return;
-                        }
-                    });
-                }
-            } catch {
-                /* best-effort */
+    /**
+     * Did this assistant turn consult any tools? Used to distinguish a
+     * heuristic answer ("no sources" caveat) from a tool-backed answer
+     * that simply returned no usable citations. Walks the messages between
+     * this assistant turn and the previous user turn.
+     */
+    const assistantHadToolStep = useCallback(
+        (assistantIndex: number) => {
+            for (let i = assistantIndex - 1; i >= 0; i -= 1) {
+                const m = messages[i];
+                if (m.role === "user") return false;
+                if (m.role === "tool") return true;
             }
-            if (refs.length >= 4) break;
-        }
-        return refs;
-    }, [lastAssistantIndex, messages]);
+            return false;
+        },
+        [messages]
+    );
 
     return (
         <Drawer
             extra={
                 <Space size={space.xs}>
-                    <CopilotPrivacyPopover />
+                    <CopilotPrivacyPopover route="chat" />
                     <Button
                         aria-label={microcopy.ai.newConversation}
                         disabled={messages.length === 0 || isLoading}
@@ -497,6 +514,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                         {microcopy.ai.askCopilot}
                     </span>
                     <Tag color="purple">{microcopy.a11y.aiBadge}</Tag>
+                    <EngineModeTag />
                 </Space>
             }
         >
@@ -557,8 +575,6 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                     }
                     const isUser = m.role === "user";
                     const isAssistant = m.role === "assistant";
-                    const isLastAssistant =
-                        isAssistant && index === lastAssistantIndex;
                     const turnFeedback = feedback.find(
                         (entry) => entry.index === index
                     );
@@ -609,15 +625,16 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                             )}
                             <MessageBubble $isUser={isUser}>
                                 {m.content}
-                                {isLastAssistant &&
-                                    citationsFromTools.length > 0 && (
+                                {isAssistant &&
+                                    m.citations &&
+                                    m.citations.length > 0 && (
                                         <span
                                             style={{
                                                 display: "inline-block",
                                                 marginInlineStart: 6
                                             }}
                                         >
-                                            {citationsFromTools.map(
+                                            {m.citations.map(
                                                 (citation, idx) => (
                                                     <CitationChip
                                                         citation={citation}
@@ -629,6 +646,30 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                         </span>
                                     )}
                             </MessageBubble>
+                            {isAssistant &&
+                                m.citations !== undefined &&
+                                m.citations.length === 0 &&
+                                !assistantHadToolStep(index) && (
+                                    /*
+                                     * No-source caveat (Optimization Plan
+                                     * §3 P0-3). When the assistant answered
+                                     * without consulting any read-only tool
+                                     * we say so explicitly so absence of a
+                                     * chip is informative, not a missing
+                                     * affordance the user has to interpret.
+                                     */
+                                    <Typography.Text
+                                        style={{
+                                            color: "var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.45))",
+                                            display: "block",
+                                            fontSize: fontSize.xs,
+                                            marginTop: 2
+                                        }}
+                                        type="secondary"
+                                    >
+                                        {microcopy.ai.chatNoSourcesCaveat}
+                                    </Typography.Text>
+                                )}
                             {isAssistant && (
                                 <AssistantDisclaimer>
                                     {microcopy.a11y.aiBadge}
@@ -655,9 +696,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                         aria-pressed={
                                             turnFeedback?.value === "up"
                                         }
-                                        onClick={() =>
-                                            handleFeedback(index, "up")
-                                        }
+                                        onClick={() => handleThumbsUp(index)}
                                         size="small"
                                         type={
                                             turnFeedback?.value === "up"
@@ -667,23 +706,46 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                     >
                                         👍
                                     </Button>
-                                    <Button
-                                        aria-label="Not helpful"
-                                        aria-pressed={
-                                            turnFeedback?.value === "down"
+                                    <AiFeedbackPopover
+                                        onOpenChange={(next) =>
+                                            handleFeedbackPopoverChange(
+                                                index,
+                                                next
+                                            )
                                         }
-                                        onClick={() =>
-                                            handleFeedback(index, "down")
+                                        onSkip={() =>
+                                            handleSkipFeedbackDown(index)
                                         }
-                                        size="small"
-                                        type={
-                                            turnFeedback?.value === "down"
-                                                ? "primary"
-                                                : "text"
+                                        onSubmit={(submission) =>
+                                            handleSubmitFeedbackDown(
+                                                index,
+                                                submission
+                                            )
                                         }
+                                        open={feedbackOpenFor === index}
                                     >
-                                        👎
-                                    </Button>
+                                        <Button
+                                            aria-expanded={
+                                                feedbackOpenFor === index
+                                            }
+                                            aria-haspopup="dialog"
+                                            aria-label="Not helpful — give feedback"
+                                            aria-pressed={
+                                                turnFeedback?.value === "down"
+                                            }
+                                            onClick={() =>
+                                                handleThumbsDownClick(index)
+                                            }
+                                            size="small"
+                                            type={
+                                                turnFeedback?.value === "down"
+                                                    ? "primary"
+                                                    : "text"
+                                            }
+                                        >
+                                            👎
+                                        </Button>
+                                    </AiFeedbackPopover>
                                 </Space>
                             )}
                         </MessageRow>

@@ -5,6 +5,7 @@ import {
     Checkbox,
     Form,
     Input,
+    message,
     Modal,
     Progress,
     Select,
@@ -22,18 +23,15 @@ import { useParams } from "react-router-dom";
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import { microcopy } from "../../constants/microcopy";
 import { modalWidthCss, space } from "../../theme/tokens";
-import {
-    confidenceBand,
-    confidenceColor,
-    confidencePercent
-} from "../../utils/ai/confidenceBand";
 import { aiErrorView } from "../../utils/ai/errorTemplate";
 import useAi from "../../utils/hooks/useAi";
+import useApi from "../../utils/hooks/useApi";
 import useAuth from "../../utils/hooks/useAuth";
 import useCachedQueryData from "../../utils/hooks/useCachedQueryData";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useUndoToast from "../../utils/hooks/useUndoToast";
 import newTaskCallback from "../../utils/optimisticUpdate/createTask";
+import AiConfidenceIndicator from "../aiConfidenceIndicator";
 import AiSparkleIcon from "../aiSparkleIcon";
 import AiSuggestedBadge from "../aiSuggestedBadge";
 import { CopilotPrivacyDisclosure } from "../copilotPrivacyPopover";
@@ -104,6 +102,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
     });
 
     const queryClient = useQueryClient();
+    const apiCall = useApi();
     const { mutateAsync: createTask, isLoading: creating } = useReactMutation(
         "tasks",
         "POST",
@@ -266,25 +265,40 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 analyticsTag: "copilot.draft.bulk",
                 undo: async () => {
                     /*
-                     * Best-effort undo: delete each task we just created.
-                     * Failures here surface via the standard message API so
-                     * a partial revert still tells the user what happened.
-                     * The cache invalidation runs once at the end so the
-                     * board doesn't flicker mid-loop.
+                     * Per-task undo (Optimization Plan §3 P1-5). Routing
+                     * each delete through `useApi` gives us auth, base-URL,
+                     * and error normalization — the previous raw `fetch`
+                     * silently swallowed network failures. We tally the
+                     * outcome per-id so a partial undo can be surfaced to
+                     * the user instead of pretending everything reverted.
                      */
+                    let removed = 0;
+                    let failed = 0;
                     for (const id of created) {
                         try {
                             // eslint-disable-next-line no-await-in-loop
-                            await fetch(`/api/v1/tasks/${id}`, {
+                            await apiCall(`tasks/${id}`, {
                                 method: "DELETE"
                             });
+                            removed += 1;
                         } catch {
-                            /* swallow — invalidation will resync */
+                            failed += 1;
                         }
                     }
                     void queryClient.invalidateQueries({
                         queryKey: ["tasks", { projectId }]
                     });
+                    if (failed === 0) {
+                        message.success(`${removed} subtasks removed.`);
+                    } else if (removed === 0) {
+                        message.error(
+                            `Couldn't remove ${failed} subtask${failed === 1 ? "" : "s"}.`
+                        );
+                    } else {
+                        message.warning(
+                            `${removed} removed, ${failed} could not be removed.`
+                        );
+                    }
                 }
             });
         } finally {
@@ -346,7 +360,10 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
             }
             width={modalWidthCss(640)}
         >
-            <CopilotPrivacyDisclosure storageKey="boardCopilot:draftPrivacyShown" />
+            <CopilotPrivacyDisclosure
+                route="task-draft"
+                storageKey="boardCopilot:draftPrivacyShown"
+            />
             <Form.Item label="Describe the work in your own words">
                 <TextArea
                     aria-label="Task prompt"
@@ -493,15 +510,10 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                         style={{ marginBottom: space.sm }}
                         title={
                             <span>
-                                {`${microcopy.a11y.aiSuggestion} · review and edit before creating`}
-                                <Tag
-                                    color={confidenceColor(
-                                        confidenceBand(suggestion.confidence)
-                                    )}
-                                    style={{ marginInlineStart: space.xs }}
-                                >
-                                    {`${confidenceBand(suggestion.confidence)} (${confidencePercent(suggestion.confidence)})`}
-                                </Tag>
+                                {`${microcopy.a11y.aiSuggestion} · review and edit before creating`}{" "}
+                                <AiConfidenceIndicator
+                                    confidence={suggestion.confidence}
+                                />
                             </span>
                         }
                         description={suggestion.rationale}

@@ -354,6 +354,41 @@ describe("engine.boardBrief", () => {
         const brief = boardBrief(context);
         expect(brief.recommendation).toMatch(/balanced/i);
     });
+
+    it("emits a strong recommendationDetail with sources when many unowned tasks exist", () => {
+        const context = buildContext({
+            tasks: [
+                task({ _id: "u1", coordinatorId: "ghost" }),
+                task({ _id: "u2", coordinatorId: "ghost" }),
+                task({ _id: "u3", coordinatorId: "ghost" }),
+                task({ _id: "u4", coordinatorId: "ghost" })
+            ]
+        });
+        const brief = boardBrief(context);
+        expect(brief.recommendationDetail).toBeDefined();
+        expect(brief.recommendationDetail?.strength).toBe("strong");
+        expect(brief.recommendationDetail?.sources.length).toBeGreaterThan(0);
+        expect(brief.recommendationDetail?.basis).toMatch(
+            /no coordinator|unowned|coordinator/i
+        );
+    });
+
+    it("emits an explanatory basis even when no action is recommended", () => {
+        const context = buildContext({
+            tasks: [
+                task({
+                    _id: "t1",
+                    coordinatorId: "m1",
+                    storyPoints: 1,
+                    columnId: "col-progress"
+                })
+            ]
+        });
+        const brief = boardBrief(context);
+        expect(brief.recommendationDetail?.strength).toBe("none");
+        expect(brief.recommendationDetail?.basis.length).toBeGreaterThan(0);
+        expect(brief.recommendationDetail?.sources).toEqual([]);
+    });
 });
 
 describe("engine.semanticSearch", () => {
