@@ -93,17 +93,19 @@ body {
     -webkit-text-size-adjust: 100%;
     color: var(--pulse-text-base);
     /*
-     * Soft, single-hue body gradient: one large radial blob of the active
-     * brand accent (`--aurora-blob`) over the warm page base. The blob is
-     * deliberately wide and low-alpha so the page reads as warm white
-     * with a quiet brand-coloured cast in the upper-right — present, not
-     * loud. `background-attachment: fixed` keeps it stationary as the
-     * user scrolls so it reads as a backdrop rather than a tiled pattern.
+     * Soft peach wash from the top of the page, fading to warm white
+     * by the time the eye reaches mid-viewport. A single wide radial
+     * blob anchored above the viewport top creates the gentle
+     * top-down warmth seen in modern delivery / commerce dashboards
+     * — the page reads as a calm canvas with ambient brand colour in
+     * the upper margin, never overwhelming the content below.
+     * `background-attachment: fixed` keeps the wash stationary while
+     * the user scrolls so it reads as a backdrop, not a banner.
      */
     background:
         radial-gradient(
-            70rem 60rem at 92% 8%,
-            var(--aurora-blob) 0%,
+            150% 38rem at 50% -10%,
+            var(--aurora-blob-strong) 0%,
             transparent 70%
         ),
         var(--pulse-bg-page);
@@ -210,7 +212,7 @@ video {
  * (custom buttons, links, list items with role="button").
  */
 :focus-visible {
-    outline: 2px solid var(--ant-color-primary, #c2410c);
+    outline: 2px solid var(--ant-color-primary, #ea580c);
     outline-offset: 2px;
 }
 
@@ -230,7 +232,7 @@ video {
  * `accent.selectionBg` for browsers that don't yet ship the AntD CSS var.
  */
 ::selection {
-    background: var(--ant-color-primary-bg, rgba(194, 65, 12, 0.22));
+    background: var(--ant-color-primary-bg, rgba(234, 88, 12, 0.22));
     color: inherit;
 }
 

@@ -20,18 +20,22 @@ const Wrap = styled.div`
     align-items: flex-start;
     position: relative;
     overflow: hidden;
-    /* Single quiet brand-accent wash on the strong glass pane. Uses the
-     * palette-derived --aurora-blob and --aurora-blob-faint CSS vars so a
-     * palette swap re-tints the whole banner with no edits here. */
+    /* Stronger brand-accent wash on the glass pane. The reference design
+     * uses a saturated brand colour on key hero surfaces — we bump the
+     * banner from a quiet whisper to a confident statement by stacking
+     * --aurora-blob-strong over the standard --aurora-blob, which gives
+     * the panel a richer warm cast while still letting the white surface
+     * and dark text underneath read clearly. */
     background:
-        linear-gradient(135deg, var(--aurora-blob) 0%, transparent 70%),
+        linear-gradient(135deg, var(--aurora-blob-strong) 0%, transparent 75%),
+        linear-gradient(45deg, var(--aurora-blob) 0%, transparent 60%),
         var(--glass-surface-strong);
     backdrop-filter: blur(${blur.md}px) saturate(170%);
     -webkit-backdrop-filter: blur(${blur.md}px) saturate(170%);
     border: 1px solid var(--glass-border-strong);
     border-radius: ${radius.md}px;
     box-shadow:
-        0 4px 16px -8px var(--aurora-blob-strong),
+        0 6px 20px -10px var(--aurora-blob-strong),
         var(--glass-shine);
     display: flex;
     gap: ${space.sm}px;

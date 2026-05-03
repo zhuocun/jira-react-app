@@ -50,7 +50,7 @@ const ActivatableListItem = styled(List.Item)`
 
     &&:focus-visible {
         background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.04));
-        outline: 2px solid var(--ant-color-primary, #c2410c);
+        outline: 2px solid var(--ant-color-primary, #ea580c);
         outline-offset: -2px;
     }
 `;

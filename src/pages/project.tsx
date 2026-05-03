@@ -141,7 +141,7 @@ const StatIcon = styled.span`
     align-items: center;
     background: ${accent.bgSubtle};
     border-radius: ${radius.sm}px;
-    color: var(--ant-color-primary, #c2410c);
+    color: var(--ant-color-primary, #ea580c);
     display: inline-flex;
     flex: 0 0 auto;
     height: 24px;

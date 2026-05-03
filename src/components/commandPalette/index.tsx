@@ -59,7 +59,7 @@ const Row = styled.li<{ active: boolean }>`
     align-items: center;
     background: ${(props) =>
         props.active
-            ? "var(--ant-color-primary-bg, rgba(194, 65, 12, 0.10))"
+            ? "var(--ant-color-primary-bg, rgba(234, 88, 12, 0.10))"
             : "transparent"};
     border-radius: ${radius.md}px;
     cursor: pointer;
