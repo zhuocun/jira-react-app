@@ -171,7 +171,7 @@ const TitleLink = styled(Link)`
 `;
 
 const Organization = styled.span`
-    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.50));
+    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
     letter-spacing: ${letterSpacing.wide};
