@@ -86,6 +86,44 @@ describe("useAgent", () => {
         expect(mockedStream).toHaveBeenCalledTimes(1);
     });
 
+    // The agent server derives identity from the JWT and rejects any
+    // client-supplied `user_id` in `config.configurable` with HTTP 400
+    // (see jira-python-server `app/routers/agents.py::_normalize_payload`).
+    // Even when the caller passes `userId` as a hook option (it's still
+    // used for FE-internal bookkeeping like `feToolContext.userId`), it
+    // must NOT appear on the wire body.
+    it("does not put user_id on the wire even when options.userId is set", async () => {
+        mockedStream.mockReturnValueOnce(
+            fromParts([
+                {
+                    type: "messages",
+                    ns: ["root"],
+                    data: [{ content: "ok" }, {}]
+                }
+            ])
+        );
+        const queryClient = new QueryClient();
+        const { result } = renderHook(
+            () => useAgent("board-coach", { projectId: "p1", userId: "u1" }),
+            { wrapper: wrapper(queryClient) }
+        );
+
+        await act(async () => {
+            await result.current.start("hi");
+        });
+
+        await waitFor(() => {
+            expect(result.current.isStreaming).toBe(false);
+        });
+
+        const configurable =
+            mockedStream.mock.calls[0][0].body.config.configurable;
+        expect(configurable).not.toHaveProperty("user_id");
+        expect(configurable.thread_id).toEqual(expect.any(String));
+        expect(configurable.project_id).toBe("p1");
+        expect(configurable.autonomy).toBe("plan");
+    });
+
     it("auto-resumes on an interrupt for a known FE tool", async () => {
         mockedStream
             .mockReturnValueOnce(
