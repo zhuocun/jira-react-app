@@ -163,10 +163,14 @@ html[data-color-scheme="dark"] .ant-drawer-content {
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-.ant-modal-mask {
-    backdrop-filter: blur(8px) saturate(140%);
-    -webkit-backdrop-filter: blur(8px) saturate(140%);
-}
+/*
+ * Modal mask is a flat dim overlay, no blur. The backdrop-filter that used
+ * to soften the page behind the modal has been removed — combined with
+ * the opaque `.ant-modal-content` above, modals now read as a real card
+ * pulled forward from the page over a quiet dim wash, no glass anywhere
+ * in the modal stack. The alpha bump (0.45 light / 0.66 dark) compensates
+ * for the missing blur so detail behind the dialog stays muted.
+ */
 
 /*
  * Numeric columns (badges, story-point chips, tags, table numbers) read
@@ -307,8 +311,8 @@ video {
 
 /*
  * Honor user transparency preference. Drop the body gradient blob to a
- * flat surface, drop the drawer's blur to a solid background. Modals
- * are already opaque so they need no override.
+ * flat surface and drop the drawer's blur to a solid background. Modals
+ * (content + mask) already have no blur so they need no override.
  */
 @media (prefers-reduced-transparency: reduce) {
     body {
@@ -320,11 +324,6 @@ video {
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
         background: var(--ant-color-bg-elevated, #fff);
-    }
-
-    .ant-modal-mask {
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
     }
 }
 
