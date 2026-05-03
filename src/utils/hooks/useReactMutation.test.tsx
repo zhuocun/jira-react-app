@@ -115,6 +115,48 @@ describe("useReactMutation", () => {
         expect(queryClient.getQueryData(["users"])).toEqual(returnedUser);
     });
 
+    it("runs validateResponse before caching when setCache is true", async () => {
+        const queryClient = createQueryClient();
+        const returnedUser = {
+            _id: "u1",
+            email: "alice@example.com",
+            likedProjects: [],
+            username: "Alice"
+        } as IUser;
+        apiMock.mockResolvedValue(returnedUser);
+
+        const { result } = renderHook(
+            () =>
+                useReactMutation<IUser>(
+                    "auth/login",
+                    "POST",
+                    "users",
+                    undefined,
+                    undefined,
+                    true,
+                    (data) => {
+                        if (typeof data?.jwt !== "string" || !data.jwt) {
+                            throw new Error("Login response missing token");
+                        }
+                    }
+                ),
+            {
+                wrapper: createWrapper(queryClient)
+            }
+        );
+
+        await act(async () => {
+            await expect(
+                result.current.mutateAsync({
+                    email: "alice@example.com",
+                    password: "secret"
+                })
+            ).rejects.toThrow("Login response missing token");
+        });
+
+        expect(queryClient.getQueryData(["users"])).toBeUndefined();
+    });
+
     it("writes returned data to the endpoint cache when setCache is true without a query key", async () => {
         const queryClient = createQueryClient();
         const response = { theme: "dark" };

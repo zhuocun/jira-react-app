@@ -28,17 +28,22 @@ const useReactMutation = <D>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback?: (...args: any) => any,
     onError?: (err: Error) => void,
-    setCache?: boolean
+    setCache?: boolean,
+    /** Runs before cache/onSuccess side effects; throw to reject the mutation. */
+    validateResponse?: (data: D) => void
 ) => {
     const api = useApi();
     const queryClient = useQueryClient();
     const cacheKey = getQueryKey(queryKey, endPoint);
     const mutation = useMutation<D, unknown, MutationParam, MutationContext>({
-        mutationFn: async (param) =>
-            (await api(endPoint, {
+        mutationFn: async (param) => {
+            const data = (await api(endPoint, {
                 data: filterRequest(param || {}),
                 method
-            })) as D,
+            })) as D;
+            validateResponse?.(data);
+            return data;
+        },
         onMutate: callback
             ? async (target: unknown) => {
                   const previousItems = queryClient.getQueryData(cacheKey);

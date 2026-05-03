@@ -12,6 +12,17 @@ import { parseFetchBody } from "./parseFetchBody";
 const isNetworkError = (err: unknown): boolean =>
     err instanceof TypeError && err.message.toLowerCase().includes("fetch");
 
+/**
+ * Validates the login envelope before persisting a bearer token. Shared by
+ * `login()` and the React login form (`useReactMutation` bypasses `login()`).
+ */
+export const getLoginJwtOrThrow = (user: IUser): string => {
+    if (typeof user?.jwt !== "string" || user.jwt.length === 0) {
+        throw new Error("Login response missing token");
+    }
+    return user.jwt;
+};
+
 const authFetch = async (
     endpoint: string,
     init: RequestInit
@@ -37,15 +48,7 @@ const login = async (param: { email: string; password: string }) => {
     const body = await parseFetchBody(res);
     if (res.ok) {
         const user = body as IUser;
-        // Defend against a malformed login envelope: storing
-        // `"undefined"` would poison every subsequent request with
-        // `Authorization: Bearer undefined` and the user would only
-        // discover it after the next 401. Reject the response loudly
-        // so the auth form can surface a real error.
-        if (typeof user?.jwt !== "string" || user.jwt.length === 0) {
-            return Promise.reject(new Error("Login response missing token"));
-        }
-        localStorage.setItem("Token", user.jwt);
+        localStorage.setItem("Token", getLoginJwtOrThrow(user));
         return user;
     }
     const errMsg =

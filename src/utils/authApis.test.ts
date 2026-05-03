@@ -78,6 +78,17 @@ describe("auth API helpers", () => {
         expect(localStorage.getItem("Token")).toBeNull();
     });
 
+    it("rejects a 200 login that omits jwt and does not persist a token", async () => {
+        const { jwt: _j, ...noJwt } = user();
+        fetchMock().mockResolvedValue(jsonResponse(noJwt));
+
+        await expect(
+            login({ email: "alice@example.com", password: "secret" })
+        ).rejects.toThrow("Login response missing token");
+
+        expect(localStorage.getItem("Token")).toBeNull();
+    });
+
     it("rejects other login failures with the response JSON message", async () => {
         fetchMock().mockResolvedValue(
             jsonResponse("Invalid credentials", false, 401)

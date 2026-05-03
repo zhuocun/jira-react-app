@@ -7,6 +7,7 @@ import { useNavigate } from "react-router";
 import { microcopy } from "../../constants/microcopy";
 import { AuthButton } from "../../layouts/authLayout";
 import { lineHeight } from "../../theme/tokens";
+import { getLoginJwtOrThrow } from "../../utils/authApis";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 
 const inputSize = "large" as const;
@@ -34,12 +35,13 @@ const LoginForm: React.FC<{
         "users",
         undefined,
         onError,
-        true
+        true,
+        getLoginJwtOrThrow
     );
     const handleSubmit = async (input: { email: string; password: string }) => {
         try {
             const res = await mutateAsync(input);
-            localStorage.setItem("Token", res.jwt);
+            localStorage.setItem("Token", getLoginJwtOrThrow(res));
             message.success(microcopy.feedback.welcomeBack);
             navigate("/projects", { viewTransition: true });
         } catch {
