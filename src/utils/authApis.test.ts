@@ -6,12 +6,15 @@ const originalFetch = global.fetch;
 
 const fetchMock = () => global.fetch as jest.MockedFunction<typeof fetch>;
 
-const jsonResponse = (body: unknown, ok = true, status = ok ? 200 : 500) =>
-    Promise.resolve({
+const jsonResponse = (body: unknown, ok = true, status = ok ? 200 : 500) => {
+    const text = JSON.stringify(body);
+    return Promise.resolve({
         ok,
         status,
+        text: jest.fn().mockResolvedValue(text),
         json: jest.fn().mockResolvedValue(body)
     } as unknown as Response);
+};
 
 const user = (overrides: Partial<IUser> = {}): IUser => ({
     _id: "u1",
@@ -66,6 +69,48 @@ describe("auth API helpers", () => {
             }
         );
         expect(localStorage.getItem("Token")).toBe("jwt-1");
+    });
+
+    it("rejects a successful login response that omits jwt and does not touch localStorage", async () => {
+        fetchMock().mockResolvedValue(
+            jsonResponse({
+                _id: "u1",
+                email: "alice@example.com",
+                likedProjects: [],
+                username: "Alice"
+            })
+        );
+
+        await expect(
+            login({ email: "alice@example.com", password: "secret" })
+        ).rejects.toThrow("Login response missing token");
+
+        expect(localStorage.getItem("Token")).toBeNull();
+    });
+
+    it("rejects a successful login response with an empty jwt", async () => {
+        fetchMock().mockResolvedValue(jsonResponse(user({ jwt: "" })));
+
+        await expect(
+            login({ email: "alice@example.com", password: "secret" })
+        ).rejects.toThrow("Login response missing token");
+
+        expect(localStorage.getItem("Token")).toBeNull();
+    });
+
+    it("rejects a successful login response whose jwt is not a string", async () => {
+        fetchMock().mockResolvedValue(
+            jsonResponse({
+                ...user(),
+                jwt: 12345
+            } as unknown as IUser)
+        );
+
+        await expect(
+            login({ email: "alice@example.com", password: "secret" })
+        ).rejects.toThrow("Login response missing token");
+
+        expect(localStorage.getItem("Token")).toBeNull();
     });
 
     it("maps a login 404 to a connection failure", async () => {
