@@ -34,13 +34,13 @@ const TopBar = styled.div`
     align-items: center;
     /*
      * Frosted-glass secondary chrome. Mirrors the main header's new
-     * pattern: a translucent surface backed by backdrop-filter blur, so
-     * the breadcrumb + tabs row stays legible when content is scrolled
-     * under it but the page gradient is still visible through the bar
-     * at rest. The 1 px hairline border-bottom gives the chrome a faint
-     * edge at rest. Pinned just below the main header at
-     * top: var(--header-height), which the main header publishes via a
-     * ResizeObserver.
+     * pattern: a translucent --glass-surface (~68 % opaque) backed
+     * by backdrop-filter blur, so the breadcrumb + tabs row stays
+     * legible when content is scrolled under it but the page gradient
+     * still reads visibly through the bar at rest. The 1 px hairline
+     * border-bottom gives the chrome a faint edge at rest. Pinned
+     * just below the main header at top: var(--header-height), which
+     * the main header publishes via a ResizeObserver.
      *
      * z-index 10 matches the main header; the bar is later in DOM
      * order so it stacks above the main header's bottom edge.
@@ -48,7 +48,7 @@ const TopBar = styled.div`
      * Vertical padding tracks the main header's compact rhythm so the
      * two chrome layers feel cut from the same cloth.
      */
-    background: var(--glass-surface-strong);
+    background: var(--glass-surface);
     backdrop-filter: blur(${blur.md}px) saturate(180%);
     -webkit-backdrop-filter: blur(${blur.md}px) saturate(180%);
     border-bottom: 1px solid var(--glass-border);
