@@ -20,18 +20,19 @@ const Wrap = styled.div`
     align-items: flex-start;
     position: relative;
     overflow: hidden;
-    /* Aurora mesh + glass: violet bleeds in from the top-left, cyan from
-     * the bottom-right, sitting on the strong glass surface so the banner
-     * reads as a frosted aurora pane, not a flat tint. */
+    /* Aurora mesh + glass: teal bleeds in from the top-left, amber from
+     * the bottom-right (the warm corner that keeps the banner from
+     * reading as a single-hue cool tint). Sits on the strong glass
+     * surface so the whole panel reads as a frosted aurora pane. */
     background:
         radial-gradient(
             120% 200% at 0% 0%,
-            rgba(139, 92, 246, 0.18) 0%,
+            rgba(13, 148, 136, 0.2) 0%,
             transparent 60%
         ),
         radial-gradient(
             120% 200% at 100% 100%,
-            rgba(6, 182, 212, 0.14) 0%,
+            rgba(245, 158, 11, 0.16) 0%,
             transparent 60%
         ),
         var(--glass-surface-strong);
@@ -40,7 +41,7 @@ const Wrap = styled.div`
     border: 1px solid var(--glass-border-strong);
     border-radius: ${radius.md}px;
     box-shadow:
-        0 8px 28px -12px rgba(139, 92, 246, 0.28),
+        0 8px 28px -12px rgba(13, 148, 136, 0.3),
         var(--glass-shine);
     display: flex;
     gap: ${space.sm}px;

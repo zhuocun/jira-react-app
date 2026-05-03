@@ -1,8 +1,8 @@
 <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" focusable="false">
     <defs>
         <linearGradient id="wordmark-mark" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#7C5CFF"/>
-            <stop offset="100%" stop-color="#5E6AD2"/>
+            <stop offset="0%" stop-color="#06B6D4"/>
+            <stop offset="100%" stop-color="#0D9488"/>
         </linearGradient>
     </defs>
     <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#wordmark-mark)"/>

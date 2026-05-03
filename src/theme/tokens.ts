@@ -61,60 +61,65 @@ export const letterSpacing = {
 } as const;
 
 /**
- * Aurora violet brand (BOLD AURORA-FIRST direction). #8B5CF6 anchors the
- * 2026 AI-native palette; hover/active are darker steps in the same hue.
- * AA contrast on white (4.6:1 normal text) and AA on dark surfaces.
+ * Deep teal brand. Replaces the previous violet — purple/violet has become
+ * the default "AI app" cliché and dilutes the product identity. Teal sits
+ * adjacent to the cyan accent end-stop and pairs naturally with the warm
+ * amber aurora layer for a premium, technical feel.
+ *
+ * Hover/active are darker steps in the same hue. AA contrast on white
+ * (#0D9488 = 4.55:1 normal text) and AA on dark surfaces.
  */
 export const brand = {
-    primary: "#8B5CF6",
-    primaryHover: "#7C3AED",
-    primaryActive: "#6D28D9",
-    primaryBg: "#F5F3FF",
-    primaryBgDark: "#1E1B3A"
+    primary: "#0D9488",
+    primaryHover: "#0F766E",
+    primaryActive: "#115E59",
+    primaryBg: "#F0FDFA",
+    primaryBgDark: "#042F2E"
 } as const;
 
 /**
  * Accent gradient used for AI surfaces (sparkle icon, badges, highlights).
- * Now violet → cyan — the signature 2026 AI gradient. The end-stop sits
- * 60° away from the start so the gradient reads as "energy" rather than
- * a single-hue tint.
+ * Teal → cyan — close-hue analog gradient that reads as "depth" rather
+ * than the energy of the previous violet → cyan span. Keeps the cool
+ * spectrum coherent so the warm amber aurora layer can do the contrast
+ * work at the page level.
  *
  * The translucent variants exist as named tokens so AI-themed surfaces
  * can reach for them by name instead of duplicating raw rgba literals.
  */
 export const accent = {
-    start: "#8B5CF6",
+    start: "#0D9488",
     end: "#06B6D4",
-    glow: "rgba(139, 92, 246, 0.22)",
-    bgSubtle: "rgba(139, 92, 246, 0.05)",
-    bgSoft: "rgba(139, 92, 246, 0.10)",
-    bgMedium: "rgba(139, 92, 246, 0.20)",
-    bgStrong: "rgba(139, 92, 246, 0.36)",
-    border: "rgba(139, 92, 246, 0.26)",
+    glow: "rgba(13, 148, 136, 0.22)",
+    bgSubtle: "rgba(13, 148, 136, 0.05)",
+    bgSoft: "rgba(13, 148, 136, 0.10)",
+    bgMedium: "rgba(13, 148, 136, 0.20)",
+    bgStrong: "rgba(13, 148, 136, 0.36)",
+    border: "rgba(13, 148, 136, 0.26)",
     secondaryStrong: "rgba(6, 182, 212, 0.32)",
-    selectionBg: "rgba(139, 92, 246, 0.22)"
+    selectionBg: "rgba(13, 148, 136, 0.22)"
 } as const;
 
 /**
- * Aurora palette (BOLD AURORA-FIRST direction). Vibrant violet→cyan with
- * pink + emerald aurora layers used for mesh page backgrounds, AI panels,
- * and the cinematic auth rail. Components reach for these only on the
- * hero surfaces called out in the redesign brief — every other surface
- * stays with `brand` / `accent`.
+ * Aurora palette — teal-anchored, no purple. Three cool blobs (teal,
+ * cyan, emerald) plus a warm amber blob that does the heavy lifting for
+ * temperature contrast on mesh backgrounds. Components reach for these
+ * only on the hero surfaces called out in the redesign brief — every
+ * other surface stays with `brand` / `accent`.
  */
 export const aurora = {
-    violet: "#8B5CF6",
+    teal: "#0D9488",
     cyan: "#06B6D4",
-    pink: "#EC4899",
     emerald: "#10B981",
-    violetSoft: "rgba(139, 92, 246, 0.18)",
+    amber: "#F59E0B",
+    tealSoft: "rgba(13, 148, 136, 0.18)",
     cyanSoft: "rgba(6, 182, 212, 0.16)",
-    pinkSoft: "rgba(236, 72, 153, 0.14)",
-    emeraldSoft: "rgba(16, 185, 129, 0.10)",
-    cinematicBase: "#0F0A1F",
-    gradLine: "linear-gradient(135deg, #8B5CF6 0%, #6366F1 45%, #06B6D4 100%)",
+    emeraldSoft: "rgba(16, 185, 129, 0.14)",
+    amberSoft: "rgba(245, 158, 11, 0.14)",
+    cinematicBase: "#042F2E",
+    gradLine: "linear-gradient(135deg, #0D9488 0%, #14B8A6 45%, #06B6D4 100%)",
     gradLineSoft:
-        "linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(6,182,212,0.14) 100%)"
+        "linear-gradient(135deg, rgba(13,148,136,0.18) 0%, rgba(6,182,212,0.14) 100%)"
 } as const;
 
 /**
@@ -127,13 +132,13 @@ export const glass = {
     surface: "rgba(255, 255, 255, 0.65)",
     surfaceStrong: "rgba(255, 255, 255, 0.78)",
     surfaceSubtle: "rgba(255, 255, 255, 0.45)",
-    surfaceDark: "rgba(20, 18, 35, 0.55)",
-    surfaceStrongDark: "rgba(20, 18, 35, 0.72)",
-    surfaceSubtleDark: "rgba(20, 18, 35, 0.35)",
+    surfaceDark: "rgba(8, 28, 27, 0.55)",
+    surfaceStrongDark: "rgba(8, 28, 27, 0.72)",
+    surfaceSubtleDark: "rgba(8, 28, 27, 0.35)",
     border: "rgba(255, 255, 255, 0.28)",
     borderDark: "rgba(255, 255, 255, 0.08)",
-    borderStrong: "rgba(139, 92, 246, 0.20)",
-    borderStrongDark: "rgba(167, 139, 250, 0.28)",
+    borderStrong: "rgba(13, 148, 136, 0.22)",
+    borderStrongDark: "rgba(45, 212, 191, 0.30)",
     shineInset: "inset 0 1px 0 rgba(255, 255, 255, 0.45)",
     shineInsetDark: "inset 0 1px 0 rgba(255, 255, 255, 0.06)"
 } as const;
@@ -191,12 +196,13 @@ export const shadow = {
     md: "0 2px 4px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.08)",
     lg: "0 8px 16px rgba(15, 23, 42, 0.08), 0 16px 32px rgba(15, 23, 42, 0.10)",
     xl: "0 16px 32px rgba(15, 23, 42, 0.12), 0 32px 64px rgba(15, 23, 42, 0.14)",
-    focus: "0 0 0 3px rgba(139, 92, 246, 0.22)",
+    focus: "0 0 0 3px rgba(13, 148, 136, 0.22)",
     inset: "inset 0 1px 0 rgba(255, 255, 255, 0.06)",
-    glowViolet: "0 0 24px rgba(139, 92, 246, 0.32)",
+    glowTeal: "0 0 24px rgba(13, 148, 136, 0.32)",
     glowCyan: "0 0 24px rgba(6, 182, 212, 0.28)",
+    glowAmber: "0 0 24px rgba(245, 158, 11, 0.28)",
     glowAurora:
-        "0 12px 40px -8px rgba(139, 92, 246, 0.30), 0 0 0 1px rgba(139, 92, 246, 0.10)"
+        "0 12px 40px -8px rgba(13, 148, 136, 0.30), 0 0 0 1px rgba(13, 148, 136, 0.12)"
 } as const;
 
 /**
@@ -261,17 +267,17 @@ export const modalWidthCss = (max: number) =>
 
 /**
  * Aurora-aligned gradient palette for user / project avatars. Six steps
- * across the violet/cyan/pink/emerald aurora family so every distinct id
+ * across the teal/cyan/emerald/amber aurora family so every distinct id
  * reads as a unique monogram while staying inside the new palette.
  * Centralizing the list here means a future palette change is one edit.
  */
 export const avatarGradients = [
-    `linear-gradient(135deg, ${aurora.violet} 0%, ${aurora.cyan} 100%)`,
-    `linear-gradient(135deg, ${aurora.violet} 0%, ${aurora.pink} 100%)`,
+    `linear-gradient(135deg, ${aurora.teal} 0%, ${aurora.cyan} 100%)`,
+    `linear-gradient(135deg, ${aurora.teal} 0%, ${aurora.amber} 100%)`,
     `linear-gradient(135deg, ${aurora.cyan} 0%, ${aurora.emerald} 100%)`,
-    `linear-gradient(135deg, ${aurora.pink} 0%, ${aurora.violet} 100%)`,
-    `linear-gradient(135deg, #6366F1 0%, ${aurora.cyan} 100%)`,
-    `linear-gradient(135deg, ${aurora.emerald} 0%, ${aurora.violet} 100%)`
+    `linear-gradient(135deg, ${aurora.amber} 0%, ${aurora.teal} 100%)`,
+    `linear-gradient(135deg, #14B8A6 0%, ${aurora.cyan} 100%)`,
+    `linear-gradient(135deg, ${aurora.emerald} 0%, ${aurora.teal} 100%)`
 ] as const;
 
 /**

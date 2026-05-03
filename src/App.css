@@ -23,65 +23,67 @@
  */
 :root,
 html[data-color-scheme="light"] {
-    --pulse-bg-page: #fafafd;
+    --pulse-bg-page: #f7fdfc;
     --pulse-text-base: rgba(15, 23, 42, 0.92);
 
-    /* Copilot (AI) palette — switched to aurora violet+cyan. */
-    --color-copilot-grad-start: #8b5cf6;
-    --color-copilot-grad-mid: #6366f1;
+    /* Copilot (AI) palette — teal-anchored, no purple. */
+    --color-copilot-grad-start: #0d9488;
+    --color-copilot-grad-mid: #14b8a6;
     --color-copilot-grad-end: #06b6d4;
-    --color-copilot-bg-subtle: rgba(139, 92, 246, 0.06);
-    --color-copilot-bg-medium: rgba(139, 92, 246, 0.18);
-    --color-copilot-badge: #8b5cf6;
-    --color-copilot-badge-bg: rgba(139, 92, 246, 0.14);
-    --color-copilot-pulse: rgba(139, 92, 246, 0.5);
+    --color-copilot-bg-subtle: rgba(13, 148, 136, 0.06);
+    --color-copilot-bg-medium: rgba(13, 148, 136, 0.18);
+    --color-copilot-badge: #0d9488;
+    --color-copilot-badge-bg: rgba(13, 148, 136, 0.14);
+    --color-copilot-pulse: rgba(13, 148, 136, 0.5);
 
-    /* Aurora mesh layers (consumed by body + AI panels + cinematic rail). */
-    --aurora-blob-violet: rgba(139, 92, 246, 0.28);
+    /* Aurora mesh layers (consumed by body + AI panels + cinematic rail).
+     * Three cool blobs (teal, cyan, emerald) plus a warm amber blob in
+     * the bottom-right so the page never reads as monochrome cool. */
+    --aurora-blob-teal: rgba(13, 148, 136, 0.26);
     --aurora-blob-cyan: rgba(6, 182, 212, 0.22);
-    --aurora-blob-pink: rgba(236, 72, 153, 0.18);
-    --aurora-blob-emerald: rgba(16, 185, 129, 0.14);
-    --aurora-mesh-base: #fafafd;
+    --aurora-blob-emerald: rgba(16, 185, 129, 0.18);
+    --aurora-blob-amber: rgba(245, 158, 11, 0.16);
+    --aurora-mesh-base: #f7fdfc;
 
     /* Glass surface tokens (consumed by header, modal, drawer, AI panels). */
     --glass-surface: rgba(255, 255, 255, 0.65);
     --glass-surface-strong: rgba(255, 255, 255, 0.78);
     --glass-surface-subtle: rgba(255, 255, 255, 0.45);
     --glass-border: rgba(255, 255, 255, 0.28);
-    --glass-border-strong: rgba(139, 92, 246, 0.2);
+    --glass-border-strong: rgba(13, 148, 136, 0.22);
     --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 
-    /* Modal mask — violet tinted instead of neutral black. */
-    --aurora-modal-mask: rgba(40, 24, 80, 0.32);
+    /* Modal mask — teal tinted instead of neutral black. */
+    --aurora-modal-mask: rgba(4, 47, 46, 0.34);
 }
 
 html[data-color-scheme="dark"] {
-    --pulse-bg-page: #0a0716;
+    --pulse-bg-page: #042f2e;
     --pulse-text-base: rgba(229, 231, 235, 0.92);
 
-    --color-copilot-grad-start: #a78bfa;
-    --color-copilot-grad-mid: #8b94f0;
+    --color-copilot-grad-start: #2dd4bf;
+    --color-copilot-grad-mid: #5eead4;
     --color-copilot-grad-end: #22d3ee;
-    --color-copilot-bg-subtle: rgba(167, 139, 250, 0.1);
-    --color-copilot-bg-medium: rgba(167, 139, 250, 0.22);
-    --color-copilot-badge: #a78bfa;
-    --color-copilot-badge-bg: rgba(167, 139, 250, 0.2);
-    --color-copilot-pulse: rgba(167, 139, 250, 0.55);
+    --color-copilot-bg-subtle: rgba(45, 212, 191, 0.1);
+    --color-copilot-bg-medium: rgba(45, 212, 191, 0.22);
+    --color-copilot-badge: #2dd4bf;
+    --color-copilot-badge-bg: rgba(45, 212, 191, 0.2);
+    --color-copilot-pulse: rgba(45, 212, 191, 0.55);
 
-    --aurora-blob-violet: rgba(139, 92, 246, 0.35);
-    --aurora-blob-cyan: rgba(6, 182, 212, 0.22);
-    --aurora-blob-pink: rgba(236, 72, 153, 0.18);
-    --aurora-blob-emerald: rgba(16, 185, 129, 0.14);
-    --aurora-mesh-base: #0a0716;
+    --aurora-blob-teal: rgba(13, 148, 136, 0.4);
+    --aurora-blob-cyan: rgba(6, 182, 212, 0.24);
+    --aurora-blob-emerald: rgba(16, 185, 129, 0.2);
+    --aurora-blob-amber: rgba(245, 158, 11, 0.18);
+    --aurora-mesh-base: #042f2e;
 
-    --glass-surface: rgba(20, 18, 35, 0.55);
-    --glass-surface-strong: rgba(20, 18, 35, 0.72);
-    --glass-surface-subtle: rgba(20, 18, 35, 0.35);
+    --glass-surface: rgba(8, 28, 27, 0.55);
+    --glass-surface-strong: rgba(8, 28, 27, 0.72);
+    --glass-surface-subtle: rgba(8, 28, 27, 0.35);
     --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-border-strong: rgba(167, 139, 250, 0.28);
+    --glass-border-strong: rgba(45, 212, 191, 0.3);
     --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
-    --aurora-modal-mask: rgba(8, 4, 20, 0.62);
+    --aurora-modal-mask: rgba(2, 18, 17, 0.66);
 }
 
 /*
@@ -160,16 +162,17 @@ body {
     -webkit-text-size-adjust: 100%;
     color: var(--pulse-text-base);
     /*
-     * Aurora mesh page background. Four radial blobs (violet, cyan, pink,
-     * emerald) over the mesh base. `background-attachment: fixed` keeps the
-     * mesh stationary as the user scrolls so it reads as a backdrop rather
-     * than a tiled pattern. Solid fallback lives in
-     * `prefers-reduced-transparency` below.
+     * Aurora mesh page background. Three cool blobs (teal, cyan, emerald)
+     * + one warm amber blob over the mesh base, so the page reads as
+     * "northern lights with a sunset corner" rather than monochrome cool.
+     * `background-attachment: fixed` keeps the mesh stationary as the
+     * user scrolls so it reads as a backdrop rather than a tiled pattern.
+     * Solid fallback lives in `prefers-reduced-transparency` below.
      */
     background:
         radial-gradient(
             at 18% 12%,
-            var(--aurora-blob-violet) 0px,
+            var(--aurora-blob-teal) 0px,
             transparent 55%
         ),
         radial-gradient(
@@ -179,12 +182,12 @@ body {
         ),
         radial-gradient(
             at 50% 88%,
-            var(--aurora-blob-pink) 0px,
+            var(--aurora-blob-emerald) 0px,
             transparent 55%
         ),
         radial-gradient(
             at 92% 92%,
-            var(--aurora-blob-emerald) 0px,
+            var(--aurora-blob-amber) 0px,
             transparent 55%
         ),
         var(--aurora-mesh-base);
@@ -197,12 +200,12 @@ body {
 }
 
 /*
- * BOLD AURORA-FIRST glass surfaces. Applied via AntD's stable class names so
- * we don't have to wrap every Modal/Drawer call site. The cssVar prefix
- * `ant` (set in `buildAntdTheme`) does not affect element class names.
+ * AURORA glass surfaces. Applied via AntD's stable class names so we don't
+ * have to wrap every Modal/Drawer call site. The cssVar prefix `ant` (set
+ * in `buildAntdTheme`) does not affect element class names.
  *
- * The violet-tinted box-shadow + 1px aurora ring restores the modal/drawer
- * silhouette against the violet mask so it never disappears into the
+ * The teal-tinted box-shadow + 1px aurora ring restores the modal/drawer
+ * silhouette against the teal mask so it never disappears into the
  * backdrop.
  */
 .ant-modal-content,
@@ -210,16 +213,16 @@ body {
     backdrop-filter: blur(28px) saturate(180%);
     -webkit-backdrop-filter: blur(28px) saturate(180%);
     box-shadow:
-        0 12px 40px -8px rgba(139, 92, 246, 0.3),
-        0 0 0 1px rgba(139, 92, 246, 0.1),
+        0 12px 40px -8px rgba(13, 148, 136, 0.3),
+        0 0 0 1px rgba(13, 148, 136, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 html[data-color-scheme="dark"] .ant-modal-content,
 html[data-color-scheme="dark"] .ant-drawer-content {
     box-shadow:
-        0 12px 48px -8px rgba(167, 139, 250, 0.38),
-        0 0 0 1px rgba(167, 139, 250, 0.18),
+        0 12px 48px -8px rgba(45, 212, 191, 0.38),
+        0 0 0 1px rgba(45, 212, 191, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -272,7 +275,7 @@ video {
  * (custom buttons, links, list items with role="button").
  */
 :focus-visible {
-    outline: 2px solid var(--ant-color-primary, #5e6ad2);
+    outline: 2px solid var(--ant-color-primary, #0d9488);
     outline-offset: 2px;
 }
 
@@ -292,7 +295,7 @@ video {
  * `accent.selectionBg` for browsers that don't yet ship the AntD CSS var.
  */
 ::selection {
-    background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.22));
+    background: var(--ant-color-primary-bg, rgba(13, 148, 136, 0.22));
     color: inherit;
 }
 

@@ -51,9 +51,9 @@ const Glyph = styled.span<{ glyphPx: number }>`
     align-items: center;
     background: linear-gradient(
         135deg,
-        ${accent.start} 0%,
+        ${accent.end} 0%,
         ${brand.primary} 60%,
-        #4f5bc4 100%
+        ${brand.primaryActive} 100%
     );
     border-radius: ${radius.md}px;
     box-shadow:

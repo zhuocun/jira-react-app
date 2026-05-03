@@ -325,7 +325,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                         <AiSparkleIcon
                             aria-hidden
                             style={{
-                                color: "var(--ant-color-primary, #5e6ad2)"
+                                color: "var(--ant-color-primary, #0d9488)"
                             }}
                         />
                     }
