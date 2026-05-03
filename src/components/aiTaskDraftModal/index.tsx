@@ -35,6 +35,8 @@ import AiConfidenceIndicator from "../aiConfidenceIndicator";
 import AiSparkleIcon from "../aiSparkleIcon";
 import AiSuggestedBadge from "../aiSuggestedBadge";
 import { CopilotPrivacyDisclosure } from "../copilotPrivacyPopover";
+import CopilotRemoteConsentNotice from "../copilotRemoteConsentNotice";
+import EngineModeTag from "../engineModeTag";
 
 interface AiTaskDraftModalProps {
     open: boolean;
@@ -373,10 +375,12 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                         {microcopy.actions.draftWithAi}
                     </span>
                     <Tag color="purple">{microcopy.a11y.aiBadge}</Tag>
+                    <EngineModeTag />
                 </Space>
             }
             width={modalWidthCss(640)}
         >
+            <CopilotRemoteConsentNotice route="task-draft" />
             <CopilotPrivacyDisclosure
                 route="task-draft"
                 storageKey="boardCopilot:draftPrivacyShown"

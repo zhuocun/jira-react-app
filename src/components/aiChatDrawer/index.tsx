@@ -213,6 +213,16 @@ const summarizeToolBody = (body: string): string => {
     return firstLine.length > 120 ? `${firstLine.slice(0, 117)}…` : firstLine;
 };
 
+/**
+ * Citations are inline superscript chips after the assistant bubble. When
+ * an answer leans on a lot of records (e.g. a workload summary that cites
+ * every member) rendering all of them inline produces a sprawling chip
+ * tail that crowds the message. We collapse anything over this threshold
+ * behind a "+N more" affordance — clicking it expands the list inline
+ * (no second click required) so verifying every claim is still possible.
+ */
+const CITATION_INLINE_LIMIT = 6;
+
 const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     open,
     onClose,
@@ -234,6 +244,25 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
     const [regeneratedIndices, setRegeneratedIndices] = useState<Set<number>>(
         () => new Set()
     );
+    /**
+     * Per-message override that opts the user in to the full citation
+     * list once they've clicked "+N more". Indexed by message index so a
+     * regenerate or new conversation naturally drops the override.
+     * Hoisted above `resetAll` so the callback can reset it without a
+     * forward-reference cycle.
+     */
+    const [expandedCitations, setExpandedCitations] = useState<Set<number>>(
+        () => new Set()
+    );
+
+    const expandCitations = useCallback((turnIndex: number) => {
+        setExpandedCitations((prev) => {
+            if (prev.has(turnIndex)) return prev;
+            const next = new Set(prev);
+            next.add(turnIndex);
+            return next;
+        });
+    }, []);
     /**
      * Length of `messages` at the moment Regenerate was clicked. The
      * `useEffect` watching `messages.length` uses this to identify the
@@ -305,6 +334,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
         reset();
         setFeedback([]);
         setRegeneratedIndices(new Set());
+        setExpandedCitations(new Set());
         pendingRegenAfter.current = null;
     }, [reset]);
 
@@ -491,6 +521,47 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
         [messages]
     );
 
+    /**
+     * Screen-reader announcement for the most recently *completed*
+     * assistant turn (AI UX best practices §2.10). Streaming bubbles
+     * render with `aria-live="off"` so character-by-character updates
+     * don't flood assistive tech; once `isLoading` flips back to false we
+     * publish a short completion notice here so users know to navigate
+     * to the bubble. We deliberately do *not* mirror the answer text in
+     * this region — duplicating the bubble would make SR users hear the
+     * answer twice (once via this region, once when they navigate to the
+     * bubble) and would complicate text queries in tests.
+     *
+     * `messages` is read through a ref so the effect only fires on the
+     * `isLoading` transition. Listing `messages` in the dep array would
+     * re-run this on every streamed token (~100 invocations per answer)
+     * even though we only care about the loading→idle flip.
+     */
+    const [completionAnnouncement, setCompletionAnnouncement] = useState("");
+    const wasLoadingRef = useRef(false);
+    const messagesRef = useRef(messages);
+    messagesRef.current = messages;
+    useEffect(() => {
+        if (wasLoadingRef.current && !isLoading) {
+            // Walk messages in reverse without copying the array.
+            const turns = messagesRef.current;
+            for (let i = turns.length - 1; i >= 0; i -= 1) {
+                if (turns[i].role !== "assistant") continue;
+                const wordCount = turns[i].content
+                    .trim()
+                    .split(/\s+/)
+                    .filter(Boolean).length;
+                setCompletionAnnouncement(
+                    `${microcopy.ai.copilotLabel} responded with ${wordCount} word${
+                        wordCount === 1 ? "" : "s"
+                    }.`
+                );
+                break;
+            }
+        }
+        wasLoadingRef.current = isLoading;
+    }, [isLoading]);
+
     return (
         <Drawer
             extra={
@@ -531,9 +602,32 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
             }
         >
             <CopilotRemoteConsentNotice route="chat" />
+            {/*
+             * Off-screen aria-live region (AI UX best practices §2.10).
+             * Streaming text updates are silenced inside the visible
+             * transcript; this region announces only the final assistant
+             * turn (truncated to a sentence) so screen-reader users hear
+             * the response once at completion instead of every token.
+             */}
+            <div
+                aria-atomic="true"
+                aria-live="polite"
+                role="status"
+                style={{
+                    border: 0,
+                    clip: "rect(0 0 0 0)",
+                    height: 1,
+                    margin: -1,
+                    overflow: "hidden",
+                    padding: 0,
+                    position: "absolute",
+                    width: 1
+                }}
+            >
+                {completionAnnouncement}
+            </div>
             <div
                 aria-busy={isLoading}
-                aria-live="polite"
                 style={{
                     flex: "1 1 auto",
                     marginBottom: space.sm,
@@ -640,24 +734,80 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                 {m.content}
                                 {isAssistant &&
                                     m.citations &&
-                                    m.citations.length > 0 && (
-                                        <span
-                                            style={{
-                                                display: "inline-block",
-                                                marginInlineStart: 6
-                                            }}
-                                        >
-                                            {m.citations.map(
-                                                (citation, idx) => (
-                                                    <CitationChip
-                                                        citation={citation}
-                                                        index={idx + 1}
-                                                        key={`${citation.source}-${citation.id}-${idx}`}
-                                                    />
-                                                )
-                                            )}
-                                        </span>
-                                    )}
+                                    m.citations.length > 0 &&
+                                    (() => {
+                                        const all = m.citations;
+                                        const isExpanded =
+                                            expandedCitations.has(index);
+                                        const showAll =
+                                            isExpanded ||
+                                            all.length <= CITATION_INLINE_LIMIT;
+                                        const visible = showAll
+                                            ? all
+                                            : all.slice(
+                                                  0,
+                                                  CITATION_INLINE_LIMIT
+                                              );
+                                        const overflow =
+                                            all.length - visible.length;
+                                        return (
+                                            <span
+                                                style={{
+                                                    display: "inline-block",
+                                                    marginInlineStart: 6
+                                                }}
+                                            >
+                                                {visible.map(
+                                                    (citation, idx) => (
+                                                        <CitationChip
+                                                            citation={citation}
+                                                            index={idx + 1}
+                                                            key={`${citation.source}-${citation.id}-${idx}`}
+                                                        />
+                                                    )
+                                                )}
+                                                {overflow > 0 && (
+                                                    /*
+                                                     * Show-more affordance for
+                                                     * citation-heavy answers
+                                                     * (P0-3 / AI UX best
+                                                     * practices §2.9): keep
+                                                     * the inline chip rail
+                                                     * scannable, but never
+                                                     * hide a source from
+                                                     * verification — one
+                                                     * click reveals the rest
+                                                     * inline rather than
+                                                     * sending the user to a
+                                                     * separate dialog.
+                                                     */
+                                                    <Button
+                                                        aria-label={`Show all ${all.length} sources`}
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            expandCitations(
+                                                                index
+                                                            );
+                                                        }}
+                                                        size="small"
+                                                        style={{
+                                                            color: "var(--color-copilot-badge, #5e6ad2)",
+                                                            fontSize:
+                                                                fontSize.xs,
+                                                            height: "auto",
+                                                            marginInlineStart: 4,
+                                                            paddingInline: 0,
+                                                            verticalAlign:
+                                                                "super"
+                                                        }}
+                                                        type="link"
+                                                    >
+                                                        {`+${overflow} more`}
+                                                    </Button>
+                                                )}
+                                            </span>
+                                        );
+                                    })()}
                             </MessageBubble>
                             {isAssistant &&
                                 m.citations !== undefined &&
@@ -838,7 +988,16 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                 </Text>
                             )}
                         </AssistantAttribution>
-                        <MessageBubble $isUser={false}>
+                        {/*
+                         * `aria-live="off"` (AI UX best practices §2.10):
+                         * the streaming bubble updates token-by-token and
+                         * would otherwise drown screen readers in mid-word
+                         * announcements. The visible cursor + text still
+                         * works for sighted users; the dedicated
+                         * `completionAnnouncement` live region above
+                         * announces the final answer once.
+                         */}
+                        <MessageBubble $isUser={false} aria-live="off">
                             {streamingText ? (
                                 <>
                                     {streamingText}

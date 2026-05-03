@@ -241,6 +241,7 @@ const zhCN: Dictionary = {
         likeFailed: "点赞更新失败,请重试。",
         taskSaved: "任务已保存",
         welcomeBack: "欢迎回来!",
+        loginFailedNoToken: "登录响应中缺少会话令牌,请重试。",
         accountCreated: "账号已创建,请登录。",
         couldntDeleteTask: "无法删除「{name}」。",
         couldntCopy: "复制失败",

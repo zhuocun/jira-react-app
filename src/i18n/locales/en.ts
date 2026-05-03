@@ -242,6 +242,8 @@ export const enSource = {
         likeFailed: "Couldn't update like. Please try again.",
         taskSaved: "Task saved",
         welcomeBack: "Welcome back!",
+        loginFailedNoToken:
+            "Login response was missing a session token. Please try again.",
         accountCreated: "Account created. Please log in.",
         couldntDeleteTask: "Couldn't delete {name}.",
         couldntCopy: "Couldn't copy",

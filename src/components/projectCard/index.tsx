@@ -22,6 +22,8 @@ import {
     shadow,
     space
 } from "../../theme/tokens";
+import { getAiSearchStrength } from "../../utils/ai/aiSearchStrength";
+import AiMatchStrengthBadge from "../aiMatchStrengthBadge";
 import UserAvatar, { gradientFor, initialsOf } from "../userAvatar";
 
 interface ProjectCardProps {
@@ -236,6 +238,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     onEdit,
     onDelete
 }) => {
+    // Per-result strength badge (P1-2). Null when no AI search is active.
+    const strength = getAiSearchStrength("projects", project._id);
     const items: MenuProps["items"] = [
         {
             key: "edit",
@@ -321,7 +325,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                 </ManagerRow>
             </Body>
             <Footer>
-                <span>{formatDate(project.createdAt)}</span>
+                <span
+                    style={{
+                        alignItems: "center",
+                        display: "inline-flex",
+                        gap: space.xs
+                    }}
+                >
+                    {strength ? (
+                        <AiMatchStrengthBadge strength={strength} />
+                    ) : null}
+                    {formatDate(project.createdAt)}
+                </span>
                 <ActionsCluster>
                     <Button
                         aria-label={
