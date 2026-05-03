@@ -1,5 +1,89 @@
 import { summarizeToolResultForUser } from "./chatEngine";
 
+describe("summarizeToolResultForUser plain-language evidence", () => {
+    /*
+     * Optimization Plan §3 P2-2 — tool summaries must read like evidence
+     * the assistant gathered, not like a debug dump. These regression
+     * tests guard against re-introducing raw `_id` values, backtick-
+     * wrapped identifiers, or tool-name jargon in user-facing strings.
+     */
+    const fixture = {
+        listProjects: [
+            { _id: "p_internal_id", projectName: "Roadmap" },
+            { _id: "p_other", projectName: "Mobile" }
+        ],
+        listMembers: [
+            { _id: "m_alice_99", email: "alice@example.com", username: "alice" }
+        ],
+        listBoard: [
+            {
+                _id: "col_xyz",
+                columnName: "Todo",
+                index: 0,
+                projectId: "p_internal_id"
+            }
+        ],
+        listTasks: [
+            {
+                _id: "t_internal_id",
+                columnId: "col_xyz",
+                coordinatorId: "m_alice_99",
+                epic: "Auth",
+                index: 0,
+                note: "",
+                projectId: "p_internal_id",
+                storyPoints: 3,
+                taskName: "Fix login redirect",
+                type: "Bug"
+            }
+        ],
+        getTask: {
+            _id: "t_internal_id",
+            columnId: "col_xyz",
+            coordinatorId: "m_alice_99",
+            epic: "Auth",
+            index: 0,
+            note: "Repro on Safari",
+            projectId: "p_internal_id",
+            storyPoints: 3,
+            taskName: "Fix login redirect",
+            type: "Bug"
+        }
+    } as const;
+
+    it.each([
+        ["listProjects", fixture.listProjects, "Roadmap"],
+        ["listMembers", fixture.listMembers, "alice"],
+        ["listBoard", fixture.listBoard, "Todo"],
+        ["listTasks", fixture.listTasks, "Fix login redirect"],
+        ["getTask", fixture.getTask, "Fix login redirect"]
+    ] as const)(
+        "%s summary surfaces the display name without raw ids",
+        (toolName, payload, expectedName) => {
+            const summary = summarizeToolResultForUser(
+                toolName,
+                payload as unknown
+            );
+            expect(summary).toContain(expectedName);
+            // No raw object ids should leak into the assistant's evidence.
+            expect(summary).not.toContain("p_internal_id");
+            expect(summary).not.toContain("t_internal_id");
+            expect(summary).not.toContain("m_alice_99");
+            expect(summary).not.toContain("col_xyz");
+            // No backtick-wrapped identifiers either.
+            expect(summary).not.toMatch(/`[a-z_0-9]+`/i);
+        }
+    );
+
+    it("listTasks summary opens with a count sentence the user can scan", () => {
+        const summary = summarizeToolResultForUser(
+            "listTasks",
+            fixture.listTasks
+        );
+        expect(summary.split("\n")[0]).toMatch(/Checked 1 task\./);
+    });
+});
+
 describe("summarizeToolResultForUser edge cases", () => {
     it("returns error string from object payloads", () => {
         expect(

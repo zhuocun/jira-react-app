@@ -96,7 +96,33 @@ interface ITaskBreakdownSuggestion {
     items: IDraftTaskSuggestion[];
 }
 
+/**
+ * Per-result match strength (Optimization Plan §3 P1-2).
+ *
+ * The local engine ranks by token-overlap (Jaccard) which is closer to
+ * keyword search than to true semantic understanding; surfacing the band
+ * lets users calibrate trust and decide whether to keep filtering or
+ * refine the query.
+ */
+type AiSearchMatchStrength = "strong" | "moderate" | "weak";
+
+interface IAiSearchMatch {
+    id: string;
+    strength: AiSearchMatchStrength;
+}
+
 interface ISearchResult {
     ids: string[];
     rationale: string;
+    /**
+     * Optional per-id match band. Older remote engines may omit this; the
+     * UI degrades gracefully by hiding the strength chip when missing.
+     */
+    matches?: IAiSearchMatch[];
+    /**
+     * Human-readable list of synonyms the engine expanded the query with
+     * (e.g. "todo → backlog, inbox"). Surfaces show this as helper text so
+     * users know why a non-literal hit ended up in the result set.
+     */
+    expandedTerms?: string[];
 }

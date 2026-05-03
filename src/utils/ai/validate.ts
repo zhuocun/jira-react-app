@@ -154,10 +154,41 @@ export const validateReadiness = (raw: IReadinessReport): IReadinessReport => ({
     )
 });
 
+const VALID_MATCH_STRENGTHS = new Set<AiSearchMatchStrength>([
+    "strong",
+    "moderate",
+    "weak"
+]);
+
 export const validateSearch = (
     raw: ISearchResult,
     validIds: Set<string>
-): ISearchResult => ({
-    ids: (raw.ids || []).filter((id) => validIds.has(id)),
-    rationale: typeof raw.rationale === "string" ? raw.rationale : ""
-});
+): ISearchResult => {
+    const ids = (raw.ids || []).filter((id) => validIds.has(id));
+    const idSet = new Set(ids);
+    const matches = Array.isArray(raw.matches)
+        ? raw.matches
+              .filter(
+                  (entry): entry is IAiSearchMatch =>
+                      Boolean(entry) &&
+                      typeof entry.id === "string" &&
+                      idSet.has(entry.id) &&
+                      VALID_MATCH_STRENGTHS.has(entry.strength)
+              )
+              .slice(0, 50)
+        : undefined;
+    const expandedTerms = Array.isArray(raw.expandedTerms)
+        ? raw.expandedTerms
+              .filter(
+                  (line): line is string =>
+                      typeof line === "string" && line.length > 0
+              )
+              .slice(0, 3)
+        : undefined;
+    return {
+        ids,
+        rationale: typeof raw.rationale === "string" ? raw.rationale : "",
+        ...(matches ? { matches } : {}),
+        ...(expandedTerms && expandedTerms.length > 0 ? { expandedTerms } : {})
+    };
+};

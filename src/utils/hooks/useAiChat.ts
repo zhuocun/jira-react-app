@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import environment from "../../constants/env";
+import { microcopy } from "../../constants/microcopy";
 import type { CitationRef } from "../../interfaces/agent";
 import {
     chatAssistantTurn,
@@ -64,7 +65,11 @@ const remoteChatStep = async (
         signal
     });
     if (response.status === 429) {
-        throw new Error("Board Copilot is busy. Try again in a moment.");
+        // i18n-aware copy (Optimization Plan §3 P2-3 follow-up). The
+        // previous hard-coded English string surfaced via the chat error
+        // alert and bypassed the central microcopy bundle, so a translator
+        // had no way to localize it.
+        throw new Error(microcopy.ai.chatBusyError);
     }
     if (!response.ok) {
         throw new Error(`AI request failed (${response.status})`);

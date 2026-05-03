@@ -265,6 +265,24 @@ export const citationsFromToolResult = (
     return refs;
 };
 
+/**
+ * Build a user-facing summary of a tool result (Optimization Plan §3 P2-2).
+ *
+ * Tool messages are rendered inline in the chat transcript and are visible
+ * to non-technical users — they should read like evidence ("Checked 12
+ * tasks"), not like a debug dump ("listTasks · 12 items"). Two key shifts
+ * from the previous implementation:
+ *
+ *   1. Raw `_id` strings are no longer surfaced. Citation chips already
+ *      carry the linked `id` for navigation; repeating it in the summary
+ *      adds noise and leaks an internal identifier into the answer surface.
+ *   2. Tool names are translated into plain-language verbs ("Checked",
+ *      "Opened") so users understand what evidence was gathered.
+ *
+ * The body still falls back to truncated JSON for unrecognized payload
+ * shapes so a future tool that hasn't been mapped here doesn't render a
+ * blank tool message.
+ */
 export const summarizeToolResultForUser = (
     toolName: ChatToolName,
     payload: unknown
@@ -276,51 +294,60 @@ export const summarizeToolResultForUser = (
         case "listProjects":
             if (isProjectArray(payload)) {
                 if (payload.length === 0) return "No projects found.";
-                return payload
-                    .map((p) => `• **${p.projectName}** (\`${p._id}\`)`)
-                    .join("\n");
+                const lines = payload.map((p) => `• **${p.projectName}**`);
+                return [
+                    `Checked ${payload.length} project${payload.length === 1 ? "" : "s"}.`,
+                    ...lines
+                ].join("\n");
             }
             break;
         case "listMembers":
             if (isMemberArray(payload)) {
-                return payload
-                    .map((m) => `• **${m.username}** (\`${m._id}\`)`)
-                    .join("\n");
+                if (payload.length === 0) return "No team members.";
+                const lines = payload.map((m) => `• **${m.username}**`);
+                return [
+                    `Checked ${payload.length} member${payload.length === 1 ? "" : "s"}.`,
+                    ...lines
+                ].join("\n");
             }
             break;
         case "getProject":
             if (payload && typeof payload === "object" && "_id" in payload) {
                 const p = payload as IProject;
-                return `**${p.projectName}** — manager \`${p.managerId}\`, org: ${p.organization}`;
+                return `Opened project **${p.projectName}** (org: ${p.organization}).`;
             }
             break;
         case "listBoard":
             if (isColumnArray(payload)) {
-                if (payload.length === 0) return "No columns.";
-                return payload
+                if (payload.length === 0) return "No columns on this board.";
+                const lines = [...payload]
                     .sort((a, b) => a.index - b.index)
-                    .map((c) => `• ${c.columnName} (\`${c._id}\`)`)
-                    .join("\n");
+                    .map((c) => `• ${c.columnName}`);
+                return [
+                    `Checked ${payload.length} column${payload.length === 1 ? "" : "s"}.`,
+                    ...lines
+                ].join("\n");
             }
             break;
         case "listTasks":
             if (isTaskArray(payload)) {
                 if (payload.length === 0) return "No tasks match.";
-                return payload
-                    .map(
-                        (t) =>
-                            `• **${t.taskName}** — ${t.type}, ${t.storyPoints} pts (\`${t._id}\`)`
-                    )
-                    .join("\n");
+                const lines = payload.map(
+                    (t) =>
+                        `• **${t.taskName}** — ${t.type}, ${t.storyPoints} pts`
+                );
+                return [
+                    `Checked ${payload.length} task${payload.length === 1 ? "" : "s"}.`,
+                    ...lines
+                ].join("\n");
             }
             break;
         case "getTask":
             if (payload && typeof payload === "object" && "_id" in payload) {
                 const t = payload as ITask;
                 return [
-                    `**${t.taskName}**`,
+                    `Opened task **${t.taskName}**.`,
                     `Type: ${t.type} · Points: ${t.storyPoints} · Epic: ${t.epic}`,
-                    `Column: \`${t.columnId}\` · Coordinator: \`${t.coordinatorId}\``,
                     t.note ? `\n${t.note}` : ""
                 ]
                     .filter(Boolean)

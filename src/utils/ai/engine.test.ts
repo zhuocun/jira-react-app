@@ -478,6 +478,40 @@ describe("engine.semanticSearch", () => {
         expect(out.ids).toEqual([]);
         expect(out.rationale).toMatch(/No semantic match/i);
     });
+
+    /*
+     * Optimization Plan §3 P1-2 — search results must surface per-id
+     * match strength bands and synonym expansion so users calibrate trust
+     * in a token-overlap engine that is not actually semantic.
+     */
+    it("emits per-id match strength bands aligned with the result list", () => {
+        const out = semanticSearch("tasks", "login token auth", taskCtx());
+        expect(out.matches).toBeDefined();
+        const ids = new Set(out.ids);
+        expect(out.matches!.every((entry) => ids.has(entry.id))).toBe(true);
+        const validBands = new Set(["strong", "moderate", "weak"]);
+        expect(
+            out.matches!.every((entry) => validBands.has(entry.strength))
+        ).toBe(true);
+    });
+
+    it("expands queries with PM synonyms and reports the additions", () => {
+        // "backlog" expands to include "todo" — tasks in a Todo column should
+        // start matching even though the user never typed "todo".
+        const ctx = buildContext({
+            tasks: [
+                task({
+                    _id: "t-todo",
+                    epic: "x",
+                    note: "todo column",
+                    taskName: "Triage incoming work"
+                })
+            ]
+        });
+        const out = semanticSearch("tasks", "backlog", ctx);
+        expect(out.expandedTerms).toBeDefined();
+        expect(out.expandedTerms!.join(",")).toMatch(/todo|inbox|queue/);
+    });
 });
 
 describe("engine.draftTask column picking", () => {

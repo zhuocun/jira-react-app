@@ -1,5 +1,6 @@
 import { jaccard, tokenize, tokenSet } from "./keywords";
 import { clampToFibonacci, FIBONACCI_POINTS } from "./storyPoints";
+import { describeExpansions, expandWithSynonyms } from "./synonyms";
 
 export interface AiContextProject {
     project: { _id: string; projectName: string };
@@ -507,7 +508,28 @@ const scoreByJaccard = (queryTokens: Set<string>, text: string): number => {
     return jaccard(queryTokens, tokenSet(text));
 };
 
-/** Deterministic semantic-style ranking: token overlap (Jaccard) over task/project text. */
+/**
+ * Bucket a raw Jaccard score into a user-facing match strength
+ * (Optimization Plan §3 P1-2). Thresholds are calibrated to the
+ * deterministic engine: ≥0.45 is a near-literal hit, 0.20–0.45 is a
+ * partial overlap, anything else is "weak" and should prompt the user to
+ * refine the query.
+ */
+const matchStrengthFromScore = (score: number): AiSearchMatchStrength => {
+    if (score >= 0.45) return "strong";
+    if (score >= 0.2) return "moderate";
+    return "weak";
+};
+
+/**
+ * Deterministic semantic-style ranking: token overlap (Jaccard) over
+ * task/project text, with PM-synonym expansion (Optimization Plan §3 P1-2).
+ *
+ * Returns per-result match strength bands so the UI can flag weak matches
+ * instead of presenting the entire ranking as "similar". Also returns the
+ * synonyms it expanded the query with so users see why a non-literal hit
+ * appears (e.g. "todo → backlog, inbox").
+ */
 export const semanticSearch = (
     kind: "tasks" | "projects",
     query: string,
@@ -517,13 +539,15 @@ export const semanticSearch = (
     if (!q) {
         return { ids: [], rationale: "Enter a description to search." };
     }
-    const queryTokens = tokenSet(q);
-    if (queryTokens.size === 0) {
+    const baseTokens = tokenSet(q);
+    if (baseTokens.size === 0) {
         return {
             ids: [],
             rationale: "No semantic match for that phrase."
         };
     }
+    const { expanded: queryTokens, additions } = expandWithSynonyms(baseTokens);
+    const expandedTerms = describeExpansions(additions);
 
     if (kind === "tasks") {
         const ctx = context as AiContextProject;
@@ -536,20 +560,25 @@ export const semanticSearch = (
         if (maxScore === 0) {
             return {
                 ids: [],
-                rationale: "No semantic match for that phrase."
+                rationale: "No semantic match for that phrase.",
+                expandedTerms
             };
         }
         const cutoff = Math.max(0.08, maxScore * 0.42);
-        const ids = scored
-            .filter((row) => row.score >= cutoff)
-            .slice(0, 50)
-            .map((row) => row.id);
+        const kept = scored.filter((row) => row.score >= cutoff).slice(0, 50);
+        const ids = kept.map((row) => row.id);
+        const matches: IAiSearchMatch[] = kept.map((row) => ({
+            id: row.id,
+            strength: matchStrengthFromScore(row.score)
+        }));
         return {
             ids,
             rationale:
                 ids.length > 0
-                    ? `Ranked ${ids.length} task(s) by similarity to your phrase.`
-                    : "No semantic match for that phrase."
+                    ? `Ranked ${ids.length} task(s) by similarity to name, type, epic, and notes.`
+                    : "No semantic match for that phrase.",
+            matches,
+            expandedTerms
         };
     }
 
@@ -565,19 +594,24 @@ export const semanticSearch = (
     if (maxScore === 0) {
         return {
             ids: [],
-            rationale: "No semantic match for that phrase."
+            rationale: "No semantic match for that phrase.",
+            expandedTerms
         };
     }
     const cutoff = Math.max(0.08, maxScore * 0.42);
-    const ids = scored
-        .filter((row) => row.score >= cutoff)
-        .slice(0, 50)
-        .map((row) => row.id);
+    const kept = scored.filter((row) => row.score >= cutoff).slice(0, 50);
+    const ids = kept.map((row) => row.id);
+    const matches: IAiSearchMatch[] = kept.map((row) => ({
+        id: row.id,
+        strength: matchStrengthFromScore(row.score)
+    }));
     return {
         ids,
         rationale:
             ids.length > 0
-                ? `Ranked ${ids.length} project(s) by similarity to your phrase.`
-                : "No semantic match for that phrase."
+                ? `Ranked ${ids.length} project(s) by similarity to name, organization, and manager.`
+                : "No semantic match for that phrase.",
+        matches,
+        expandedTerms
     };
 };

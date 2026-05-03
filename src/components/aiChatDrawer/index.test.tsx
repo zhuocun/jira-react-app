@@ -187,12 +187,13 @@ describe("AiChatDrawer", () => {
         fireEvent.click(screen.getByLabelText("Send message"));
 
         // Tool details land in a collapsed native <details> element with a
-        // human-readable summary (PRD v3 C-R11).
+        // plain-language verb summary like "Checked projects · …"
+        // (Optimization Plan §3 P2-2).
         await waitFor(() => {
             const details = document.querySelector("details");
             expect(details).toBeTruthy();
             expect(details!.querySelector("summary")?.textContent).toMatch(
-                /Looked up/i
+                /Checked projects/i
             );
         });
         expect(mockApi).toHaveBeenCalledWith(

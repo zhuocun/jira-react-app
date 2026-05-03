@@ -268,4 +268,58 @@ describe("validateSearch", () => {
             )
         ).toEqual({ ids: ["x"], rationale: "" });
     });
+
+    it("preserves matches when ids are valid and the band is recognised", () => {
+        const out = validateSearch(
+            {
+                ids: ["a", "b"],
+                rationale: "r",
+                matches: [
+                    { id: "a", strength: "strong" },
+                    { id: "b", strength: "moderate" },
+                    { id: "ghost", strength: "weak" },
+                    {
+                        id: "a",
+                        strength: "bogus" as unknown as AiSearchMatchStrength
+                    }
+                ]
+            },
+            new Set(["a", "b"])
+        );
+        expect(out.matches).toEqual([
+            { id: "a", strength: "strong" },
+            { id: "b", strength: "moderate" }
+        ]);
+    });
+
+    it("keeps the first three string entries from expandedTerms", () => {
+        const out = validateSearch(
+            {
+                ids: ["a"],
+                rationale: "r",
+                expandedTerms: [
+                    "todo → backlog",
+                    "bug → defect",
+                    "auth → login",
+                    "extra → ignored",
+                    42 as unknown as string,
+                    ""
+                ]
+            },
+            new Set(["a"])
+        );
+        expect(out.expandedTerms).toEqual([
+            "todo → backlog",
+            "bug → defect",
+            "auth → login"
+        ]);
+    });
+
+    it("omits matches and expandedTerms when the input lacks them", () => {
+        const out = validateSearch(
+            { ids: ["a"], rationale: "r" },
+            new Set(["a"])
+        );
+        expect(out).toEqual({ ids: ["a"], rationale: "r" });
+    });
 });

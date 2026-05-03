@@ -221,7 +221,7 @@ export const enSource = {
         privacyLink: "What is shared?",
         privacyAcknowledge: "Got it",
         privacySuppress: "Don't remind me",
-        streaming: "Board Copilot is thinking…",
+        streaming: "Reading your board data…",
         stopped: "Stopped",
         retryLabel: "Try again",
         regenerateLabel: "Regenerate",
@@ -230,6 +230,9 @@ export const enSource = {
         feedbackThanks: "Thanks for your feedback",
         feedbackImpactNotice:
             "Feedback is saved for product review — it does not change this answer or train a model.",
+        feedbackThumbsDownTooltip:
+            "Not helpful? Tell us why. Categories are saved for product review only — your message text is not sent.",
+        chatBusyError: "Board Copilot is busy. Try again in a moment.",
         feedbackPromptDownTitle: "What went wrong?",
         feedbackPromptDownHelper:
             "Pick at least one — it helps us prioritize fixes without sending your message text.",
@@ -289,9 +292,27 @@ export const enSource = {
         findRelatedTasksPlaceholder: "Describe tasks to find…",
         findRelatedProjectsPlaceholder: "Describe projects to find…",
         findRelatedTasksHelper:
-            "Filters this task list with AI search; it does not open chat.",
+            "Matches by task name, type, epic, and notes. Filters this list — does not open chat.",
         findRelatedProjectsHelper:
-            "Filters this project list with AI search; it does not open chat.",
+            "Matches by project name, organization, and manager. Filters this list — does not open chat.",
+        searchMatchStrength: {
+            strong: "Strong match",
+            moderate: "Partial match",
+            weak: "Weak match"
+        },
+        searchMatchStrengthAria:
+            "Match strength {strength} for the AI semantic search",
+        searchSynonymExpanded:
+            "Expanded {original} to include common synonyms ({expansions}).",
+        citationFlagAction: "Report wrong source",
+        citationFlagConfirm: "Thanks — flagged for review",
+        remoteConsentTitle: "Heads up: this build sends data to a remote AI",
+        remoteConsentBody:
+            "Board Copilot is connected to {origin}. Your sign-in token, board data, and any task you open are sent there for processing. Outputs may include generated language — review before applying.",
+        remoteConsentBodyGeneric:
+            "Board Copilot is connected to a configured AI service. Your sign-in token, board data, and any task you open are sent there for processing. Outputs may include generated language — review before applying.",
+        remoteConsentAccept: "I understand",
+        remoteConsentLearnMore: "What is shared?",
         newConversation: "New conversation",
         stopResponse: "Stop response",
         characterCounterMax: 2000,
