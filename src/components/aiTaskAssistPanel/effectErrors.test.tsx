@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
@@ -35,14 +35,19 @@ describe("AiTaskAssistPanel effect error handling", () => {
         jest.useFakeTimers();
         // The component renders a warning Alert when `useAi.error` is set, not
         // when `run()` rejects. Mock both so the assertion can see the text.
-        mockedUseAi.mockImplementation(() => ({
+        // The mock returns a stable object reference so the run/reset
+        // functions captured by the suggestion effect's deps stay equal across
+        // renders — otherwise setDismissedKeys re-fires endlessly and renders
+        // never settle.
+        const stableUseAiResult = {
             abort: jest.fn(),
             data: undefined,
             error: new Error("offline"),
             isLoading: false,
             reset: jest.fn(),
             run: jest.fn().mockRejectedValue(new Error("offline"))
-        }));
+        };
+        mockedUseAi.mockReturnValue(stableUseAiResult);
     });
 
     afterEach(() => {
@@ -81,7 +86,9 @@ describe("AiTaskAssistPanel effect error handling", () => {
             </QueryClientProvider>
         );
 
-        jest.advanceTimersByTime(1000);
+        act(() => {
+            jest.advanceTimersByTime(1000);
+        });
         await waitFor(() => {
             expect(mockedUseAi).toHaveBeenCalled();
         });
