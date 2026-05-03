@@ -17,32 +17,55 @@ It feels "web-y" the moment any of those break. Most red flags below trace back 
 The single highest-leverage piece of work on a responsive page is its `<head>` and global stylesheet. The current `index.html` and `src/App.css` already set this up; if you're starting a sibling project, the snippet below is the minimum.
 
 ```html
-<meta charset="utf-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0b0b0c" media="(prefers-color-scheme: dark)">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MyApp">
-<meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta charset="utf-8" />
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+/>
+<meta name="color-scheme" content="light dark" />
+<meta
+    name="theme-color"
+    content="#ffffff"
+    media="(prefers-color-scheme: light)"
+/>
+<meta
+    name="theme-color"
+    content="#0b0b0c"
+    media="(prefers-color-scheme: dark)"
+/>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+/>
+<meta name="apple-mobile-web-app-title" content="MyApp" />
+<meta name="format-detection" content="telephone=no" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 ```
 
 ```css
-html { -webkit-text-size-adjust: 100%; }
+html {
+    -webkit-text-size-adjust: 100%;
+}
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto,
+        sans-serif;
     -webkit-font-smoothing: antialiased;
     min-height: 100dvh;
     padding: env(safe-area-inset-top) env(safe-area-inset-right)
-             env(safe-area-inset-bottom) env(safe-area-inset-left);
+        env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
-input, select, textarea { font-size: 16px; } /* prevents iOS auto-zoom */
-a, button, [role="button"] {
+input,
+select,
+textarea {
+    font-size: 16px;
+} /* prevents iOS auto-zoom */
+a,
+button,
+[role="button"] {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
 }
@@ -128,7 +151,7 @@ In this repo: optimistic updates exist via `useReactMutation` (`src/utils/hooks/
 
 ### G. Engagement APIs
 
-- **Web Push on iOS 16.4+** works only for *installed* PWAs and only from a transient user activation.
+- **Web Push on iOS 16.4+** works only for _installed_ PWAs and only from a transient user activation.
 - **Web Share**: `navigator.share({ files })` opens the OS share sheet — feature-detect with `navigator.canShare`.
 - **Badging**: `navigator.setAppBadge(n)` (iOS 16.4+, Chromium desktop).
 - **App shortcuts** in manifest for long-press launcher actions (Android/desktop only).
@@ -149,11 +172,11 @@ In this repo: icon-only buttons consistently carry `aria-label`; decorative icon
 
 ### Performance thresholds (75th-percentile mobile)
 
-| Metric                             | Good   | Poor    |
-| ---------------------------------- | ------ | ------- |
-| **LCP**                            | ≤ 2.5 s | > 4.0 s |
-| **INP** (replaced FID, Mar 2024)   | ≤ 200 ms | > 500 ms |
-| **CLS**                            | ≤ 0.1  | > 0.25  |
+| Metric                           | Good     | Poor     |
+| -------------------------------- | -------- | -------- |
+| **LCP**                          | ≤ 2.5 s  | > 4.0 s  |
+| **INP** (replaced FID, Mar 2024) | ≤ 200 ms | > 500 ms |
+| **CLS**                          | ≤ 0.1    | > 0.25   |
 
 Sub-100 ms INP feels truly native; 200-500 ms feels web-y. The 2025 Web Almanac found only 67 % of mobile pages hit good INP and 62 % hit good LCP — mobile is where the gap lives.
 
