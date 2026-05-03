@@ -10,15 +10,14 @@ import { Outlet } from "react-router";
 import BrandMark from "../components/brandMark";
 import { microcopy } from "../constants/microcopy";
 import {
-    accent,
-    brand,
+    aurora,
+    blur,
     breakpoints,
     fontSize,
     fontWeight,
     letterSpacing,
     lineHeight,
     radius,
-    shadow,
     space
 } from "../theme/tokens";
 
@@ -27,16 +26,24 @@ const Page = styled.div`
     grid-template-columns: 1fr;
     min-height: 100vh;
     min-height: 100dvh;
+    /* Cinematic aurora wash on the canvas side. The radials sit over the
+     * page-level mesh so the form is framed by violet/pink/cyan even when
+     * the hero rail is hidden below the md breakpoint. */
     background:
         radial-gradient(
-            1200px 600px at 0% 0%,
-            ${accent.bgMedium},
-            transparent 60%
+            60rem 50rem at 18% 22%,
+            rgba(139, 92, 246, 0.3) 0%,
+            transparent 65%
         ),
         radial-gradient(
-            900px 500px at 100% 100%,
-            ${accent.bgMedium},
-            transparent 60%
+            45rem 45rem at 82% 78%,
+            rgba(236, 72, 153, 0.22) 0%,
+            transparent 65%
+        ),
+        radial-gradient(
+            38rem 38rem at 92% 18%,
+            rgba(6, 182, 212, 0.18) 0%,
+            transparent 65%
         ),
         var(--pulse-bg-page);
 
@@ -66,18 +73,27 @@ const HeroRail = styled.aside`
 
     @media (min-width: ${breakpoints.md}px) {
         align-items: center;
+        /* Deep cinematic mesh: violet → pink → cyan over the cinematic
+         * base. Saturations are bumped (0.55 / 0.42 / 0.32) so the aurora
+         * reads against the very dark base — anything lighter would feel
+         * washed out. */
         background:
             radial-gradient(
-                700px 700px at 30% 30%,
-                ${accent.bgStrong},
+                60rem 50rem at 25% 25%,
+                rgba(139, 92, 246, 0.55) 0%,
                 transparent 70%
             ),
             radial-gradient(
-                500px 500px at 80% 80%,
-                ${accent.secondaryStrong},
+                45rem 45rem at 78% 70%,
+                rgba(236, 72, 153, 0.42) 0%,
                 transparent 70%
             ),
-            ${brand.primaryBgDark};
+            radial-gradient(
+                38rem 38rem at 88% 18%,
+                rgba(6, 182, 212, 0.32) 0%,
+                transparent 70%
+            ),
+            ${aurora.cinematicBase};
         color: #fff;
         display: flex;
         justify-content: center;
@@ -128,9 +144,14 @@ const HeroBadge = styled.div`
 `;
 
 const HeroBadgeDot = styled.span`
-    background: ${accent.start};
+    /* Cyan against the violet rail — opposing hue makes the dot pop where
+     * a violet dot would disappear into the cinematic mesh. Double box
+     * shadow stacks a tight inner glow with a softer outer halo. */
+    background: ${aurora.cyan};
     border-radius: 50%;
-    box-shadow: 0 0 12px ${accent.start};
+    box-shadow:
+        0 0 12px ${aurora.cyan},
+        0 0 24px rgba(6, 182, 212, 0.45);
     display: inline-block;
     height: 6px;
     width: 6px;
@@ -279,11 +300,17 @@ export const AuthSubtitle = styled.p`
  */
 const FormCard = styled(Card)`
     && {
-        background: var(--ant-color-bg-container, #fff);
-        border: 1px solid
-            var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+        /* Glass form pane sitting on the cinematic mesh — strong surface
+         * + heavy blur + violet drop shadow makes the form feel like it's
+         * lit from within rather than pasted on. */
+        background: var(--glass-surface-strong);
+        backdrop-filter: blur(${blur.lg}px) saturate(180%);
+        -webkit-backdrop-filter: blur(${blur.lg}px) saturate(180%);
+        border: 1px solid var(--glass-border-strong);
         border-radius: ${radius.lg}px;
-        box-shadow: ${shadow.lg};
+        box-shadow:
+            0 24px 48px -12px rgba(139, 92, 246, 0.32),
+            var(--glass-shine);
         box-sizing: border-box;
         max-width: 28rem;
         text-align: left;

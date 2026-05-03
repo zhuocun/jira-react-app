@@ -51,8 +51,20 @@ const Card = styled.article`
 
     &:hover,
     &:focus-within {
-        border-color: var(--ant-color-primary-border, rgba(94, 106, 210, 0.4));
-        box-shadow: ${shadow.md};
+        border-color: rgba(139, 92, 246, 0.45);
+        /* Aurora hover: ambient + 1px violet ring + larger drop glow than
+         * the task card so project tiles read as a higher tier of surface. */
+        box-shadow:
+            ${shadow.md},
+            0 0 0 1px rgba(139, 92, 246, 0.18),
+            0 12px 32px -12px rgba(139, 92, 246, 0.32);
+        background:
+            linear-gradient(
+                135deg,
+                rgba(139, 92, 246, 0.04) 0%,
+                rgba(6, 182, 212, 0.02) 100%
+            ),
+            var(--ant-color-bg-container, #fff);
         transform: translateY(-2px);
     }
 

@@ -61,39 +61,95 @@ export const letterSpacing = {
 } as const;
 
 /**
- * Refined indigo brand. Replaces the old Atlassian Jira blue (#2684FF) with
- * a calmer indigo that feels closer to Linear / Vercel without copying any
- * single product. Hover/active are darker steps in the same hue. AA contrast
- * on white (5.1:1 normal text, 7+ bold/large) and AA on dark surfaces.
+ * Aurora violet brand (BOLD AURORA-FIRST direction). #8B5CF6 anchors the
+ * 2026 AI-native palette; hover/active are darker steps in the same hue.
+ * AA contrast on white (4.6:1 normal text) and AA on dark surfaces.
  */
 export const brand = {
-    primary: "#5E6AD2",
-    primaryHover: "#4F5BC4",
-    primaryActive: "#3F4AAA",
-    primaryBg: "#EEF0FF",
-    primaryBgDark: "#1C1F3D"
+    primary: "#8B5CF6",
+    primaryHover: "#7C3AED",
+    primaryActive: "#6D28D9",
+    primaryBg: "#F5F3FF",
+    primaryBgDark: "#1E1B3A"
 } as const;
 
 /**
  * Accent gradient used for AI surfaces (sparkle icon, badges, highlights).
- * Sits beside the indigo brand without competing with it.
+ * Now violet → cyan — the signature 2026 AI gradient. The end-stop sits
+ * 60° away from the start so the gradient reads as "energy" rather than
+ * a single-hue tint.
  *
  * The translucent variants exist as named tokens so AI-themed surfaces
- * (assist panel, sparkle dots, hero gradients) can reach for them by name
- * instead of duplicating raw `rgba(124, 92, 255, …)` literals across the
- * codebase. All values use the same hue (~262°) as `accent.start`.
+ * can reach for them by name instead of duplicating raw rgba literals.
  */
 export const accent = {
-    start: "#7C5CFF",
-    end: "#C084FC",
-    glow: "rgba(124, 92, 255, 0.18)",
-    bgSubtle: "rgba(124, 92, 255, 0.04)",
-    bgSoft: "rgba(124, 92, 255, 0.10)",
-    bgMedium: "rgba(124, 92, 255, 0.18)",
-    bgStrong: "rgba(124, 92, 255, 0.35)",
-    border: "rgba(124, 92, 255, 0.22)",
-    secondaryStrong: "rgba(94, 106, 210, 0.35)",
-    selectionBg: "rgba(94, 106, 210, 0.22)"
+    start: "#8B5CF6",
+    end: "#06B6D4",
+    glow: "rgba(139, 92, 246, 0.22)",
+    bgSubtle: "rgba(139, 92, 246, 0.05)",
+    bgSoft: "rgba(139, 92, 246, 0.10)",
+    bgMedium: "rgba(139, 92, 246, 0.20)",
+    bgStrong: "rgba(139, 92, 246, 0.36)",
+    border: "rgba(139, 92, 246, 0.26)",
+    secondaryStrong: "rgba(6, 182, 212, 0.32)",
+    selectionBg: "rgba(139, 92, 246, 0.22)"
+} as const;
+
+/**
+ * Aurora palette (BOLD AURORA-FIRST direction). Vibrant violet→cyan with
+ * pink + emerald aurora layers used for mesh page backgrounds, AI panels,
+ * and the cinematic auth rail. Components reach for these only on the
+ * hero surfaces called out in the redesign brief — every other surface
+ * stays with `brand` / `accent`.
+ */
+export const aurora = {
+    violet: "#8B5CF6",
+    cyan: "#06B6D4",
+    pink: "#EC4899",
+    emerald: "#10B981",
+    violetSoft: "rgba(139, 92, 246, 0.18)",
+    cyanSoft: "rgba(6, 182, 212, 0.16)",
+    pinkSoft: "rgba(236, 72, 153, 0.14)",
+    emeraldSoft: "rgba(16, 185, 129, 0.10)",
+    cinematicBase: "#0F0A1F",
+    gradLine:
+        "linear-gradient(135deg, #8B5CF6 0%, #6366F1 45%, #06B6D4 100%)",
+    gradLineSoft:
+        "linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(6,182,212,0.14) 100%)"
+} as const;
+
+/**
+ * Glass surface tokens. Companion to `aurora` — used by header, modal,
+ * drawer, AI panel, hero card surfaces. Each value pairs with a
+ * `backdrop-filter` recipe (see `blur` below). NEVER apply glass without
+ * the `prefers-reduced-transparency` fallback wired up in App.css.
+ */
+export const glass = {
+    surface: "rgba(255, 255, 255, 0.65)",
+    surfaceStrong: "rgba(255, 255, 255, 0.78)",
+    surfaceSubtle: "rgba(255, 255, 255, 0.45)",
+    surfaceDark: "rgba(20, 18, 35, 0.55)",
+    surfaceStrongDark: "rgba(20, 18, 35, 0.72)",
+    surfaceSubtleDark: "rgba(20, 18, 35, 0.35)",
+    border: "rgba(255, 255, 255, 0.28)",
+    borderDark: "rgba(255, 255, 255, 0.08)",
+    borderStrong: "rgba(139, 92, 246, 0.20)",
+    borderStrongDark: "rgba(167, 139, 250, 0.28)",
+    shineInset: "inset 0 1px 0 rgba(255, 255, 255, 0.45)",
+    shineInsetDark: "inset 0 1px 0 rgba(255, 255, 255, 0.06)"
+} as const;
+
+/**
+ * Backdrop-filter blur ladder (CSS px). Used as
+ * `backdrop-filter: saturate(180%) blur(${blur.md}px)`. Higher values are
+ * GPU-expensive — keep `lg` and `xl` to ≤2 simultaneously visible surfaces.
+ */
+export const blur = {
+    xs: 8,
+    sm: 12,
+    md: 20,
+    lg: 28,
+    xl: 40
 } as const;
 
 /**
@@ -136,8 +192,12 @@ export const shadow = {
     md: "0 2px 4px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.08)",
     lg: "0 8px 16px rgba(15, 23, 42, 0.08), 0 16px 32px rgba(15, 23, 42, 0.10)",
     xl: "0 16px 32px rgba(15, 23, 42, 0.12), 0 32px 64px rgba(15, 23, 42, 0.14)",
-    focus: "0 0 0 3px rgba(94, 106, 210, 0.20)",
-    inset: "inset 0 1px 0 rgba(255, 255, 255, 0.06)"
+    focus: "0 0 0 3px rgba(139, 92, 246, 0.22)",
+    inset: "inset 0 1px 0 rgba(255, 255, 255, 0.06)",
+    glowViolet: "0 0 24px rgba(139, 92, 246, 0.32)",
+    glowCyan: "0 0 24px rgba(6, 182, 212, 0.28)",
+    glowAurora:
+        "0 12px 40px -8px rgba(139, 92, 246, 0.30), 0 0 0 1px rgba(139, 92, 246, 0.10)"
 } as const;
 
 /**
@@ -201,18 +261,18 @@ export const modalWidthCss = (max: number) =>
     `min(${max}px, calc(100vw - ${modalGutterPx}px))`;
 
 /**
- * Brand-aligned gradient palette for user / project avatars. Six steps in
- * the indigo → violet → pink range so every distinct id reads as a unique
- * monogram without straying outside the brand hue. Centralizing the list
- * here means a future palette change is one edit (Phase 1.1 of the plan).
+ * Aurora-aligned gradient palette for user / project avatars. Six steps
+ * across the violet/cyan/pink/emerald aurora family so every distinct id
+ * reads as a unique monogram while staying inside the new palette.
+ * Centralizing the list here means a future palette change is one edit.
  */
 export const avatarGradients = [
-    `linear-gradient(135deg, ${accent.start} 0%, ${brand.primary} 100%)`,
-    `linear-gradient(135deg, ${accent.end} 0%, #6366F1 100%)`,
-    `linear-gradient(135deg, #F472B6 0%, ${accent.start} 100%)`,
-    `linear-gradient(135deg, #38BDF8 0%, ${brand.primary} 100%)`,
-    `linear-gradient(135deg, #34D399 0%, ${brand.primary} 100%)`,
-    `linear-gradient(135deg, #FB923C 0%, ${accent.end} 100%)`
+    `linear-gradient(135deg, ${aurora.violet} 0%, ${aurora.cyan} 100%)`,
+    `linear-gradient(135deg, ${aurora.violet} 0%, ${aurora.pink} 100%)`,
+    `linear-gradient(135deg, ${aurora.cyan} 0%, ${aurora.emerald} 100%)`,
+    `linear-gradient(135deg, ${aurora.pink} 0%, ${aurora.violet} 100%)`,
+    `linear-gradient(135deg, #6366F1 0%, ${aurora.cyan} 100%)`,
+    `linear-gradient(135deg, ${aurora.emerald} 0%, ${aurora.violet} 100%)`
 ] as const;
 
 /**

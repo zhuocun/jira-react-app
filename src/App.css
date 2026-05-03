@@ -23,29 +23,65 @@
  */
 :root,
 html[data-color-scheme="light"] {
-    --pulse-bg-page: #f7f8fb;
+    --pulse-bg-page: #fafafd;
     --pulse-text-base: rgba(15, 23, 42, 0.92);
-    --color-copilot-grad-start: #7c5cff;
-    --color-copilot-grad-mid: #5e6ad2;
-    --color-copilot-grad-end: #c084fc;
-    --color-copilot-bg-subtle: rgba(124, 92, 255, 0.06);
-    --color-copilot-bg-medium: rgba(124, 92, 255, 0.15);
-    --color-copilot-badge: #7c5cff;
-    --color-copilot-badge-bg: rgba(124, 92, 255, 0.12);
-    --color-copilot-pulse: rgba(124, 92, 255, 0.45);
+
+    /* Copilot (AI) palette — switched to aurora violet+cyan. */
+    --color-copilot-grad-start: #8b5cf6;
+    --color-copilot-grad-mid: #6366f1;
+    --color-copilot-grad-end: #06b6d4;
+    --color-copilot-bg-subtle: rgba(139, 92, 246, 0.06);
+    --color-copilot-bg-medium: rgba(139, 92, 246, 0.18);
+    --color-copilot-badge: #8b5cf6;
+    --color-copilot-badge-bg: rgba(139, 92, 246, 0.14);
+    --color-copilot-pulse: rgba(139, 92, 246, 0.5);
+
+    /* Aurora mesh layers (consumed by body + AI panels + cinematic rail). */
+    --aurora-blob-violet: rgba(139, 92, 246, 0.28);
+    --aurora-blob-cyan: rgba(6, 182, 212, 0.22);
+    --aurora-blob-pink: rgba(236, 72, 153, 0.18);
+    --aurora-blob-emerald: rgba(16, 185, 129, 0.14);
+    --aurora-mesh-base: #fafafd;
+
+    /* Glass surface tokens (consumed by header, modal, drawer, AI panels). */
+    --glass-surface: rgba(255, 255, 255, 0.65);
+    --glass-surface-strong: rgba(255, 255, 255, 0.78);
+    --glass-surface-subtle: rgba(255, 255, 255, 0.45);
+    --glass-border: rgba(255, 255, 255, 0.28);
+    --glass-border-strong: rgba(139, 92, 246, 0.2);
+    --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+
+    /* Modal mask — violet tinted instead of neutral black. */
+    --aurora-modal-mask: rgba(40, 24, 80, 0.32);
 }
 
 html[data-color-scheme="dark"] {
-    --pulse-bg-page: #0f1116;
+    --pulse-bg-page: #0a0716;
     --pulse-text-base: rgba(229, 231, 235, 0.92);
+
     --color-copilot-grad-start: #a78bfa;
     --color-copilot-grad-mid: #8b94f0;
-    --color-copilot-grad-end: #e879f9;
-    --color-copilot-bg-subtle: rgba(167, 139, 250, 0.08);
-    --color-copilot-bg-medium: rgba(167, 139, 250, 0.18);
+    --color-copilot-grad-end: #22d3ee;
+    --color-copilot-bg-subtle: rgba(167, 139, 250, 0.1);
+    --color-copilot-bg-medium: rgba(167, 139, 250, 0.22);
     --color-copilot-badge: #a78bfa;
-    --color-copilot-badge-bg: rgba(167, 139, 250, 0.16);
-    --color-copilot-pulse: rgba(167, 139, 250, 0.5);
+    --color-copilot-badge-bg: rgba(167, 139, 250, 0.2);
+    --color-copilot-pulse: rgba(167, 139, 250, 0.55);
+
+    --aurora-blob-violet: rgba(139, 92, 246, 0.35);
+    --aurora-blob-cyan: rgba(6, 182, 212, 0.22);
+    --aurora-blob-pink: rgba(236, 72, 153, 0.18);
+    --aurora-blob-emerald: rgba(16, 185, 129, 0.14);
+    --aurora-mesh-base: #0a0716;
+
+    --glass-surface: rgba(20, 18, 35, 0.55);
+    --glass-surface-strong: rgba(20, 18, 35, 0.72);
+    --glass-surface-subtle: rgba(20, 18, 35, 0.35);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-strong: rgba(167, 139, 250, 0.28);
+    --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    --aurora-modal-mask: rgba(8, 4, 20, 0.62);
 }
 
 /*
@@ -122,13 +158,74 @@ body {
      * desktop; AntD tokens decide font-size per-control. */
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
-    background: var(--pulse-bg-page);
     color: var(--pulse-text-base);
+    /*
+     * Aurora mesh page background. Four radial blobs (violet, cyan, pink,
+     * emerald) over the mesh base. `background-attachment: fixed` keeps the
+     * mesh stationary as the user scrolls so it reads as a backdrop rather
+     * than a tiled pattern. Solid fallback lives in
+     * `prefers-reduced-transparency` below.
+     */
+    background:
+        radial-gradient(
+            at 18% 12%,
+            var(--aurora-blob-violet) 0px,
+            transparent 55%
+        ),
+        radial-gradient(
+            at 82% 18%,
+            var(--aurora-blob-cyan) 0px,
+            transparent 55%
+        ),
+        radial-gradient(
+            at 50% 88%,
+            var(--aurora-blob-pink) 0px,
+            transparent 55%
+        ),
+        radial-gradient(
+            at 92% 92%,
+            var(--aurora-blob-emerald) 0px,
+            transparent 55%
+        ),
+        var(--aurora-mesh-base);
+    background-attachment: fixed;
 }
 
 #root {
     min-height: 100vh;
     min-height: 100dvh;
+}
+
+/*
+ * BOLD AURORA-FIRST glass surfaces. Applied via AntD's stable class names so
+ * we don't have to wrap every Modal/Drawer call site. The cssVar prefix
+ * `ant` (set in `buildAntdTheme`) does not affect element class names.
+ *
+ * The violet-tinted box-shadow + 1px aurora ring restores the modal/drawer
+ * silhouette against the violet mask so it never disappears into the
+ * backdrop.
+ */
+.ant-modal-content,
+.ant-drawer-content {
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    box-shadow:
+        0 12px 40px -8px rgba(139, 92, 246, 0.3),
+        0 0 0 1px rgba(139, 92, 246, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+html[data-color-scheme="dark"] .ant-modal-content,
+html[data-color-scheme="dark"] .ant-drawer-content {
+    box-shadow:
+        0 12px 48px -8px rgba(167, 139, 250, 0.38),
+        0 0 0 1px rgba(167, 139, 250, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.ant-modal-mask {
+    backdrop-filter: blur(8px) saturate(140%);
+    -webkit-backdrop-filter: blur(8px) saturate(140%);
 }
 
 /*
@@ -269,17 +366,50 @@ video {
 }
 
 /*
+ * Honor user transparency preference. Replace every glass surface with its
+ * solid token equivalent so motion-sensitive / contrast-sensitive users
+ * still get a usable, opaque surface. Also kill the body mesh — a flat
+ * brand-tinted surface is calmer and equally legible.
+ */
+@media (prefers-reduced-transparency: reduce) {
+    body {
+        background: var(--aurora-mesh-base);
+        background-attachment: scroll;
+    }
+
+    .ant-modal-content,
+    .ant-drawer-content {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: var(--ant-color-bg-elevated, #fff);
+    }
+
+    .ant-modal-mask {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
+
+/*
  * Forced-colors / High-contrast mode (Windows). Ensure interactive
  * surfaces still have visible borders rather than relying on subtle
- * tints that get filtered out.
+ * tints that get filtered out. Also collapse glass surfaces to a solid
+ * OS canvas so blur/translucency never hides text.
  */
 @media (forced-colors: active) {
+    body {
+        background: Canvas;
+    }
+
     .ant-btn,
     .ant-input,
     .ant-select-selector,
     .ant-card,
     .ant-modal-content,
     .ant-drawer-content {
+        background: Canvas;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
         border: 1px solid CanvasText;
     }
 }

@@ -10,7 +10,7 @@ import { Dropdown, MenuProps, Space, Switch, Typography } from "antd";
 import { useLocation } from "react-router";
 
 import { microcopy } from "../../constants/microcopy";
-import { breakpoints, radius, space } from "../../theme/tokens";
+import { blur, breakpoints, radius, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useColorScheme from "../../utils/hooks/useColorScheme";
@@ -23,7 +23,12 @@ import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
     align-items: center;
-    backdrop-filter: saturate(180%) blur(12px);
+    /* Stronger glass treatment for the BOLD AURORA-FIRST redesign: the
+     * header floats over the page-level mesh as a frosted pane. The 180°
+     * vertical gradient adds a faint top-shine that reads as "elevated";
+     * the violet drop shadow ties the surface back to the brand. */
+    backdrop-filter: saturate(180%) blur(${blur.md}px);
+    -webkit-backdrop-filter: saturate(180%) blur(${blur.md}px);
     /*
      * Opt the sticky header out of the route cross-fade. With its own
      * view-transition-name the browser keeps it in place while the body
@@ -31,13 +36,15 @@ const PageHeader = styled.header`
      * push transition rather than a full-page swap.
      */
     view-transition-name: pulse-header;
-    background: color-mix(
-        in srgb,
-        var(--ant-color-bg-container, #fff) 86%,
-        transparent
+    background: linear-gradient(
+        180deg,
+        var(--glass-surface-strong) 0%,
+        var(--glass-surface) 100%
     );
-    border-bottom: 1px solid
-        var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow:
+        0 1px 0 rgba(139, 92, 246, 0.08),
+        0 8px 24px -16px rgba(139, 92, 246, 0.2);
     display: flex;
     justify-content: space-between;
     gap: ${space.xs}px;
