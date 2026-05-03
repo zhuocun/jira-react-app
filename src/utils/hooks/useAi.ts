@@ -187,15 +187,18 @@ export const validateResponse = (
 };
 
 /**
- * Remote v1 AI route. The Python `jira-python-server` only exposes
- * `/api/v1/agents/{name}/(invoke|stream)` (PRD §5.3) -- it does NOT
- * mount `/api/ai/*`. We keep this function so a future bridge server
- * (or a managed proxy that translates `/api/ai/{route}` into agent
- * runs) can be plugged in by setting `REACT_APP_AI_BASE_URL`, but in
- * the canonical deployment the `aiUseLocalEngine` branch in `run`
- * shortcuts here and the deterministic stub in `utils/ai/engine.ts`
- * answers locally. The block below should never run with the bundled
- * server.
+ * Remote v1 AI route. POSTs to `${aiBaseUrl}/api/ai/{route}` -- the
+ * Python `jira-python-server` mounts this prefix as a deterministic-
+ * with-LLM-polish shim (see `app/routers/ai.py` in jira-python-server)
+ * alongside the v2.1 `/api/v1/agents/...` agent surface, and exposes
+ * the same routes under `/api/v1/ai/` for new clients. With
+ * `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) set on the server, the
+ * structured routes (Brief, Draft, Breakdown, Estimate, Readiness)
+ * polish their text fields via the catalog `polish_*` helpers; chat
+ * forwards to the `chat-agent` runtime; search stays deterministic.
+ * When `REACT_APP_AI_BASE_URL` is unset (the default), `run`
+ * short-circuits via `environment.aiUseLocalEngine` and the
+ * deterministic engine in `utils/ai/engine.ts` answers locally instead.
  *
  * TODO(v2.x): collapse `useAi` onto `streamAgent` so all AI traffic
  * goes through the LangGraph agent surface and this fork disappears.
