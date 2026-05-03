@@ -12,7 +12,13 @@ import {
 import EmptyState from "../components/emptyState";
 import ProjectPopover from "../components/projectPopover";
 import { microcopy } from "../constants/microcopy";
-import { breakpoints, fontSize, fontWeight, space } from "../theme/tokens";
+import {
+    blur,
+    breakpoints,
+    fontSize,
+    fontWeight,
+    space
+} from "../theme/tokens";
 import useReactQuery from "../utils/hooks/useReactQuery";
 import useTitle from "../utils/hooks/useTitle";
 
@@ -27,28 +33,25 @@ const Container = styled.div`
 const TopBar = styled.div`
     align-items: center;
     /*
-     * Sticky-opaque secondary chrome. Mirrors the main header's pattern:
-     * the surface uses --page-background with background-attachment:
-     * fixed, so the bar reads as a continuous extension of the page
-     * gradient when at rest, but the layer is fully opaque — content
-     * scrolling under it is cleanly hidden. The bar pins itself just
-     * below the main header by sticking at top: var(--header-height),
-     * which the main header publishes via a ResizeObserver.
+     * Frosted-glass secondary chrome. Mirrors the main header's new
+     * pattern: a translucent surface backed by backdrop-filter blur, so
+     * the breadcrumb + tabs row stays legible when content is scrolled
+     * under it but the page gradient is still visible through the bar
+     * at rest. The 1 px hairline border-bottom gives the chrome a faint
+     * edge at rest. Pinned just below the main header at
+     * top: var(--header-height), which the main header publishes via a
+     * ResizeObserver.
      *
-     * z-index 10 matches the main header. The bar is later in DOM order
-     * so it stacks above the main header's fade strip in the area
-     * between the chrome layers, which is what we want — the strip is
-     * decorative, the breadcrumb / tabs are content.
+     * z-index 10 matches the main header; the bar is later in DOM
+     * order so it stacks above the main header's bottom edge.
      *
-     * Vertical padding tracks the main header's compact rhythm: now
-     * that the main chrome lives in ~54 px (2 + 44 + 8 fade), the old
-     * symmetric 12 / 12 / 24-fade here added another ~80 px of chrome
-     * on top, which read as a heavy stacked band. Trimmed to
-     * space.xs / space.xs / 8-fade so both chrome layers feel cut from
-     * the same cloth.
+     * Vertical padding tracks the main header's compact rhythm so the
+     * two chrome layers feel cut from the same cloth.
      */
-    background: var(--page-background);
-    background-attachment: fixed;
+    background: var(--glass-surface-strong);
+    backdrop-filter: blur(${blur.md}px) saturate(180%);
+    -webkit-backdrop-filter: blur(${blur.md}px) saturate(180%);
+    border-bottom: 1px solid var(--glass-border);
     display: flex;
     flex-wrap: wrap;
     gap: ${space.xxs}px;
@@ -76,23 +79,15 @@ const TopBar = styled.div`
     }
 
     /*
-     * Soft fade strip below TopBar — same recipe as the main header's
-     * ::after, now matched to the main header's 8 px floor so both
-     * chrome layers end with the same fade weight rather than the old
-     * 24 px strip that read as another full row of header.
+     * Honor the user's reduced-transparency preference: collapse the
+     * glass surface to the solid page background and drop the blur.
+     * Same recipe App.css uses on the body and on AntD modals/drawers.
      */
-    &::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        height: 8px;
+    @media (prefers-reduced-transparency: reduce) {
         background: var(--page-background);
         background-attachment: fixed;
-        mask-image: linear-gradient(to bottom, black, transparent);
-        -webkit-mask-image: linear-gradient(to bottom, black, transparent);
-        pointer-events: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
     }
 `;
 
