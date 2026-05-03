@@ -225,7 +225,10 @@ describe("ProjectPage", () => {
         });
         const { container } = renderPage();
 
-        expect(container.querySelector(".ant-spin")).toBeInTheDocument();
+        // The project list now renders skeleton cards while loading instead
+        // of an AntD <Spin>; the skeleton placeholders carry the
+        // `.ant-skeleton` class.
+        expect(container.querySelector(".ant-skeleton")).toBeInTheDocument();
 
         resolveProjects(response([]));
         resolveMembers(response([]));

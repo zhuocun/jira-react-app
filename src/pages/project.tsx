@@ -1,4 +1,9 @@
-import { PlusOutlined } from "@ant-design/icons";
+import {
+    AppstoreOutlined,
+    BankOutlined,
+    PlusOutlined,
+    TeamOutlined
+} from "@ant-design/icons";
 import styled from "@emotion/styled";
 import { Alert, Button, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
@@ -11,6 +16,7 @@ import ProjectList from "../components/projectList";
 import ProjectSearchPanel from "../components/projectSearchPanel";
 import { microcopy } from "../constants/microcopy";
 import {
+    accent,
     breakpoints,
     fontSize,
     fontWeight,
@@ -115,10 +121,45 @@ const StatCard = styled.div`
     gap: ${space.xxs / 2}px;
     min-width: 0;
     padding: ${space.xs}px ${space.sm}px;
+    position: relative;
 
     @media (min-width: ${breakpoints.sm}px) {
         gap: ${space.xxs}px;
         padding: ${space.md}px ${space.lg}px;
+    }
+`;
+
+const StatHeader = styled.div`
+    align-items: center;
+    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.55));
+    display: flex;
+    gap: ${space.xs}px;
+    width: 100%;
+`;
+
+const StatIcon = styled.span`
+    align-items: center;
+    background: ${accent.bgSubtle};
+    border-radius: ${radius.sm}px;
+    color: var(--ant-color-primary, #5e6ad2);
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 24px;
+    justify-content: center;
+    width: 24px;
+
+    /* Icon-glyph stays compact; the surrounding pill carries the colour. */
+    svg {
+        font-size: 14px;
+    }
+
+    @media (max-width: ${breakpoints.sm - 1}px) {
+        height: 20px;
+        width: 20px;
+
+        svg {
+            font-size: 12px;
+        }
     }
 `;
 
@@ -267,17 +308,32 @@ const ProjectPage = () => {
             </PageHeader>
             <StatRail aria-hidden={pLoading}>
                 <StatCard>
-                    <StatLabel>Total projects</StatLabel>
+                    <StatHeader>
+                        <StatIcon aria-hidden>
+                            <AppstoreOutlined />
+                        </StatIcon>
+                        <StatLabel>Total projects</StatLabel>
+                    </StatHeader>
                     <StatValue>{pLoading ? "—" : stats.total}</StatValue>
                 </StatCard>
                 <StatCard>
-                    <StatLabel>Organizations</StatLabel>
+                    <StatHeader>
+                        <StatIcon aria-hidden>
+                            <BankOutlined />
+                        </StatIcon>
+                        <StatLabel>Organizations</StatLabel>
+                    </StatHeader>
                     <StatValue>
                         {pLoading ? "—" : stats.organizations}
                     </StatValue>
                 </StatCard>
                 <StatCard>
-                    <StatLabel>Team members</StatLabel>
+                    <StatHeader>
+                        <StatIcon aria-hidden>
+                            <TeamOutlined />
+                        </StatIcon>
+                        <StatLabel>Team members</StatLabel>
+                    </StatHeader>
                     <StatValue>
                         {mLoading ? "—" : (members?.length ?? 0)}
                     </StatValue>

@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Empty, Typography } from "antd";
+import { Typography } from "antd";
 import React from "react";
 
 import {
@@ -11,12 +11,15 @@ import {
     radius,
     space
 } from "../../theme/tokens";
+import EmptyIllustration from "../emptyIllustration";
 
 interface EmptyStateProps {
     title: string;
     description?: React.ReactNode;
     cta?: React.ReactNode;
     illustration?: React.ReactNode;
+    /** Selects which branded illustration to show when no override is passed. */
+    variant?: "tasks" | "projects" | "search" | "members";
     /**
      * Heading level for the title (1-5). Defaults to 5 for backwards
      * compatibility, but callers should pass the level that keeps their
@@ -41,40 +44,24 @@ const Container = styled.div`
     }
 `;
 
-const StyledEmpty = styled(Empty)`
-    && {
-        margin: 0;
-    }
-
-    && .ant-empty-image {
-        align-items: center;
-        background:
-            radial-gradient(
-                circle at 30% 30%,
-                ${accent.bgMedium},
-                transparent 65%
-            ),
-            radial-gradient(
-                circle at 70% 70%,
-                rgba(94, 106, 210, 0.16),
-                transparent 60%
-            ),
-            var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
-        border: 1px solid
-            var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
-        border-radius: ${radius.pill}px;
-        color: var(--ant-color-primary, #5e6ad2);
-        display: inline-flex;
-        height: 72px;
-        justify-content: center;
-        margin-bottom: 0;
-        width: 72px;
-    }
-
-    && .ant-empty-image svg {
-        height: 32px;
-        width: 32px;
-    }
+const IllustrationFrame = styled.div`
+    align-items: center;
+    background:
+        radial-gradient(circle at 30% 30%, ${accent.bgMedium}, transparent 65%),
+        radial-gradient(
+            circle at 70% 70%,
+            rgba(94, 106, 210, 0.16),
+            transparent 60%
+        ),
+        var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
+    border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+    border-radius: ${radius.pill}px;
+    color: var(--ant-color-primary, #5e6ad2);
+    display: inline-flex;
+    height: 88px;
+    justify-content: center;
+    margin-bottom: 0;
+    width: 88px;
 `;
 
 const Title = styled(Typography.Title)`
@@ -104,15 +91,15 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     description,
     cta,
     illustration,
+    variant = "tasks",
     headingLevel = 5,
     "data-testid": testId
 }) => (
     <Container data-testid={testId} role="status">
         {illustration ?? (
-            <StyledEmpty
-                description={null}
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />
+            <IllustrationFrame>
+                <EmptyIllustration size={44} variant={variant} />
+            </IllustrationFrame>
         )}
         <Title level={headingLevel}>{title}</Title>
         {description ? <Description>{description}</Description> : null}

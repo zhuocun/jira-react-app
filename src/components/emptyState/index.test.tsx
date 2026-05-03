@@ -26,9 +26,11 @@ describe("EmptyState", () => {
         ).toBeInTheDocument();
     });
 
-    it("falls back to a generic Empty image when no illustration is given", () => {
+    it("falls back to the branded illustration when no override is given", () => {
         const { container } = render(<EmptyState title="Nothing here" />);
-        expect(container.querySelector(".ant-empty")).toBeInTheDocument();
+        // The branded illustration is an inline <svg>; the previous AntD
+        // Empty class hook has been replaced.
+        expect(container.querySelector("svg")).toBeInTheDocument();
     });
 
     it("has no axe-detectable accessibility violations", async () => {

@@ -1,7 +1,13 @@
+import {
+    BgColorsOutlined,
+    DragOutlined,
+    ThunderboltOutlined
+} from "@ant-design/icons";
 import styled from "@emotion/styled";
 import { Button, Card } from "antd";
 import { Outlet } from "react-router";
 
+import BrandMark from "../components/brandMark";
 import {
     accent,
     brand,
@@ -171,14 +177,32 @@ const HeroFeature = styled.li`
 
 const HeroFeatureIcon = styled.span`
     align-items: center;
-    background: ${accent.border};
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.06) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: ${radius.md}px;
-    color: ${accent.end};
+    color: #fff;
     display: inline-flex;
     flex: 0 0 auto;
-    height: 32px;
+    font-size: 16px;
+    height: 36px;
     justify-content: center;
-    width: 32px;
+    width: 36px;
+
+    svg {
+        height: 18px;
+        width: 18px;
+    }
+`;
+
+const HeroFinePrint = styled.p`
+    color: rgba(255, 255, 255, 0.6);
+    font-size: ${fontSize.sm}px;
+    line-height: ${lineHeight.normal};
+    margin: ${space.xl}px 0 0;
 `;
 
 /**
@@ -212,37 +236,8 @@ const Canvas = styled.main`
 
 const BrandHeader = styled.header`
     align-items: center;
-    color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
     display: inline-flex;
-    gap: ${space.sm}px;
     margin-bottom: ${space.xl}px;
-`;
-
-const BrandIcon = styled.span`
-    align-items: center;
-    background: linear-gradient(
-        135deg,
-        ${accent.start} 0%,
-        ${brand.primary} 100%
-    );
-    border-radius: ${radius.md}px;
-    box-shadow: ${shadow.md};
-    color: #fff;
-    display: inline-flex;
-    height: 36px;
-    justify-content: center;
-    width: 36px;
-
-    svg {
-        height: 20px;
-        width: 20px;
-    }
-`;
-
-const BrandWordmark = styled.span`
-    font-size: ${fontSize.lg}px;
-    font-weight: ${fontWeight.semibold};
-    letter-spacing: ${letterSpacing.tight};
 `;
 
 /**
@@ -332,37 +327,32 @@ const AuthLayout = () => {
                     </HeroSubtitle>
                     <HeroFeatureList>
                         <HeroFeature>
-                            <HeroFeatureIcon aria-hidden>✦</HeroFeatureIcon>
+                            <HeroFeatureIcon aria-hidden>
+                                <ThunderboltOutlined />
+                            </HeroFeatureIcon>
                             Draft tasks and standup briefs with AI.
                         </HeroFeature>
                         <HeroFeature>
-                            <HeroFeatureIcon aria-hidden>↹</HeroFeatureIcon>
+                            <HeroFeatureIcon aria-hidden>
+                                <DragOutlined />
+                            </HeroFeatureIcon>
                             Drag-and-drop columns and cards.
                         </HeroFeature>
                         <HeroFeature>
-                            <HeroFeatureIcon aria-hidden>◐</HeroFeatureIcon>
+                            <HeroFeatureIcon aria-hidden>
+                                <BgColorsOutlined />
+                            </HeroFeatureIcon>
                             Light, dark, and system color modes.
                         </HeroFeature>
                     </HeroFeatureList>
+                    <HeroFinePrint>
+                        Built for teams that ship. Free to try, no credit card.
+                    </HeroFinePrint>
                 </HeroInner>
             </HeroRail>
             <Canvas>
                 <BrandHeader>
-                    <BrandIcon aria-hidden>
-                        <svg
-                            viewBox="0 0 32 32"
-                            xmlns="http://www.w3.org/2000/svg"
-                            focusable="false"
-                        >
-                            <path
-                                d="M9 10.5 L9 21.5 M14 14.5 L14 17.5 M19 10.5 L19 21.5 M24 14.5 L24 17.5"
-                                stroke="#FFFFFF"
-                                strokeWidth="2.4"
-                                strokeLinecap="round"
-                            />
-                        </svg>
-                    </BrandIcon>
-                    <BrandWordmark>Pulse</BrandWordmark>
+                    <BrandMark size="md" />
                 </BrandHeader>
                 <FormCard>
                     <Outlet />
