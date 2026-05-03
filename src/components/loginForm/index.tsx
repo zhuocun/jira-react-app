@@ -39,6 +39,10 @@ const LoginForm: React.FC<{
     const handleSubmit = async (input: { email: string; password: string }) => {
         try {
             const res = await mutateAsync(input);
+            if (typeof res?.jwt !== "string" || res.jwt.length === 0) {
+                onError(new Error("Login response missing token"));
+                return;
+            }
             localStorage.setItem("Token", res.jwt);
             message.success(microcopy.feedback.welcomeBack);
             navigate("/projects", { viewTransition: true });
