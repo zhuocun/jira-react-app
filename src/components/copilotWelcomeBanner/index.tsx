@@ -25,11 +25,7 @@ const Wrap = styled.div`
      * gradient at low alpha lets the banner whisper "AI" without
      * shouting against the surrounding white space. */
     background:
-        linear-gradient(
-            135deg,
-            rgba(4, 120, 87, 0.08) 0%,
-            transparent 70%
-        ),
+        linear-gradient(135deg, rgba(4, 120, 87, 0.08) 0%, transparent 70%),
         var(--glass-surface-strong);
     backdrop-filter: blur(${blur.md}px) saturate(170%);
     -webkit-backdrop-filter: blur(${blur.md}px) saturate(170%);
