@@ -65,20 +65,27 @@ const ProjectItemButton = styled(NoPaddingButton)`
  * The trigger is a real `<button>` (not a bare `<span>`) so it is keyboard
  * focusable and announces correctly to screen readers; popover placement
  * defaults to `bottom` so it does not clip on narrow viewports.
+ *
+ * `line-height: 1` and small symmetric padding keep the trigger's visual
+ * height aligned with the rest of the breadcrumb items (the separator,
+ * the project name) so the row reads as a single baseline. Touch hit
+ * area is expanded via padding under `(pointer: coarse)` rather than a
+ * forced `min-height` that would push the trigger off the row centerline
+ * on desktop.
  */
 const TriggerButton = styled.button`
     align-items: center;
     background: transparent;
     border: none;
-    border-radius: ${radius.md}px;
+    border-radius: ${radius.sm}px;
     color: var(--ant-color-text, rgba(15, 23, 42, 0.85));
     cursor: pointer;
     display: inline-flex;
     font: inherit;
     font-weight: ${fontWeight.medium};
     gap: ${space.xs}px;
-    min-height: 32px;
-    padding: ${space.xxs}px ${space.sm}px;
+    line-height: 1;
+    padding: ${space.xxs}px ${space.xs}px;
     transition: background-color 120ms ease-out;
     white-space: nowrap;
 
@@ -88,7 +95,7 @@ const TriggerButton = styled.button`
     }
 
     @media (pointer: coarse) {
-        min-height: 44px;
+        padding: ${space.xs}px ${space.sm}px;
     }
 `;
 

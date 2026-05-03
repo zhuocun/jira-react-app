@@ -7,6 +7,7 @@ import {
 } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import { Dropdown, MenuProps, Space, Switch, Typography } from "antd";
+import { useEffect, useRef } from "react";
 import { useLocation } from "react-router";
 
 import { microcopy } from "../../constants/microcopy";
@@ -251,6 +252,33 @@ const Header: React.FC = () => {
     } = useAiEnabled();
     const { scheme, setPreference } = useColorScheme();
     const path = useLocation().pathname;
+    /*
+     * Publish the rendered header height to a global CSS custom property
+     * so secondary sticky chrome (e.g. the project detail page's
+     * breadcrumb / tabs row) can stick at `top: var(--header-height)`
+     * without hard-coding the offset. ResizeObserver covers safe-area
+     * changes, breakpoint-driven padding shifts, and zoom — anything
+     * that nudges the header height keeps the offset accurate.
+     */
+    const headerRef = useRef<HTMLElement | null>(null);
+    useEffect(() => {
+        const node = headerRef.current;
+        if (!node || typeof ResizeObserver === "undefined") return;
+        const writeHeight = (h: number) => {
+            document.documentElement.style.setProperty(
+                "--header-height",
+                `${h}px`
+            );
+        };
+        writeHeight(node.getBoundingClientRect().height);
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                writeHeight(entry.contentRect.height);
+            }
+        });
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, []);
 
     const items: MenuProps["items"] = [
         {
@@ -322,7 +350,7 @@ const Header: React.FC = () => {
     ];
 
     return (
-        <PageHeader>
+        <PageHeader ref={headerRef}>
             <LeftCluster>
                 <BrandLink
                     aria-label={microcopy.a11y.goToProjects}
