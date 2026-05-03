@@ -212,7 +212,11 @@ const ProjectDetailPage = () => {
                         description={microcopy.empty.notFound.description}
                         cta={
                             <Button
-                                onClick={() => navigate("/projects")}
+                                onClick={() =>
+                                    navigate("/projects", {
+                                        viewTransition: true
+                                    })
+                                }
                                 type="primary"
                             >
                                 {microcopy.empty.notFound.cta}

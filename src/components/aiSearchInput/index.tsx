@@ -308,6 +308,9 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     allowClear={{ clearIcon: <CloseCircleFilled /> }}
                     aria-describedby={`${announcerId}-helper`}
                     aria-label={labels.aria}
+                    autoComplete="off"
+                    enterKeyHint="search"
+                    inputMode="search"
                     onChange={(e) => setDraft(e.target.value)}
                     onPressEnter={() => void performSearch(draft)}
                     placeholder={labels.placeholder}

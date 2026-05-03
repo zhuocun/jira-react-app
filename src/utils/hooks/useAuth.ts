@@ -13,7 +13,7 @@ const useAuth = () => {
         localStorage.removeItem("Token");
     }, [queryClient]);
     const logout = useCallback(() => {
-        clear().then(() => navigate("/login"));
+        clear().then(() => navigate("/login", { viewTransition: true }));
     }, [clear, navigate]);
     const refreshUser = useCallback(async () => {
         if (token && (!user || user.jwt !== token)) {

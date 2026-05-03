@@ -130,7 +130,7 @@ In this repo:
 - **Font-size ≥ 16 px** on inputs (iOS auto-zooms otherwise). Never `user-scalable=no` (WCAG violation).
 - **Keyboard handling**: `interactive-widget=resizes-content` + `env(keyboard-inset-height)` for fixed footers above the keyboard. The VirtualKeyboard API (`navigator.virtualKeyboard.overlaysContent = true`) for chat composers.
 
-In this repo: login/registration already had `inputMode` + `enterKeyHint`. The audit added them to `taskCreator`, `columnCreator`, and `projectSearchPanel`. Search inputs use `type="search"` so the native clear button shows.
+In this repo: login/registration already had `inputMode` + `enterKeyHint`. The first audit added them to `taskCreator`, `columnCreator`, and `projectSearchPanel`. The mobile-optimization follow-up extended the same attributes to `projectModal`, `taskModal` (name / epic / note), `commandPalette`, `aiSearchInput`, and the `aiChatDrawer` composer (`enterKeyHint="send"` so the iOS return key reads "send"). Search inputs that don't already render their own clear affordance use `type="search"`; the palette and AI search keep AntD's `allowClear` prefix instead of stacking two clear buttons.
 
 ### E. Visual polish
 
@@ -235,17 +235,22 @@ Sub-100 ms INP feels truly native; 200-500 ms feels web-y. The 2025 Web Almanac 
 
 ## 4. What ships in this repo today
 
-Applied in the audit (PR #46) and the View Transitions follow-up (PR #47):
+Applied in the audit (PR #46), the View Transitions follow-up (PR #47), and the mobile-optimization review (this PR):
 
 - iOS auto-zoom prevented (`@media (pointer: coarse)` 16 px input rule).
 - Full PWA boilerplate in `index.html`; minimal `public/manifest.webmanifest`.
 - All popover / drawer height caps use `dvh` with `vh` fallback.
 - AntD `controlHeightSM` is 44 px on coarse pointers (Apple HIG).
-- `inputMode` + `enterKeyHint` on every text input that previously lacked them.
+- `inputMode` + `enterKeyHint` on every text input — auth, creators, search panels, modals (`projectModal`, `taskModal`), `commandPalette`, `aiSearchInput`, and the AI chat composer (`enterKeyHint="send"`).
+- `autoFocus` removed from modal text inputs so opening the dialog never triggers a viewport jump on iOS.
+- `FilteredEmptyButton` (the "Reset filters" CTA in an empty filtered column) lifts to `min-height: 44 px` on coarse pointers.
+- The Undo toast renders a real `<button>` instead of `<a role="button">` so Enter / Space activation comes for free and the focus ring is consistent with the rest of the app.
+- Task-type badge `<img>` carries explicit `width` / `height` attributes so the card row doesn't shift while the SVG asset loads (CLS).
 - `import isEqual from "lodash/isEqual"` instead of full lodash in `taskModal`.
 - `reportWebVitals(console.log)` in dev so INP/LCP/CLS show in the console.
 - Two new URL-driven hooks (`useAiDraftModal`, `useBoardBriefDrawer`) so the system back button dismisses overlays.
-- View Transitions on every user-initiated navigation; sticky header anchored via `view-transition-name`.
+- View Transitions on every user-initiated navigation — including logout, the not-found CTAs in `routes/index.tsx` and `projectDetail.tsx` — with the sticky header anchored via `view-transition-name`.
+- Route-level code splitting (`lazy()` per page) is in place at `src/routes/index.tsx:22–27`.
 
 Already in place before the audit:
 
@@ -268,12 +273,10 @@ Tier 1 — every user, every session:
 Tier 2 — visible only at specific moments, but very visible when they happen:
 
 2. **Real PNG icons for the manifest.** Currently the manifest references paths that 404. `pwa-asset-generator` produces all sizes including iOS splash images.
-3. **Route-level code splitting.** Improves first-load LCP / INP on cold cache. Currently deferred per a comment in `src/routes/index.tsx:31–33` because it would break tests that depend on synchronous rendering.
 
 Tier 3 — barely perceptible:
 
-4. **`autoFocus` in projectModal / taskCreator.** Fires after a click; modal animation already shifts the viewport.
-5. **`100vw` in modal width formula** (`src/theme/tokens.ts:201`). Only an issue on desktop with classic non-overlay scrollbars.
+3. **`100vw` in modal width formula** (`src/theme/tokens.ts:201`). Only an issue on desktop with classic non-overlay scrollbars.
 
 ---
 

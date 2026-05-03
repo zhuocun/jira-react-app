@@ -502,6 +502,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
                     aria-autocomplete="list"
                     aria-controls={listboxId}
                     aria-label={placeholder}
+                    autoComplete="off"
+                    enterKeyHint="search"
+                    inputMode="search"
                     onChange={(event) => handleQueryChange(event.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder}
