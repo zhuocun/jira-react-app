@@ -142,7 +142,7 @@ const ToolDetails = styled.details`
     }
 
     summary:focus-visible {
-        outline: 2px solid var(--ant-color-primary, #C2410C);
+        outline: 2px solid var(--ant-color-primary, #c2410c);
         outline-offset: 2px;
     }
 `;

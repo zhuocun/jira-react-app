@@ -8,7 +8,6 @@
  *   2. Change the `from "./orange"` line below to the new palette file.
  *   3. Run the app — that's it. No other edits required.
  */
-export { orangePalette as palette } from "./orange";
-
 export { paletteToCss } from "./cssVars";
+export { orangePalette as palette } from "./orange";
 export type { Palette } from "./types";

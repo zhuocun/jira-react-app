@@ -34,7 +34,7 @@ const Chip = styled.span`
     background: var(--ant-color-primary-bg, rgba(194, 65, 12, 0.08));
     border: 1px solid var(--ant-color-primary-border, rgba(194, 65, 12, 0.2));
     border-radius: ${radius.pill}px;
-    color: var(--ant-color-primary, #C2410C);
+    color: var(--ant-color-primary, #c2410c);
     display: inline-flex;
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};

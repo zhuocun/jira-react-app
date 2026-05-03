@@ -56,7 +56,7 @@ const CreateLink = styled.button`
     &:hover:not(:disabled),
     &:focus-visible:not(:disabled) {
         background: var(--ant-color-primary-bg, rgba(194, 65, 12, 0.06));
-        color: var(--ant-color-primary, #C2410C);
+        color: var(--ant-color-primary, #c2410c);
     }
 
     /* Keyboard focus ring is handled globally in App.css; this rule

@@ -56,7 +56,7 @@ const IllustrationFrame = styled.div`
         var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
     border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
     border-radius: ${radius.pill}px;
-    color: var(--ant-color-primary, #C2410C);
+    color: var(--ant-color-primary, #c2410c);
     display: inline-flex;
     height: 88px;
     justify-content: center;

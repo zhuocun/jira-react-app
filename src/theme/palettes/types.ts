@@ -71,12 +71,5 @@ export interface Palette {
      * Each is a `linear-gradient(135deg, … 0%, … 100%)` string so consumers
      * can drop them into `background:` directly without recomputing.
      */
-    avatarGradients: readonly [
-        string,
-        string,
-        string,
-        string,
-        string,
-        string
-    ];
+    avatarGradients: readonly [string, string, string, string, string, string];
 }

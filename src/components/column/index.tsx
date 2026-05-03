@@ -100,7 +100,7 @@ const FilteredEmptyButton = styled.button`
     background: transparent;
     border: 0;
     border-radius: ${radius.sm}px;
-    color: var(--ant-color-primary, #C2410C);
+    color: var(--ant-color-primary, #c2410c);
     cursor: pointer;
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
