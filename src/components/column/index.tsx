@@ -56,19 +56,25 @@ export const ColumnContainer = styled.div`
 
     /*
      * On phone-sized viewports a full desktop column overflows the screen.
-     * BoardShell uses ${space.md}px horizontal padding on mobile (16 + 16 =
-     * 32). Subtract another ${space.md}px so the next column peeks past the
-     * edge — that's the affordance that hints "more columns this way" and
-     * pairs with scroll-snap on the parent to give a Trello-style flick UX.
+     * BoardShell uses 16 px horizontal padding on mobile (16 + 16 = 32)
+     * and the column carries its own 16 px margin-right. The previous
+     * formula calc(100vw - 48px) exactly filled that chrome, leaving the
+     * next column with only the column's own margin (≈ 8 px after the
+     * fade gradient) — readable text from the next column's header still
+     * poked through, looking like a clipped layout. We now reserve an
+     * extra space.xl (32 px) peek budget so ~32 px of the next column is
+     * visible (column dot + first word of header), and we cap the column
+     * at 17 rem on mobile (down from 18 rem on desktop) so even devices
+     * just under the md breakpoint keep a visible peek.
      */
     @media (max-width: ${breakpoints.md - 1}px) {
         min-width: min(
-            ${columnMinWidthRem}rem,
-            calc(100vw - ${space.md * 2 + space.md}px)
+            ${columnMinWidthRem - 1}rem,
+            calc(100vw - ${space.md * 2 + space.md + space.xl}px)
         );
         width: min(
-            ${columnMinWidthRem}rem,
-            calc(100vw - ${space.md * 2 + space.md}px)
+            ${columnMinWidthRem - 1}rem,
+            calc(100vw - ${space.md * 2 + space.md + space.xl}px)
         );
     }
 `;
