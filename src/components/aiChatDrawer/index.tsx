@@ -51,7 +51,7 @@ const MessageBubble = styled(Typography.Paragraph)<{ $isUser: boolean }>`
     && {
         background: ${(props) =>
             props.$isUser
-                ? "var(--ant-color-primary-bg, rgba(194, 65, 12, 0.10))"
+                ? "var(--ant-color-primary-bg, rgba(234, 88, 12, 0.10))"
                 : "var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.04))"};
         border-radius: ${radius.md}px;
         color: var(--ant-color-text, inherit);
@@ -142,7 +142,7 @@ const ToolDetails = styled.details`
     }
 
     summary:focus-visible {
-        outline: 2px solid var(--ant-color-primary, #c2410c);
+        outline: 2px solid var(--ant-color-primary, #ea580c);
         outline-offset: 2px;
     }
 `;
@@ -814,7 +814,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                                         }}
                                                         size="small"
                                                         style={{
-                                                            color: "var(--color-copilot-badge, #C2410C)",
+                                                            color: "var(--color-copilot-badge, #EA580C)",
                                                             fontSize:
                                                                 fontSize.xs,
                                                             height: "auto",

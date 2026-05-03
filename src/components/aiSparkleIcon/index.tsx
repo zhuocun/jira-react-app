@@ -72,7 +72,7 @@ const AiSparkleIcon: React.FC<AiSparkleIconProps> = ({
                     <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop
                             offset="0%"
-                            stopColor="var(--color-copilot-grad-start, #C2410C)"
+                            stopColor="var(--color-copilot-grad-start, #EA580C)"
                         />
                         <stop
                             offset="60%"
@@ -109,7 +109,7 @@ const AiSparkleIcon: React.FC<AiSparkleIconProps> = ({
                 <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop
                         offset="0%"
-                        stopColor="var(--color-copilot-grad-start, #C2410C)"
+                        stopColor="var(--color-copilot-grad-start, #EA580C)"
                     />
                     <stop
                         offset="60%"

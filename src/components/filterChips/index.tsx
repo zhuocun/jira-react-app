@@ -31,10 +31,10 @@ const ChipRow = styled.div`
 
 const Chip = styled.span`
     align-items: center;
-    background: var(--ant-color-primary-bg, rgba(194, 65, 12, 0.08));
-    border: 1px solid var(--ant-color-primary-border, rgba(194, 65, 12, 0.2));
+    background: var(--ant-color-primary-bg, rgba(234, 88, 12, 0.08));
+    border: 1px solid var(--ant-color-primary-border, rgba(234, 88, 12, 0.2));
     border-radius: ${radius.pill}px;
-    color: var(--ant-color-primary, #c2410c);
+    color: var(--ant-color-primary, #ea580c);
     display: inline-flex;
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
@@ -74,7 +74,7 @@ const ChipDismiss = styled.button`
 
     &:hover,
     &:focus-visible {
-        background: rgba(194, 65, 12, 0.18);
+        background: rgba(234, 88, 12, 0.18);
         opacity: 1;
     }
 

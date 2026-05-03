@@ -33,12 +33,15 @@ export const buildAntdTheme = (
         mode === "dark" ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
     cssVar: { key: "ant" },
     token: {
-        // Brand
+        // Brand. `colorPrimary` is the bright shade used for filled CTAs
+        // (white text on orange bg, plenty of contrast). Links override to
+        // `primaryHover` (a darker step) so orange link text on a white
+        // page still hits WCAG AA contrast (~4.74:1) for normal text.
         colorPrimary: brand.primary,
         colorPrimaryHover: brand.primaryHover,
         colorPrimaryActive: brand.primaryActive,
-        colorLink: brand.primary,
-        colorLinkHover: brand.primaryHover,
+        colorLink: brand.primaryHover,
+        colorLinkHover: brand.primaryActive,
         colorLinkActive: brand.primaryActive,
         colorInfo: brand.primary,
 

@@ -100,7 +100,7 @@ const FilteredEmptyButton = styled.button`
     background: transparent;
     border: 0;
     border-radius: ${radius.sm}px;
-    color: var(--ant-color-primary, #c2410c);
+    color: var(--ant-color-primary, #ea580c);
     cursor: pointer;
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
@@ -108,7 +108,7 @@ const FilteredEmptyButton = styled.button`
 
     &:hover,
     &:focus-visible {
-        background: var(--ant-color-primary-bg, rgba(194, 65, 12, 0.1));
+        background: var(--ant-color-primary-bg, rgba(234, 88, 12, 0.1));
         outline: none;
     }
 
@@ -208,7 +208,7 @@ const CardFooter = styled.div`
 
 const TaskTypeBadge = styled.span<{ $isBug: boolean }>`
     align-items: center;
-    color: ${(p) => (p.$isBug ? "#DB2777" : "#C2410C")};
+    color: ${(p) => (p.$isBug ? "#DB2777" : "#EA580C")};
     display: inline-flex;
     font-weight: ${fontWeight.medium};
     gap: ${space.xxs}px;
