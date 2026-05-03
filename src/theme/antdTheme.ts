@@ -130,10 +130,13 @@ export const buildAntdTheme = (
             // `.ant-modal-content` rule in App.css to drop backdrop-filter.
             headerBg: "transparent",
             footerBg: "transparent",
+            // Mask is a flat dim overlay (no blur — see App.css). Alpha is
+            // bumped vs. the previous glass-blurred mask so detail behind
+            // the modal stays muted enough to keep focus on the dialog.
             colorBgMask:
                 mode === "dark"
-                    ? "rgba(2, 6, 8, 0.62)"
-                    : "rgba(15, 23, 42, 0.32)"
+                    ? "rgba(2, 6, 8, 0.66)"
+                    : "rgba(15, 23, 42, 0.45)"
         },
         Drawer: {
             paddingLG: space.lg,

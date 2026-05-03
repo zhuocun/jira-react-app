@@ -37,7 +37,7 @@ interface ProjectCardProps {
 
 const Card = styled.article`
     background: var(--ant-color-bg-container, #fff);
-    border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
+    border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.05));
     border-radius: ${radius.lg}px;
     box-shadow: ${shadow.xs};
     display: flex;
@@ -45,22 +45,21 @@ const Card = styled.article`
     overflow: hidden;
     position: relative;
     transition:
-        border-color 160ms ease-out,
-        box-shadow 160ms ease-out,
-        transform 160ms ease-out;
+        border-color 180ms ease-out,
+        box-shadow 180ms ease-out,
+        transform 180ms ease-out;
 
     &:hover,
     &:focus-within {
-        /* Restrained hover: 1 px brand-accent ring + a slightly larger
-         * drop shadow than the task card so project tiles still read
-         * as a higher tier of surface. No background gradient — the
-         * white stays white. Uses palette-derived
-         * --glass-border-strong so palette swaps cascade. */
+        /* Refined hover: a soft 1 px brand-accent ring + a slightly larger
+         * ambient shadow. The card stays clean white — the brand colour
+         * lives at the edge, not on the surface. Uses palette-derived
+         * --glass-border-strong so palette swaps cascade without edits. */
         border-color: var(--glass-border-strong);
         box-shadow:
             ${shadow.md},
             0 0 0 1px var(--glass-border-strong),
-            0 10px 28px -14px rgba(15, 23, 42, 0.16);
+            0 12px 32px -16px rgba(15, 23, 42, 0.18);
         transform: translateY(-2px);
     }
 
@@ -79,7 +78,10 @@ const Cover = styled.div<{ background: string }>`
     background: ${(p) => p.background};
     color: #fff;
     display: flex;
-    height: 96px;
+    /* Trimmed from 96 px to keep the cover proportional to the body: the
+     * card's purpose is the project name + manager, the gradient is just
+     * a tonal anchor. A shorter cover gives the title room to breathe. */
+    height: 72px;
     justify-content: center;
     overflow: hidden;
     position: relative;
@@ -102,17 +104,21 @@ const Cover = styled.div<{ background: string }>`
 
 const InitialsBadge = styled.span`
     align-items: center;
-    background: rgba(255, 255, 255, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.32);
+    /* Softer monogram: no visible border, slightly stronger translucent
+     * white surface, and an inset top shine for a hint of dimension. The
+     * smaller 48 px square reads as proportional to the trimmed cover
+     * without losing legibility of the two initial characters. */
+    background: rgba(255, 255, 255, 0.22);
     border-radius: ${radius.md}px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
     color: #fff;
     display: inline-flex;
-    font-size: ${fontSize.xl}px;
+    font-size: ${fontSize.lg}px;
     font-weight: ${fontWeight.semibold};
-    height: 56px;
+    height: 48px;
     justify-content: center;
     letter-spacing: ${letterSpacing.tight};
-    width: 56px;
+    width: 48px;
     z-index: 1;
 `;
 
@@ -121,13 +127,18 @@ const Body = styled.div`
     flex: 1 1 auto;
     flex-direction: column;
     gap: ${space.xs}px;
-    padding: ${space.md}px ${space.md}px ${space.sm}px;
+    /* Generous vertical padding lets the title settle in the middle of
+     * the card rather than crowding the cover above and the footer below.
+     * The horizontal padding stays at lg so the title has full breathing
+     * room before it wraps. */
+    padding: ${space.lg}px ${space.lg}px ${space.md}px;
 `;
 
 const TitleLink = styled(Link)`
     color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
-    display: block;
-    font-size: ${fontSize.md}px;
+    /* Bumped up from md (16 px) to lg (18 px) so the project name is the
+     * card's hero — supporting text sits in clear deference below. */
+    font-size: ${fontSize.lg}px;
     font-weight: ${fontWeight.semibold};
     letter-spacing: ${letterSpacing.tight};
     line-height: ${lineHeight.snug};
@@ -160,7 +171,7 @@ const TitleLink = styled(Link)`
 `;
 
 const Organization = styled.span`
-    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.55));
+    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.50));
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
     letter-spacing: ${letterSpacing.wide};
@@ -175,7 +186,7 @@ const ManagerRow = styled.div`
     gap: ${space.xs}px;
     margin-top: auto;
     min-width: 0;
-    padding-top: ${space.xs}px;
+    padding-top: ${space.sm}px;
     position: relative;
     z-index: 1;
 
@@ -188,14 +199,16 @@ const ManagerRow = styled.div`
 
 const Footer = styled.footer`
     align-items: center;
+    /* Lighter separator so the footer reads as a quiet shelf rather than a
+     * hard line splitting the card in two. */
     border-top: 1px solid
-        var(--ant-color-border-secondary, rgba(15, 23, 42, 0.05));
+        var(--ant-color-border-secondary, rgba(15, 23, 42, 0.04));
     color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
     display: flex;
     font-size: ${fontSize.xs}px;
     gap: ${space.xs}px;
     justify-content: space-between;
-    padding: ${space.xs}px ${space.sm}px ${space.xs}px ${space.md}px;
+    padding: ${space.xs}px ${space.md}px ${space.xs}px ${space.lg}px;
     position: relative;
     z-index: 1;
 `;
