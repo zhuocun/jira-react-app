@@ -219,6 +219,62 @@ describe("validateBoardBrief", () => {
             workload: []
         });
     });
+
+    it("normalises recommendationDetail strength, text, sources, and basis", () => {
+        const ctx = buildContext();
+        const out = validateBoardBrief(
+            {
+                recommendation: "Ship the sprint scope.",
+                recommendationDetail: {
+                    basis: "Signals from workload.",
+                    sources: [
+                        { taskId: "t1", taskName: "Known" },
+                        { taskId: "ghost", taskName: "Bad" }
+                    ],
+                    strength: "invalid" as BoardBriefRecommendationStrength,
+                    text: ""
+                }
+            },
+            ctx
+        );
+        expect(out.recommendationDetail?.strength).toBe("none");
+        expect(out.recommendationDetail?.text).toBe("Ship the sprint scope.");
+        expect(out.recommendationDetail?.basis).toBe("Signals from workload.");
+        expect(out.recommendationDetail?.sources).toEqual([
+            { taskId: "t1", taskName: "Known" }
+        ]);
+    });
+
+    it("drops recommendationDetail when payload is not an object", () => {
+        const out = validateBoardBrief(
+            {
+                recommendation: "Stay the course.",
+                recommendationDetail: "bogus" as unknown as IBoardBriefRecommendation
+            },
+            buildContext()
+        );
+        expect(out.recommendationDetail).toBeUndefined();
+    });
+
+    it("caps recommendationDetail sources at five known tasks", () => {
+        const sources = Array.from({ length: 8 }, (_, i) => ({
+            taskId: "t1",
+            taskName: `Dup ${i}`
+        }));
+        const out = validateBoardBrief(
+            {
+                recommendation: "r",
+                recommendationDetail: {
+                    basis: "b",
+                    sources,
+                    strength: "moderate",
+                    text: "Act now."
+                }
+            },
+            buildContext()
+        );
+        expect(out.recommendationDetail?.sources).toHaveLength(5);
+    });
 });
 
 describe("validateReadiness", () => {
