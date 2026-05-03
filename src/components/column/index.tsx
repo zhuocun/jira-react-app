@@ -100,7 +100,7 @@ const FilteredEmptyButton = styled.button`
     background: transparent;
     border: 0;
     border-radius: ${radius.sm}px;
-    color: var(--ant-color-primary, #047857);
+    color: var(--ant-color-primary, #C2410C);
     cursor: pointer;
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
@@ -108,7 +108,7 @@ const FilteredEmptyButton = styled.button`
 
     &:hover,
     &:focus-visible {
-        background: var(--ant-color-primary-bg, rgba(4, 120, 87, 0.1));
+        background: var(--ant-color-primary-bg, rgba(194, 65, 12, 0.1));
         outline: none;
     }
 
@@ -138,18 +138,20 @@ const TaskCardOuter = styled.button`
     width: 100%;
 
     &:hover:not(:disabled) {
-        /* Restrained hover: a single 1 px emerald ring + soft ambient
-         * drop. No background gradient — the white card stays white,
-         * the brand color only signals intent at the edge. */
-        border-color: rgba(4, 120, 87, 0.4);
+        /* Restrained hover: a single 1 px brand-accent ring + soft
+         * ambient drop. No background gradient — the white card stays
+         * white, the brand colour only signals intent at the edge.
+         * Uses the palette-derived --glass-border-strong so a palette
+         * swap re-tints the ring with no edits here. */
+        border-color: var(--glass-border-strong);
         box-shadow:
             ${shadow.md},
-            0 0 0 1px rgba(4, 120, 87, 0.16);
+            0 0 0 1px var(--glass-border-strong);
         transform: translateY(-1px);
     }
 
     &:focus-visible {
-        border-color: var(--ant-color-primary, #047857);
+        border-color: var(--ant-color-primary);
         outline: none;
         box-shadow: ${shadow.focus}, ${shadow.md};
     }
@@ -206,7 +208,7 @@ const CardFooter = styled.div`
 
 const TaskTypeBadge = styled.span<{ $isBug: boolean }>`
     align-items: center;
-    color: ${(p) => (p.$isBug ? "#DB2777" : "#047857")};
+    color: ${(p) => (p.$isBug ? "#DB2777" : "#C2410C")};
     display: inline-flex;
     font-weight: ${fontWeight.medium};
     gap: ${space.xxs}px;

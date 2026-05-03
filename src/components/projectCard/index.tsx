@@ -51,14 +51,15 @@ const Card = styled.article`
 
     &:hover,
     &:focus-within {
-        /* Restrained hover: 1 px emerald ring + a slightly larger drop
-         * shadow than the task card so project tiles still read as a
-         * higher tier of surface. No background gradient — the white
-         * stays white. */
-        border-color: rgba(4, 120, 87, 0.4);
+        /* Restrained hover: 1 px brand-accent ring + a slightly larger
+         * drop shadow than the task card so project tiles still read
+         * as a higher tier of surface. No background gradient — the
+         * white stays white. Uses palette-derived
+         * --glass-border-strong so palette swaps cascade. */
+        border-color: var(--glass-border-strong);
         box-shadow:
             ${shadow.md},
-            0 0 0 1px rgba(4, 120, 87, 0.16),
+            0 0 0 1px var(--glass-border-strong),
             0 10px 28px -14px rgba(15, 23, 42, 0.16);
         transform: translateY(-2px);
     }
@@ -154,7 +155,7 @@ const TitleLink = styled(Link)`
     }
 
     &:hover {
-        color: var(--ant-color-primary, #047857);
+        color: var(--ant-color-primary, #C2410C);
     }
 `;
 

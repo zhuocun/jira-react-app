@@ -1,5 +1,6 @@
 import { theme as antdTheme, ThemeConfig } from "antd";
 
+import { palette } from "./palettes";
 import {
     accent,
     aurora,
@@ -86,8 +87,8 @@ export const buildAntdTheme = (
         controlOutlineWidth: 3,
         controlOutline:
             mode === "dark"
-                ? "rgba(110, 231, 183, 0.30)"
-                : "rgba(4, 120, 87, 0.22)",
+                ? `rgba(${palette.accent.rgbDark}, 0.30)`
+                : `rgba(${palette.accent.rgb}, 0.22)`,
 
         // Motion
         motionDurationFast: `${motion.short}ms`,
@@ -118,24 +119,23 @@ export const buildAntdTheme = (
             borderRadiusLG: radius.lg,
             titleFontSize: fontSize.md,
             titleLineHeight: lineHeight.snug,
-            // Glass content surface; backdrop-filter is applied in App.css
-            // against `.ant-modal-content` because the AntD theme API has no
-            // backdropFilter token.
-            contentBg:
-                mode === "dark" ? glass.surfaceStrongDark : glass.surfaceStrong,
+            // Modals are opaque per product direction — the frosted glass
+            // worked on side drawers and the auth card, but a centred
+            // dialog needs to feel substantial for sustained reading and
+            // form input. We let AntD's algorithm pick the elevated bg
+            // (white in light mode, near-black in dark) and rely on the
+            // `.ant-modal-content` rule in App.css to drop backdrop-filter.
             headerBg: "transparent",
             footerBg: "transparent",
-            // Restrained mask: a softer dark wash without an emerald tint
-            // keeps the focus on the modal content itself rather than
-            // bleeding the brand color across the whole viewport.
             colorBgMask:
                 mode === "dark"
-                    ? "rgba(2, 18, 14, 0.62)"
+                    ? "rgba(2, 6, 8, 0.62)"
                     : "rgba(15, 23, 42, 0.32)"
         },
         Drawer: {
             paddingLG: space.lg,
-            // Glass body; backdrop-filter applied in App.css.
+            // Drawer keeps its glass treatment — see App.css `.ant-drawer-
+            // content` for the matching backdrop-filter declaration.
             colorBgElevated:
                 mode === "dark" ? glass.surfaceStrongDark : glass.surfaceStrong
         },
@@ -145,8 +145,8 @@ export const buildAntdTheme = (
             borderRadius: radius.md,
             activeShadow: `0 0 0 3px ${
                 mode === "dark"
-                    ? "rgba(110, 231, 183, 0.30)"
-                    : "rgba(4, 120, 87, 0.20)"
+                    ? `rgba(${palette.accent.rgbDark}, 0.30)`
+                    : `rgba(${palette.accent.rgb}, 0.20)`
             }`
         },
         Select: {
@@ -165,8 +165,8 @@ export const buildAntdTheme = (
             headerSplitColor: "transparent",
             rowHoverBg:
                 mode === "dark"
-                    ? "rgba(110, 231, 183, 0.12)"
-                    : "rgba(4, 120, 87, 0.06)",
+                    ? `rgba(${palette.accent.rgbDark}, 0.12)`
+                    : `rgba(${palette.accent.rgb}, 0.06)`,
             borderColor:
                 mode === "dark"
                     ? "rgba(255, 255, 255, 0.06)"

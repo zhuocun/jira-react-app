@@ -20,19 +20,18 @@ const Wrap = styled.div`
     align-items: flex-start;
     position: relative;
     overflow: hidden;
-    /* Single quiet emerald wash on the strong glass pane. The previous
-     * banner stacked two radial blobs in two hues; now one diagonal
-     * gradient at low alpha lets the banner whisper "AI" without
-     * shouting against the surrounding white space. */
+    /* Single quiet brand-accent wash on the strong glass pane. Uses the
+     * palette-derived --aurora-blob and --aurora-blob-faint CSS vars so a
+     * palette swap re-tints the whole banner with no edits here. */
     background:
-        linear-gradient(135deg, rgba(4, 120, 87, 0.08) 0%, transparent 70%),
+        linear-gradient(135deg, var(--aurora-blob) 0%, transparent 70%),
         var(--glass-surface-strong);
     backdrop-filter: blur(${blur.md}px) saturate(170%);
     -webkit-backdrop-filter: blur(${blur.md}px) saturate(170%);
     border: 1px solid var(--glass-border-strong);
     border-radius: ${radius.md}px;
     box-shadow:
-        0 4px 16px -8px rgba(4, 120, 87, 0.18),
+        0 4px 16px -8px var(--aurora-blob-strong),
         var(--glass-shine);
     display: flex;
     gap: ${space.sm}px;

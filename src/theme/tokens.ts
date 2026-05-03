@@ -3,10 +3,17 @@
  * z-index across the app. Components MUST import from this module instead of
  * hand-rolling rems or hex literals so a future theme change is one edit.
  *
+ * Color tokens (`brand`, `accent`, `aurora`, `avatarGradients`) are derived
+ * from the active palette in `./palettes` — to change the palette, edit
+ * one import line in `palettes/index.ts`. Non-color tokens (space, radius,
+ * fontSize, motion) live here as plain literals.
+ *
  * The numeric values are in CSS pixels (the project intentionally drops the
  * old `html { font-size: 62.5% }` hack — see docs/ui-ux-optimization-plan.md
  * §1.1.1 and §Phase 1.1).
  */
+
+import { palette } from "./palettes";
 
 export const space = {
     xxs: 4,
@@ -61,82 +68,73 @@ export const letterSpacing = {
 } as const;
 
 /**
- * Deep emerald brand. The simplest, most graceful pairing for an AI-powered
- * app: emerald + white. Echoes Hermès / Tiffany / Rolex green-on-white, a
- * combination universally read as elegant and confident. Distinct from the
- * AI-purple cliché, distinct from the previous teal — this iteration drops
- * every secondary accent and lets a single hue carry the whole identity.
- *
- * Hover/active step deeper into the same hue. AA contrast on white
- * (#047857 = 5.06:1 normal text) and AA on dark surfaces.
+ * Brand surfaces — derived from the active palette. AA contrast on white
+ * is enforced at the palette level, not here. To change the palette, edit
+ * `palettes/index.ts` (one line); these tokens follow automatically.
  */
 export const brand = {
-    primary: "#047857",
-    primaryHover: "#065F46",
-    primaryActive: "#064E3B",
-    primaryBg: "#ECFDF5",
-    primaryBgDark: "#022C22"
+    primary: palette.brand.primary,
+    primaryHover: palette.brand.primaryHover,
+    primaryActive: palette.brand.primaryActive,
+    primaryBg: palette.brand.primaryBg,
+    primaryBgDark: palette.brand.primaryBgDark
 } as const;
 
 /**
- * Accent gradient used for AI surfaces (sparkle icon, badges, highlights).
- * Single-hue emerald range — the gradient now reads as "depth" within one
- * color rather than energy across two. The `secondaryStrong` token is kept
- * for back-compat but resolves to a deeper emerald rather than a foreign hue.
+ * Accent gradient stops for AI surfaces (sparkle icon, badges, highlights).
+ * The translucent `bg*` / `border` / `glow` variants are computed from the
+ * palette's `rgb` triplet so a palette swap moves them all in one shot.
  */
 export const accent = {
-    start: "#047857",
-    end: "#10B981",
-    glow: "rgba(4, 120, 87, 0.22)",
-    bgSubtle: "rgba(4, 120, 87, 0.04)",
-    bgSoft: "rgba(4, 120, 87, 0.08)",
-    bgMedium: "rgba(4, 120, 87, 0.16)",
-    bgStrong: "rgba(4, 120, 87, 0.32)",
-    border: "rgba(4, 120, 87, 0.22)",
-    secondaryStrong: "rgba(6, 95, 70, 0.32)",
-    selectionBg: "rgba(4, 120, 87, 0.20)"
+    start: palette.accent.start,
+    end: palette.accent.end,
+    glow: `rgba(${palette.accent.rgb}, 0.22)`,
+    bgSubtle: `rgba(${palette.accent.rgb}, 0.04)`,
+    bgSoft: `rgba(${palette.accent.rgb}, 0.08)`,
+    bgMedium: `rgba(${palette.accent.rgb}, 0.16)`,
+    bgStrong: `rgba(${palette.accent.rgb}, 0.32)`,
+    border: `rgba(${palette.accent.rgb}, 0.22)`,
+    secondaryStrong: `rgba(${palette.accent.rgb}, 0.32)`,
+    selectionBg: `rgba(${palette.accent.rgb}, 0.20)`
 } as const;
 
 /**
- * Aurora palette — collapsed to a single emerald hue family. The previous
- * multi-hue aurora gave way to a calmer single-color system in service of
- * "graceful and elegant" — every blob and gradient now lives in this hue.
- * The `cinematicBase` is the deepest emerald, used as the dark backdrop on
- * the auth hero rail. Components reach for these tokens only on hero
- * surfaces (auth, AI panels) — every other surface stays with `brand`.
+ * Aurora gradient layers — single-hue, derived from the active palette.
+ * `cinematicBase` is the deepest step, used as the dark backdrop on the
+ * auth hero rail. `gradLine` is the linear sweep used by the sparkle icon
+ * and other single-stripe gradient surfaces.
  */
 export const aurora = {
-    deep: "#047857",
-    mid: "#10B981",
-    light: "#6EE7B7",
-    surface: "#ECFDF5",
-    deepSoft: "rgba(4, 120, 87, 0.10)",
-    midSoft: "rgba(16, 185, 129, 0.12)",
-    cinematicBase: "#022C22",
-    gradLine: "linear-gradient(135deg, #047857 0%, #10B981 100%)",
-    gradLineSoft:
-        "linear-gradient(135deg, rgba(4,120,87,0.10) 0%, rgba(16,185,129,0.06) 100%)"
+    deep: palette.aurora.deep,
+    mid: palette.aurora.mid,
+    light: palette.aurora.light,
+    surface: palette.brand.primaryBg,
+    deepSoft: `rgba(${palette.accent.rgb}, 0.10)`,
+    midSoft: `rgba(${palette.accent.rgb}, 0.12)`,
+    cinematicBase: palette.aurora.cinematicBase,
+    gradLine: `linear-gradient(135deg, ${palette.aurora.deep} 0%, ${palette.aurora.mid} 100%)`,
+    gradLineSoft: `linear-gradient(135deg, rgba(${palette.accent.rgb}, 0.10) 0%, rgba(${palette.accent.rgb}, 0.06) 100%)`
 } as const;
 
 /**
- * Glass surface tokens. Companion to `aurora` — used by header, modal,
- * drawer, AI panel, hero card surfaces. Surfaces stay neutral white-tinted
- * (the elegance comes from white, not from the accent leaking into every
- * pane); only the strong borders pick up the emerald accent. NEVER apply
+ * Glass surface tokens. Surfaces stay neutral white-tinted (the elegance
+ * comes from the surface itself, not from the accent leaking into every
+ * pane); only the strong borders pick up the brand accent. NEVER apply
  * glass without the `prefers-reduced-transparency` fallback wired up in
- * App.css.
+ * App.css. Modals deliberately do NOT use these tokens — they render as
+ * solid surfaces per product direction.
  */
 export const glass = {
     surface: "rgba(255, 255, 255, 0.68)",
     surfaceStrong: "rgba(255, 255, 255, 0.82)",
     surfaceSubtle: "rgba(255, 255, 255, 0.50)",
-    surfaceDark: "rgba(10, 15, 13, 0.55)",
-    surfaceStrongDark: "rgba(10, 15, 13, 0.74)",
-    surfaceSubtleDark: "rgba(10, 15, 13, 0.35)",
+    surfaceDark: "rgba(10, 12, 8, 0.55)",
+    surfaceStrongDark: "rgba(10, 12, 8, 0.74)",
+    surfaceSubtleDark: "rgba(10, 12, 8, 0.35)",
     border: "rgba(15, 23, 42, 0.06)",
     borderDark: "rgba(255, 255, 255, 0.08)",
-    borderStrong: "rgba(4, 120, 87, 0.22)",
-    borderStrongDark: "rgba(110, 231, 183, 0.30)",
+    borderStrong: `rgba(${palette.accent.rgb}, 0.22)`,
+    borderStrongDark: `rgba(${palette.accent.rgbDark}, 0.30)`,
     shineInset: "inset 0 1px 0 rgba(255, 255, 255, 0.55)",
     shineInsetDark: "inset 0 1px 0 rgba(255, 255, 255, 0.06)"
 } as const;
@@ -194,12 +192,12 @@ export const shadow = {
     md: "0 2px 4px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(15, 23, 42, 0.06)",
     lg: "0 8px 16px rgba(15, 23, 42, 0.06), 0 16px 32px rgba(15, 23, 42, 0.08)",
     xl: "0 16px 32px rgba(15, 23, 42, 0.10), 0 32px 64px rgba(15, 23, 42, 0.12)",
-    focus: "0 0 0 3px rgba(4, 120, 87, 0.22)",
+    focus: `0 0 0 3px rgba(${palette.accent.rgb}, 0.22)`,
     inset: "inset 0 1px 0 rgba(255, 255, 255, 0.06)",
-    /* Single emerald glow — replaces the previous multi-hue glow trio. */
-    glowEmerald: "0 0 24px rgba(4, 120, 87, 0.28)",
-    glowAurora:
-        "0 12px 40px -8px rgba(4, 120, 87, 0.24), 0 0 0 1px rgba(4, 120, 87, 0.10)"
+    /* Single brand-accent glow + soft aurora drop. Derived from the active
+     * palette so a palette swap re-tints both in one shot. */
+    glowAccent: `0 0 24px rgba(${palette.accent.rgb}, 0.28)`,
+    glowAurora: `0 12px 40px -8px rgba(${palette.accent.rgb}, 0.24), 0 0 0 1px rgba(${palette.accent.rgb}, 0.10)`
 } as const;
 
 /**
@@ -263,20 +261,11 @@ export const modalWidthCss = (max: number) =>
     `min(${max}px, calc(100vw - ${modalGutterPx}px))`;
 
 /**
- * Monochromatic emerald gradient palette for user / project avatars. Six
- * variations within the same hue family so every distinct id reads as a
- * unique monogram while staying inside the single-color identity. The
- * variations differ in lightness range (light→mid, mid→deep, full range,
- * etc.) so cards still distinguish at a glance.
+ * Monochromatic gradient palette for user / project avatars — derived from
+ * the active palette. Six lightness variations so every distinct id reads
+ * as a unique monogram while staying inside the single-color identity.
  */
-export const avatarGradients = [
-    `linear-gradient(135deg, ${aurora.light} 0%, ${aurora.mid} 100%)`,
-    `linear-gradient(135deg, #34D399 0%, ${aurora.deep} 100%)`,
-    `linear-gradient(135deg, ${aurora.mid} 0%, ${aurora.cinematicBase} 100%)`,
-    `linear-gradient(135deg, ${aurora.light} 0%, ${aurora.deep} 100%)`,
-    `linear-gradient(135deg, #34D399 0%, #065F46 100%)`,
-    `linear-gradient(135deg, ${aurora.mid} 0%, ${aurora.deep} 100%)`
-] as const;
+export const avatarGradients = palette.avatarGradients;
 
 /**
  * Modern sans-serif stack. We load Inter from Google Fonts; the rest is a

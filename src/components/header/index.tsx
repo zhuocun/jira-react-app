@@ -24,9 +24,9 @@ import UserAvatar from "../userAvatar";
 const PageHeader = styled.header`
     align-items: center;
     /* Restrained glass treatment: a frosted pane that sits quietly over
-     * the flat warm-white page. Shadow is neutral slate so the header
-     * doesn't telegraph the brand color into the chrome — emerald is
-     * reserved for content (CTA, focus, AI surfaces). */
+     * the warm page. Shadow is neutral slate so the header doesn't
+     * telegraph the brand colour into the chrome — the palette accent
+     * is reserved for content (CTAs, focus rings, AI surfaces). */
     backdrop-filter: saturate(180%) blur(${blur.md}px);
     -webkit-backdrop-filter: saturate(180%) blur(${blur.md}px);
     /*

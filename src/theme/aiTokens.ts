@@ -1,23 +1,26 @@
 /**
  * AI design tokens (PRD v3 §9.5 X-R11). The string values resolve at runtime
- * via CSS custom properties defined in `src/App.css`, so dark mode flips
- * automatically — components never need to read `data-color-scheme`.
+ * via CSS custom properties injected from `src/theme/palettes/cssVars.ts`,
+ * so dark mode flips automatically — components never need to read
+ * `data-color-scheme`. Fallback hexes are derived from the active palette
+ * so a palette swap re-tints the fallbacks too.
  *
  * The numeric tokens (durations, sizes) sit alongside so a single import
  * grabs everything an AI surface needs without pulling the whole token
- * surface area in. Surface-side fallbacks (`accent` from `tokens.ts`) stay
- * for code paths that haven't been migrated yet.
+ * surface area in.
  */
 
+import { palette } from "./palettes";
+
 export const aiTokens = {
-    gradStart: "var(--color-copilot-grad-start, #047857)",
-    gradMid: "var(--color-copilot-grad-mid, #059669)",
-    gradEnd: "var(--color-copilot-grad-end, #10B981)",
-    bgSubtle: "var(--color-copilot-bg-subtle, rgba(4, 120, 87, 0.04))",
-    bgMedium: "var(--color-copilot-bg-medium, rgba(4, 120, 87, 0.14))",
-    badge: "var(--color-copilot-badge, #047857)",
-    badgeBg: "var(--color-copilot-badge-bg, rgba(4, 120, 87, 0.12))",
-    pulse: "var(--color-copilot-pulse, rgba(4, 120, 87, 0.45))"
+    gradStart: `var(--color-copilot-grad-start, ${palette.aurora.deep})`,
+    gradMid: `var(--color-copilot-grad-mid, ${palette.aurora.mid})`,
+    gradEnd: `var(--color-copilot-grad-end, ${palette.aurora.light})`,
+    bgSubtle: `var(--color-copilot-bg-subtle, rgba(${palette.accent.rgb}, 0.04))`,
+    bgMedium: `var(--color-copilot-bg-medium, rgba(${palette.accent.rgb}, 0.14))`,
+    badge: `var(--color-copilot-badge, ${palette.brand.primary})`,
+    badgeBg: `var(--color-copilot-badge-bg, rgba(${palette.accent.rgb}, 0.12))`,
+    pulse: `var(--color-copilot-pulse, rgba(${palette.accent.rgb}, 0.45))`
 } as const;
 
 /** Streaming TTFT target in ms. Surfaces measure against this for AGENT_TTFT. */

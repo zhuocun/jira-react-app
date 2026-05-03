@@ -31,7 +31,7 @@ const Chip = styled(Tag)`
 
     &&:hover,
     &&:focus-visible {
-        outline: 2px solid var(--ant-color-primary, #047857);
+        outline: 2px solid var(--ant-color-primary, #C2410C);
         outline-offset: 1px;
     }
 `;

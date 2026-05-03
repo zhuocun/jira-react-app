@@ -44,7 +44,7 @@ const Main = styled.main`
  * and land on the routed page content (WCAG 2.4.1 Bypass Blocks).
  */
 const SkipLink = styled.a`
-    background: var(--ant-color-primary, #047857);
+    background: var(--ant-color-primary, #C2410C);
     border-radius: ${radius.md}px;
     color: #fff;
     font-size: ${fontSize.sm}px;

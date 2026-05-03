@@ -4,7 +4,22 @@ import ReactDOM from "react-dom/client";
 import "antd/dist/reset.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+import { palette, paletteToCss } from "./theme/palettes";
 import AppProviders from "./utils/appProviders";
+
+/*
+ * Inject palette-derived CSS custom properties synchronously, before
+ * React's first render. Keeping this BEFORE `createRoot` means
+ * styled-components see the runtime CSS vars from frame 1 — there's no
+ * flash of an unstyled palette while React hydrates.
+ *
+ * The whole color identity flows from `./theme/palettes/index.ts`'s
+ * active palette, so swapping palettes is a one-line edit there.
+ */
+const themeStyle = document.createElement("style");
+themeStyle.id = `pulse-theme-vars-${palette.name}`;
+themeStyle.textContent = paletteToCss(palette);
+document.head.appendChild(themeStyle);
 
 const root = ReactDOM.createRoot(
     document.getElementById("root") as HTMLElement
