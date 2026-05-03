@@ -171,7 +171,7 @@ describe("ProjectList", () => {
         likeProject.mockResolvedValue({});
     });
 
-    it("renders project rows with manager, fallback, date, and relative links", async () => {
+    it("renders project cards with manager, fallback, date, and project links", async () => {
         renderList();
 
         expect(screen.getByRole("link", { name: /Roadmap/i })).toHaveAttribute(
@@ -182,8 +182,8 @@ describe("ProjectList", () => {
         expect(screen.getByText("Alice")).toBeInTheDocument();
         expect(screen.getByText("Apr 25, 2026")).toBeInTheDocument();
         expect(screen.getByText("Design System")).toBeInTheDocument();
-        expect(screen.getByText("No manager")).toBeInTheDocument();
-        expect(screen.getByText("No date")).toBeInTheDocument();
+        expect(screen.getByText(/no manager/i)).toBeInTheDocument();
+        expect(screen.getAllByText(/no date/i).length).toBeGreaterThan(0);
         await waitFor(() => expect(refreshUser).toHaveBeenCalledTimes(1));
     });
 
@@ -240,7 +240,7 @@ describe("ProjectList", () => {
         });
     });
 
-    it("sorts project links by name from the Project header", async () => {
+    it("sorts project cards by name from the sort selector", async () => {
         renderList({
             dataSource: [
                 project({ _id: "project-z", projectName: "Zulu" }),
@@ -248,13 +248,10 @@ describe("ProjectList", () => {
             ]
         });
 
-        fireEvent.click(screen.getByRole("columnheader", { name: /Project/ }));
-
-        await waitFor(() => {
-            expect(
-                screen.getAllByRole("link").map((link) => link.textContent)
-            ).toEqual(["Alpha", "Zulu"]);
-        });
+        // Default sort is "Name (A → Z)" — Alpha comes first.
+        expect(
+            screen.getAllByRole("link").map((link) => link.textContent)
+        ).toEqual(["Alpha", "Zulu"]);
     });
 
     it("opens the edit flow from row actions", () => {
@@ -324,7 +321,7 @@ describe("ProjectList", () => {
         errorSpy.mockRestore();
     });
 
-    it("renders skeleton placeholder rows while loading", () => {
+    it("renders skeleton placeholder cards while loading", () => {
         const { container } = renderList({
             dataSource: [],
             loading: true

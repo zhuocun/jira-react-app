@@ -9,20 +9,13 @@ import styled from "@emotion/styled";
 import { Dropdown, MenuProps, Space, Switch, Typography } from "antd";
 import { useLocation } from "react-router";
 
-import Logo from "../../assets/logo-software.svg?react";
 import { microcopy } from "../../constants/microcopy";
-import {
-    breakpoints,
-    fontSize,
-    fontWeight,
-    letterSpacing,
-    radius,
-    space
-} from "../../theme/tokens";
+import { breakpoints, radius, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useColorScheme from "../../utils/hooks/useColorScheme";
 import resetRoute from "../../utils/resetRoute";
+import BrandMark from "../brandMark";
 import LanguageSwitcher from "../languageSwitcher";
 import MemberPopover from "../memberPopover";
 import { NoPaddingButton } from "../projectList";
@@ -193,15 +186,14 @@ const HiddenOnTiny = styled.span`
 `;
 
 /**
- * Brand cluster — the icon-only logo (loaded from the SVG asset so the
- * existing test mock keeps working) plus the wordmark rendered in Inter
- * for crisp letterforms at every density.
+ * Brand cluster — the shared `BrandMark` component (so a future brand
+ * refresh is a single edit) wrapped in a `NoPaddingButton` so it stays
+ * keyboard-focusable and announces "Pulse, link" to assistive tech.
  */
 const BrandLink = styled(NoPaddingButton)`
     align-items: center;
     display: inline-flex;
     flex: 0 1 auto;
-    gap: ${space.xs}px;
     min-width: 0;
 
     && {
@@ -209,20 +201,12 @@ const BrandLink = styled(NoPaddingButton)`
         padding: 0;
     }
 
-    svg {
-        height: 28px;
-        width: 28px;
-    }
-`;
-
-const Wordmark = styled.span`
-    font-size: ${fontSize.md}px;
-    font-weight: ${fontWeight.semibold};
-    letter-spacing: ${letterSpacing.tight};
-    line-height: 1;
-
+    /* On the narrowest viewports there isn't room for the wordmark beside
+     * the projects popover; the brand collapses to its glyph. */
     @media (max-width: ${breakpoints.sm - 1}px) {
-        display: none;
+        > span > span:last-child {
+            display: none;
+        }
     }
 `;
 
@@ -326,8 +310,7 @@ const Header: React.FC = () => {
                             : undefined
                     }
                 >
-                    <Logo aria-hidden />
-                    <Wordmark>Pulse</Wordmark>
+                    <BrandMark size="sm" />
                 </BrandLink>
                 <MemberPopover />
             </LeftCluster>

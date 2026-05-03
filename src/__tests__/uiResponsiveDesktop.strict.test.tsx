@@ -479,7 +479,7 @@ describe("UI quality :: TaskModal at desktop", () => {
 });
 
 /* -------------------------------------------------------------------------- */
-/* 4. ProjectList table — Organization + Created columns visible on desktop   */
+/* 4. ProjectList card grid — organization + created data visible on desktop  */
 /* -------------------------------------------------------------------------- */
 describe("UI quality :: ProjectList at desktop", () => {
     const renderList = () =>
@@ -501,32 +501,29 @@ describe("UI quality :: ProjectList at desktop", () => {
         );
 
     /**
-     * On desktop both the Organization column and the Created column must
-     * render their header cell so the user can sort/scan by them. On
-     * mobile we drop the cells via CSS, but the header text must always
-     * be in the DOM (per the comment in `projectList`: "we still want the
-     * underlying data in the accessibility tree").
+     * The project list now renders as a card grid (card per project) with
+     * the organization label inside the card body and the created date in
+     * the card footer. We assert each piece of data is in the DOM at
+     * desktop widths so users can scan a project at a glance.
      */
-    it("renders the 'Organization' header cell on desktop", () => {
+    it("renders the organization label inside the project card on desktop", () => {
         renderList();
-        expect(
-            screen.getByRole("columnheader", { name: /organization/i })
-        ).toBeInTheDocument();
+        expect(screen.getByText("Product")).toBeInTheDocument();
     });
 
-    it("renders the 'Created' header cell on desktop", () => {
+    it("renders the created date inside the project card footer on desktop", () => {
         renderList();
-        expect(
-            screen.getByRole("columnheader", { name: /^created$/i })
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Apr 25, 2026/)).toBeInTheDocument();
     });
 
-    it("renders 5 visible body cells per row on desktop (Liked, Project, Org, Manager, Created, Actions = 6 cells)", () => {
+    it("exposes the projects landmark and a sort selector on desktop", () => {
         renderList();
-        // Six columns total: Liked, Project, Organization, Manager,
-        // Created, Actions. We assert the table renders all six headers.
-        const headers = screen.getAllByRole("columnheader");
-        expect(headers.length).toBeGreaterThanOrEqual(6);
+        expect(
+            screen.getByRole("list", { name: /projects/i })
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("combobox", { name: /sort projects/i })
+        ).toBeInTheDocument();
     });
 });
 

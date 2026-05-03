@@ -89,7 +89,10 @@ describe("ProjectSearchPanel", () => {
             />
         );
 
-        expect(screen.getByText("Bob")).toBeInTheDocument();
+        // The manager name appears both inside the Select trigger and in the
+        // Active filters chip row, so look for at least one match instead of
+        // a unique node.
+        expect(screen.getAllByText("Bob").length).toBeGreaterThanOrEqual(1);
     });
 
     it("renders manager options and updates the manager id on selection", async () => {

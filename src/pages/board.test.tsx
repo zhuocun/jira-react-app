@@ -371,7 +371,10 @@ describe("BoardPage", () => {
         expect(
             screen.getByLabelText("Loading project name")
         ).toBeInTheDocument();
-        expect(container.querySelector(".ant-spin")).toBeInTheDocument();
+        // The board no longer renders a redundant <Spin> alongside the
+        // skeleton placeholders; the skeleton itself carries the
+        // `.ant-skeleton` class.
+        expect(container.querySelector(".ant-skeleton")).toBeInTheDocument();
 
         resolveProject(response(project()));
         resolveBoards(response(defaultColumns));

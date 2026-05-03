@@ -1,4 +1,9 @@
-import { CloseOutlined, SettingOutlined } from "@ant-design/icons";
+import {
+    CloseOutlined,
+    FileTextOutlined,
+    MessageOutlined,
+    SettingOutlined
+} from "@ant-design/icons";
 import styled from "@emotion/styled";
 import {
     Alert,
@@ -6,7 +11,6 @@ import {
     Popover,
     Skeleton,
     Space,
-    Spin,
     Switch,
     Typography
 } from "antd";
@@ -16,7 +20,6 @@ import { useParams } from "react-router-dom";
 
 import AiChatDrawer from "../components/aiChatDrawer";
 import AiSearchInput from "../components/aiSearchInput";
-import AiSparkleIcon from "../components/aiSparkleIcon";
 import BoardBriefDrawer from "../components/boardBriefDrawer";
 import Column from "../components/column";
 import CopilotWelcomeBanner from "../components/copilotWelcomeBanner";
@@ -222,11 +225,6 @@ const BoardLoadingSkeleton = () => (
                 <Skeleton active paragraph={{ rows: 4 }} title />
             </div>
         ))}
-        <Spin
-            aria-label={microcopy.a11y.loadingBoard}
-            size="small"
-            style={{ alignSelf: "flex-start", marginLeft: themeSpace.md }}
-        />
     </ColumnContainer>
 );
 
@@ -524,7 +522,9 @@ const BoardPage = () => {
                                     <Space.Compact block>
                                         <Button
                                             aria-label="Open Board Copilot brief"
-                                            icon={<AiSparkleIcon />}
+                                            icon={
+                                                <FileTextOutlined aria-hidden />
+                                            }
                                             onClick={openBriefDrawer}
                                             type="default"
                                         >
@@ -532,7 +532,9 @@ const BoardPage = () => {
                                         </Button>
                                         <Button
                                             aria-label="Ask Board Copilot"
-                                            icon={<AiSparkleIcon />}
+                                            icon={
+                                                <MessageOutlined aria-hidden />
+                                            }
                                             onClick={() => setChatOpen(true)}
                                             type="default"
                                         >

@@ -1,24 +1,7 @@
-import {
-    HeartFilled,
-    HeartOutlined,
-    MoreOutlined,
-    PlusOutlined
-} from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
-import {
-    Button,
-    Dropdown,
-    MenuProps,
-    message,
-    Modal,
-    Skeleton,
-    Table,
-    TableProps,
-    Typography
-} from "antd";
-import { ColumnsType } from "antd/lib/table";
+import { Button, message, Modal, Select } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 
 import { microcopy } from "../../constants/microcopy";
 import {
@@ -26,8 +9,6 @@ import {
     fontSize,
     fontWeight,
     letterSpacing,
-    radius,
-    semantic,
     space
 } from "../../theme/tokens";
 import useAuth from "../../utils/hooks/useAuth";
@@ -35,206 +16,127 @@ import useProjectModal from "../../utils/hooks/useProjectModal";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import deleteProjectCallback from "../../utils/optimisticUpdate/deleteProject";
 import EmptyState from "../emptyState";
-import UserAvatar, { gradientFor, initialsOf } from "../userAvatar";
+import ProjectCard, { ProjectCardSkeleton } from "../projectCard";
 
-interface ProjectIntro extends IProject {
-    key?: number;
-}
-
-interface Props extends TableProps<ProjectIntro> {
+interface Props {
+    dataSource?: IProject[];
     members: IMember[];
     /**
      * When the upstream query failed, the page renders an Alert with retry
-     * above the table. Hide the in-table "No projects yet" empty state in
+     * above the grid. Hide the in-grid "No projects yet" empty state in
      * that case so the user is not told the list is empty when we simply
      * couldn't load it.
      */
     error?: boolean;
+    loading?: boolean;
 }
 
+/**
+ * Re-exported for older call sites (header, login, register, popovers)
+ * that still expect the project list module to expose this primitive.
+ * It exists here for backwards compatibility — new code should prefer a
+ * locally-styled `<Button>` instead of importing this.
+ */
 export const NoPaddingButton = styled(Button)`
     padding: 0;
 `;
 
-const ListSurface = styled.div`
-    background: var(--ant-color-bg-container, #fff);
-    border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
-    border-radius: ${radius.lg}px;
-    overflow: hidden;
-
-    .ant-table {
-        background: transparent;
-    }
-
-    .ant-table-thead > tr > th {
-        font-weight: ${fontWeight.medium};
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        font-size: ${fontSize.xs}px;
-    }
-
-    .ant-table-tbody > tr > td {
-        border-bottom: 1px solid
-            var(--ant-color-border-secondary, rgba(15, 23, 42, 0.05));
-    }
-
-    .ant-table-tbody > tr:last-child > td {
-        border-bottom: none;
-    }
-
-    /*
-     * Scrollbar polish for the horizontal overflow region on phone widths,
-     * so the user sees a slim affordance rather than a hidden one. The
-     * table itself keeps scroll x:max-content so all columns remain
-     * accessible behind a horizontal pan.
-     */
-    .ant-table-content,
-    .ant-table-body {
-        scrollbar-width: thin;
-        scrollbar-color: var(--ant-color-fill-secondary, rgba(15, 23, 42, 0.08))
-            transparent;
-    }
-
-    .ant-table-content::-webkit-scrollbar,
-    .ant-table-body::-webkit-scrollbar {
-        height: 8px;
-    }
-    .ant-table-content::-webkit-scrollbar-thumb,
-    .ant-table-body::-webkit-scrollbar-thumb {
-        background: var(--ant-color-fill-secondary, rgba(15, 23, 42, 0.08));
-        border-radius: 999px;
-    }
-
-    /*
-     * Phone widths: hide secondary columns (Organization, Created) so the
-     * row fits without horizontal scroll on a 320 px viewport. The Project,
-     * Like, Manager, and Actions columns carry the primary affordances and
-     * stay visible. The columns are hidden via CSS rather than the AntD
-     * "responsive" prop because we still want the underlying data in the
-     * accessibility tree for assistive tech that ignores "display: none".
-     */
-    @media (max-width: ${breakpoints.sm - 1}px) {
-        .ant-table-tbody > tr > td,
-        .ant-table-thead > tr > th {
-            padding-block: ${space.sm}px;
-            padding-inline: ${space.xs}px;
-        }
-
-        /* Drop the Organization (col 3) and Created (col 5) cells. */
-        .ant-table-tbody > tr > td:nth-of-type(3),
-        .ant-table-thead > tr > th:nth-of-type(3),
-        .ant-table-tbody > tr > td:nth-of-type(5),
-        .ant-table-thead > tr > th:nth-of-type(5) {
-            display: none;
-        }
-    }
-
-    /* Lift table icon buttons to a 44 × 44 hit target on coarse pointers
-     * (WCAG 2.5.5 AAA, level AA recommends 24 × 24 minimum). The icon
-     * itself stays small; only the surrounding click region grows. */
-    @media (pointer: coarse) {
-        .ant-table-tbody .ant-btn-sm {
-            min-height: 44px;
-            min-width: 44px;
-        }
-    }
-`;
-
-const ProjectCell = styled.div`
-    align-items: center;
-    display: flex;
-    gap: ${space.sm}px;
-    min-width: 0;
-`;
-
-const ProjectMeta = styled.div`
+const ListSurface = styled.section`
     display: flex;
     flex-direction: column;
-    gap: ${space.xxs / 2}px;
-    min-width: 0;
-
-    a {
-        color: var(--ant-color-text, rgba(15, 23, 42, 0.92));
-        font-weight: ${fontWeight.semibold};
-        line-height: 1.3;
-        text-decoration: none;
-        /* AntD's auto-layout table lets a single 200-char project name
-         * grow the cell past the row, hiding Organization / Manager /
-         * Created. break-word splits the run mid-character so the cell
-         * stays bounded and other columns remain visible. */
-        word-break: break-word;
-    }
-
-    a:hover {
-        color: var(--ant-color-primary, #5e6ad2);
-    }
-
-    a:focus-visible {
-        color: var(--ant-color-primary, #5e6ad2);
-        outline-offset: 2px;
-    }
-
-    small {
-        color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
-        font-size: ${fontSize.xs}px;
-    }
+    gap: ${space.md}px;
 `;
 
-const ProjectAvatar = styled.span<{ background: string }>`
+const Toolbar = styled.div`
     align-items: center;
-    background: ${(props) => props.background};
-    border-radius: ${radius.md}px;
-    color: #fff;
-    display: inline-flex;
-    flex: 0 0 auto;
+    color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.6));
+    display: flex;
+    flex-wrap: wrap;
     font-size: ${fontSize.sm}px;
-    font-weight: ${fontWeight.semibold};
-    height: 36px;
-    justify-content: center;
-    letter-spacing: ${letterSpacing.normal};
-    width: 36px;
+    gap: ${space.sm}px;
+    justify-content: space-between;
+
+    > * {
+        min-width: 0;
+    }
 `;
 
-const ManagerPill = styled.span`
+const ResultCount = styled.span`
+    font-weight: ${fontWeight.medium};
+    letter-spacing: ${letterSpacing.tight};
+`;
+
+const SortRow = styled.label`
     align-items: center;
-    color: var(--ant-color-text, rgba(15, 23, 42, 0.85));
+    color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
     display: inline-flex;
+    font-size: ${fontSize.xs}px;
+    font-weight: ${fontWeight.medium};
     gap: ${space.xs}px;
-    min-width: 0;
+    letter-spacing: ${letterSpacing.wide};
+    text-transform: uppercase;
 `;
 
-const formatDate = (raw?: string): string => {
-    if (!raw) return "—";
-    const date = new Date(raw);
-    if (Number.isNaN(date.getTime())) return "—";
-    return new Intl.DateTimeFormat(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "2-digit"
-    }).format(date);
+const Grid = styled.div`
+    display: grid;
+    gap: ${space.md}px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+
+    @media (min-width: ${breakpoints.sm}px) {
+        gap: ${space.lg}px;
+        grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    }
+`;
+
+const SKELETON_KEY_PREFIX = "__skeleton__";
+const SKELETON_COUNT = 6;
+
+type SortOrder = "name-asc" | "name-desc" | "newest" | "oldest";
+
+const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
+    { label: "Name (A → Z)", value: "name-asc" },
+    { label: "Name (Z → A)", value: "name-desc" },
+    { label: "Newest first", value: "newest" },
+    { label: "Oldest first", value: "oldest" }
+];
+
+const sortProjects = (projects: IProject[], order: SortOrder): IProject[] => {
+    const out = [...projects];
+    switch (order) {
+        case "name-desc":
+            out.sort((a, b) => b.projectName.localeCompare(a.projectName));
+            break;
+        case "newest":
+            out.sort(
+                (a, b) =>
+                    new Date(b.createdAt ?? 0).getTime() -
+                    new Date(a.createdAt ?? 0).getTime()
+            );
+            break;
+        case "oldest":
+            out.sort(
+                (a, b) =>
+                    new Date(a.createdAt ?? 0).getTime() -
+                    new Date(b.createdAt ?? 0).getTime()
+            );
+            break;
+        case "name-asc":
+        default:
+            out.sort((a, b) => a.projectName.localeCompare(b.projectName));
+    }
+    return out;
 };
 
-const SKELETON_ROW_COUNT = 4;
-const SKELETON_KEY_PREFIX = "__skeleton__";
-
-const isSkeletonRow = (row: ProjectIntro): boolean =>
-    typeof row._id === "string" && row._id.startsWith(SKELETON_KEY_PREFIX);
-
-const SkeletonProjectCell = () => (
-    <ProjectCell>
-        <Skeleton.Avatar active shape="square" size={36} />
-        <Skeleton.Input active size="small" style={{ width: 160 }} />
-    </ProjectCell>
-);
-
-const SkeletonBar = ({ width = 96 }: { width?: number }) => (
-    <Skeleton.Input active size="small" style={{ width }} />
-);
-
-const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
+const ProjectList: React.FC<Props> = ({
+    dataSource,
+    members,
+    error,
+    loading
+}) => {
     const { user, refreshUser } = useAuth();
     const [pendingLikeId, setPendingLikeId] = useState("");
-    const showSkeleton = Boolean(props.loading) && !error;
+    const [sortOrder, setSortOrder] = useState<SortOrder>("name-asc");
+    const showSkeleton = Boolean(loading) && !error;
     const { mutateAsync: update } = useReactMutation(
         "users/likes",
         "PUT",
@@ -245,28 +147,20 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
         "DELETE",
         ["projects", {}],
         deleteProjectCallback,
-        () => {
-            // Suppress useReactMutation's auto-revert toast; we surface a
-            // dedicated success/failure toast below so the user sees the
-            // outcome of the explicit confirm-to-delete.
-        }
+        // Suppress useReactMutation's auto-revert toast; we surface a
+        // dedicated success/failure toast below so the user sees the
+        // outcome of the explicit confirm-to-delete.
+        () => {}
     );
     const { startEditing, openModal } = useProjectModal();
-    const onEdit = (projectId: string) => {
-        startEditing(projectId);
-    };
 
     useEffect(() => {
         refreshUser();
     }, [refreshUser]);
 
-    const dataSource: ProjectIntro[] | undefined = useMemo(
-        () =>
-            props.dataSource?.map((p, index) => ({
-                ...p,
-                key: index
-            })),
-        [props.dataSource]
+    const sortedProjects = useMemo(
+        () => sortProjects(dataSource ?? [], sortOrder),
+        [dataSource, sortOrder]
     );
 
     const onLike = useCallback(
@@ -310,248 +204,90 @@ const ProjectList: React.FC<Props> = ({ members, error, ...props }) => {
 
     const isLiked = (projectId: string): boolean => {
         const baseLiked = Boolean(user?.likedProjects?.includes(projectId));
-        if (pendingLikeId === projectId) {
-            return !baseLiked;
-        }
+        if (pendingLikeId === projectId) return !baseLiked;
         return baseLiked;
     };
 
-    const ListColumns: ColumnsType<ProjectIntro> = [
-        {
-            key: "Liked",
-            title: (
-                <span aria-label="Liked" role="img">
-                    <HeartFilled
-                        style={{ color: semantic.favorite, fontSize: 14 }}
-                    />
-                </span>
-            ),
-            width: 56,
-            render(_, data) {
-                if (isSkeletonRow(data)) {
-                    return <SkeletonBar width={20} />;
-                }
-                const liked = isLiked(data._id);
-                return (
-                    <Button
-                        aria-label={
-                            liked
-                                ? `Unlike ${data.projectName}`
-                                : `Like ${data.projectName}`
-                        }
-                        aria-pressed={liked}
-                        icon={
-                            liked ? (
-                                <HeartFilled
-                                    style={{ color: semantic.favorite }}
-                                />
-                            ) : (
-                                <HeartOutlined />
-                            )
-                        }
-                        onClick={() => onLike(data._id)}
-                        size="small"
-                        type="text"
-                    />
-                );
-            }
-        },
-        {
-            key: "Project",
-            title: "Project",
-            // AntD's `scroll: { x: 'max-content' }` sizes columns to their
-            // widest descendant; a 200-char single-token name was producing a
-            // 1370 px Project column that pushed Organization / Manager /
-            // Created off-screen. Cap the column so `word-break: break-word`
-            // on the link wraps the run inside the cell.
-            width: 360,
-            sorter: showSkeleton
-                ? undefined
-                : (a, b) => a.projectName.localeCompare(b.projectName),
-            render(_, data) {
-                if (isSkeletonRow(data)) {
-                    return <SkeletonProjectCell />;
-                }
-                return (
-                    <ProjectCell>
-                        <ProjectAvatar
-                            aria-hidden
-                            background={gradientFor(data._id)}
+    if (showSkeleton) {
+        return (
+            <ListSurface aria-busy>
+                <Grid role="list" aria-label="Loading projects">
+                    {Array.from({ length: SKELETON_COUNT }, (_, idx) => (
+                        <div
+                            key={`${SKELETON_KEY_PREFIX}${idx}`}
+                            role="listitem"
+                            className="ant-skeleton"
                         >
-                            {initialsOf(data.projectName)}
-                        </ProjectAvatar>
-                        <ProjectMeta>
-                            <Link to={`${data._id}`} viewTransition>
-                                {data.projectName}
-                            </Link>
-                        </ProjectMeta>
-                    </ProjectCell>
-                );
-            }
-        },
-        {
-            key: "Organization",
-            title: "Organization",
-            dataIndex: "organization",
-            render(_, data) {
-                if (isSkeletonRow(data)) {
-                    return <SkeletonBar width={120} />;
-                }
-                return (
-                    <Typography.Text type="secondary">
-                        {data.organization}
-                    </Typography.Text>
-                );
-            }
-        },
-        {
-            key: "Manager",
-            title: microcopy.fields.manager,
-            render(_, data) {
-                if (isSkeletonRow(data)) {
-                    return <SkeletonBar width={140} />;
-                }
-                const manager = members.find(
-                    (member) => member._id === data.managerId
-                );
-                if (!manager) {
-                    return (
-                        <Typography.Text type="secondary">
-                            {microcopy.feedback.noManager}
-                        </Typography.Text>
-                    );
-                }
-                return (
-                    <ManagerPill>
-                        <UserAvatar
-                            id={manager._id}
-                            name={manager.username}
-                            size="small"
-                        />
-                        <span>{manager.username}</span>
-                    </ManagerPill>
-                );
-            }
-        },
-        {
-            key: "Created At",
-            title: "Created",
-            render(_, data) {
-                if (isSkeletonRow(data)) {
-                    return <SkeletonBar width={84} />;
-                }
-                if (!data.createdAt) {
-                    return (
-                        <Typography.Text type="secondary">
-                            {microcopy.feedback.noDate}
-                        </Typography.Text>
-                    );
-                }
-                return (
-                    <Typography.Text type="secondary">
-                        {formatDate(data.createdAt)}
-                    </Typography.Text>
-                );
-            }
-        },
-        {
-            key: "Actions",
-            width: 56,
-            align: "right",
-            render(_, data) {
-                if (isSkeletonRow(data)) {
-                    return <SkeletonBar width={20} />;
-                }
-                const items: MenuProps["items"] = [
-                    {
-                        key: "edit",
-                        label: (
-                            <NoPaddingButton
-                                aria-label={`Edit ${data.projectName}`}
-                                onClick={() => onEdit(data._id)}
-                                type="link"
-                            >
-                                {microcopy.actions.edit}
-                            </NoPaddingButton>
-                        )
-                    },
-                    {
-                        key: "delete",
-                        label: (
-                            <NoPaddingButton
-                                aria-label={`Delete ${data.projectName}`}
-                                danger
-                                onClick={() => onDelete(data._id)}
-                                type="link"
-                            >
-                                {microcopy.actions.delete}
-                            </NoPaddingButton>
-                        )
-                    }
-                ];
-                return (
-                    <Dropdown menu={{ items }}>
+                            <ProjectCardSkeleton />
+                        </div>
+                    ))}
+                </Grid>
+            </ListSurface>
+        );
+    }
+
+    if (error) {
+        // Page-level <Alert> is rendered by the calling page; render
+        // nothing here so the user does not see a misleading empty state.
+        return <ListSurface />;
+    }
+
+    if (sortedProjects.length === 0) {
+        return (
+            <ListSurface>
+                <EmptyState
+                    variant="projects"
+                    title={microcopy.empty.projects.title}
+                    description={microcopy.empty.projects.description}
+                    cta={
                         <Button
-                            aria-label={`More actions for ${data.projectName}`}
-                            icon={<MoreOutlined />}
-                            size="small"
-                            type="text"
-                        />
-                    </Dropdown>
-                );
-            }
-        }
-    ];
-
-    const skeletonRows: ProjectIntro[] = useMemo(
-        () =>
-            Array.from({ length: SKELETON_ROW_COUNT }, (_, idx) => ({
-                _id: `${SKELETON_KEY_PREFIX}${idx}`,
-                createdAt: "",
-                managerId: "",
-                organization: "",
-                projectName: "",
-                key: idx
-            })),
-        []
-    );
-
-    const renderedDataSource = showSkeleton ? skeletonRows : dataSource;
+                            aria-label={microcopy.actions.createProject}
+                            icon={<PlusOutlined aria-hidden />}
+                            onClick={openModal}
+                            type="primary"
+                        >
+                            {microcopy.actions.createProject}
+                        </Button>
+                    }
+                />
+            </ListSurface>
+        );
+    }
 
     return (
-        <ListSurface aria-busy={showSkeleton || undefined}>
-            <Table<ProjectIntro>
-                {...props}
-                loading={false}
-                pagination={
-                    showSkeleton
-                        ? false
-                        : { pageSize: 10, hideOnSinglePage: true }
-                }
-                columns={ListColumns}
-                dataSource={renderedDataSource}
-                scroll={{ x: "max-content" }}
-                locale={{
-                    emptyText: error ? (
-                        <span />
-                    ) : (
-                        <EmptyState
-                            title={microcopy.empty.projects.title}
-                            description={microcopy.empty.projects.description}
-                            cta={
-                                <Button
-                                    aria-label={microcopy.actions.createProject}
-                                    icon={<PlusOutlined aria-hidden />}
-                                    onClick={openModal}
-                                    type="primary"
-                                >
-                                    {microcopy.actions.createProject}
-                                </Button>
-                            }
+        <ListSurface>
+            <Toolbar>
+                <ResultCount aria-live="polite">
+                    {sortedProjects.length}{" "}
+                    {sortedProjects.length === 1 ? "project" : "projects"}
+                </ResultCount>
+                <SortRow>
+                    Sort
+                    <Select<SortOrder>
+                        aria-label="Sort projects"
+                        onChange={setSortOrder}
+                        options={SORT_OPTIONS}
+                        size="small"
+                        style={{ minWidth: 152 }}
+                        value={sortOrder}
+                        variant="borderless"
+                    />
+                </SortRow>
+            </Toolbar>
+            <Grid role="list" aria-label="Projects">
+                {sortedProjects.map((p) => (
+                    <div key={p._id} role="listitem">
+                        <ProjectCard
+                            liked={isLiked(p._id)}
+                            manager={members.find((m) => m._id === p.managerId)}
+                            onDelete={() => onDelete(p._id)}
+                            onEdit={() => startEditing(p._id)}
+                            onLike={() => onLike(p._id)}
+                            project={p}
                         />
-                    )
-                }}
-            />
+                    </div>
+                ))}
+            </Grid>
         </ListSurface>
     );
 };

@@ -584,34 +584,25 @@ describe("UI quality :: ProjectList on mobile", () => {
         );
 
     /**
-     * On mobile the table drops Organization (col 3) and Created (col 5)
-     * via CSS to fit a 320 px viewport. The header cells must still be in
-     * the DOM (so screen readers see them) but the visible row data drops
-     * those columns. We assert the cells are present AND that the table
-     * uses `scroll: { x: "max-content" }` so AntD wires a horizontal-scroll
-     * container.
+     * The project list now renders as a responsive card grid (one column on
+     * mobile via `auto-fill, minmax(min(100%, 16rem), 1fr)`). Each card
+     * shows the organization label and the created date inline in the body
+     * / footer instead of inside hidden table cells, so the underlying
+     * data stays in the DOM at every viewport.
      */
-    it("ProjectList header cells stay in the DOM on mobile (still in the a11y tree)", () => {
+    it("ProjectList card on mobile keeps the organization + created labels in the DOM", () => {
         renderList();
-        // Even though CSS hides them, the underlying DOM must keep the
-        // cells so screen readers can announce them.
-        expect(
-            screen.getByRole("columnheader", { name: /organization/i })
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole("columnheader", { name: /^created$/i })
-        ).toBeInTheDocument();
+        // Organization is rendered as a small uppercase label in the card
+        // body; the date is rendered in the card footer.
+        expect(screen.getByText("Product")).toBeInTheDocument();
+        expect(screen.getByText(/Apr 25, 2026/)).toBeInTheDocument();
     });
 
-    it("ProjectList table mounts an AntD horizontal-scroll container on mobile", () => {
-        const { container } = renderList();
-        // `scroll={{ x: "max-content" }}` makes AntD wrap the table in
-        // `.ant-table-scroll` with overflow-x. We assert the wrapper is
-        // present so the table can pan horizontally on a 320 px screen.
-        const scrollWrap = container.querySelector(
-            ".ant-table-content, .ant-table-body"
-        );
-        expect(scrollWrap).not.toBeNull();
+    it("ProjectList exposes a list landmark on mobile (no nested horizontal scroll)", () => {
+        renderList();
+        expect(
+            screen.getByRole("list", { name: /projects/i })
+        ).toBeInTheDocument();
     });
 });
 

@@ -4,14 +4,9 @@ import { Button, Input, Select } from "antd";
 import React, { useMemo } from "react";
 
 import { microcopy } from "../../constants/microcopy";
-import {
-    breakpoints,
-    fontSize,
-    fontWeight,
-    radius,
-    space
-} from "../../theme/tokens";
+import { breakpoints, radius, space } from "../../theme/tokens";
 import useAuth from "../../utils/hooks/useAuth";
+import FilterChips, { FilterChip } from "../filterChips";
 
 export interface TaskSearchParam {
     taskName: string | null;
@@ -109,27 +104,6 @@ const ResetButtonSlot = styled.div`
     }
 `;
 
-/**
- * Tiny pill that surfaces how many filters are currently active. Sits next
- * to the Reset button so users can confirm at a glance whether the list is
- * filtered, and re-uses the brand-tinted background so it visually pairs
- * with primary actions without competing.
- */
-const ActiveFilterCount = styled.span`
-    align-items: center;
-    background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.1));
-    border-radius: ${radius.pill}px;
-    color: var(--ant-color-primary, #5e6ad2);
-    display: inline-flex;
-    flex: 0 0 auto;
-    font-size: ${fontSize.xs}px;
-    font-weight: ${fontWeight.semibold};
-    height: ${space.lg - space.xxs / 2}px;
-    justify-content: center;
-    min-width: ${space.lg - space.xxs / 2}px;
-    padding: 0 ${space.xs}px;
-`;
-
 const TaskSearchPanel: React.FC<Props> = ({
     tasks,
     param,
@@ -174,12 +148,53 @@ const TaskSearchPanel: React.FC<Props> = ({
         });
     };
 
-    const activeFilterCount = [
+    const coordinatorName = (members ?? []).find(
+        (m) => m._id === param.coordinatorId
+    )?.username;
+
+    const chips: FilterChip[] = useMemo(() => {
+        const active: FilterChip[] = [];
+        if (param.taskName) {
+            active.push({
+                key: "taskName",
+                label: "Search",
+                value: param.taskName
+            });
+        }
+        if (param.coordinatorId && coordinatorName) {
+            active.push({
+                key: "coordinatorId",
+                label: "Coordinator",
+                value: coordinatorName
+            });
+        }
+        if (param.type) {
+            active.push({ key: "type", label: "Type", value: param.type });
+        }
+        if (param.semanticIds) {
+            active.push({
+                key: "semanticIds",
+                label: "AI",
+                value: "Smart match"
+            });
+        }
+        return active;
+    }, [
         param.taskName,
         param.coordinatorId,
         param.type,
-        param.semanticIds
-    ].filter((value) => Boolean(value)).length;
+        param.semanticIds,
+        coordinatorName
+    ]);
+
+    const dismissChip = (key: string) => {
+        if (key === "taskName") setParam({ ...param, taskName: "" });
+        else if (key === "coordinatorId")
+            setParam({ ...param, coordinatorId: "" });
+        else if (key === "type") setParam({ ...param, type: "" });
+        else if (key === "semanticIds")
+            setParam({ ...param, semanticIds: undefined });
+    };
 
     return (
         <FilterShell>
@@ -255,17 +270,8 @@ const TaskSearchPanel: React.FC<Props> = ({
                     </Select>
                 </FlexSelect>
                 <ResetButtonSlot>
-                    {activeFilterCount > 0 ? (
-                        <ActiveFilterCount
-                            aria-label={`${activeFilterCount} active filter${
-                                activeFilterCount === 1 ? "" : "s"
-                            }`}
-                        >
-                            {activeFilterCount}
-                        </ActiveFilterCount>
-                    ) : null}
                     <Button
-                        disabled={activeFilterCount === 0}
+                        disabled={chips.length === 0}
                         onClick={resetParams}
                         type="text"
                     >
@@ -273,6 +279,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                     </Button>
                 </ResetButtonSlot>
             </FilterRow>
+            <FilterChips chips={chips} onDismiss={dismissChip} />
         </FilterShell>
     );
 };

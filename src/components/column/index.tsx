@@ -188,6 +188,45 @@ const CardFooter = styled.div`
     justify-content: space-between;
 `;
 
+const TaskTypeBadge = styled.span<{ $isBug: boolean }>`
+    align-items: center;
+    color: ${(p) => (p.$isBug ? "#DB2777" : "#5E6AD2")};
+    display: inline-flex;
+    font-weight: ${fontWeight.medium};
+    gap: ${space.xxs}px;
+
+    img {
+        height: 14px;
+        width: 14px;
+    }
+`;
+
+const CardMeta = styled.span`
+    align-items: center;
+    display: inline-flex;
+    gap: ${space.xs}px;
+`;
+
+const StoryPointsTag = styled(Tag)`
+    && {
+        font-variant-numeric: tabular-nums;
+        font-weight: ${fontWeight.semibold};
+        margin: 0;
+    }
+`;
+
+const EpicTag = styled(Tag)`
+    && {
+        font-size: ${fontSize.xs}px;
+        font-weight: ${fontWeight.medium};
+        margin-bottom: ${space.xs}px;
+        max-width: 100%;
+        padding-inline: ${space.xs}px;
+        white-space: normal;
+        word-break: break-word;
+    }
+`;
+
 const ColumnHeader = styled(Row)`
     align-items: center;
     margin-bottom: ${space.sm}px;
@@ -325,21 +364,12 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                 {...rest}
             >
                 {task.epic ? (
-                    <Tag
-                        variant="filled"
+                    <EpicTag
                         color={isBug ? "magenta" : "geekblue"}
-                        style={{
-                            fontSize: fontSize.xs,
-                            fontWeight: 500,
-                            marginBottom: space.xs,
-                            paddingInline: space.xs,
-                            maxWidth: "100%",
-                            wordBreak: "break-word",
-                            whiteSpace: "normal"
-                        }}
+                        variant="filled"
                     >
                         {task.epic}
-                    </Tag>
+                    </EpicTag>
                 ) : null}
                 <CardTitle>{task.taskName}</CardTitle>
                 <CardFooter>
@@ -347,41 +377,19 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                      * the icon is decorative, so no Tooltip is needed —
                      * the previous Tooltip duplicated the label and
                      * announced it twice to screen readers. */}
-                    <span
-                        style={{
-                            alignItems: "center",
-                            color: isBug ? "#DB2777" : "#5E6AD2",
-                            display: "inline-flex",
-                            fontWeight: fontWeight.medium,
-                            gap: space.xxs
-                        }}
-                    >
+                    <TaskTypeBadge $isBug={isBug}>
                         <img
                             alt=""
                             aria-hidden
                             src={isBug ? bugIcon : taskIcon}
-                            style={{ height: 14, width: 14 }}
                         />
                         <span>{isBug ? "Bug" : "Task"}</span>
-                    </span>
-                    <span
-                        style={{
-                            alignItems: "center",
-                            display: "inline-flex",
-                            gap: space.xs
-                        }}
-                    >
+                    </TaskTypeBadge>
+                    <CardMeta>
                         {typeof task.storyPoints === "number" ? (
-                            <Tag
-                                variant="filled"
-                                style={{
-                                    margin: 0,
-                                    fontWeight: fontWeight.semibold,
-                                    fontVariantNumeric: "tabular-nums"
-                                }}
-                            >
+                            <StoryPointsTag variant="filled">
                                 {task.storyPoints} pts
-                            </Tag>
+                            </StoryPointsTag>
                         ) : null}
                         {coordinator ? (
                             <Tooltip
@@ -394,7 +402,7 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                                 />
                             </Tooltip>
                         ) : null}
-                    </span>
+                    </CardMeta>
                 </CardFooter>
             </TaskCardOuter>
         );

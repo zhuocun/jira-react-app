@@ -1,15 +1,10 @@
 import { SearchOutlined } from "@ant-design/icons";
 import styled from "@emotion/styled";
 import { Input, Select } from "antd";
-import React from "react";
+import React, { useMemo } from "react";
 
-import {
-    breakpoints,
-    fontSize,
-    fontWeight,
-    radius,
-    space
-} from "../../theme/tokens";
+import { breakpoints, radius, space } from "../../theme/tokens";
+import FilterChips, { FilterChip } from "../filterChips";
 
 export interface ProjectSearchParam {
     projectName: string | null;
@@ -81,40 +76,6 @@ const FlexSelect = styled.div`
     }
 `;
 
-/**
- * Tiny pill that surfaces how many filters are currently active. Pairs with
- * the search input on tablet+ and stays inline at the end of the filter row
- * so users can confirm at a glance whether the list is being filtered.
- *
- * Uses theme tokens for the height (`space.lg` minus 2 px padding) and
- * font-size (`fontSize.xs`) instead of the previous magic numbers.
- */
-const ActiveFilterCount = styled.span`
-    align-items: center;
-    /* In the parent's mobile column layout (align-items: stretch), an
-     * inline-flex pill with no align-self stretched to the full row width
-     * and produced a tall empty bar with the count floating in the
-     * middle. Pin the pill to its content width so it sits neatly under
-     * the manager select. */
-    align-self: flex-start;
-    background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.1));
-    border-radius: ${radius.pill}px;
-    color: var(--ant-color-primary, #5e6ad2);
-    display: inline-flex;
-    flex: 0 0 auto;
-    font-size: ${fontSize.xs}px;
-    font-weight: ${fontWeight.semibold};
-    height: ${space.lg - space.xxs / 2}px;
-    justify-content: center;
-    min-width: ${space.lg - space.xxs / 2}px;
-    padding: 0 ${space.xs}px;
-
-    @media (min-width: ${breakpoints.md}px) {
-        align-self: auto;
-        margin-inline-start: auto;
-    }
-`;
-
 const ProjectSearchPanel: React.FC<Props> = ({
     param,
     setParam,
@@ -122,13 +83,53 @@ const ProjectSearchPanel: React.FC<Props> = ({
     loading,
     aiSearchSlot
 }) => {
-    const defaultUser = members.find((u) => u._id === param.managerId);
+    const managerName = members.find(
+        (u) => u._id === param.managerId
+    )?.username;
 
-    const activeFilterCount = [
-        param.projectName,
-        param.managerId,
-        param.semanticIds
-    ].filter((value) => Boolean(value)).length;
+    const chips: FilterChip[] = useMemo(() => {
+        const active: FilterChip[] = [];
+        if (param.projectName) {
+            active.push({
+                key: "projectName",
+                label: "Search",
+                value: param.projectName
+            });
+        }
+        if (param.managerId && managerName) {
+            active.push({
+                key: "managerId",
+                label: "Manager",
+                value: managerName
+            });
+        }
+        if (param.semanticIds) {
+            active.push({
+                key: "semanticIds",
+                label: "AI",
+                value: "Smart match"
+            });
+        }
+        return active;
+    }, [param.projectName, param.managerId, param.semanticIds, managerName]);
+
+    const dismiss = (key: string) => {
+        if (key === "projectName") {
+            setParam({ ...param, projectName: "" });
+        } else if (key === "managerId") {
+            setParam({ ...param, managerId: "" });
+        } else if (key === "semanticIds") {
+            setParam({ ...param, semanticIds: undefined });
+        }
+    };
+
+    const clearAll = () => {
+        setParam({
+            projectName: "",
+            managerId: "",
+            semanticIds: undefined
+        });
+    };
 
     return (
         <FilterShell>
@@ -179,23 +180,15 @@ const ProjectSearchPanel: React.FC<Props> = ({
                         ]}
                         placeholder="Manager"
                         style={{ width: "100%" }}
-                        value={
-                            loading
-                                ? undefined
-                                : (defaultUser?.username ?? undefined)
-                        }
+                        value={loading ? undefined : (managerName ?? undefined)}
                     />
                 </FlexSelect>
-                {activeFilterCount > 0 ? (
-                    <ActiveFilterCount
-                        aria-label={`${activeFilterCount} active filter${
-                            activeFilterCount === 1 ? "" : "s"
-                        }`}
-                    >
-                        {activeFilterCount}
-                    </ActiveFilterCount>
-                ) : null}
             </FilterRow>
+            <FilterChips
+                chips={chips}
+                onClearAll={clearAll}
+                onDismiss={dismiss}
+            />
         </FilterShell>
     );
 };
