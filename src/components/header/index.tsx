@@ -23,15 +23,12 @@ import { NoPaddingButton } from "../projectList";
 import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
-    align-items: center;
-    /* Opaque header that visually mirrors the page background. Both the
-     * body and this header point at the same --page-background gradient
-     * with background-attachment: fixed, so the gradient is positioned in
-     * viewport space and the header reads as a continuous extension of
-     * the page chrome when at the top. Because the surface is fully
-     * opaque (not glass, not translucent), content scrolling underneath
-     * is cleanly hidden behind the chrome — the brand mark and account
-     * pill stay legible no matter how dense the page is. */
+    /* Icons sit at the bottom edge of the chrome (align-items: flex-end)
+     * with zero padding-bottom, so the header is as short as the safe-area
+     * + content allows and the fade strip below begins immediately under
+     * the icon row — there's no dead space between the icons and the
+     * gradient transition into the page. */
+    align-items: flex-end;
     background: var(--page-background);
     background-attachment: fixed;
     /*
@@ -44,7 +41,7 @@ const PageHeader = styled.header`
     display: flex;
     justify-content: space-between;
     gap: ${space.xs}px;
-    padding: ${space.xs}px ${space.sm}px;
+    padding: ${space.xs}px ${space.sm}px 0;
     padding-block-start: max(${space.xs}px, env(safe-area-inset-top));
     padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
     padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
