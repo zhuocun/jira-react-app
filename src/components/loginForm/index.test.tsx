@@ -200,6 +200,28 @@ describe("LoginForm", () => {
         expect(localStorage.getItem("Token")).toBeNull();
     });
 
+    it("does not store a poison token when the server omits jwt on a 200", async () => {
+        const onError = jest.fn();
+        mutateAsync.mockResolvedValue(
+            user({ jwt: undefined as unknown as string })
+        );
+        renderLoginForm({ onError });
+
+        await changeField(/^email$/i, "alice@example.com");
+        await changeField(/^password$/i, "secret");
+        await submitLogin();
+
+        await waitFor(() => {
+            expect(onError).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    message: "Login response missing token"
+                })
+            );
+        });
+        expect(localStorage.getItem("Token")).toBeNull();
+        expect(window.location.pathname).toBe("/login");
+    });
+
     it("shows the submitting state from the mutation", () => {
         renderLoginForm({ isLoading: true });
 
