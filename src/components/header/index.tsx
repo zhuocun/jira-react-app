@@ -23,16 +23,18 @@ import { NoPaddingButton } from "../projectList";
 import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
-    /* Icons sit at the bottom edge of the chrome (align-items: flex-end)
-     * with zero padding-bottom and a tight 2 px breathing line above.
-     * The earlier safe-area-inset-top floor was elastic — with
-     * viewport-fit=cover set on the document the safe-area inset can
-     * resolve to ~24–30 px even in regular browser tabs (it tracks the
-     * OS chrome height rather than the visible URL bar), and the floor
-     * would lose to it, leaving the icons floating 30 px below the top
-     * of the band. The OS already reserves its own safe area above
-     * this surface, so we do not pay for it twice here. */
-    align-items: flex-end;
+    /* Icons centred vertically inside the chrome (align-items: center)
+     * with symmetric block padding on both edges. Block padding steps
+     * up at md and lg so the bar reads as a calmer, taller chrome on
+     * laptop / desktop while staying compact on phone — the icons
+     * always sit in the optical centre of the band rather than hugging
+     * the bottom edge.
+     *
+     * The earlier flex-end + zero padding-bottom pattern made sense
+     * when the header was a tight ~46 px row across every viewport,
+     * but with the responsive height bump the icons started looking
+     * stranded against the bottom of a tall band on desktop. */
+    align-items: center;
     /*
      * Frosted-glass chrome. The translucent surface lets the page
      * gradient (and any content scrolled under the header) read
@@ -61,7 +63,7 @@ const PageHeader = styled.header`
     display: flex;
     justify-content: space-between;
     gap: ${space.xs}px;
-    padding: 2px ${space.sm}px 0;
+    padding: 2px ${space.sm}px;
     padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
     padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
     position: sticky;
@@ -90,21 +92,20 @@ const PageHeader = styled.header`
      * Laptop / desktop viewports get a taller chrome — the page no
      * longer competes with the OS status bar for vertical pixels, and
      * a denser bar feels under-set against a wide aurora wash. Bump
-     * padding-block-start to space.md (16 px) at md+, then space.lg
-     * (24 px) at lg+ so the band reads as ~52 px on tablet/laptop and
-     * ~60 px on full desktop. Icons stay anchored to the bottom via
-     * align-items: flex-end, so the extra height shows up as breathing
-     * room above the icon row rather than recentring them.
+     * symmetric block padding to space.xs (8 px) at md+, then space.sm
+     * (12 px) at lg+ so the band reads as ~52 px on tablet/laptop and
+     * ~60 px on full desktop with the icons (36 px row) centred
+     * vertically.
      */
     @media (min-width: ${breakpoints.md}px) {
-        padding-block-start: ${space.md}px;
+        padding-block: ${space.xs}px;
         padding-inline: ${space.lg}px;
         padding-inline-start: max(${space.lg}px, env(safe-area-inset-left));
         padding-inline-end: max(${space.lg}px, env(safe-area-inset-right));
     }
 
     @media (min-width: ${breakpoints.lg}px) {
-        padding-block-start: ${space.lg}px;
+        padding-block: ${space.sm}px;
     }
 `;
 
