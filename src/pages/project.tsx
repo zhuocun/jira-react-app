@@ -124,18 +124,13 @@ const StatCard = styled.div`
 
 const StatLabel = styled.span`
     color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.55));
-    /* On the narrowest phones (≤ 360 px) three columns leave each label
-     * around 95 px, so we wide-space the xs (12 px) value and rely on
-     * text-overflow: ellipsis as the safety net. Above the sm
-     * breakpoint we keep the same value but the cards have room to
-     * breathe. */
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
     letter-spacing: ${letterSpacing.wide};
     /* The card uses align-items: flex-start (so values don't stretch),
      * which sizes children to their content on the cross axis. Without
      * this cap, "TEAM MEMBERS" sizes to its 103 px max-content and
-     * spills past the 91 px card at 320 px viewport — the
+     * spills past the card on narrow viewports — the
      * text-overflow: ellipsis below only fires when the element is
      * actually narrower than its content. */
     max-width: 100%;
@@ -143,6 +138,21 @@ const StatLabel = styled.span`
     text-overflow: ellipsis;
     text-transform: uppercase;
     white-space: nowrap;
+
+    /* Below sm (480 px) three columns leave ~90 px per label.
+     * "TOTAL PROJECTS" / "ORGANIZATIONS" / "TEAM MEMBERS" run ~105–115 px
+     * with the wide tracking, so the ellipsis was clipping mid-word
+     * ("TOTAL PRO…", "TEAM MEM…"). Drop the tracking, shrink the size
+     * a notch, and allow break-anywhere so the single-token
+     * "ORGANIZATIONS" wraps cleanly inside its card. */
+    @media (max-width: ${breakpoints.sm - 1}px) {
+        font-size: 11px;
+        letter-spacing: ${letterSpacing.normal};
+        line-height: ${lineHeight.tight};
+        overflow-wrap: anywhere;
+        white-space: normal;
+        text-overflow: clip;
+    }
 `;
 
 const StatValue = styled.span`

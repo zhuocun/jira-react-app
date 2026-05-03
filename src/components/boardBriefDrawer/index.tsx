@@ -29,6 +29,7 @@ import useAi from "../../utils/hooks/useAi";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import AiSparkleIcon from "../aiSparkleIcon";
 import CopilotPrivacyPopover from "../copilotPrivacyPopover";
+import EngineModeTag from "../engineModeTag";
 
 /**
  * Brief-drawer list rows are activatable (open the underlying task in
@@ -176,11 +177,110 @@ const formatRelative = (then: number, now: number): string => {
     return `${days} day${days === 1 ? "" : "s"} ago`;
 };
 
+const STRENGTH_LABEL: Record<
+    NonNullable<IBoardBrief["recommendationDetail"]>["strength"],
+    string
+> = {
+    strong: "Strong signal",
+    moderate: "Moderate signal",
+    low: "Low signal — review",
+    none: "No action needed"
+};
+
+const STRENGTH_COLOR: Record<
+    NonNullable<IBoardBrief["recommendationDetail"]>["strength"],
+    "red" | "orange" | "blue" | "default"
+> = {
+    strong: "red",
+    moderate: "orange",
+    low: "blue",
+    none: "default"
+};
+
+interface BriefRecommendationTitleProps {
+    detail?: IBoardBrief["recommendationDetail"];
+}
+
+const BriefRecommendationTitle: React.FC<BriefRecommendationTitleProps> = ({
+    detail
+}) => (
+    <span style={{ alignItems: "center", display: "inline-flex", gap: 6 }}>
+        <span>{`${microcopy.a11y.aiSuggestion}: Recommended next step`}</span>
+        {detail && (
+            <Tag
+                color={STRENGTH_COLOR[detail.strength]}
+                style={{ marginInlineEnd: 0 }}
+            >
+                {STRENGTH_LABEL[detail.strength]}
+            </Tag>
+        )}
+    </span>
+);
+
+interface BriefRecommendationBodyProps {
+    detail?: IBoardBrief["recommendationDetail"];
+    fallbackText: string;
+    onOpenTask: (taskId: string) => void;
+}
+
+const BriefRecommendationBody: React.FC<BriefRecommendationBodyProps> = ({
+    detail,
+    fallbackText,
+    onOpenTask
+}) => {
+    const text = detail?.text ?? fallbackText;
+    return (
+        <div>
+            <Typography.Paragraph style={{ marginBottom: 4 }}>
+                {text}
+            </Typography.Paragraph>
+            {detail?.basis && (
+                <Typography.Paragraph
+                    style={{ fontSize: fontSize.xs, marginBottom: 4 }}
+                    type="secondary"
+                >
+                    {`Basis: ${detail.basis}`}
+                </Typography.Paragraph>
+            )}
+            {detail && detail.sources.length > 0 && (
+                <Space size={4} wrap>
+                    {detail.sources.map((source) => (
+                        <Tag
+                            color="purple"
+                            key={source.taskId}
+                            onClick={() => onOpenTask(source.taskId)}
+                            style={{
+                                cursor: "pointer",
+                                marginInlineEnd: 0
+                            }}
+                            tabIndex={0}
+                            onKeyDown={(event) => {
+                                if (
+                                    event.key === "Enter" ||
+                                    event.key === " "
+                                ) {
+                                    event.preventDefault();
+                                    onOpenTask(source.taskId);
+                                }
+                            }}
+                        >
+                            {source.taskName}
+                        </Tag>
+                    ))}
+                </Space>
+            )}
+        </div>
+    );
+};
+
 const briefToMarkdown = (brief: IBoardBrief): string => {
     const lines: string[] = [];
     lines.push(`# ${brief.headline}`, "");
     if (brief.recommendation) {
         lines.push(`> ${brief.recommendation}`, "");
+        if (brief.recommendationDetail?.basis) {
+            lines.push(`_Basis: ${brief.recommendationDetail.basis}_`, "");
+        }
     }
     lines.push("## Counts per column", "");
     for (const entry of brief.counts) {
@@ -393,6 +493,7 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                                 <InfoCircleOutlined />
                             </span>
                         }
+                        route="board-brief"
                     />
                 </Space>
             }
@@ -412,6 +513,7 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                     <Tag color="purple" style={{ marginInlineStart: space.xs }}>
                         {microcopy.a11y.aiBadge}
                     </Tag>
+                    <EngineModeTag />
                 </Space>
             }
             size={drawerWidth}
@@ -453,11 +555,26 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                     </Typography.Title>
                     {briefData.recommendation && (
                         <Alert
-                            description={briefData.recommendation}
+                            description={
+                                <BriefRecommendationBody
+                                    detail={briefData.recommendationDetail}
+                                    fallbackText={briefData.recommendation}
+                                    onOpenTask={openTaskFromBrief}
+                                />
+                            }
                             showIcon
                             style={{ marginBottom: space.md }}
-                            title={`${microcopy.a11y.aiSuggestion}: Recommended next step`}
-                            type="info"
+                            title={
+                                <BriefRecommendationTitle
+                                    detail={briefData.recommendationDetail}
+                                />
+                            }
+                            type={
+                                briefData.recommendationDetail?.strength ===
+                                "none"
+                                    ? "info"
+                                    : "warning"
+                            }
                         />
                     )}
                     <SectionHeading>Counts per column</SectionHeading>

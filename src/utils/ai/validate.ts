@@ -81,6 +81,38 @@ export const validateEstimate = (
     };
 };
 
+const RECOMMENDATION_STRENGTHS = new Set([
+    "strong",
+    "moderate",
+    "low",
+    "none"
+] as const);
+
+const validateRecommendationDetail = (
+    raw: IBoardBrief["recommendationDetail"],
+    fallbackText: string,
+    taskIds: Set<string>
+): IBoardBriefRecommendation | undefined => {
+    if (!raw || typeof raw !== "object") return undefined;
+    const strength = RECOMMENDATION_STRENGTHS.has(
+        raw.strength as BoardBriefRecommendationStrength
+    )
+        ? raw.strength
+        : "none";
+    const sources = Array.isArray(raw.sources)
+        ? raw.sources
+              .filter((entry) => entry && taskIds.has(entry.taskId))
+              .slice(0, 5)
+        : [];
+    return {
+        text:
+            typeof raw.text === "string" && raw.text ? raw.text : fallbackText,
+        strength,
+        basis: typeof raw.basis === "string" ? raw.basis : "",
+        sources
+    };
+};
+
 export const validateBoardBrief = (
     raw: IBoardBrief,
     context: ValidateContext
@@ -88,6 +120,7 @@ export const validateBoardBrief = (
     const columnIds = new Set(context.columns.map((column) => column._id));
     const taskIds = new Set(context.tasks.map((task) => task._id));
     const memberIds = new Set(context.members.map((member) => member._id));
+    const recommendation = raw.recommendation || "";
     return {
         headline: raw.headline || "",
         counts: (raw.counts || []).filter((entry) =>
@@ -102,7 +135,12 @@ export const validateBoardBrief = (
         workload: (raw.workload || []).filter((entry) =>
             memberIds.has(entry.memberId)
         ),
-        recommendation: raw.recommendation || ""
+        recommendation,
+        recommendationDetail: validateRecommendationDetail(
+            raw.recommendationDetail,
+            recommendation,
+            taskIds
+        )
     };
 };
 

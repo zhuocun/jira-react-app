@@ -146,7 +146,8 @@ const zhCN: Dictionary = {
         },
         board: {
             title: "添加您的第一列",
-            description: "看板将任务组织到不同的列中。可尝试:待办、进行中、已完成。"
+            description:
+                "看板将任务组织到不同的列中。可尝试:待办、进行中、已完成。"
         },
         members: {
             title: "暂无团队成员",
@@ -193,9 +194,16 @@ const zhCN: Dictionary = {
         privacyExclusions: "附件不会包含在看板 Copilot 的请求中。",
         localProcessingDisclosure:
             "此版本使用本地确定性的看板 Copilot 规则,不会有外部 AI 服务处理这些请求。",
-        remoteProcessingDisclosure: "请求由配置的 AI 服务处理。",
+        remoteProcessingDisclosure:
+            "请求由配置的 AI 服务处理。系统会转发您的登录令牌,以便代理服务对您的账户授权。",
         remoteProcessingDisclosureWithOrigin:
-            "请求由位于 {origin} 的 AI 服务处理。",
+            "请求由位于 {origin} 的 AI 服务处理。系统会转发您的登录令牌,以便代理服务对您的账户授权。",
+        processingModeLocalLabel: "本地引擎",
+        processingModeRemoteLabel: "远程 AI 服务",
+        engineCapabilityLocal:
+            "此版本的看板 Copilot 在本地按确定性的项目规则运行 — 未配置外部语言模型。建议反映的是规则,而非语言模型。",
+        engineCapabilityRemote:
+            "看板 Copilot 已连接到配置的 AI 服务。输出可能包含生成的内容,使用前请审核。",
         privacyLink: "共享了哪些信息?",
         privacyAcknowledge: "我知道了",
         privacySuppress: "不再提醒",
@@ -206,6 +214,23 @@ const zhCN: Dictionary = {
         undoLabel: "撤销",
         copiedConfirm: "已复制到剪贴板",
         feedbackThanks: "感谢您的反馈",
+        feedbackImpactNotice:
+            "反馈仅供产品团队复盘 — 不会改变本次回答,也不会用于训练模型。",
+        feedbackPromptDownTitle: "哪里出了问题?",
+        feedbackPromptDownHelper:
+            "请至少选一项 — 这能帮助我们排查并优先修复,且不会发送您的消息文本。",
+        feedbackCategories: {
+            incorrect: "信息错误或编造",
+            missingSource: "来源缺失或不准确",
+            outdated: "使用了过期的看板数据",
+            notActionable: "无法据此采取行动",
+            unsafe: "建议存在风险",
+            privacy: "隐私问题",
+            other: "其他原因"
+        },
+        feedbackOptionalNote: "添加可选备注(不会发送您的消息文本)",
+        feedbackSubmit: "发送反馈",
+        feedbackSkip: "跳过",
         regeneratedBadge: "已重新生成的回答",
         regeneratedTooltip:
             "看板 Copilot 对同一问题生成了新的回答。先前的回答仍显示在上方供对比。",
@@ -217,8 +242,7 @@ const zhCN: Dictionary = {
         },
         appliedSuggestion: "由 Copilot 建议",
         appliedSuggestionShort: "AI",
-        suggestionPopover:
-            "看板 Copilot 已为您填写。可编辑或恢复至原值。",
+        suggestionPopover: "看板 Copilot 已为您填写。可编辑或恢复至原值。",
         revertToPrevious: "恢复至上一个值",
         showAlternatives: "查看其他选项",
         showRationale: "为什么?",
@@ -227,15 +251,15 @@ const zhCN: Dictionary = {
             "提问关于此看板、任务或您的项目。回答仅基于应用中的只读数据。",
         emptyBriefLead:
             "历史数据不足以分析趋势。随着看板的使用,简报会变得更智能。",
-        emptyInbox:
-            "目前没有提醒。看板 Copilot 每 15 分钟检查一次问题。",
+        emptyInbox: "目前没有提醒。看板 Copilot 每 15 分钟检查一次问题。",
         emptyHistory:
             "尚无 AI 操作记录。通过看板 Copilot 进行的更改会显示在此处。",
         rateLimit: "看板 Copilot 已达容量上限,请在 {seconds} 秒后重试。",
-        projectDisabled:
-            "此项目已关闭看板 Copilot。管理员可在设置中启用。",
+        projectDisabled: "此项目已关闭看板 Copilot。管理员可在设置中启用。",
         chatErrorRecovery:
             "未找到答案。请尝试换一种说法,或查看下方列出的来源。",
+        chatNoSourcesCaveat:
+            "本次回答未引用任何看板记录 — 采取行动前请先核实。",
         copilotLabel: "看板 Copilot",
         askCopilot: "询问看板 Copilot",
         findRelatedTasks: "查找相关任务",

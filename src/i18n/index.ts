@@ -4,20 +4,20 @@
  *
  * Adding a new language: see `registry.ts` for the one-stop instructions.
  */
-export { LanguageProvider, useLocale, useTranslation } from "./context";
-export {
-    DEFAULT_LOCALE,
-    LOCALES,
-    detectInitialLocale,
-    getLocaleEntry,
-    isLocaleCode,
-    persistLocale,
-    type LocaleCode,
-    type LocaleEntry
-} from "./registry";
 export {
     getActiveDictionary,
     getActiveLocaleCode,
     setActiveLocale
 } from "./active";
+export { LanguageProvider, useLocale, useTranslation } from "./context";
+export {
+    DEFAULT_LOCALE,
+    detectInitialLocale,
+    getLocaleEntry,
+    isLocaleCode,
+    type LocaleCode,
+    type LocaleEntry,
+    LOCALES,
+    persistLocale
+} from "./registry";
 export type { Dictionary } from "./types";
