@@ -456,12 +456,18 @@ const useAgent = (
                 messages: [...prev.messages, ...messages]
             }));
 
+            // NOTE: `user_id` is intentionally NOT placed on the wire here.
+            // The agent server derives identity from the JWT in
+            // `Authorization` and rejects any client-supplied `user_id` in
+            // `configurable` with HTTP 400 to prevent identity spoofing
+            // (see jira-python-server `app/routers/agents.py::_normalize_payload`).
+            // `options.userId` is still consumed above for FE-internal
+            // bookkeeping (e.g. `feToolContext.userId`).
             await runStream({
                 input: { messages },
                 config: {
                     configurable: {
                         thread_id: threadIdRef.current,
-                        user_id: options.userId ?? "",
                         project_id: options.projectId ?? "",
                         autonomy: autonomyRef.current
                     }
@@ -470,18 +476,19 @@ const useAgent = (
                 version: "v2"
             });
         },
-        [options.projectId, options.userId, runStream, safeSetState]
+        [options.projectId, runStream, safeSetState]
     );
 
     const resume = useCallback(
         async (resumeValue: unknown) => {
+            // See `start()` above for why `user_id` is omitted from the
+            // wire body — the server derives it from the JWT.
             await runStream({
                 input: null,
                 command: { resume: resumeValue },
                 config: {
                     configurable: {
                         thread_id: threadIdRef.current,
-                        user_id: options.userId ?? "",
                         project_id: options.projectId ?? "",
                         autonomy: autonomyRef.current
                     }
@@ -490,7 +497,7 @@ const useAgent = (
                 version: "v2"
             });
         },
-        [options.projectId, options.userId, runStream]
+        [options.projectId, runStream]
     );
 
     const abort = useCallback(() => {

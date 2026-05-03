@@ -139,7 +139,13 @@ export interface AgentStreamRequest {
     config: {
         configurable: {
             thread_id: string;
-            user_id: string;
+            // NOTE: `user_id` is deliberately absent from this shape. The
+            // agent server derives the caller's identity from the JWT in
+            // `Authorization` and rejects any `user_id` in `configurable`
+            // with HTTP 400 to prevent spoofing (see jira-python-server
+            // `app/routers/agents.py::_normalize_payload`). The trailing
+            // index signature is kept so callers can still pass other
+            // graph-scoped knobs (e.g. `project_id`, `autonomy`).
             [k: string]: unknown;
         };
     };
