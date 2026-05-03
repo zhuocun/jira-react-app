@@ -6,9 +6,10 @@ import { avatarGradients, fontSize, fontWeight } from "../../theme/tokens";
 
 /**
  * Pulls one of the brand-aligned gradients deterministically from a stable
- * id (project id, member id, etc.) so every entity reads as the same color
- * across the app. Uses a small FNV-style hash so a 24-character ObjectId and
- * a 5-character slug both spread evenly across the palette.
+ * id (project id, member id, etc.) so callers that want a per-entity colour
+ * cue can opt in via the `background` prop. The default avatar surface no
+ * longer uses these gradients — every avatar in the app renders as a
+ * white tile with brand-orange foreground (matching the brand mark).
  */
 export const gradientFor = (id: string): string => {
     let hash = 0;
@@ -36,19 +37,20 @@ interface UserAvatarProps extends Omit<AvatarProps, "children"> {
     id: string;
     /** Display name; first / last initials are derived from it. */
     name?: string | null;
-    /** Override the gradient (rare — normally derived from `id`). */
+    /** Override the surface (rare — opt in via `gradientFor(id)` if needed). */
     background?: string;
 }
 
 /**
  * Single-source-of-truth avatar.
  *
- * - When a `name` is provided, renders a brand-gradient monogram (initials
- *   on a deterministic per-id colour) — keeps each entity visually distinct.
- * - When `name` is missing or empty, renders the **default profile**
- *   variant: a white tile with the brand-orange `UserOutlined` icon and a
- *   1 px hairline border, mirroring the inverted brand-mark style. This
- *   is the "no manager assigned / unknown user" fallback.
+ * Renders as a white tile with a 1 px hairline border and the
+ * brand-orange foreground — the same visual language as the inverted
+ * brand mark. The foreground is either the per-entity initials (when a
+ * name is provided) or the AntD `UserOutlined` icon (the "no name /
+ * unknown user" default). Callers who want the legacy per-id gradient
+ * surface (e.g. dense list views where colour-coding helps) can opt in
+ * by passing `background={gradientFor(id)}`.
  */
 const UserAvatar: React.FC<UserAvatarProps> = ({
     id,
@@ -60,34 +62,27 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
 }) => {
     const compact = size === "small" || size === "default";
     const isDefault = !name || !name.trim();
-    if (isDefault) {
-        return (
-            <Avatar
-                icon={<UserOutlined />}
-                size={size}
-                style={{
-                    background: "var(--ant-color-bg-elevated, #ffffff)",
-                    border: "1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.08))",
-                    color: "var(--ant-color-primary, #ea580c)",
-                    ...style
-                }}
-                {...rest}
-            />
-        );
-    }
+    const surface = background ?? "var(--ant-color-bg-elevated, #ffffff)";
+    const onSurfaceColor = background
+        ? "#ffffff"
+        : "var(--ant-color-primary, #ea580c)";
     return (
         <Avatar
+            icon={isDefault ? <UserOutlined /> : undefined}
             size={size}
             style={{
-                background: background ?? gradientFor(id),
-                color: "#fff",
-                fontSize: compact ? fontSize.xs - 1 : fontSize.sm,
+                background: surface,
+                border: background
+                    ? "none"
+                    : "1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.08))",
+                color: onSurfaceColor,
+                fontSize: compact ? fontSize.xs : fontSize.sm,
                 fontWeight: fontWeight.semibold,
                 ...style
             }}
             {...rest}
         >
-            {initialsOf(name)}
+            {isDefault ? null : initialsOf(name)}
         </Avatar>
     );
 };
