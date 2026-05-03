@@ -86,10 +86,25 @@ const PageHeader = styled.header`
         padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
     }
 
+    /*
+     * Laptop / desktop viewports get a taller chrome — the page no
+     * longer competes with the OS status bar for vertical pixels, and
+     * a denser bar feels under-set against a wide aurora wash. Bump
+     * padding-block-start to space.md (16 px) at md+, then space.lg
+     * (24 px) at lg+ so the band reads as ~52 px on tablet/laptop and
+     * ~60 px on full desktop. Icons stay anchored to the bottom via
+     * align-items: flex-end, so the extra height shows up as breathing
+     * room above the icon row rather than recentring them.
+     */
     @media (min-width: ${breakpoints.md}px) {
+        padding-block-start: ${space.md}px;
         padding-inline: ${space.lg}px;
         padding-inline-start: max(${space.lg}px, env(safe-area-inset-left));
         padding-inline-end: max(${space.lg}px, env(safe-area-inset-right));
+    }
+
+    @media (min-width: ${breakpoints.lg}px) {
+        padding-block-start: ${space.lg}px;
     }
 `;
 
