@@ -204,6 +204,28 @@ const useAiChat = (ctx: UseAiChatContext | null) => {
                         break;
                     }
 
+                    /*
+                     * Replay context preservation for the remote LLM.
+                     *
+                     * Append a hidden assistant turn that carries the
+                     * `toolCalls` payload before the per-tool results. The
+                     * chat drawer suppresses turns where `content === ""`
+                     * and `toolCalls?.length > 0`, so this is invisible to
+                     * the user — but `remoteChatStep` serializes it on the
+                     * next request so the BE shim's `_build_chat_messages`
+                     * helper can hydrate `AIMessage.tool_calls`. Without
+                     * that, Anthropic 400s ("tool_result block references
+                     * unknown tool_use id") and OpenAI silently drops
+                     * context on every multi-round answer.
+                     */
+                    const assistantToolTurn: AiChatMessage = {
+                        role: "assistant",
+                        content: "",
+                        toolCalls: turn.toolCalls.map((c) => ({ ...c }))
+                    };
+                    thread = [...thread, assistantToolTurn];
+                    setMessages(thread);
+
                     for (const call of turn.toolCalls) {
                         if (signal.aborted) break;
                         const payload = await executeChatToolCall(
