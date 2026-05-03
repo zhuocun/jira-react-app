@@ -251,16 +251,19 @@ describe("UI quality :: UserAvatar resilience", () => {
         expect(result.length).toBeGreaterThan(0);
     });
 
-    it("UserAvatar renders the placeholder '?' for empty / null names without exposing 'undefined'", () => {
+    it("UserAvatar renders the default profile icon for empty / null names without exposing 'undefined'", () => {
         const { container, rerender } = render(
             <UserAvatar id="x" name={null} />
         );
-        // Placeholder is "?" — we should never see the literal "undefined".
+        // Default state is the AntD UserOutlined icon — no initials, no
+        // literal "undefined", and no "?" leak from the old placeholder.
         expect(container.textContent).not.toMatch(/\bundefined\b/i);
-        expect(container.textContent).toContain("?");
+        expect(container.querySelector(".anticon-user")).not.toBeNull();
+        expect(container.textContent).not.toContain("?");
 
         rerender(<UserAvatar id="y" name={undefined} />);
         expect(container.textContent).not.toMatch(/\bundefined\b/i);
+        expect(container.querySelector(".anticon-user")).not.toBeNull();
     });
 });
 

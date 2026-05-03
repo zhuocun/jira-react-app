@@ -10,7 +10,7 @@ import { Dropdown, MenuProps, Space, Switch, Typography } from "antd";
 import { useLocation } from "react-router";
 
 import { microcopy } from "../../constants/microcopy";
-import { blur, breakpoints, radius, space } from "../../theme/tokens";
+import { breakpoints, radius, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useColorScheme from "../../utils/hooks/useColorScheme";
@@ -23,12 +23,13 @@ import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
     align-items: center;
-    /* Restrained glass treatment: a frosted pane that sits quietly over
-     * the warm page. Shadow is neutral slate so the header doesn't
-     * telegraph the brand colour into the chrome — the palette accent
-     * is reserved for content (CTAs, focus rings, AI surfaces). */
-    backdrop-filter: saturate(180%) blur(${blur.md}px);
-    -webkit-backdrop-filter: saturate(180%) blur(${blur.md}px);
+    /* Transparent chrome for a native-app feel. The header floats over
+     * the page's warm peach wash without a frosted pane, border, or
+     * shadow — content scrolls under the brand mark and account pill
+     * the way it does on a native iOS / iPadOS top bar. The page-level
+     * background gradient handles the visual warmth here.
+     */
+    background: transparent;
     /*
      * Opt the sticky header out of the route cross-fade. With its own
      * view-transition-name the browser keeps it in place while the body
@@ -36,9 +37,6 @@ const PageHeader = styled.header`
      * push transition rather than a full-page swap.
      */
     view-transition-name: pulse-header;
-    background: var(--glass-surface-strong);
-    border-bottom: 1px solid var(--glass-border);
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
     display: flex;
     justify-content: space-between;
     gap: ${space.xs}px;
