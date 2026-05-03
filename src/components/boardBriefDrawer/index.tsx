@@ -50,7 +50,7 @@ const ActivatableListItem = styled(List.Item)`
 
     &&:focus-visible {
         background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.04));
-        outline: 2px solid var(--ant-color-primary, #047857);
+        outline: 2px solid var(--ant-color-primary, #c2410c);
         outline-offset: -2px;
     }
 `;
@@ -80,7 +80,7 @@ const WorkloadBar = styled.div<{ overloaded: boolean }>`
     background: ${(props) =>
         props.overloaded
             ? "var(--ant-color-warning, #F59E0B)"
-            : "var(--color-copilot-grad-mid, #059669)"};
+            : "var(--color-copilot-grad-mid, #EA580C)"};
     height: 100%;
     transition: width 320ms ease-out;
 `;

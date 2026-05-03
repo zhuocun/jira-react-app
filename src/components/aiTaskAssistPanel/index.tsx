@@ -276,12 +276,12 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
             size="small"
             style={{
                 background:
-                    "linear-gradient(135deg, rgba(4, 120, 87, 0.06) 0%, transparent 70%), var(--glass-surface-strong)",
+                    "linear-gradient(135deg, var(--aurora-blob-faint) 0%, transparent 70%), var(--glass-surface-strong)",
                 backdropFilter: "blur(20px) saturate(170%)",
                 WebkitBackdropFilter: "blur(20px) saturate(170%)",
                 borderColor: "var(--glass-border-strong)",
                 boxShadow:
-                    "0 4px 16px -8px rgba(4, 120, 87, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.55)",
+                    "0 4px 16px -8px var(--aurora-blob), inset 0 1px 0 rgba(255, 255, 255, 0.55)",
                 marginTop: space.md
             }}
             title={

@@ -26,15 +26,14 @@ const Page = styled.div`
     grid-template-columns: 1fr;
     min-height: 100vh;
     min-height: 100dvh;
-    /* Single soft emerald glow over the warm-white page. The previous
-     * multi-blob aurora gave way to a single radial: where the form sits,
-     * the air around it picks up a quiet emerald cast. Below the md
-     * breakpoint (no hero rail), this glow alone gives the auth canvas
-     * its only color. */
+    /* Single soft brand-accent glow over the warm page. Uses the
+     * palette-derived --aurora-blob so a palette swap re-tints the auth
+     * canvas with no edits here. Below the md breakpoint (no hero rail),
+     * this glow alone gives the canvas its only colour. */
     background:
         radial-gradient(
             60rem 50rem at 50% 30%,
-            rgba(4, 120, 87, 0.1) 0%,
+            var(--aurora-blob) 0%,
             transparent 70%
         ),
         var(--pulse-bg-page);
@@ -65,14 +64,14 @@ const HeroRail = styled.aside`
 
     @media (min-width: ${breakpoints.md}px) {
         align-items: center;
-        /* Single deep-emerald glow over the cinematic base — a smooth
-         * vignette rather than a multi-color mesh. The simplification
-         * fits the "color + white" elegance: even on the dark hero
-         * rail, only one hue is visible. */
+        /* Single deep brand-accent glow over the cinematic base — a
+         * smooth vignette rather than a multi-color mesh. Uses
+         * aurora.mid (palette-derived) so the whole rail follows the
+         * active palette without any edits to this file. */
         background:
             radial-gradient(
                 70rem 60rem at 30% 30%,
-                rgba(16, 185, 129, 0.45) 0%,
+                ${aurora.mid} 0%,
                 transparent 70%
             ),
             ${aurora.cinematicBase};
@@ -126,13 +125,14 @@ const HeroBadge = styled.div`
 `;
 
 const HeroBadgeDot = styled.span`
-    /* Light emerald dot — sits inside a single-hue identity, glowing
-     * brightly against the deep cinematic base. */
+    /* Light brand-accent dot — sits inside a single-hue identity,
+     * glowing brightly against the deep cinematic base. The dot color
+     * follows the active palette automatically. */
     background: ${aurora.light};
     border-radius: 50%;
     box-shadow:
         0 0 10px ${aurora.light},
-        0 0 20px rgba(110, 231, 183, 0.5);
+        0 0 20px var(--aurora-blob-strong);
     display: inline-block;
     height: 6px;
     width: 6px;

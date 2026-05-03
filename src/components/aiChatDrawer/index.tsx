@@ -51,7 +51,7 @@ const MessageBubble = styled(Typography.Paragraph)<{ $isUser: boolean }>`
     && {
         background: ${(props) =>
             props.$isUser
-                ? "var(--ant-color-primary-bg, rgba(4, 120, 87, 0.10))"
+                ? "var(--ant-color-primary-bg, rgba(194, 65, 12, 0.10))"
                 : "var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.04))"};
         border-radius: ${radius.md}px;
         color: var(--ant-color-text, inherit);
@@ -142,7 +142,7 @@ const ToolDetails = styled.details`
     }
 
     summary:focus-visible {
-        outline: 2px solid var(--ant-color-primary, #047857);
+        outline: 2px solid var(--ant-color-primary, #c2410c);
         outline-offset: 2px;
     }
 `;
@@ -583,12 +583,14 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
             size={drawerWidth}
             styles={{
                 body: {
-                    /* Quiet emerald breath at the top of the drawer body
-                     * so the AI surface reads as distinct from a generic
-                     * dialog. The glass drawer surface (App.css) carries
-                     * the rest of the visual weight. */
+                    /* Quiet brand-accent breath at the top of the drawer
+                     * body so the AI surface reads as distinct from a
+                     * generic dialog. Uses `--aurora-blob-faint` so a
+                     * palette swap re-tints in one shot. The glass
+                     * drawer surface (App.css) carries the rest of the
+                     * visual weight. */
                     background:
-                        "radial-gradient(60% 30% at 50% 0%, rgba(4, 120, 87, 0.08) 0%, transparent 70%), transparent",
+                        "radial-gradient(60% 30% at 50% 0%, var(--aurora-blob-faint) 0%, transparent 70%), transparent",
                     display: "flex",
                     flexDirection: "column",
                     paddingBottom: `max(${space.md}px, env(safe-area-inset-bottom))`,
@@ -812,7 +814,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                                         }}
                                                         size="small"
                                                         style={{
-                                                            color: "var(--color-copilot-badge, #047857)",
+                                                            color: "var(--color-copilot-badge, #C2410C)",
                                                             fontSize:
                                                                 fontSize.xs,
                                                             height: "auto",

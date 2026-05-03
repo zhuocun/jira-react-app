@@ -1,8 +1,8 @@
 <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
     <defs>
         <linearGradient id="logo-mark" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#10B981"/>
-            <stop offset="100%" stop-color="#047857"/>
+            <stop offset="0%" stop-color="#F97316"/>
+            <stop offset="100%" stop-color="#C2410C"/>
         </linearGradient>
     </defs>
     <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#logo-mark)"/>

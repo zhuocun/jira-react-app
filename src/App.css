@@ -8,72 +8,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 /*
- * Page-level theme tokens. AntD's `cssVar: { key: "ant" }` scopes its
- * variables to the `.ant` class it puts on its own components, so body
- * and html never see `--ant-color-bg-layout` and the page background
- * stays in its light-mode fallback even when the user toggles dark
- * mode. We mirror the two tokens the page chrome actually needs at
- * `:root` and switch on the `data-color-scheme` attribute set in
- * `appProviders.tsx`.
- *
- * The `--color-copilot-*` block (PRD v3 §9.5 X-R12) names the AI gradient,
- * subtle background, and badge color so AI-themed surfaces never duplicate
- * raw rgba literals. Dark-mode overrides shift the gradient lighter so it
- * stays legible against the dark canvas (PRD v3 S-R2).
+ * Page-level theme tokens (`--pulse-*`, `--color-copilot-*`, `--glass-*`,
+ * `--aurora-*`) are NOT defined here. They are injected synchronously
+ * from `src/theme/palettes/` in `index.tsx` via `paletteToCss(palette)`,
+ * so swapping the palette is a one-line edit (in `palettes/index.ts`).
+ * This file owns only the static rules — resets, focus, animations,
+ * accessibility fallbacks, and AntD glass selectors that consume the
+ * runtime CSS vars set by the injected stylesheet.
  */
-:root,
-html[data-color-scheme="light"] {
-    /* Warm off-white. Pure #FFFFFF on a 100% LCD reads cold and clinical;
-     * a hint of warmth (#FBFAF8) softens the page so the single emerald
-     * accent feels intentional rather than aggressive. */
-    --pulse-bg-page: #fbfaf8;
-    --pulse-text-base: rgba(15, 23, 42, 0.92);
-
-    /* Copilot (AI) palette — single emerald hue family, no secondary. */
-    --color-copilot-grad-start: #047857;
-    --color-copilot-grad-mid: #059669;
-    --color-copilot-grad-end: #10b981;
-    --color-copilot-bg-subtle: rgba(4, 120, 87, 0.04);
-    --color-copilot-bg-medium: rgba(4, 120, 87, 0.14);
-    --color-copilot-badge: #047857;
-    --color-copilot-badge-bg: rgba(4, 120, 87, 0.12);
-    --color-copilot-pulse: rgba(4, 120, 87, 0.45);
-
-    /* Glass surface tokens (consumed by header, modal, drawer, AI panels).
-     * Surfaces stay neutral white-tinted; only the strong border picks up
-     * the emerald accent. The page background is flat now — no mesh — so
-     * there are no blob CSS vars. */
-    --glass-surface: rgba(255, 255, 255, 0.68);
-    --glass-surface-strong: rgba(255, 255, 255, 0.82);
-    --glass-surface-subtle: rgba(255, 255, 255, 0.5);
-    --glass-border: rgba(15, 23, 42, 0.06);
-    --glass-border-strong: rgba(4, 120, 87, 0.22);
-    --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.55);
-}
-
-html[data-color-scheme="dark"] {
-    /* Near-black with a subtle emerald undertone so dark mode doesn't
-     * lose the brand entirely. Inputs and surfaces still read as dark
-     * but the page never goes pure neutral. */
-    --pulse-bg-page: #0a0f0d;
-    --pulse-text-base: rgba(229, 231, 235, 0.92);
-
-    --color-copilot-grad-start: #6ee7b7;
-    --color-copilot-grad-mid: #34d399;
-    --color-copilot-grad-end: #10b981;
-    --color-copilot-bg-subtle: rgba(110, 231, 183, 0.08);
-    --color-copilot-bg-medium: rgba(110, 231, 183, 0.18);
-    --color-copilot-badge: #6ee7b7;
-    --color-copilot-badge-bg: rgba(110, 231, 183, 0.16);
-    --color-copilot-pulse: rgba(110, 231, 183, 0.5);
-
-    --glass-surface: rgba(10, 15, 13, 0.55);
-    --glass-surface-strong: rgba(10, 15, 13, 0.74);
-    --glass-surface-subtle: rgba(10, 15, 13, 0.35);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-border-strong: rgba(110, 231, 183, 0.3);
-    --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
 
 /*
  * Pulse-highlight animation used when a citation chip navigates to the
@@ -151,13 +93,21 @@ body {
     -webkit-text-size-adjust: 100%;
     color: var(--pulse-text-base);
     /*
-     * Flat warm off-white. The previous multi-blob aurora mesh has been
-     * removed in favor of the simplest possible page: one neutral surface
-     * carrying type and content, with the single emerald accent reserved
-     * for brand, focus, AI surfaces, and the auth hero. Elegance through
-     * restraint.
+     * Soft, single-hue body gradient: one large radial blob of the active
+     * brand accent (`--aurora-blob`) over the warm page base. The blob is
+     * deliberately wide and low-alpha so the page reads as warm white
+     * with a quiet brand-coloured cast in the upper-right — present, not
+     * loud. `background-attachment: fixed` keeps it stationary as the
+     * user scrolls so it reads as a backdrop rather than a tiled pattern.
      */
-    background: var(--pulse-bg-page);
+    background:
+        radial-gradient(
+            70rem 60rem at 92% 8%,
+            var(--aurora-blob) 0%,
+            transparent 70%
+        ),
+        var(--pulse-bg-page);
+    background-attachment: fixed;
 }
 
 #root {
@@ -166,17 +116,35 @@ body {
 }
 
 /*
- * Glass surfaces for modals and drawers. Applied via AntD's stable class
- * names so we don't have to wrap every Modal/Drawer call site. The cssVar
- * prefix `ant` (set in `buildAntdTheme`) does not affect element class
- * names.
- *
- * Shadow is now neutral (slate, no emerald tint) so the modal silhouette
- * never bleeds the brand color around its edge — the elegance of the
- * "color + white" system depends on emerald appearing only where it's
- * earned (brand marks, focus rings, AI accents).
+ * Modals are opaque. The frosted-glass treatment sits well on the auth
+ * card and on side drawers, but it makes a centred dialog feel
+ * insubstantial — task editors and project forms are the surfaces where
+ * the user spends the most sustained reading and writing time. Modals
+ * therefore opt out of `backdrop-filter`, lean on a solid `--ant-color-
+ * bg-elevated` (set by AntD's algorithm), and use a softer neutral
+ * shadow so the dialog reads as a real card pulled forward from the
+ * page rather than a translucent pane.
  */
-.ant-modal-content,
+.ant-modal-content {
+    background: var(--ant-color-bg-elevated, #ffffff);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow:
+        0 12px 40px -8px rgba(15, 23, 42, 0.18),
+        0 0 0 1px rgba(15, 23, 42, 0.06);
+}
+
+html[data-color-scheme="dark"] .ant-modal-content {
+    box-shadow:
+        0 12px 48px -8px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/*
+ * Drawers keep the frosted-glass treatment. They sit at the side of the
+ * board / page, host scrolling AI chat or list content, and benefit
+ * visually from showing a hint of the page beneath them.
+ */
 .ant-drawer-content {
     backdrop-filter: blur(28px) saturate(180%);
     -webkit-backdrop-filter: blur(28px) saturate(180%);
@@ -186,7 +154,6 @@ body {
         inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-html[data-color-scheme="dark"] .ant-modal-content,
 html[data-color-scheme="dark"] .ant-drawer-content {
     box-shadow:
         0 12px 48px -8px rgba(0, 0, 0, 0.5),
@@ -243,7 +210,7 @@ video {
  * (custom buttons, links, list items with role="button").
  */
 :focus-visible {
-    outline: 2px solid var(--ant-color-primary, #047857);
+    outline: 2px solid var(--ant-color-primary, #c2410c);
     outline-offset: 2px;
 }
 
@@ -263,7 +230,7 @@ video {
  * `accent.selectionBg` for browsers that don't yet ship the AntD CSS var.
  */
 ::selection {
-    background: var(--ant-color-primary-bg, rgba(4, 120, 87, 0.22));
+    background: var(--ant-color-primary-bg, rgba(194, 65, 12, 0.22));
     color: inherit;
 }
 
@@ -337,13 +304,16 @@ video {
 }
 
 /*
- * Honor user transparency preference. Replace every glass surface with
- * its solid token equivalent so motion-sensitive / contrast-sensitive
- * users still get a usable, opaque surface. The body is already flat,
- * so it needs no override here — the rule only covers modal / drawer.
+ * Honor user transparency preference. Drop the body gradient blob to a
+ * flat surface, drop the drawer's blur to a solid background. Modals
+ * are already opaque so they need no override.
  */
 @media (prefers-reduced-transparency: reduce) {
-    .ant-modal-content,
+    body {
+        background: var(--pulse-bg-page);
+        background-attachment: scroll;
+    }
+
     .ant-drawer-content {
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
