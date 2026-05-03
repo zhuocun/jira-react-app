@@ -24,12 +24,14 @@ import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
     /* Icons sit at the bottom edge of the chrome (align-items: flex-end)
-     * with zero padding-bottom, so the only vertical chrome above each
-     * 44 px touch target is a 4 px breathing line (or the device's
-     * safe-area inset, whichever is larger). The previous 8 px floor +
-     * 28 px fade-strip below stacked roughly 40 px of decoration around
-     * a 44 px icon row, which read as "icons floating in a tall band"
-     * even though the icons were technically anchored to the bottom. */
+     * with zero padding-bottom and a tight 2 px breathing line above.
+     * The earlier max(4px, env(safe-area-inset-top)) floor was elastic —
+     * with viewport-fit=cover set on the document the safe-area inset
+     * can resolve to ~24–30 px even in regular browser tabs (it tracks
+     * the OS chrome height rather than the visible URL bar), and the
+     * floor would lose to it, leaving the icons floating 30 px below
+     * the top of the band. The OS already reserves its own safe area
+     * above this surface, so we do not pay for it twice here. */
     align-items: flex-end;
     background: var(--page-background);
     background-attachment: fixed;
@@ -43,8 +45,7 @@ const PageHeader = styled.header`
     display: flex;
     justify-content: space-between;
     gap: ${space.xs}px;
-    padding: ${space.xxs}px ${space.sm}px 0;
-    padding-block-start: max(${space.xxs}px, env(safe-area-inset-top));
+    padding: 2px ${space.sm}px 0;
     padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
     padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
     position: sticky;
@@ -59,16 +60,16 @@ const PageHeader = styled.header`
      * than meeting a hard edge. The strip is non-interactive so it
      * never intercepts clicks on the content beneath it.
      *
-     * 12 px is the smallest height that still reads as a smooth fade
-     * rather than a hard line; the previous 28 px doubled as visible
-     * "extra header" because it shares the page-bg colour. */
+     * 8 px is the floor that still produces a visible fade rather than
+     * a hard line. Anything taller starts reading as "more header"
+     * because it shares the page-bg colour with the chrome above. */
     &::after {
         content: "";
         position: absolute;
         top: 100%;
         left: 0;
         right: 0;
-        height: 12px;
+        height: 8px;
         background: var(--page-background);
         background-attachment: fixed;
         mask-image: linear-gradient(to bottom, black, transparent);
