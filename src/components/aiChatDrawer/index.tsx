@@ -34,6 +34,7 @@ import AiFeedbackPopover, {
 import AiSparkleIcon from "../aiSparkleIcon";
 import CitationChip from "../citationChip";
 import CopilotPrivacyPopover from "../copilotPrivacyPopover";
+import CopilotRemoteConsentNotice from "../copilotRemoteConsentNotice";
 import EngineModeTag from "../engineModeTag";
 
 const MessageRow = styled.div<{ $isUser: boolean }>`
@@ -172,8 +173,27 @@ export interface AiChatDrawerProps {
     initialPrompt?: string;
 }
 
+/**
+ * Plain-language verb for each known tool (Optimization Plan §3 P2-2).
+ *
+ * Tool messages in the chat transcript should read like evidence the
+ * assistant gathered ("Checked 12 tasks"), not like a function call
+ * ("listTasks · 12 items"). Unmapped tools fall back to a sentence-cased
+ * version of the raw name so a future tool that hasn't been wired here
+ * still produces sensible UI.
+ */
+const TOOL_VERB: Record<string, string> = {
+    listProjects: "Checked projects",
+    listMembers: "Checked team members",
+    listBoard: "Checked board columns",
+    listTasks: "Checked tasks",
+    getProject: "Opened project",
+    getTask: "Opened task"
+};
+
 const humanizeTool = (name?: string) => {
-    if (!name) return "tool";
+    if (!name) return "Looked up evidence";
+    if (TOOL_VERB[name]) return TOOL_VERB[name];
     return name
         .replace(/^.*:/, "")
         .replace(/[._]/g, " ")
@@ -181,24 +201,16 @@ const humanizeTool = (name?: string) => {
 };
 
 /**
- * Best-effort summary of a tool result body for the collapsed details
- * view (C-R11). Strips JSON noise and presents one human-readable line.
+ * Tool message bodies are now plain-language evidence summaries (see
+ * `summarizeToolResultForUser`) instead of raw JSON. The collapsed
+ * `<details>` summary line just shows the first sentence so users can
+ * scan the evidence chain without expanding every row.
  */
 const summarizeToolBody = (body: string): string => {
-    try {
-        const parsed = JSON.parse(body) as unknown;
-        if (Array.isArray(parsed)) {
-            return `${parsed.length} item${parsed.length === 1 ? "" : "s"}`;
-        }
-        if (parsed && typeof parsed === "object") {
-            const keys = Object.keys(parsed as Record<string, unknown>);
-            if (keys.length === 0) return "empty result";
-            return `keys: ${keys.slice(0, 4).join(", ")}${keys.length > 4 ? "…" : ""}`;
-        }
-        return String(parsed).slice(0, 80);
-    } catch {
-        return body.slice(0, 80);
-    }
+    const trimmed = body.trim();
+    if (!trimmed) return "empty result";
+    const firstLine = trimmed.split("\n", 1)[0];
+    return firstLine.length > 120 ? `${firstLine.slice(0, 117)}…` : firstLine;
 };
 
 const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
@@ -518,6 +530,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                 </Space>
             }
         >
+            <CopilotRemoteConsentNotice route="chat" />
             <div
                 aria-busy={isLoading}
                 aria-live="polite"
@@ -558,7 +571,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                         return (
                             <ToolDetails key={`tool-${m.toolCallId ?? index}`}>
                                 <summary>
-                                    {`Looked up ${humanizeTool(m.toolName)} · ${summarizeToolBody(m.content)}`}
+                                    {`${humanizeTool(m.toolName)} · ${summarizeToolBody(m.content)}`}
                                 </summary>
                                 <pre
                                     style={{
@@ -724,27 +737,47 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                         }
                                         open={feedbackOpenFor === index}
                                     >
-                                        <Button
-                                            aria-expanded={
-                                                feedbackOpenFor === index
-                                            }
-                                            aria-haspopup="dialog"
-                                            aria-label="Not helpful — give feedback"
-                                            aria-pressed={
-                                                turnFeedback?.value === "down"
-                                            }
-                                            onClick={() =>
-                                                handleThumbsDownClick(index)
-                                            }
-                                            size="small"
-                                            type={
-                                                turnFeedback?.value === "down"
-                                                    ? "primary"
-                                                    : "text"
+                                        <Tooltip
+                                            /*
+                                             * Surface the "what feedback
+                                             * actually does" copy on hover so
+                                             * users know up front their
+                                             * message text is not sent
+                                             * (Optimization Plan §3 P1-3).
+                                             * Previously this disclaimer was
+                                             * buried inside the popover —
+                                             * users had to commit to the
+                                             * thumbs-down click to see it.
+                                             */
+                                            title={
+                                                microcopy.ai
+                                                    .feedbackThumbsDownTooltip
                                             }
                                         >
-                                            👎
-                                        </Button>
+                                            <Button
+                                                aria-expanded={
+                                                    feedbackOpenFor === index
+                                                }
+                                                aria-haspopup="dialog"
+                                                aria-label="Not helpful — give feedback"
+                                                aria-pressed={
+                                                    turnFeedback?.value ===
+                                                    "down"
+                                                }
+                                                onClick={() =>
+                                                    handleThumbsDownClick(index)
+                                                }
+                                                size="small"
+                                                type={
+                                                    turnFeedback?.value ===
+                                                    "down"
+                                                        ? "primary"
+                                                        : "text"
+                                                }
+                                            >
+                                                👎
+                                            </Button>
+                                        </Tooltip>
                                     </AiFeedbackPopover>
                                 </Space>
                             )}

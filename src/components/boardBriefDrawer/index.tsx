@@ -29,6 +29,7 @@ import useAi from "../../utils/hooks/useAi";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import AiSparkleIcon from "../aiSparkleIcon";
 import CopilotPrivacyPopover from "../copilotPrivacyPopover";
+import CopilotRemoteConsentNotice from "../copilotRemoteConsentNotice";
 import EngineModeTag from "../engineModeTag";
 
 /**
@@ -197,6 +198,23 @@ const STRENGTH_COLOR: Record<
     none: "default"
 };
 
+/**
+ * Plain-language calibration of each strength band (Optimization Plan §3
+ * P1-1, P2-1). Without this users see "Strong signal" but don't know what
+ * threshold drove the label — borrowed from the AiConfidenceIndicator
+ * pattern of pairing a band with a sentence-level explanation.
+ */
+const STRENGTH_TOOLTIP: Record<
+    NonNullable<IBoardBrief["recommendationDetail"]>["strength"],
+    string
+> = {
+    strong: "Multiple board signals support this recommendation. Acting on it should be safe.",
+    moderate:
+        "One or two board signals back this recommendation. Skim the basis before acting.",
+    low: "The signal is weak. Review the basis carefully before acting on this.",
+    none: "No imbalance detected. Recommendation is informational only."
+};
+
 interface BriefRecommendationTitleProps {
     detail?: IBoardBrief["recommendationDetail"];
 }
@@ -207,12 +225,14 @@ const BriefRecommendationTitle: React.FC<BriefRecommendationTitleProps> = ({
     <span style={{ alignItems: "center", display: "inline-flex", gap: 6 }}>
         <span>{`${microcopy.a11y.aiSuggestion}: Recommended next step`}</span>
         {detail && (
-            <Tag
-                color={STRENGTH_COLOR[detail.strength]}
-                style={{ marginInlineEnd: 0 }}
-            >
-                {STRENGTH_LABEL[detail.strength]}
-            </Tag>
+            <Tooltip title={STRENGTH_TOOLTIP[detail.strength]}>
+                <Tag
+                    color={STRENGTH_COLOR[detail.strength]}
+                    style={{ marginInlineEnd: 0 }}
+                >
+                    {STRENGTH_LABEL[detail.strength]}
+                </Tag>
+            </Tooltip>
         )}
     </span>
 );
@@ -518,6 +538,7 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
             }
             size={drawerWidth}
         >
+            <CopilotRemoteConsentNotice route="board-brief" />
             {isLoading && !briefData && (
                 <div aria-label="Generating brief" aria-busy="true">
                     <Skeleton active paragraph={{ rows: 2 }} title />

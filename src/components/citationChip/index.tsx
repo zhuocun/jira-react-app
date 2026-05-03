@@ -1,8 +1,9 @@
 import styled from "@emotion/styled";
-import { Tag, Tooltip, Typography } from "antd";
+import { App, Button, Tag, Tooltip, Typography } from "antd";
 import React from "react";
 
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
+import { microcopy } from "../../constants/microcopy";
 import type { CitationRef } from "../../interfaces/agent";
 import { fontSize, fontWeight, space } from "../../theme/tokens";
 
@@ -71,6 +72,8 @@ const CitationChip: React.FC<CitationChipProps> = ({
     citation,
     onNavigate
 }) => {
+    const { message } = App.useApp();
+    const [flagged, setFlagged] = React.useState(false);
     const handleActivate = () => {
         track(ANALYTICS_EVENTS.CITATION_CLICKED, {
             source: citation.source,
@@ -84,6 +87,18 @@ const CitationChip: React.FC<CitationChipProps> = ({
             handleActivate();
         }
     };
+    const handleFlag = (event: React.MouseEvent) => {
+        // Stop propagation so flagging doesn't also navigate to the cited
+        // entity — the two affordances live inside the same tooltip card.
+        event.stopPropagation();
+        if (flagged) return;
+        setFlagged(true);
+        track(ANALYTICS_EVENTS.CITATION_FLAGGED, {
+            source: citation.source,
+            id: citation.id
+        });
+        message.success(microcopy.ai.citationFlagConfirm);
+    };
     return (
         <Tooltip
             title={
@@ -94,6 +109,22 @@ const CitationChip: React.FC<CitationChipProps> = ({
                     <Typography.Text style={{ color: "inherit" }}>
                         “{citation.quote}”
                     </Typography.Text>
+                    <Button
+                        aria-label={microcopy.ai.citationFlagAction}
+                        disabled={flagged}
+                        onClick={handleFlag}
+                        size="small"
+                        style={{
+                            color: "inherit",
+                            marginTop: 4,
+                            paddingInline: 0
+                        }}
+                        type="link"
+                    >
+                        {flagged
+                            ? microcopy.ai.citationFlagConfirm
+                            : microcopy.ai.citationFlagAction}
+                    </Button>
                 </TooltipBody>
             }
         >

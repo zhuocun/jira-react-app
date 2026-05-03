@@ -72,6 +72,31 @@ const reformulate = (query: string): string[] => {
         .slice(0, 3);
 };
 
+interface MatchStrengthSummary {
+    strong: number;
+    moderate: number;
+    weak: number;
+    total: number;
+}
+
+const summarizeMatches = (
+    matches: IAiSearchMatch[] | undefined
+): MatchStrengthSummary | null => {
+    if (!matches || matches.length === 0) return null;
+    const summary: MatchStrengthSummary = {
+        strong: 0,
+        moderate: 0,
+        weak: 0,
+        total: matches.length
+    };
+    for (const match of matches) {
+        if (match.strength === "strong") summary.strong += 1;
+        else if (match.strength === "moderate") summary.moderate += 1;
+        else summary.weak += 1;
+    }
+    return summary;
+};
+
 const AiSearchInput: React.FC<Props> = (props) => {
     const { enabled: aiEnabled } = useAiEnabled();
     const searchAi = useAi<ISearchResult>({ route: "search" });
@@ -79,6 +104,9 @@ const AiSearchInput: React.FC<Props> = (props) => {
     const [noMatchHint, setNoMatchHint] = useState<string | null>(null);
     const [reformulations, setReformulations] = useState<string[]>([]);
     const [matchRationale, setMatchRationale] = useState<string | null>(null);
+    const [matchSummary, setMatchSummary] =
+        useState<MatchStrengthSummary | null>(null);
+    const [expandedTerms, setExpandedTerms] = useState<string[]>([]);
     const [boardHasItems, setBoardHasItems] = useState(true);
     const announcerId = useId();
     const semanticActive = hasActiveSemanticFilter(props.semanticIds);
@@ -89,6 +117,8 @@ const AiSearchInput: React.FC<Props> = (props) => {
             setNoMatchHint(null);
             setReformulations([]);
             setMatchRationale(null);
+            setMatchSummary(null);
+            setExpandedTerms([]);
         }
     }, [semanticActive]);
 
@@ -119,6 +149,8 @@ const AiSearchInput: React.FC<Props> = (props) => {
             if (result.ids.length === 0) {
                 props.setSemanticIds(undefined);
                 setMatchRationale(null);
+                setMatchSummary(null);
+                setExpandedTerms(result.expandedTerms ?? []);
                 setNoMatchHint(
                     result.rationale?.trim() ||
                         (boardHasItems
@@ -131,6 +163,8 @@ const AiSearchInput: React.FC<Props> = (props) => {
             setNoMatchHint(null);
             setReformulations([]);
             setMatchRationale(result.rationale?.trim() || null);
+            setMatchSummary(summarizeMatches(result.matches));
+            setExpandedTerms(result.expandedTerms ?? []);
             props.setSemanticIds(result.ids.join(","));
         },
         [boardHasItems, props]
@@ -214,6 +248,8 @@ const AiSearchInput: React.FC<Props> = (props) => {
         setNoMatchHint(null);
         setReformulations([]);
         setMatchRationale(null);
+        setMatchSummary(null);
+        setExpandedTerms([]);
         searchAi.reset();
         abortRef.current?.abort();
         props.setSemanticIds(undefined);
@@ -323,6 +359,76 @@ const AiSearchInput: React.FC<Props> = (props) => {
                       ? `Results filtered. ${matchRationale}`
                       : (noMatchHint ?? "")}
             </span>
+            {matchSummary && matchSummary.total > 0 && (
+                <div
+                    style={{
+                        alignItems: "center",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: themeSpace.xs,
+                        marginTop: themeSpace.xs
+                    }}
+                >
+                    {matchSummary.strong > 0 && (
+                        <Tag
+                            aria-label={microcopy.ai.searchMatchStrengthAria.replace(
+                                "{strength}",
+                                microcopy.ai.searchMatchStrength.strong
+                            )}
+                            color="green"
+                            style={{ marginInlineEnd: 0 }}
+                        >
+                            {`${microcopy.ai.searchMatchStrength.strong}: ${matchSummary.strong}`}
+                        </Tag>
+                    )}
+                    {matchSummary.moderate > 0 && (
+                        <Tag
+                            aria-label={microcopy.ai.searchMatchStrengthAria.replace(
+                                "{strength}",
+                                microcopy.ai.searchMatchStrength.moderate
+                            )}
+                            color="orange"
+                            style={{ marginInlineEnd: 0 }}
+                        >
+                            {`${microcopy.ai.searchMatchStrength.moderate}: ${matchSummary.moderate}`}
+                        </Tag>
+                    )}
+                    {matchSummary.weak > 0 && (
+                        <Tag
+                            aria-label={microcopy.ai.searchMatchStrengthAria.replace(
+                                "{strength}",
+                                microcopy.ai.searchMatchStrength.weak
+                            )}
+                            color="default"
+                            style={{ marginInlineEnd: 0 }}
+                        >
+                            {`${microcopy.ai.searchMatchStrength.weak}: ${matchSummary.weak}`}
+                        </Tag>
+                    )}
+                </div>
+            )}
+            {expandedTerms.length > 0 && (
+                <Typography.Paragraph
+                    style={{
+                        fontSize: 12,
+                        marginBottom: 0,
+                        marginTop: themeSpace.xs
+                    }}
+                    type="secondary"
+                >
+                    {microcopy.ai.searchSynonymExpanded
+                        .replace(
+                            "{original}",
+                            expandedTerms[0].split(" → ")[0] ?? ""
+                        )
+                        .replace(
+                            "{expansions}",
+                            expandedTerms
+                                .map((line) => line.split(" → ")[1] ?? line)
+                                .join("; ")
+                        )}
+                </Typography.Paragraph>
+            )}
             {matchRationale && (
                 <Tooltip title={matchRationale}>
                     <Typography.Paragraph

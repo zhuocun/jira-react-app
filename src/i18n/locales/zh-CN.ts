@@ -207,7 +207,7 @@ const zhCN: Dictionary = {
         privacyLink: "共享了哪些信息?",
         privacyAcknowledge: "我知道了",
         privacySuppress: "不再提醒",
-        streaming: "看板 Copilot 思考中…",
+        streaming: "正在阅读您的看板数据…",
         stopped: "已停止",
         retryLabel: "重试",
         regenerateLabel: "重新生成",
@@ -216,6 +216,9 @@ const zhCN: Dictionary = {
         feedbackThanks: "感谢您的反馈",
         feedbackImpactNotice:
             "反馈仅供产品团队复盘 — 不会改变本次回答,也不会用于训练模型。",
+        feedbackThumbsDownTooltip:
+            "回答没用?告诉我们原因。所选类别仅用于产品复盘,不会发送您的消息文本。",
+        chatBusyError: "看板 Copilot 当前繁忙,请稍后再试。",
         feedbackPromptDownTitle: "哪里出了问题?",
         feedbackPromptDownHelper:
             "请至少选一项 — 这能帮助我们排查并优先修复,且不会发送您的消息文本。",
@@ -268,8 +271,27 @@ const zhCN: Dictionary = {
         findRelatedProjectsAria: "用 AI 查找相关项目并筛选项目列表",
         findRelatedTasksPlaceholder: "描述要查找的任务…",
         findRelatedProjectsPlaceholder: "描述要查找的项目…",
-        findRelatedTasksHelper: "用 AI 搜索筛选此任务列表;不会打开聊天。",
-        findRelatedProjectsHelper: "用 AI 搜索筛选此项目列表;不会打开聊天。",
+        findRelatedTasksHelper:
+            "按任务名称、类型、史诗和备注匹配。仅筛选此列表 — 不会打开聊天。",
+        findRelatedProjectsHelper:
+            "按项目名称、组织和负责人匹配。仅筛选此列表 — 不会打开聊天。",
+        searchMatchStrength: {
+            strong: "强匹配",
+            moderate: "部分匹配",
+            weak: "弱匹配"
+        },
+        searchMatchStrengthAria: "AI 语义搜索的匹配强度:{strength}",
+        searchSynonymExpanded:
+            "已为「{original}」补充常见同义词({expansions})。",
+        citationFlagAction: "举报来源不准确",
+        citationFlagConfirm: "已收到 — 已标记待复盘",
+        remoteConsentTitle: "提示:此版本会将数据发送到远程 AI",
+        remoteConsentBody:
+            "看板 Copilot 已连接到 {origin}。系统会将您的登录令牌、看板数据以及您打开的任何任务发送到该服务进行处理。输出可能包含生成的内容,使用前请审核。",
+        remoteConsentBodyGeneric:
+            "看板 Copilot 已连接到配置的 AI 服务。系统会将您的登录令牌、看板数据以及您打开的任何任务发送到该服务进行处理。输出可能包含生成的内容,使用前请审核。",
+        remoteConsentAccept: "我已知悉",
+        remoteConsentLearnMore: "共享了哪些信息?",
         newConversation: "新对话",
         stopResponse: "停止响应",
         characterCounterMax: 2000,

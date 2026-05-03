@@ -192,10 +192,11 @@ describe("ProjectPage with Board Copilot enabled", () => {
             ".ant-drawer-open details summary"
         ) as HTMLElement | null;
         expect(summaryEl).toBeTruthy();
+        // The collapsed summary now uses plain-language verbs instead of
+        // raw tool names (Optimization Plan §3 P2-2 — "Checked projects"
+        // replaces "Looked up listProjects").
+        expect(summaryEl!.textContent ?? "").toMatch(/Checked projects/i);
         fireEvent.click(summaryEl!);
-        await waitFor(() => {
-            expect(screen.getByText(/listProjects/i)).toBeInTheDocument();
-        });
 
         const drawerClose = document.querySelector(
             ".ant-drawer-open .ant-drawer-close"
