@@ -169,8 +169,9 @@ const ColumnsViewport = styled.div`
  * Hint shown on phone-sized viewports the first time the board is loaded
  * with multiple columns, advising the user to swipe horizontally. Hidden
  * on tablet+ where columns are visible side-by-side. The hint can be
- * dismissed with the close icon and the dismissal persists across page
- * loads via sessionStorage so a user is not nagged on every navigation.
+ * dismissed with the close icon and the dismissal persists in
+ * localStorage so a user who has acknowledged it once is not nagged on
+ * every fresh tab or app reopen.
  */
 const SwipeHint = styled.div`
     align-items: center;
@@ -198,14 +199,25 @@ const SwipeHintClose = styled.button`
     color: inherit;
     cursor: pointer;
     display: inline-flex;
-    height: 20px;
+    height: 24px;
     justify-content: center;
     padding: 0;
-    width: 20px;
+    width: 24px;
 
     &:hover,
     &:focus-visible {
         background: var(--ant-color-bg-text-hover, rgba(15, 23, 42, 0.06));
+    }
+
+    /*
+     * The hint itself is only rendered on coarse-pointer / phone-sized
+     * viewports, so a finger has to land this dismiss target. Lift to
+     * the 44 px WCAG 2.5.5 touch floor on coarse pointers; the icon
+     * glyph stays visually small (10 px) so the chrome doesn't grow.
+     */
+    @media (pointer: coarse) {
+        height: 44px;
+        width: 44px;
     }
 `;
 
@@ -427,7 +439,7 @@ const BoardPage = () => {
         if (typeof window === "undefined") return false;
         try {
             return (
-                window.sessionStorage.getItem(SWIPE_HINT_DISMISSED_KEY) === "1"
+                window.localStorage.getItem(SWIPE_HINT_DISMISSED_KEY) === "1"
             );
         } catch {
             return false;
@@ -436,7 +448,7 @@ const BoardPage = () => {
     const dismissSwipeHint = useCallback(() => {
         setSwipeHintDismissed(true);
         try {
-            window.sessionStorage.setItem(SWIPE_HINT_DISMISSED_KEY, "1");
+            window.localStorage.setItem(SWIPE_HINT_DISMISSED_KEY, "1");
         } catch {
             // Storage may be unavailable (private mode); state still updates.
         }

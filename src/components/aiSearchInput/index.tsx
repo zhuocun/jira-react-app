@@ -1,11 +1,12 @@
 import { CloseCircleFilled, InfoCircleOutlined } from "@ant-design/icons";
+import styled from "@emotion/styled";
 import { Alert, Button, Input, Space, Tag, Tooltip, Typography } from "antd";
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { ANALYTICS_EVENTS, track } from "../../constants/analytics";
 import environment from "../../constants/env";
 import { microcopy } from "../../constants/microcopy";
-import { space as themeSpace } from "../../theme/tokens";
+import { breakpoints, space as themeSpace } from "../../theme/tokens";
 import {
     clearAiSearchStrengths,
     setAiSearchStrengths
@@ -84,6 +85,42 @@ interface MatchStrengthSummary {
     weak: number;
     total: number;
 }
+
+/**
+ * Phone-sized viewports can't fit "Find related tasks" / "Find related
+ * projects" beside the input on the same row, so the wrap pushed the
+ * submit button onto its own line where it sat at its natural ~140 px
+ * width — looking like an orphaned half-control. Below sm the input takes
+ * the full row, and the submit + optional Clear stretch full-width on the
+ * next row so the AI block reads as a single cohesive unit (mirrors
+ * `ResetButtonSlot` in `taskSearchPanel`).
+ */
+const SearchRow = styled.div`
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: ${themeSpace.xs}px;
+
+    .ai-search-input {
+        flex: 1 1 14rem;
+        min-width: 0;
+    }
+
+    .ai-search-submit,
+    .ai-search-clear {
+        flex: 0 0 auto;
+    }
+
+    @media (max-width: ${breakpoints.sm - 1}px) {
+        .ai-search-input {
+            flex-basis: 100%;
+        }
+        .ai-search-submit,
+        .ai-search-clear {
+            flex: 1 1 0;
+        }
+    }
+`;
 
 const summarizeMatches = (
     matches: IAiSearchMatch[] | undefined
@@ -296,19 +333,13 @@ const AiSearchInput: React.FC<Props> = (props) => {
     return (
         <div style={{ marginBottom: themeSpace.md }}>
             <CopilotRemoteConsentNotice route="search" />
-            <div
-                style={{
-                    alignItems: "center",
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: themeSpace.xs
-                }}
-            >
+            <SearchRow>
                 <Input
                     allowClear={{ clearIcon: <CloseCircleFilled /> }}
                     aria-describedby={`${announcerId}-helper`}
                     aria-label={labels.aria}
                     autoComplete="off"
+                    className="ai-search-input"
                     enterKeyHint="search"
                     inputMode="search"
                     onChange={(e) => setDraft(e.target.value)}
@@ -329,7 +360,6 @@ const AiSearchInput: React.FC<Props> = (props) => {
                             }}
                         />
                     }
-                    style={{ flex: "1 1 14rem", minWidth: 0 }}
                     suffix={
                         busy ? (
                             <Tag color="processing">
@@ -340,6 +370,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     value={draft}
                 />
                 <Button
+                    className="ai-search-submit"
                     disabled={!draft.trim()}
                     icon={<AiSparkleIcon aria-hidden />}
                     loading={busy}
@@ -351,12 +382,13 @@ const AiSearchInput: React.FC<Props> = (props) => {
                 {semanticActive ? (
                     <Button
                         aria-label={microcopy.actions.clearAiSearch}
+                        className="ai-search-clear"
                         onClick={onClear}
                     >
                         {microcopy.actions.clearAiSearch}
                     </Button>
                 ) : null}
-            </div>
+            </SearchRow>
             <div
                 style={{
                     alignItems: "center",
@@ -376,7 +408,13 @@ const AiSearchInput: React.FC<Props> = (props) => {
                 <EngineModeTag />
             </div>
             <span
-                aria-live="assertive"
+                /*
+                 * Polite, not assertive — search status is non-urgent
+                 * background information and `assertive` interrupts whatever
+                 * the screen reader is currently saying (e.g. the row of
+                 * recently rendered results), which is hostile UX.
+                 */
+                aria-live="polite"
                 id={announcerId}
                 style={{
                     border: 0,

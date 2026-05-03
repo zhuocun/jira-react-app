@@ -66,7 +66,16 @@ const ResultCount = styled.span`
     letter-spacing: ${letterSpacing.tight};
 `;
 
-const SortRow = styled.label`
+/*
+ * Was previously `styled.label` so the visible "SORT BY" caption read as
+ * the field label. AntD's `<Select>` renders a `<div role="combobox">`
+ * rather than a labelable form element, so the implicit label
+ * association never fires — screen readers only get the explicit
+ * `aria-label={microcopy.a11y.sortProjects}` on the Select itself, which
+ * already covers the labelling contract. Render as a plain inline group
+ * so we don't ship a `<label>` that has no labellable target.
+ */
+const SortRow = styled.span`
     align-items: center;
     color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
     display: inline-flex;
