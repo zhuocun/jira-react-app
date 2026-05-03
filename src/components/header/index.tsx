@@ -37,16 +37,17 @@ const PageHeader = styled.header`
      * Frosted-glass chrome. The translucent surface lets the page
      * gradient (and any content scrolled under the header) read
      * through, while backdrop-filter blur de-noises that content so the
-     * icons stay legible. We use the lighter --glass-surface
-     * (~68 % opaque) rather than --glass-surface-strong (~82 %) so
-     * the chrome reads as visibly transparent — the brand-orange
-     * aurora glow at the top of the page is meant to be felt through
-     * the bar, not masked by it. The 1 px hairline border-bottom
-     * gives the chrome a faint edge so the bottom of the band still
-     * reads as a chrome boundary at rest, when there is nothing
-     * scrolled under it yet.
+     * icons stay legible. We use the lightest --glass-surface-subtle
+     * (~50 % opaque) so the chrome reads as clearly transparent —
+     * the brand-orange aurora glow at the top of the page and any
+     * scrolled content are meant to be felt through the bar, not
+     * masked by it. The blur compensates by smearing whatever shows
+     * through into a frosted texture rather than legible content.
+     * The 1 px hairline border-bottom gives the chrome a faint edge
+     * so the bottom of the band still reads as a chrome boundary at
+     * rest, when there is nothing scrolled under it yet.
      */
-    background: var(--glass-surface);
+    background: var(--glass-surface-subtle);
     backdrop-filter: blur(${blur.md}px) saturate(180%);
     -webkit-backdrop-filter: blur(${blur.md}px) saturate(180%);
     border-bottom: 1px solid var(--glass-border);
