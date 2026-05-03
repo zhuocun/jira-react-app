@@ -20,28 +20,19 @@ const Wrap = styled.div`
     align-items: flex-start;
     position: relative;
     overflow: hidden;
-    /* Aurora mesh + glass: teal bleeds in from the top-left, amber from
-     * the bottom-right (the warm corner that keeps the banner from
-     * reading as a single-hue cool tint). Sits on the strong glass
-     * surface so the whole panel reads as a frosted aurora pane. */
+    /* Single quiet emerald wash on the strong glass pane. The previous
+     * banner stacked two radial blobs in two hues; now one diagonal
+     * gradient at low alpha lets the banner whisper "AI" without
+     * shouting against the surrounding white space. */
     background:
-        radial-gradient(
-            120% 200% at 0% 0%,
-            rgba(13, 148, 136, 0.2) 0%,
-            transparent 60%
-        ),
-        radial-gradient(
-            120% 200% at 100% 100%,
-            rgba(245, 158, 11, 0.16) 0%,
-            transparent 60%
-        ),
+        linear-gradient(135deg, rgba(4, 120, 87, 0.08) 0%, transparent 70%),
         var(--glass-surface-strong);
     backdrop-filter: blur(${blur.md}px) saturate(170%);
     -webkit-backdrop-filter: blur(${blur.md}px) saturate(170%);
     border: 1px solid var(--glass-border-strong);
     border-radius: ${radius.md}px;
     box-shadow:
-        0 8px 28px -12px rgba(13, 148, 136, 0.3),
+        0 4px 16px -8px rgba(4, 120, 87, 0.18),
         var(--glass-shine);
     display: flex;
     gap: ${space.sm}px;

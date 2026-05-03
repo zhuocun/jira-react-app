@@ -10,14 +10,14 @@
  */
 
 export const aiTokens = {
-    gradStart: "var(--color-copilot-grad-start, #0D9488)",
-    gradMid: "var(--color-copilot-grad-mid, #14B8A6)",
-    gradEnd: "var(--color-copilot-grad-end, #06B6D4)",
-    bgSubtle: "var(--color-copilot-bg-subtle, rgba(13, 148, 136, 0.06))",
-    bgMedium: "var(--color-copilot-bg-medium, rgba(13, 148, 136, 0.18))",
-    badge: "var(--color-copilot-badge, #0D9488)",
-    badgeBg: "var(--color-copilot-badge-bg, rgba(13, 148, 136, 0.14))",
-    pulse: "var(--color-copilot-pulse, rgba(13, 148, 136, 0.50))"
+    gradStart: "var(--color-copilot-grad-start, #047857)",
+    gradMid: "var(--color-copilot-grad-mid, #059669)",
+    gradEnd: "var(--color-copilot-grad-end, #10B981)",
+    bgSubtle: "var(--color-copilot-bg-subtle, rgba(4, 120, 87, 0.04))",
+    bgMedium: "var(--color-copilot-bg-medium, rgba(4, 120, 87, 0.14))",
+    badge: "var(--color-copilot-badge, #047857)",
+    badgeBg: "var(--color-copilot-badge-bg, rgba(4, 120, 87, 0.12))",
+    pulse: "var(--color-copilot-pulse, rgba(4, 120, 87, 0.45))"
 } as const;
 
 /** Streaming TTFT target in ms. Surfaces measure against this for AGENT_TTFT. */

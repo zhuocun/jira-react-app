@@ -26,24 +26,16 @@ const Page = styled.div`
     grid-template-columns: 1fr;
     min-height: 100vh;
     min-height: 100dvh;
-    /* Cinematic aurora wash on the canvas side. The radials sit over the
-     * page-level mesh so the form is framed by teal/amber/cyan even when
-     * the hero rail is hidden below the md breakpoint. */
+    /* Single soft emerald glow over the warm-white page. The previous
+     * multi-blob aurora gave way to a single radial: where the form sits,
+     * the air around it picks up a quiet emerald cast. Below the md
+     * breakpoint (no hero rail), this glow alone gives the auth canvas
+     * its only color. */
     background:
         radial-gradient(
-            60rem 50rem at 18% 22%,
-            rgba(13, 148, 136, 0.3) 0%,
-            transparent 65%
-        ),
-        radial-gradient(
-            45rem 45rem at 82% 78%,
-            rgba(245, 158, 11, 0.22) 0%,
-            transparent 65%
-        ),
-        radial-gradient(
-            38rem 38rem at 92% 18%,
-            rgba(6, 182, 212, 0.2) 0%,
-            transparent 65%
+            60rem 50rem at 50% 30%,
+            rgba(4, 120, 87, 0.1) 0%,
+            transparent 70%
         ),
         var(--pulse-bg-page);
 
@@ -73,24 +65,14 @@ const HeroRail = styled.aside`
 
     @media (min-width: ${breakpoints.md}px) {
         align-items: center;
-        /* Deep cinematic mesh: teal → amber → cyan over the cinematic
-         * base. Saturations are bumped (0.55 / 0.40 / 0.32) so the aurora
-         * reads against the very dark teal base — anything lighter would
-         * feel washed out. */
+        /* Single deep-emerald glow over the cinematic base — a smooth
+         * vignette rather than a multi-color mesh. The simplification
+         * fits the "color + white" elegance: even on the dark hero
+         * rail, only one hue is visible. */
         background:
             radial-gradient(
-                60rem 50rem at 25% 25%,
-                rgba(13, 148, 136, 0.55) 0%,
-                transparent 70%
-            ),
-            radial-gradient(
-                45rem 45rem at 78% 70%,
-                rgba(245, 158, 11, 0.4) 0%,
-                transparent 70%
-            ),
-            radial-gradient(
-                38rem 38rem at 88% 18%,
-                rgba(6, 182, 212, 0.32) 0%,
+                70rem 60rem at 30% 30%,
+                rgba(16, 185, 129, 0.45) 0%,
                 transparent 70%
             ),
             ${aurora.cinematicBase};
@@ -144,14 +126,13 @@ const HeroBadge = styled.div`
 `;
 
 const HeroBadgeDot = styled.span`
-    /* Amber against the teal rail — warm dot on cool background reads
-     * as a beacon and mirrors the warm corner of the page mesh. Double
-     * box shadow stacks a tight inner glow with a softer outer halo. */
-    background: ${aurora.amber};
+    /* Light emerald dot — sits inside a single-hue identity, glowing
+     * brightly against the deep cinematic base. */
+    background: ${aurora.light};
     border-radius: 50%;
     box-shadow:
-        0 0 12px ${aurora.amber},
-        0 0 24px rgba(245, 158, 11, 0.5);
+        0 0 10px ${aurora.light},
+        0 0 20px rgba(110, 231, 183, 0.5);
     display: inline-block;
     height: 6px;
     width: 6px;
@@ -300,16 +281,18 @@ export const AuthSubtitle = styled.p`
  */
 const FormCard = styled(Card)`
     && {
-        /* Glass form pane sitting on the cinematic mesh — strong surface
-         * + heavy blur + teal drop shadow makes the form feel like it's
-         * lit from within rather than pasted on. */
+        /* Glass form pane sitting on the soft emerald glow — strong
+         * surface + heavy blur + a neutral drop shadow. Letting the
+         * shadow stay slate (instead of emerald) keeps the form pane
+         * reading as crisp white rather than tinted; the emerald only
+         * appears as a 1 px hairline at the border. */
         background: var(--glass-surface-strong);
         backdrop-filter: blur(${blur.lg}px) saturate(180%);
         -webkit-backdrop-filter: blur(${blur.lg}px) saturate(180%);
         border: 1px solid var(--glass-border-strong);
         border-radius: ${radius.lg}px;
         box-shadow:
-            0 24px 48px -12px rgba(13, 148, 136, 0.34),
+            0 24px 48px -12px rgba(15, 23, 42, 0.18),
             var(--glass-shine);
         box-sizing: border-box;
         max-width: 28rem;

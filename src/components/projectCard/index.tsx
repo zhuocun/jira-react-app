@@ -51,21 +51,15 @@ const Card = styled.article`
 
     &:hover,
     &:focus-within {
-        border-color: rgba(13, 148, 136, 0.5);
-        /* Aurora hover: ambient + 1px teal ring + larger drop glow than
-         * the task card so project tiles read as a higher tier of surface.
-         * The amber end-stop mirrors the page mesh's warm corner. */
+        /* Restrained hover: 1 px emerald ring + a slightly larger drop
+         * shadow than the task card so project tiles still read as a
+         * higher tier of surface. No background gradient — the white
+         * stays white. */
+        border-color: rgba(4, 120, 87, 0.4);
         box-shadow:
             ${shadow.md},
-            0 0 0 1px rgba(13, 148, 136, 0.2),
-            0 12px 32px -12px rgba(13, 148, 136, 0.34);
-        background:
-            linear-gradient(
-                135deg,
-                rgba(13, 148, 136, 0.05) 0%,
-                rgba(245, 158, 11, 0.03) 100%
-            ),
-            var(--ant-color-bg-container, #fff);
+            0 0 0 1px rgba(4, 120, 87, 0.16),
+            0 10px 28px -14px rgba(15, 23, 42, 0.16);
         transform: translateY(-2px);
     }
 
@@ -160,7 +154,7 @@ const TitleLink = styled(Link)`
     }
 
     &:hover {
-        color: var(--ant-color-primary, #0d9488);
+        color: var(--ant-color-primary, #047857);
     }
 `;
 

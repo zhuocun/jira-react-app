@@ -61,85 +61,83 @@ export const letterSpacing = {
 } as const;
 
 /**
- * Deep teal brand. Replaces the previous violet — purple/violet has become
- * the default "AI app" cliché and dilutes the product identity. Teal sits
- * adjacent to the cyan accent end-stop and pairs naturally with the warm
- * amber aurora layer for a premium, technical feel.
+ * Deep emerald brand. The simplest, most graceful pairing for an AI-powered
+ * app: emerald + white. Echoes Hermès / Tiffany / Rolex green-on-white, a
+ * combination universally read as elegant and confident. Distinct from the
+ * AI-purple cliché, distinct from the previous teal — this iteration drops
+ * every secondary accent and lets a single hue carry the whole identity.
  *
- * Hover/active are darker steps in the same hue. AA contrast on white
- * (#0D9488 = 4.55:1 normal text) and AA on dark surfaces.
+ * Hover/active step deeper into the same hue. AA contrast on white
+ * (#047857 = 5.06:1 normal text) and AA on dark surfaces.
  */
 export const brand = {
-    primary: "#0D9488",
-    primaryHover: "#0F766E",
-    primaryActive: "#115E59",
-    primaryBg: "#F0FDFA",
-    primaryBgDark: "#042F2E"
+    primary: "#047857",
+    primaryHover: "#065F46",
+    primaryActive: "#064E3B",
+    primaryBg: "#ECFDF5",
+    primaryBgDark: "#022C22"
 } as const;
 
 /**
  * Accent gradient used for AI surfaces (sparkle icon, badges, highlights).
- * Teal → cyan — close-hue analog gradient that reads as "depth" rather
- * than the energy of the previous violet → cyan span. Keeps the cool
- * spectrum coherent so the warm amber aurora layer can do the contrast
- * work at the page level.
- *
- * The translucent variants exist as named tokens so AI-themed surfaces
- * can reach for them by name instead of duplicating raw rgba literals.
+ * Single-hue emerald range — the gradient now reads as "depth" within one
+ * color rather than energy across two. The `secondaryStrong` token is kept
+ * for back-compat but resolves to a deeper emerald rather than a foreign hue.
  */
 export const accent = {
-    start: "#0D9488",
-    end: "#06B6D4",
-    glow: "rgba(13, 148, 136, 0.22)",
-    bgSubtle: "rgba(13, 148, 136, 0.05)",
-    bgSoft: "rgba(13, 148, 136, 0.10)",
-    bgMedium: "rgba(13, 148, 136, 0.20)",
-    bgStrong: "rgba(13, 148, 136, 0.36)",
-    border: "rgba(13, 148, 136, 0.26)",
-    secondaryStrong: "rgba(6, 182, 212, 0.32)",
-    selectionBg: "rgba(13, 148, 136, 0.22)"
+    start: "#047857",
+    end: "#10B981",
+    glow: "rgba(4, 120, 87, 0.22)",
+    bgSubtle: "rgba(4, 120, 87, 0.04)",
+    bgSoft: "rgba(4, 120, 87, 0.08)",
+    bgMedium: "rgba(4, 120, 87, 0.16)",
+    bgStrong: "rgba(4, 120, 87, 0.32)",
+    border: "rgba(4, 120, 87, 0.22)",
+    secondaryStrong: "rgba(6, 95, 70, 0.32)",
+    selectionBg: "rgba(4, 120, 87, 0.20)"
 } as const;
 
 /**
- * Aurora palette — teal-anchored, no purple. Three cool blobs (teal,
- * cyan, emerald) plus a warm amber blob that does the heavy lifting for
- * temperature contrast on mesh backgrounds. Components reach for these
- * only on the hero surfaces called out in the redesign brief — every
- * other surface stays with `brand` / `accent`.
+ * Aurora palette — collapsed to a single emerald hue family. The previous
+ * multi-hue aurora gave way to a calmer single-color system in service of
+ * "graceful and elegant" — every blob and gradient now lives in this hue.
+ * The `cinematicBase` is the deepest emerald, used as the dark backdrop on
+ * the auth hero rail. Components reach for these tokens only on hero
+ * surfaces (auth, AI panels) — every other surface stays with `brand`.
  */
 export const aurora = {
-    teal: "#0D9488",
-    cyan: "#06B6D4",
-    emerald: "#10B981",
-    amber: "#F59E0B",
-    tealSoft: "rgba(13, 148, 136, 0.18)",
-    cyanSoft: "rgba(6, 182, 212, 0.16)",
-    emeraldSoft: "rgba(16, 185, 129, 0.14)",
-    amberSoft: "rgba(245, 158, 11, 0.14)",
-    cinematicBase: "#042F2E",
-    gradLine: "linear-gradient(135deg, #0D9488 0%, #14B8A6 45%, #06B6D4 100%)",
+    deep: "#047857",
+    mid: "#10B981",
+    light: "#6EE7B7",
+    surface: "#ECFDF5",
+    deepSoft: "rgba(4, 120, 87, 0.10)",
+    midSoft: "rgba(16, 185, 129, 0.12)",
+    cinematicBase: "#022C22",
+    gradLine: "linear-gradient(135deg, #047857 0%, #10B981 100%)",
     gradLineSoft:
-        "linear-gradient(135deg, rgba(13,148,136,0.18) 0%, rgba(6,182,212,0.14) 100%)"
+        "linear-gradient(135deg, rgba(4,120,87,0.10) 0%, rgba(16,185,129,0.06) 100%)"
 } as const;
 
 /**
  * Glass surface tokens. Companion to `aurora` — used by header, modal,
- * drawer, AI panel, hero card surfaces. Each value pairs with a
- * `backdrop-filter` recipe (see `blur` below). NEVER apply glass without
- * the `prefers-reduced-transparency` fallback wired up in App.css.
+ * drawer, AI panel, hero card surfaces. Surfaces stay neutral white-tinted
+ * (the elegance comes from white, not from the accent leaking into every
+ * pane); only the strong borders pick up the emerald accent. NEVER apply
+ * glass without the `prefers-reduced-transparency` fallback wired up in
+ * App.css.
  */
 export const glass = {
-    surface: "rgba(255, 255, 255, 0.65)",
-    surfaceStrong: "rgba(255, 255, 255, 0.78)",
-    surfaceSubtle: "rgba(255, 255, 255, 0.45)",
-    surfaceDark: "rgba(8, 28, 27, 0.55)",
-    surfaceStrongDark: "rgba(8, 28, 27, 0.72)",
-    surfaceSubtleDark: "rgba(8, 28, 27, 0.35)",
-    border: "rgba(255, 255, 255, 0.28)",
+    surface: "rgba(255, 255, 255, 0.68)",
+    surfaceStrong: "rgba(255, 255, 255, 0.82)",
+    surfaceSubtle: "rgba(255, 255, 255, 0.50)",
+    surfaceDark: "rgba(10, 15, 13, 0.55)",
+    surfaceStrongDark: "rgba(10, 15, 13, 0.74)",
+    surfaceSubtleDark: "rgba(10, 15, 13, 0.35)",
+    border: "rgba(15, 23, 42, 0.06)",
     borderDark: "rgba(255, 255, 255, 0.08)",
-    borderStrong: "rgba(13, 148, 136, 0.22)",
-    borderStrongDark: "rgba(45, 212, 191, 0.30)",
-    shineInset: "inset 0 1px 0 rgba(255, 255, 255, 0.45)",
+    borderStrong: "rgba(4, 120, 87, 0.22)",
+    borderStrongDark: "rgba(110, 231, 183, 0.30)",
+    shineInset: "inset 0 1px 0 rgba(255, 255, 255, 0.55)",
     shineInsetDark: "inset 0 1px 0 rgba(255, 255, 255, 0.06)"
 } as const;
 
@@ -191,18 +189,17 @@ export const tag = {
  * read as floating without being heavy.
  */
 export const shadow = {
-    xs: "0 1px 2px rgba(15, 23, 42, 0.06)",
-    sm: "0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08)",
-    md: "0 2px 4px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.08)",
-    lg: "0 8px 16px rgba(15, 23, 42, 0.08), 0 16px 32px rgba(15, 23, 42, 0.10)",
-    xl: "0 16px 32px rgba(15, 23, 42, 0.12), 0 32px 64px rgba(15, 23, 42, 0.14)",
-    focus: "0 0 0 3px rgba(13, 148, 136, 0.22)",
+    xs: "0 1px 2px rgba(15, 23, 42, 0.05)",
+    sm: "0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.06)",
+    md: "0 2px 4px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(15, 23, 42, 0.06)",
+    lg: "0 8px 16px rgba(15, 23, 42, 0.06), 0 16px 32px rgba(15, 23, 42, 0.08)",
+    xl: "0 16px 32px rgba(15, 23, 42, 0.10), 0 32px 64px rgba(15, 23, 42, 0.12)",
+    focus: "0 0 0 3px rgba(4, 120, 87, 0.22)",
     inset: "inset 0 1px 0 rgba(255, 255, 255, 0.06)",
-    glowTeal: "0 0 24px rgba(13, 148, 136, 0.32)",
-    glowCyan: "0 0 24px rgba(6, 182, 212, 0.28)",
-    glowAmber: "0 0 24px rgba(245, 158, 11, 0.28)",
+    /* Single emerald glow — replaces the previous multi-hue glow trio. */
+    glowEmerald: "0 0 24px rgba(4, 120, 87, 0.28)",
     glowAurora:
-        "0 12px 40px -8px rgba(13, 148, 136, 0.30), 0 0 0 1px rgba(13, 148, 136, 0.12)"
+        "0 12px 40px -8px rgba(4, 120, 87, 0.24), 0 0 0 1px rgba(4, 120, 87, 0.10)"
 } as const;
 
 /**
@@ -266,18 +263,19 @@ export const modalWidthCss = (max: number) =>
     `min(${max}px, calc(100vw - ${modalGutterPx}px))`;
 
 /**
- * Aurora-aligned gradient palette for user / project avatars. Six steps
- * across the teal/cyan/emerald/amber aurora family so every distinct id
- * reads as a unique monogram while staying inside the new palette.
- * Centralizing the list here means a future palette change is one edit.
+ * Monochromatic emerald gradient palette for user / project avatars. Six
+ * variations within the same hue family so every distinct id reads as a
+ * unique monogram while staying inside the single-color identity. The
+ * variations differ in lightness range (light→mid, mid→deep, full range,
+ * etc.) so cards still distinguish at a glance.
  */
 export const avatarGradients = [
-    `linear-gradient(135deg, ${aurora.teal} 0%, ${aurora.cyan} 100%)`,
-    `linear-gradient(135deg, ${aurora.teal} 0%, ${aurora.amber} 100%)`,
-    `linear-gradient(135deg, ${aurora.cyan} 0%, ${aurora.emerald} 100%)`,
-    `linear-gradient(135deg, ${aurora.amber} 0%, ${aurora.teal} 100%)`,
-    `linear-gradient(135deg, #14B8A6 0%, ${aurora.cyan} 100%)`,
-    `linear-gradient(135deg, ${aurora.emerald} 0%, ${aurora.teal} 100%)`
+    `linear-gradient(135deg, ${aurora.light} 0%, ${aurora.mid} 100%)`,
+    `linear-gradient(135deg, #34D399 0%, ${aurora.deep} 100%)`,
+    `linear-gradient(135deg, ${aurora.mid} 0%, ${aurora.cinematicBase} 100%)`,
+    `linear-gradient(135deg, ${aurora.light} 0%, ${aurora.deep} 100%)`,
+    `linear-gradient(135deg, #34D399 0%, #065F46 100%)`,
+    `linear-gradient(135deg, ${aurora.mid} 0%, ${aurora.deep} 100%)`
 ] as const;
 
 /**

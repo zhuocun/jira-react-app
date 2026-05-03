@@ -46,8 +46,8 @@ export const buildAntdTheme = (
         colorWarning: semantic.warning,
         colorError: semantic.error,
 
-        // Surfaces — transparent so the aurora mesh painted on `body` shows
-        // through every Layout. Solid fallbacks live in App.css under
+        // Surfaces — transparent so the page-level background shows through
+        // every Layout. Solid fallbacks live in App.css under
         // `prefers-reduced-transparency` and `forced-colors`.
         colorBgLayout: "transparent",
 
@@ -86,8 +86,8 @@ export const buildAntdTheme = (
         controlOutlineWidth: 3,
         controlOutline:
             mode === "dark"
-                ? "rgba(45, 212, 191, 0.32)"
-                : "rgba(13, 148, 136, 0.22)",
+                ? "rgba(110, 231, 183, 0.30)"
+                : "rgba(4, 120, 87, 0.22)",
 
         // Motion
         motionDurationFast: `${motion.short}ms`,
@@ -125,12 +125,13 @@ export const buildAntdTheme = (
                 mode === "dark" ? glass.surfaceStrongDark : glass.surfaceStrong,
             headerBg: "transparent",
             footerBg: "transparent",
-            // Teal-tinted mask so the world behind the modal dissolves into
-            // aurora instead of a flat black overlay.
+            // Restrained mask: a softer dark wash without an emerald tint
+            // keeps the focus on the modal content itself rather than
+            // bleeding the brand color across the whole viewport.
             colorBgMask:
                 mode === "dark"
-                    ? "rgba(2, 18, 17, 0.62)"
-                    : "rgba(4, 47, 46, 0.34)"
+                    ? "rgba(2, 18, 14, 0.62)"
+                    : "rgba(15, 23, 42, 0.32)"
         },
         Drawer: {
             paddingLG: space.lg,
@@ -144,8 +145,8 @@ export const buildAntdTheme = (
             borderRadius: radius.md,
             activeShadow: `0 0 0 3px ${
                 mode === "dark"
-                    ? "rgba(45, 212, 191, 0.32)"
-                    : "rgba(13, 148, 136, 0.20)"
+                    ? "rgba(110, 231, 183, 0.30)"
+                    : "rgba(4, 120, 87, 0.20)"
             }`
         },
         Select: {
@@ -164,8 +165,8 @@ export const buildAntdTheme = (
             headerSplitColor: "transparent",
             rowHoverBg:
                 mode === "dark"
-                    ? "rgba(45, 212, 191, 0.14)"
-                    : "rgba(13, 148, 136, 0.07)",
+                    ? "rgba(110, 231, 183, 0.12)"
+                    : "rgba(4, 120, 87, 0.06)",
             borderColor:
                 mode === "dark"
                     ? "rgba(255, 255, 255, 0.06)"
@@ -192,8 +193,8 @@ export const buildAntdTheme = (
         Tooltip: {
             colorBgSpotlight:
                 mode === "dark"
-                    ? "rgba(2, 18, 17, 0.94)"
-                    : "rgba(4, 47, 46, 0.94)",
+                    ? "rgba(10, 15, 13, 0.94)"
+                    : "rgba(15, 23, 42, 0.94)",
             colorTextLightSolid: "#FFFFFF",
             borderRadius: radius.sm
         },
@@ -241,41 +242,13 @@ export const buildAntdTheme = (
 
 /**
  * Re-export the accent gradient as raw CSS so styled components can drop it
- * directly without re-importing the token module. Now resolves to the
- * teal → cyan accent signature via the updated `accent` tokens.
+ * directly without re-importing the token module. Resolves to the
+ * single-hue emerald gradient via the updated `accent` tokens.
  */
 export const accentGradientCss = `linear-gradient(135deg, ${accent.start} 0%, ${accent.end} 100%)`;
 
 /**
- * Linear teal → teal-500 → cyan aurora gradient. Used for buttons, badges,
- * and the sparkle icon when a single-stripe (rather than mesh) treatment
- * fits better.
+ * Linear deep → mid emerald gradient. Used for buttons, badges, and the
+ * sparkle icon when a single-stripe gradient fits better than a flat fill.
  */
 export const auroraGradientCss = aurora.gradLine;
-
-/**
- * Light-mode mesh background. Four aurora blobs (teal, cyan, emerald,
- * amber) over a near-white base. Three cool blobs anchor the mesh while
- * the warm amber sits in the bottom-right corner to keep the page from
- * reading as monochrome cool.
- */
-export const auroraMeshLightCss = `
-    radial-gradient(at 18% 12%, ${aurora.tealSoft} 0px, transparent 55%),
-    radial-gradient(at 82% 18%, ${aurora.cyanSoft} 0px, transparent 55%),
-    radial-gradient(at 50% 88%, ${aurora.emeraldSoft} 0px, transparent 55%),
-    radial-gradient(at 92% 92%, ${aurora.amberSoft} 0px, transparent 55%),
-    #F7FDFC
-`;
-
-/**
- * Dark-mode mesh background. Same blob positions, deeper saturation, dark
- * teal base. The teal blob is bumped up because it has to fight the dark
- * canvas to read as light coming through.
- */
-export const auroraMeshDarkCss = `
-    radial-gradient(at 18% 12%, rgba(13,148,136,0.40) 0px, transparent 55%),
-    radial-gradient(at 82% 18%, rgba(6,182,212,0.24) 0px, transparent 55%),
-    radial-gradient(at 50% 88%, rgba(16,185,129,0.20) 0px, transparent 55%),
-    radial-gradient(at 92% 92%, rgba(245,158,11,0.16) 0px, transparent 55%),
-    #042F2E
-`;

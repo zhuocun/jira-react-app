@@ -23,67 +23,56 @@
  */
 :root,
 html[data-color-scheme="light"] {
-    --pulse-bg-page: #f7fdfc;
+    /* Warm off-white. Pure #FFFFFF on a 100% LCD reads cold and clinical;
+     * a hint of warmth (#FBFAF8) softens the page so the single emerald
+     * accent feels intentional rather than aggressive. */
+    --pulse-bg-page: #fbfaf8;
     --pulse-text-base: rgba(15, 23, 42, 0.92);
 
-    /* Copilot (AI) palette — teal-anchored, no purple. */
-    --color-copilot-grad-start: #0d9488;
-    --color-copilot-grad-mid: #14b8a6;
-    --color-copilot-grad-end: #06b6d4;
-    --color-copilot-bg-subtle: rgba(13, 148, 136, 0.06);
-    --color-copilot-bg-medium: rgba(13, 148, 136, 0.18);
-    --color-copilot-badge: #0d9488;
-    --color-copilot-badge-bg: rgba(13, 148, 136, 0.14);
-    --color-copilot-pulse: rgba(13, 148, 136, 0.5);
+    /* Copilot (AI) palette — single emerald hue family, no secondary. */
+    --color-copilot-grad-start: #047857;
+    --color-copilot-grad-mid: #059669;
+    --color-copilot-grad-end: #10b981;
+    --color-copilot-bg-subtle: rgba(4, 120, 87, 0.04);
+    --color-copilot-bg-medium: rgba(4, 120, 87, 0.14);
+    --color-copilot-badge: #047857;
+    --color-copilot-badge-bg: rgba(4, 120, 87, 0.12);
+    --color-copilot-pulse: rgba(4, 120, 87, 0.45);
 
-    /* Aurora mesh layers (consumed by body + AI panels + cinematic rail).
-     * Three cool blobs (teal, cyan, emerald) plus a warm amber blob in
-     * the bottom-right so the page never reads as monochrome cool. */
-    --aurora-blob-teal: rgba(13, 148, 136, 0.26);
-    --aurora-blob-cyan: rgba(6, 182, 212, 0.22);
-    --aurora-blob-emerald: rgba(16, 185, 129, 0.18);
-    --aurora-blob-amber: rgba(245, 158, 11, 0.16);
-    --aurora-mesh-base: #f7fdfc;
-
-    /* Glass surface tokens (consumed by header, modal, drawer, AI panels). */
-    --glass-surface: rgba(255, 255, 255, 0.65);
-    --glass-surface-strong: rgba(255, 255, 255, 0.78);
-    --glass-surface-subtle: rgba(255, 255, 255, 0.45);
-    --glass-border: rgba(255, 255, 255, 0.28);
-    --glass-border-strong: rgba(13, 148, 136, 0.22);
-    --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.45);
-
-    /* Modal mask — teal tinted instead of neutral black. */
-    --aurora-modal-mask: rgba(4, 47, 46, 0.34);
+    /* Glass surface tokens (consumed by header, modal, drawer, AI panels).
+     * Surfaces stay neutral white-tinted; only the strong border picks up
+     * the emerald accent. The page background is flat now — no mesh — so
+     * there are no blob CSS vars. */
+    --glass-surface: rgba(255, 255, 255, 0.68);
+    --glass-surface-strong: rgba(255, 255, 255, 0.82);
+    --glass-surface-subtle: rgba(255, 255, 255, 0.5);
+    --glass-border: rgba(15, 23, 42, 0.06);
+    --glass-border-strong: rgba(4, 120, 87, 0.22);
+    --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 html[data-color-scheme="dark"] {
-    --pulse-bg-page: #042f2e;
+    /* Near-black with a subtle emerald undertone so dark mode doesn't
+     * lose the brand entirely. Inputs and surfaces still read as dark
+     * but the page never goes pure neutral. */
+    --pulse-bg-page: #0a0f0d;
     --pulse-text-base: rgba(229, 231, 235, 0.92);
 
-    --color-copilot-grad-start: #2dd4bf;
-    --color-copilot-grad-mid: #5eead4;
-    --color-copilot-grad-end: #22d3ee;
-    --color-copilot-bg-subtle: rgba(45, 212, 191, 0.1);
-    --color-copilot-bg-medium: rgba(45, 212, 191, 0.22);
-    --color-copilot-badge: #2dd4bf;
-    --color-copilot-badge-bg: rgba(45, 212, 191, 0.2);
-    --color-copilot-pulse: rgba(45, 212, 191, 0.55);
+    --color-copilot-grad-start: #6ee7b7;
+    --color-copilot-grad-mid: #34d399;
+    --color-copilot-grad-end: #10b981;
+    --color-copilot-bg-subtle: rgba(110, 231, 183, 0.08);
+    --color-copilot-bg-medium: rgba(110, 231, 183, 0.18);
+    --color-copilot-badge: #6ee7b7;
+    --color-copilot-badge-bg: rgba(110, 231, 183, 0.16);
+    --color-copilot-pulse: rgba(110, 231, 183, 0.5);
 
-    --aurora-blob-teal: rgba(13, 148, 136, 0.4);
-    --aurora-blob-cyan: rgba(6, 182, 212, 0.24);
-    --aurora-blob-emerald: rgba(16, 185, 129, 0.2);
-    --aurora-blob-amber: rgba(245, 158, 11, 0.18);
-    --aurora-mesh-base: #042f2e;
-
-    --glass-surface: rgba(8, 28, 27, 0.55);
-    --glass-surface-strong: rgba(8, 28, 27, 0.72);
-    --glass-surface-subtle: rgba(8, 28, 27, 0.35);
+    --glass-surface: rgba(10, 15, 13, 0.55);
+    --glass-surface-strong: rgba(10, 15, 13, 0.74);
+    --glass-surface-subtle: rgba(10, 15, 13, 0.35);
     --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-border-strong: rgba(45, 212, 191, 0.3);
+    --glass-border-strong: rgba(110, 231, 183, 0.3);
     --glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-
-    --aurora-modal-mask: rgba(2, 18, 17, 0.66);
 }
 
 /*
@@ -162,36 +151,13 @@ body {
     -webkit-text-size-adjust: 100%;
     color: var(--pulse-text-base);
     /*
-     * Aurora mesh page background. Three cool blobs (teal, cyan, emerald)
-     * + one warm amber blob over the mesh base, so the page reads as
-     * "northern lights with a sunset corner" rather than monochrome cool.
-     * `background-attachment: fixed` keeps the mesh stationary as the
-     * user scrolls so it reads as a backdrop rather than a tiled pattern.
-     * Solid fallback lives in `prefers-reduced-transparency` below.
+     * Flat warm off-white. The previous multi-blob aurora mesh has been
+     * removed in favor of the simplest possible page: one neutral surface
+     * carrying type and content, with the single emerald accent reserved
+     * for brand, focus, AI surfaces, and the auth hero. Elegance through
+     * restraint.
      */
-    background:
-        radial-gradient(
-            at 18% 12%,
-            var(--aurora-blob-teal) 0px,
-            transparent 55%
-        ),
-        radial-gradient(
-            at 82% 18%,
-            var(--aurora-blob-cyan) 0px,
-            transparent 55%
-        ),
-        radial-gradient(
-            at 50% 88%,
-            var(--aurora-blob-emerald) 0px,
-            transparent 55%
-        ),
-        radial-gradient(
-            at 92% 92%,
-            var(--aurora-blob-amber) 0px,
-            transparent 55%
-        ),
-        var(--aurora-mesh-base);
-    background-attachment: fixed;
+    background: var(--pulse-bg-page);
 }
 
 #root {
@@ -200,29 +166,31 @@ body {
 }
 
 /*
- * AURORA glass surfaces. Applied via AntD's stable class names so we don't
- * have to wrap every Modal/Drawer call site. The cssVar prefix `ant` (set
- * in `buildAntdTheme`) does not affect element class names.
+ * Glass surfaces for modals and drawers. Applied via AntD's stable class
+ * names so we don't have to wrap every Modal/Drawer call site. The cssVar
+ * prefix `ant` (set in `buildAntdTheme`) does not affect element class
+ * names.
  *
- * The teal-tinted box-shadow + 1px aurora ring restores the modal/drawer
- * silhouette against the teal mask so it never disappears into the
- * backdrop.
+ * Shadow is now neutral (slate, no emerald tint) so the modal silhouette
+ * never bleeds the brand color around its edge — the elegance of the
+ * "color + white" system depends on emerald appearing only where it's
+ * earned (brand marks, focus rings, AI accents).
  */
 .ant-modal-content,
 .ant-drawer-content {
     backdrop-filter: blur(28px) saturate(180%);
     -webkit-backdrop-filter: blur(28px) saturate(180%);
     box-shadow:
-        0 12px 40px -8px rgba(13, 148, 136, 0.3),
-        0 0 0 1px rgba(13, 148, 136, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        0 12px 40px -8px rgba(15, 23, 42, 0.18),
+        0 0 0 1px rgba(15, 23, 42, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 html[data-color-scheme="dark"] .ant-modal-content,
 html[data-color-scheme="dark"] .ant-drawer-content {
     box-shadow:
-        0 12px 48px -8px rgba(45, 212, 191, 0.38),
-        0 0 0 1px rgba(45, 212, 191, 0.2),
+        0 12px 48px -8px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.06),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -275,7 +243,7 @@ video {
  * (custom buttons, links, list items with role="button").
  */
 :focus-visible {
-    outline: 2px solid var(--ant-color-primary, #0d9488);
+    outline: 2px solid var(--ant-color-primary, #047857);
     outline-offset: 2px;
 }
 
@@ -295,7 +263,7 @@ video {
  * `accent.selectionBg` for browsers that don't yet ship the AntD CSS var.
  */
 ::selection {
-    background: var(--ant-color-primary-bg, rgba(13, 148, 136, 0.22));
+    background: var(--ant-color-primary-bg, rgba(4, 120, 87, 0.22));
     color: inherit;
 }
 
@@ -369,17 +337,12 @@ video {
 }
 
 /*
- * Honor user transparency preference. Replace every glass surface with its
- * solid token equivalent so motion-sensitive / contrast-sensitive users
- * still get a usable, opaque surface. Also kill the body mesh — a flat
- * brand-tinted surface is calmer and equally legible.
+ * Honor user transparency preference. Replace every glass surface with
+ * its solid token equivalent so motion-sensitive / contrast-sensitive
+ * users still get a usable, opaque surface. The body is already flat,
+ * so it needs no override here — the rule only covers modal / drawer.
  */
 @media (prefers-reduced-transparency: reduce) {
-    body {
-        background: var(--aurora-mesh-base);
-        background-attachment: scroll;
-    }
-
     .ant-modal-content,
     .ant-drawer-content {
         backdrop-filter: none;
