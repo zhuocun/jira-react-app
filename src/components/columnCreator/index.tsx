@@ -125,7 +125,7 @@ const ColumnCreator: React.FC = () => {
     return (
         <Slot>
             <Input
-                aria-label="New column name"
+                aria-label={microcopy.a11y.newColumnName}
                 disabled={isLoading}
                 enterKeyHint="done"
                 inputMode="text"
@@ -138,7 +138,7 @@ const ColumnCreator: React.FC = () => {
                     }
                 }}
                 onPressEnter={submit}
-                placeholder="Create column name"
+                placeholder={microcopy.placeholders.createColumnName}
                 ref={inputRef}
                 size="large"
                 value={columnName}

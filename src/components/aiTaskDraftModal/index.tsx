@@ -157,11 +157,15 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
         const projectName =
             tasks[0]?.projectId === projectId && tasks[0]?.epic
                 ? tasks[0].epic
-                : "this project";
+                : microcopy.ai.draftSampleFallbackProject;
+        const [bugDraft, , spikeDraft] = microcopy.ai.draftSuggestions;
         return [
-            "Draft a bug fix task",
-            `Plan a feature for ${projectName}`,
-            "Create a research spike"
+            bugDraft,
+            microcopy.ai.draftSamplePlanFeature.replace(
+                "{project}",
+                projectName
+            ),
+            spikeDraft
         ];
     }, [tasks, projectId]);
 
@@ -261,7 +265,10 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 setBulkProgress({ current: index + 1, total: selected.length });
             }
             undoToast.show({
-                description: `${selected.length} subtasks created.`,
+                description: (selected.length === 1
+                    ? microcopy.counts.subtasksCreated.one
+                    : microcopy.counts.subtasksCreated.other
+                ).replace("{count}", String(selected.length)),
                 analyticsTag: "copilot.draft.bulk",
                 undo: async () => {
                     /*
@@ -289,14 +296,24 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                         queryKey: ["tasks", { projectId }]
                     });
                     if (failed === 0) {
-                        message.success(`${removed} subtasks removed.`);
+                        message.success(
+                            (removed === 1
+                                ? microcopy.counts.subtasksRemoved.one
+                                : microcopy.counts.subtasksRemoved.other
+                            ).replace("{count}", String(removed))
+                        );
                     } else if (removed === 0) {
                         message.error(
-                            `Couldn't remove ${failed} subtask${failed === 1 ? "" : "s"}.`
+                            (failed === 1
+                                ? microcopy.counts.subtasksRemoveFailed.one
+                                : microcopy.counts.subtasksRemoveFailed.other
+                            ).replace("{count}", String(failed))
                         );
                     } else {
                         message.warning(
-                            `${removed} removed, ${failed} could not be removed.`
+                            microcopy.counts.subtasksRemovedPartial
+                                .replace("{removed}", String(removed))
+                                .replace("{failed}", String(failed))
                         );
                     }
                 }
@@ -364,9 +381,9 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 route="task-draft"
                 storageKey="boardCopilot:draftPrivacyShown"
             />
-            <Form.Item label="Describe the work in your own words">
+            <Form.Item label={microcopy.placeholders.describeWork}>
                 <TextArea
-                    aria-label="Task prompt"
+                    aria-label={microcopy.a11y.taskPrompt}
                     maxLength={1000}
                     onChange={(event) => setPrompt(event.target.value)}
                     onKeyDown={(event) => {
@@ -379,7 +396,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             void onDraft();
                         }
                     }}
-                    placeholder="e.g. Investigate flaky login on Safari, blocks v2 release"
+                    placeholder={microcopy.placeholders.taskPromptExample}
                     rows={3}
                     showCount
                     value={prompt}
@@ -414,15 +431,19 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                 }}
             >
                 <Button
-                    aria-label="Draft task with Copilot"
+                    aria-label={microcopy.a11y.draftTaskWithCopilot}
                     disabled={!prompt.trim() || draftAi.isLoading}
                     onClick={onDraft}
                     type="primary"
                 >
-                    {draftAi.isLoading ? <Spin size="small" /> : "Draft task"}
+                    {draftAi.isLoading ? (
+                        <Spin size="small" />
+                    ) : (
+                        microcopy.actions.draftTask
+                    )}
                 </Button>
                 <Select<BreakdownAxis>
-                    aria-label="Breakdown axis"
+                    aria-label={microcopy.a11y.breakdownAxisLabel}
                     onChange={onBreakdownAxisChange}
                     options={BREAKDOWN_AXES.map((axis) => ({
                         label: (
@@ -438,14 +459,14 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                     value={breakdownAxis}
                 />
                 <Button
-                    aria-label="Break the prompt into subtasks"
+                    aria-label={microcopy.a11y.breakPromptIntoSubtasks}
                     disabled={!prompt.trim() || breakdownAi.isLoading}
                     onClick={() => onBreakdown()}
                 >
                     {breakdownAi.isLoading ? (
                         <Spin size="small" />
                     ) : (
-                        "Break down"
+                        microcopy.actions.breakDown
                     )}
                 </Button>
                 {(suggestion || breakdownMode) && (
@@ -485,9 +506,11 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
 
             {bulkProgress && (
                 <Progress
-                    aria-label="Creating subtasks"
+                    aria-label={microcopy.a11y.creatingSubtasks}
                     format={() =>
-                        `${bulkProgress.current} of ${bulkProgress.total}`
+                        microcopy.ai.bulkProgressFormat
+                            .replace("{current}", String(bulkProgress.current))
+                            .replace("{total}", String(bulkProgress.total))
                     }
                     percent={breakdownProgressPercent}
                     status="active"
@@ -510,7 +533,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                         style={{ marginBottom: space.sm }}
                         title={
                             <span>
-                                {`${microcopy.a11y.aiSuggestion} · review and edit before creating`}{" "}
+                                {`${microcopy.a11y.aiSuggestion} · ${microcopy.ai.reviewAndEdit}`}{" "}
                                 <AiConfidenceIndicator
                                     confidence={suggestion.confidence}
                                 />
@@ -541,8 +564,14 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                     >
                         <Select
                             options={[
-                                { label: "Task", value: "Task" },
-                                { label: "Bug", value: "Bug" }
+                                {
+                                    label: microcopy.options.taskTypes.task,
+                                    value: "Task"
+                                },
+                                {
+                                    label: microcopy.options.taskTypes.bug,
+                                    value: "Bug"
+                                }
                             ]}
                         />
                     </Form.Item>
@@ -577,7 +606,7 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                                 <AiSuggestedBadge compact />
                             )
                         }
-                        label="Column"
+                        label={microcopy.fields.column}
                         name="columnId"
                     >
                         <Select
@@ -635,12 +664,15 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
             )}
 
             {breakdownMode && breakdownItems.length > 0 && (
-                <div aria-label="Subtask breakdown">
+                <div aria-label={microcopy.a11y.subtaskBreakdown}>
                     <Alert
                         showIcon
                         style={{ marginBottom: space.sm }}
-                        title={`${microcopy.a11y.aiSuggestion}: pick the subtasks you want to create`}
-                        description={`Axis: ${microcopy.ai.breakdownAxes[breakdownAxis].label}`}
+                        title={`${microcopy.a11y.aiSuggestion}: ${microcopy.ai.pickSubtasks}`}
+                        description={microcopy.ai.breakdownAxisInfo.replace(
+                            "{label}",
+                            microcopy.ai.breakdownAxes[breakdownAxis].label
+                        )}
                         type="info"
                     />
                     {breakdownItems.map((item, index) => {
@@ -662,7 +694,10 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                                 }}
                             >
                                 <Checkbox
-                                    aria-label={`Include subtask ${item.taskName}`}
+                                    aria-label={microcopy.a11y.includeSubtask.replace(
+                                        "{name}",
+                                        item.taskName
+                                    )}
                                     checked={breakdownChecked[index]}
                                     onChange={(event) => {
                                         const next = [...breakdownChecked];
@@ -686,13 +721,18 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                                 )}
                                 {owner && <Tag>{owner.username}</Tag>}
                                 <Tag style={{ marginInlineEnd: 0 }}>
-                                    {item.storyPoints} pts
+                                    {microcopy.brief.ptsCount.replace(
+                                        "{count}",
+                                        String(item.storyPoints)
+                                    )}
                                 </Tag>
                                 <Tag
                                     color={item.type === "Bug" ? "red" : "blue"}
                                     style={{ marginInlineEnd: 0 }}
                                 >
-                                    {item.type}
+                                    {item.type === "Bug"
+                                        ? microcopy.options.taskTypes.bug
+                                        : microcopy.options.taskTypes.task}
                                 </Tag>
                             </div>
                         );
@@ -715,7 +755,10 @@ const AiTaskDraftModal: React.FC<AiTaskDraftModalProps> = ({
                             onClick={onSubmitBreakdown}
                             type="primary"
                         >
-                            {`Create ${breakdownChecked.filter(Boolean).length} subtasks`}
+                            {microcopy.counts.createNSubtasks.replace(
+                                "{count}",
+                                String(breakdownChecked.filter(Boolean).length)
+                            )}
                         </Button>
                     </div>
                 </div>

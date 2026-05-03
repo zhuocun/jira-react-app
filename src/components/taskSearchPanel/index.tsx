@@ -139,6 +139,12 @@ const TaskSearchPanel: React.FC<Props> = ({
         return observed.length > 1 ? observed : ["Task", "Bug"];
     }, [tasks]);
 
+    const typeLabel = (type: string) => {
+        if (type === "Task") return microcopy.options.taskTypes.task;
+        if (type === "Bug") return microcopy.options.taskTypes.bug;
+        return type;
+    };
+
     const resetParams = () => {
         setParam({
             taskName: undefined,
@@ -157,25 +163,29 @@ const TaskSearchPanel: React.FC<Props> = ({
         if (param.taskName) {
             active.push({
                 key: "taskName",
-                label: "Search",
+                label: microcopy.chips.search,
                 value: param.taskName
             });
         }
         if (param.coordinatorId && coordinatorName) {
             active.push({
                 key: "coordinatorId",
-                label: "Coordinator",
+                label: microcopy.chips.coordinator,
                 value: coordinatorName
             });
         }
         if (param.type) {
-            active.push({ key: "type", label: "Type", value: param.type });
+            active.push({
+                key: "type",
+                label: microcopy.chips.type,
+                value: typeLabel(param.type)
+            });
         }
         if (param.semanticIds) {
             active.push({
                 key: "semanticIds",
-                label: "AI",
-                value: "Smart match"
+                label: microcopy.chips.ai,
+                value: microcopy.chips.smartMatch
             });
         }
         return active;
@@ -199,10 +209,10 @@ const TaskSearchPanel: React.FC<Props> = ({
     return (
         <FilterShell>
             {aiSearchSlot}
-            <FilterRow role="search" aria-label="Filter tasks">
+            <FilterRow role="search" aria-label={microcopy.a11y.filterTasks}>
                 <FlexInput>
                     <Input
-                        aria-label="Search tasks by name"
+                        aria-label={microcopy.a11y.searchTasksByName}
                         allowClear
                         onChange={(e) =>
                             setParam({
@@ -210,7 +220,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                                 taskName: e.target.value
                             })
                         }
-                        placeholder="Search this board"
+                        placeholder={microcopy.placeholders.searchBoard}
                         prefix={
                             <SearchOutlined
                                 aria-hidden
@@ -226,7 +236,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                 <FlexSelect>
                     <Select
                         allowClear
-                        aria-label="Filter by coordinator"
+                        aria-label={microcopy.a11y.filterByCoordinator}
                         loading={loading}
                         onChange={(value) =>
                             setParam({
@@ -234,11 +244,13 @@ const TaskSearchPanel: React.FC<Props> = ({
                                 coordinatorId: value ?? ""
                             })
                         }
-                        placeholder="Coordinator"
+                        placeholder={microcopy.placeholders.coordinator}
                         style={{ width: "100%" }}
                         value={param.coordinatorId || undefined}
                     >
-                        <Select.Option value="">Coordinators</Select.Option>
+                        <Select.Option value="">
+                            {microcopy.placeholders.coordinators}
+                        </Select.Option>
                         {coordinators.map((member) => (
                             <Select.Option value={member._id} key={member._id}>
                                 {member.username}
@@ -249,7 +261,7 @@ const TaskSearchPanel: React.FC<Props> = ({
                 <FlexSelect>
                     <Select
                         allowClear
-                        aria-label="Filter by type"
+                        aria-label={microcopy.a11y.filterByType}
                         loading={loading}
                         onChange={(value) =>
                             setParam({
@@ -257,14 +269,16 @@ const TaskSearchPanel: React.FC<Props> = ({
                                 type: value ?? ""
                             })
                         }
-                        placeholder="Type"
+                        placeholder={microcopy.placeholders.type}
                         style={{ width: "100%" }}
                         value={param.type || undefined}
                     >
-                        <Select.Option value="">Types</Select.Option>
+                        <Select.Option value="">
+                            {microcopy.placeholders.types}
+                        </Select.Option>
                         {types.map((type) => (
                             <Select.Option value={type} key={type}>
-                                {type}
+                                {typeLabel(type)}
                             </Select.Option>
                         ))}
                     </Select>

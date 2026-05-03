@@ -42,14 +42,12 @@ const LoginPage = () => {
 
     return (
         <>
-            <AuthTitle>Log in to your account</AuthTitle>
-            <AuthSubtitle>
-                Enter your email and password to continue.
-            </AuthSubtitle>
+            <AuthTitle>{microcopy.auth.loginTitle}</AuthTitle>
+            <AuthSubtitle>{microcopy.auth.loginSubtitle}</AuthSubtitle>
             <ErrorBox error={error} ref={errorRef} />
             <LoginForm onError={setError} />
             <SwitchRow>
-                Don&apos;t have an account?{" "}
+                {microcopy.auth.switchToRegister}{" "}
                 <NoPaddingButton onClick={handleSwitch} type="link">
                     {microcopy.actions.registerCta}
                 </NoPaddingButton>

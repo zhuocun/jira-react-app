@@ -154,8 +154,8 @@ const AiSearchInput: React.FC<Props> = (props) => {
                 setNoMatchHint(
                     result.rationale?.trim() ||
                         (boardHasItems
-                            ? "No tasks matched your search. Try different words, or clear to see everything."
-                            : "This board has no tasks yet.")
+                            ? microcopy.feedback.noTasksMatched
+                            : microcopy.feedback.boardEmpty)
                 );
                 setReformulations(reformulate(query));
                 return;
@@ -220,7 +220,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     applyResult(result, query);
                 } catch {
                     if (controller.signal.aborted) return;
-                    setNoMatchHint("Search failed. Try again.");
+                    setNoMatchHint(microcopy.feedback.searchFailed);
                 }
                 return;
             }
@@ -259,7 +259,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
 
     const busy = searchAi.isLoading;
     const errorView = searchAi.error
-        ? aiErrorView(searchAi.error, "Search failed")
+        ? aiErrorView(searchAi.error, microcopy.feedback.searchFailedTitle)
         : null;
     const labels =
         props.kind === "tasks"
@@ -310,7 +310,11 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     }
                     style={{ flex: "1 1 14rem", minWidth: 0 }}
                     suffix={
-                        busy ? <Tag color="processing">Searching…</Tag> : null
+                        busy ? (
+                            <Tag color="processing">
+                                {microcopy.feedback.searchingTag}
+                            </Tag>
+                        ) : null
                     }
                     value={draft}
                 />
@@ -354,9 +358,12 @@ const AiSearchInput: React.FC<Props> = (props) => {
                 }}
             >
                 {busy
-                    ? "Searching"
+                    ? microcopy.feedback.searching
                     : semanticActive && matchRationale
-                      ? `Results filtered. ${matchRationale}`
+                      ? microcopy.feedback.resultsFiltered.replace(
+                            "{rationale}",
+                            matchRationale
+                        )
                       : (noMatchHint ?? "")}
             </span>
             {matchSummary && matchSummary.total > 0 && (
@@ -442,7 +449,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                             aria-hidden
                             style={{ marginInlineEnd: 4 }}
                         />
-                        Why this result?{" "}
+                        {microcopy.ai.whyThisResult}{" "}
                         <Button
                             onClick={() =>
                                 track(
@@ -458,7 +465,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                             }}
                             type="link"
                         >
-                            Show reasoning
+                            {microcopy.actions.showReasoning}
                         </Button>
                     </Typography.Paragraph>
                 </Tooltip>
@@ -478,7 +485,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     description={
                         reformulations.length > 0 ? (
                             <Space size={themeSpace.xs} wrap>
-                                <span>Did you mean:</span>
+                                <span>{microcopy.ai.didYouMean}</span>
                                 {reformulations.map((alt) => (
                                     <Tag.CheckableTag
                                         checked={false}

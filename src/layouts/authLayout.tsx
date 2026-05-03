@@ -8,6 +8,7 @@ import { Button, Card } from "antd";
 import { Outlet } from "react-router";
 
 import BrandMark from "../components/brandMark";
+import { microcopy } from "../constants/microcopy";
 import {
     accent,
     brand,
@@ -318,35 +319,32 @@ const AuthLayout = () => {
                 <HeroInner>
                     <HeroBadge>
                         <HeroBadgeDot />
-                        New: Board Copilot
+                        {microcopy.auth.heroBadge}
                     </HeroBadge>
-                    <HeroTitle>Ship work with calm focus.</HeroTitle>
-                    <HeroSubtitle>
-                        A focused project board that turns work into momentum.
-                        Drag, drop, draft with AI, and keep your team in flow.
-                    </HeroSubtitle>
+                    <HeroTitle>{microcopy.auth.heroTitle}</HeroTitle>
+                    <HeroSubtitle>{microcopy.auth.heroSubtitle}</HeroSubtitle>
                     <HeroFeatureList>
                         <HeroFeature>
                             <HeroFeatureIcon aria-hidden>
                                 <ThunderboltOutlined />
                             </HeroFeatureIcon>
-                            Draft tasks and standup briefs with AI.
+                            {microcopy.auth.heroFeatureDraft}
                         </HeroFeature>
                         <HeroFeature>
                             <HeroFeatureIcon aria-hidden>
                                 <DragOutlined />
                             </HeroFeatureIcon>
-                            Drag-and-drop columns and cards.
+                            {microcopy.auth.heroFeatureDrag}
                         </HeroFeature>
                         <HeroFeature>
                             <HeroFeatureIcon aria-hidden>
                                 <BgColorsOutlined />
                             </HeroFeatureIcon>
-                            Light, dark, and system color modes.
+                            {microcopy.auth.heroFeatureColors}
                         </HeroFeature>
                     </HeroFeatureList>
                     <HeroFinePrint>
-                        Built for teams that ship. Free to try, no credit card.
+                        {microcopy.auth.heroFinePrint}
                     </HeroFinePrint>
                 </HeroInner>
             </HeroRail>

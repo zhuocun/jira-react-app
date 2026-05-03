@@ -152,7 +152,7 @@ const indexEntries = (
         out.push({
             id: `column:${c._id}`,
             label: c.columnName,
-            sublabel: "Column",
+            sublabel: microcopy.commandPalette.sublabelColumn,
             kind: "column",
             href: c.projectId ? `/projects/${c.projectId}` : undefined,
             rankBoost: 6
@@ -249,12 +249,6 @@ const KIND_ORDER: PaletteEntry["kind"][] = [
     "column",
     "member"
 ];
-const KIND_LABEL: Record<PaletteEntry["kind"], string> = {
-    project: "Projects",
-    task: "Tasks",
-    column: "Columns",
-    member: "Members"
-};
 
 /** Group rows by kind only when results span more than one kind. */
 const groupByKind = (entries: PaletteEntry[]): RenderedItem[] => {
@@ -262,23 +256,18 @@ const groupByKind = (entries: PaletteEntry[]): RenderedItem[] => {
     if (kinds.size <= 1) {
         return entries.map((entry) => ({ type: "row", entry }));
     }
+    const kindLabel = microcopy.commandPalette.kindLabels;
     const out: RenderedItem[] = [];
     for (const kind of KIND_ORDER) {
         const group = entries.filter((e) => e.kind === kind);
         if (group.length === 0) continue;
-        out.push({ type: "header", label: KIND_LABEL[kind] });
+        out.push({ type: "header", label: kindLabel[kind] });
         for (const entry of group) {
             out.push({ type: "row", entry });
         }
     }
     return out;
 };
-
-const AI_SAMPLES = [
-    "What's at risk on this board?",
-    "Summarize this board",
-    "Who has the most open work?"
-];
 
 /**
  * Command palette (PRD §7.1, v3 §6.7). Navigation by default; AI mode
@@ -487,16 +476,15 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
 
     const shortcutText = isMacLike() ? "Cmd+K" : "Ctrl+K";
     const placeholder = aiMode
-        ? "Ask Board Copilot…"
-        : "Search projects, tasks, columns, members…";
+        ? microcopy.placeholders.commandPaletteAi
+        : microcopy.placeholders.commandPaletteNav;
     const isMobile = !screens.md;
     const resultCount = visible.length;
 
     const renderBody = () => (
         <>
             <HiddenLabel id={`${listboxId}-label`}>
-                Search and navigate. Start the query with “/” to switch to Board
-                Copilot.
+                {microcopy.commandPalette.navigateInstructions}
             </HiddenLabel>
             <div
                 aria-controls={listboxId}
@@ -521,8 +509,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
                         <button
                             aria-label={
                                 aiMode
-                                    ? "Exit Board Copilot mode"
-                                    : "Switch to Board Copilot"
+                                    ? microcopy.a11y.exitBoardCopilotMode
+                                    : microcopy.a11y.switchToBoardCopilot
                             }
                             aria-pressed={aiMode}
                             onClick={() => toggleAiMode()}
@@ -563,17 +551,20 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
                 }}
             >
                 {aiMode
-                    ? "Board Copilot mode. Press Enter to ask."
+                    ? microcopy.a11y.boardCopilotModeAnnouncement
                     : query.trim().length > 0
-                      ? `${resultCount} ${resultCount === 1 ? "result" : "results"}`
+                      ? (resultCount === 1
+                            ? microcopy.counts.results.one
+                            : microcopy.counts.results.other
+                        ).replace("{count}", String(resultCount))
                       : ""}
             </span>
             {aiMode ? (
                 <ModeBanner role="status">
                     <AiSparkleIcon aria-hidden />
                     <span>
-                        {microcopy.ai.askCopilot}. Type your question, then
-                        press Enter.
+                        {microcopy.ai.askCopilot}.{" "}
+                        {microcopy.commandPalette.copilotPromptHint}
                     </span>
                 </ModeBanner>
             ) : (
@@ -616,7 +607,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
                                     role="option"
                                 >
                                     <KindTag color="default">
-                                        {entry.kind}
+                                        {
+                                            microcopy.commandPalette.kindTags[
+                                                entry.kind
+                                            ]
+                                        }
                                     </KindTag>
                                     <span>
                                         <span
@@ -644,8 +639,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
                 </ListContainer>
             )}
             {aiMode && (
-                <ListContainer aria-label="Sample prompts">
-                    {AI_SAMPLES.map((prompt) => (
+                <ListContainer aria-label={microcopy.a11y.samplePrompts}>
+                    {microcopy.commandPalette.sampleAi.map((prompt) => (
                         <li key={prompt}>
                             <SamplePromptRow
                                 onClick={() => dispatchAiPrompt(prompt)}
@@ -670,7 +665,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose }) => {
         >
             <AiSparkleIcon aria-hidden />
             <span style={{ fontWeight: fontWeight.semibold }}>
-                Command palette
+                {microcopy.commandPalette.title}
             </span>
             <Typography.Text type="secondary">{shortcutText}</Typography.Text>
         </span>

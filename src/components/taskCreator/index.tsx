@@ -166,12 +166,12 @@ const TaskCreator: React.FC<{
     }
     return (
         <Input
-            aria-label="New task name"
+            aria-label={microcopy.a11y.newTaskName}
             disabled={isLoading || disabled}
             enterKeyHint="done"
             inputMode="text"
             onBlur={toggle}
-            placeholder="What needs to be done?"
+            placeholder={microcopy.placeholders.whatNeedsToBeDone}
             autoFocus
             onPressEnter={submit}
             onKeyDown={(event) => {

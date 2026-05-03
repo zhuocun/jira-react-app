@@ -17,14 +17,17 @@ export const enSource = {
         addColumn: "Add column",
         apply: "Apply",
         askCopilot: "Ask Copilot",
+        breakDown: "Break down",
         cancel: "Cancel",
         clear: "Clear",
         clearAiSearch: "Clear AI search",
         close: "Close",
+        copyAsMarkdown: "Copy as Markdown",
         create: "Create",
         createProject: "Create project",
         createTask: "Create task",
         delete: "Delete",
+        draftTask: "Draft task",
         draftWithAi: "Draft with AI",
         edit: "Edit",
         editProject: "Edit project",
@@ -41,8 +44,10 @@ export const enSource = {
         send: "Send",
         showPassword: "Show password",
         hidePassword: "Hide password",
+        showReasoning: "Show reasoning",
         signUp: "Sign up",
         signingUp: "Signing up…",
+        sort: "Sort",
         stop: "Stop",
         undo: "Undo"
     },
@@ -72,7 +77,38 @@ export const enSource = {
         useLightMode: "Switch to light mode",
         goToProjects: "Go to projects",
         members: "Members",
-        viewTeamMembers: "View team members"
+        viewTeamMembers: "View team members",
+        filterProjects: "Filter projects",
+        filterTasks: "Filter tasks",
+        sortProjects: "Sort projects",
+        loadingProjects: "Loading projects",
+        projects: "Projects",
+        searchProjectsByName: "Search projects by name",
+        searchTasksByName: "Search tasks by name",
+        filterByManager: "Filter by manager",
+        filterByCoordinator: "Filter by coordinator",
+        filterByType: "Filter by type",
+        newColumnName: "New column name",
+        newTaskName: "New task name",
+        taskPrompt: "Task prompt",
+        breakdownAxisLabel: "Breakdown axis",
+        draftTaskWithCopilot: "Draft task with Copilot",
+        breakPromptIntoSubtasks: "Break the prompt into subtasks",
+        creatingSubtasks: "Creating subtasks",
+        subtaskBreakdown: "Subtask breakdown",
+        includeSubtask: "Include subtask {name}",
+        deleteTask: "Delete {name}",
+        rejectProposal: "Reject proposal",
+        acceptProposal: "Accept proposal",
+        copyBriefAsMarkdown: "Copy brief as Markdown",
+        generatingBrief: "Generating brief",
+        boardBriefContent: "Board brief content",
+        messageBoardCopilot: "Message Board Copilot",
+        sendMessage: "Send message",
+        samplePrompts: "Sample prompts",
+        exitBoardCopilotMode: "Exit Board Copilot mode",
+        switchToBoardCopilot: "Switch to Board Copilot",
+        boardCopilotModeAnnouncement: "Board Copilot mode. Press Enter to ask."
     },
     settings: {
         darkMode: "Dark mode",
@@ -87,6 +123,7 @@ export const enSource = {
         teamMembers: "Team Members"
     },
     fields: {
+        column: "Column",
         coordinator: "Coordinator",
         email: "Email",
         epic: "Epic",
@@ -99,6 +136,75 @@ export const enSource = {
         taskName: "Task name",
         type: "Type",
         username: "Username"
+    },
+    placeholders: {
+        emailExample: "name@example.com",
+        searchProjects: "Search this list",
+        searchBoard: "Search this board",
+        managers: "Managers",
+        manager: "Manager",
+        coordinators: "Coordinators",
+        coordinator: "Coordinator",
+        types: "Types",
+        type: "Type",
+        createColumnName: "Create column name",
+        whatNeedsToBeDone: "What needs to be done?",
+        notesAcceptanceCriteria: "Notes / acceptance criteria",
+        chatAsk: "Ask a question… (Shift+Enter for a new line)",
+        commandPaletteNav: "Search projects, tasks, columns, members…",
+        commandPaletteAi: "Ask Board Copilot…",
+        taskPromptExample:
+            "e.g. Investigate flaky login on Safari, blocks v2 release",
+        describeWork: "Describe the work in your own words"
+    },
+    options: {
+        sort: {
+            nameAsc: "Name (A → Z)",
+            nameDesc: "Name (Z → A)",
+            newest: "Newest first",
+            oldest: "Oldest first"
+        },
+        taskTypes: {
+            task: "Task",
+            bug: "Bug"
+        }
+    },
+    counts: {
+        projects: {
+            one: "{count} project",
+            other: "{count} projects"
+        },
+        results: {
+            one: "{count} result",
+            other: "{count} results"
+        },
+        targets: {
+            one: "{count} target",
+            other: "{count} targets"
+        },
+        subtasksCreated: {
+            one: "{count} subtask created.",
+            other: "{count} subtasks created."
+        },
+        subtasksRemoved: {
+            one: "{count} subtask removed.",
+            other: "{count} subtasks removed."
+        },
+        subtasksRemoveFailed: {
+            one: "Couldn't remove {count} subtask.",
+            other: "Couldn't remove {count} subtasks."
+        },
+        subtasksRemovedPartial:
+            "{removed} removed, {failed} could not be removed.",
+        createNSubtasks: "Create {count} subtasks"
+    },
+    chips: {
+        search: "Search",
+        manager: "Manager",
+        coordinator: "Coordinator",
+        type: "Type",
+        ai: "AI",
+        smartMatch: "Smart match"
     },
     confirm: {
         deleteProject: {
@@ -135,7 +241,19 @@ export const enSource = {
         taskDeleted: "Task deleted",
         likeFailed: "Couldn't update like. Please try again.",
         taskSaved: "Task saved",
-        welcomeBack: "Welcome back!"
+        welcomeBack: "Welcome back!",
+        accountCreated: "Account created. Please log in.",
+        couldntDeleteTask: "Couldn't delete {name}.",
+        couldntCopy: "Couldn't copy",
+        couldntGenerateBrief: "Couldn't generate the brief",
+        searchFailed: "Search failed. Try again.",
+        searchFailedTitle: "Search failed",
+        searching: "Searching",
+        searchingTag: "Searching…",
+        resultsFiltered: "Results filtered. {rationale}",
+        noTasksMatched:
+            "No tasks matched your search. Try different words, or clear to see everything.",
+        boardEmpty: "This board has no tasks yet."
     },
     /**
      * ICU-style placeholder greeting. Header reads it as
@@ -339,7 +457,126 @@ export const enSource = {
         welcomeBannerBody:
             "Draft tasks, estimate work, summarize the board, and answer questions — all from your board data.",
         welcomeBannerCta: "Try: Summarize this board",
-        welcomeBannerDismiss: "Dismiss"
+        welcomeBannerDismiss: "Dismiss",
+        whyThisResult: "Why this result?",
+        didYouMean: "Did you mean:",
+        draftSamplePlanFeature: "Plan a feature for {project}",
+        draftSampleFallbackProject: "this project",
+        reviewAndEdit: "review and edit before creating",
+        pickSubtasks: "pick the subtasks you want to create",
+        breakdownAxisInfo: "Axis: {label}",
+        bulkProgressFormat: "{current} of {total}"
+    },
+    auth: {
+        loginTitle: "Log in to your account",
+        loginSubtitle: "Enter your email and password to continue.",
+        registerTitle: "Register for an account",
+        registerSubtitle: "Create your account to start tracking work.",
+        switchToRegister: "Don't have an account?",
+        switchToLogin: "Already have an account?",
+        heroBadge: "New: Board Copilot",
+        heroTitle: "Ship work with calm focus.",
+        heroSubtitle:
+            "A focused project board that turns work into momentum. Drag, drop, draft with AI, and keep your team in flow.",
+        heroFeatureDraft: "Draft tasks and standup briefs with AI.",
+        heroFeatureDrag: "Drag-and-drop columns and cards.",
+        heroFeatureColors: "Light, dark, and system color modes.",
+        heroFinePrint: "Built for teams that ship. Free to try, no credit card."
+    },
+    commandPalette: {
+        title: "Command palette",
+        kindLabels: {
+            project: "Projects",
+            task: "Tasks",
+            column: "Columns",
+            member: "Members"
+        },
+        kindTags: {
+            project: "project",
+            task: "task",
+            column: "column",
+            member: "member"
+        },
+        sublabelColumn: "Column",
+        navigateInstructions:
+            "Search and navigate. Start the query with “/” to switch to Board Copilot.",
+        copilotPromptHint: "Type your question, then press Enter.",
+        sampleAi: [
+            "What's at risk on this board?",
+            "Summarize this board",
+            "Who has the most open work?"
+        ] as readonly string[]
+    },
+    brief: {
+        title: "Board Copilot brief",
+        recommendedNextStep: "Recommended next step",
+        countsPerColumn: "Counts per column",
+        largestUnstarted: "Largest unstarted",
+        unownedTasks: "Unowned tasks",
+        workload: "Workload",
+        noUnstarted: "No unstarted tasks. Nice.",
+        allOwned: "All tasks have an owner.",
+        noActivePerMember: "No active tasks per member.",
+        boardEmpty: "Board is empty — start by creating a task.",
+        unstartedWaiting: "{count} unstarted tasks waiting for pickup.",
+        overloaded:
+            "{name} is carrying {count} open tasks — consider reassigning.",
+        unownedHeadline: "{count} tasks have no owner.",
+        column: "Column",
+        tasks: "Tasks",
+        basisLabel: "Basis: {text}",
+        basisItalic: "_Basis: {text}_",
+        openCount: "{count} open",
+        ptsCount: "{count} pts",
+        generated: "Generated {time}",
+        relativeJustNow: "just now",
+        relativeOneMinute: "1 minute ago",
+        relativeMinutes: "{count} minutes ago",
+        relativeOneHour: "1 hour ago",
+        relativeHours: "{count} hours ago",
+        relativeOneDay: "1 day ago",
+        relativeDays: "{count} days ago",
+        strengthLabels: {
+            strong: "Strong signal",
+            moderate: "Moderate signal",
+            low: "Low signal — review",
+            none: "No action needed"
+        },
+        strengthTooltips: {
+            strong: "Multiple board signals support this recommendation. Acting on it should be safe.",
+            moderate:
+                "One or two board signals back this recommendation. Skim the basis before acting.",
+            low: "The signal is weak. Review the basis carefully before acting on this.",
+            none: "No imbalance detected. Recommendation is informational only."
+        },
+        markdownCountsHeading: "Counts per column",
+        markdownLargestHeading: "Largest unstarted",
+        markdownUnownedHeading: "Unowned",
+        markdownWorkloadHeading: "Workload",
+        markdownStoryPoints: "{count} pts",
+        markdownWorkloadEntry: "{count} open / {points} pts"
+    },
+    mutation: {
+        riskHigh: "High risk",
+        riskMedium: "Medium risk",
+        riskLow: "Low risk",
+        undoable: "Undoable",
+        copilotProposes: "Copilot proposes: {description}",
+        fields: {
+            coordinator: "Coordinator",
+            column: "Column",
+            epic: "Epic",
+            type: "Type",
+            storyPoints: "Story points",
+            taskName: "Task name",
+            note: "Notes"
+        },
+        diffColumns: {
+            field: "Field",
+            current: "Current",
+            proposed: "Proposed"
+        },
+        columnFieldLabel: "Column {field}"
     }
 } as const;
 

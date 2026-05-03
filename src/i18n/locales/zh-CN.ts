@@ -20,14 +20,17 @@ const zhCN: Dictionary = {
         addColumn: "添加栏",
         apply: "应用",
         askCopilot: "询问 Copilot",
+        breakDown: "拆分",
         cancel: "取消",
         clear: "清除",
         clearAiSearch: "清除 AI 搜索",
         close: "关闭",
+        copyAsMarkdown: "以 Markdown 格式复制",
         create: "创建",
         createProject: "创建项目",
         createTask: "创建任务",
         delete: "删除",
+        draftTask: "起草任务",
         draftWithAi: "使用 AI 起草",
         edit: "编辑",
         editProject: "编辑项目",
@@ -44,8 +47,10 @@ const zhCN: Dictionary = {
         send: "发送",
         showPassword: "显示密码",
         hidePassword: "隐藏密码",
+        showReasoning: "查看依据",
         signUp: "注册",
         signingUp: "注册中…",
+        sort: "排序",
         stop: "停止",
         undo: "撤销"
     },
@@ -75,7 +80,38 @@ const zhCN: Dictionary = {
         useLightMode: "切换到浅色模式",
         goToProjects: "前往项目列表",
         members: "成员",
-        viewTeamMembers: "查看团队成员"
+        viewTeamMembers: "查看团队成员",
+        filterProjects: "筛选项目",
+        filterTasks: "筛选任务",
+        sortProjects: "项目排序",
+        loadingProjects: "正在加载项目",
+        projects: "项目",
+        searchProjectsByName: "按名称搜索项目",
+        searchTasksByName: "按名称搜索任务",
+        filterByManager: "按负责人筛选",
+        filterByCoordinator: "按协调人筛选",
+        filterByType: "按类型筛选",
+        newColumnName: "新列名称",
+        newTaskName: "新任务名称",
+        taskPrompt: "任务提示词",
+        breakdownAxisLabel: "拆分维度",
+        draftTaskWithCopilot: "使用 Copilot 起草任务",
+        breakPromptIntoSubtasks: "将提示词拆分为子任务",
+        creatingSubtasks: "正在创建子任务",
+        subtaskBreakdown: "子任务拆分",
+        includeSubtask: "包含子任务 {name}",
+        deleteTask: "删除 {name}",
+        rejectProposal: "拒绝提议",
+        acceptProposal: "接受提议",
+        copyBriefAsMarkdown: "以 Markdown 格式复制简报",
+        generatingBrief: "正在生成简报",
+        boardBriefContent: "看板简报内容",
+        messageBoardCopilot: "向看板 Copilot 发送消息",
+        sendMessage: "发送消息",
+        samplePrompts: "示例提示词",
+        exitBoardCopilotMode: "退出看板 Copilot 模式",
+        switchToBoardCopilot: "切换到看板 Copilot",
+        boardCopilotModeAnnouncement: "看板 Copilot 模式。按回车键提问。"
     },
     labels: {
         members: "成员",
@@ -90,6 +126,7 @@ const zhCN: Dictionary = {
         changeLanguage: "切换语言"
     },
     fields: {
+        column: "列",
         coordinator: "协调人",
         email: "邮箱",
         epic: "史诗",
@@ -102,6 +139,73 @@ const zhCN: Dictionary = {
         taskName: "任务名称",
         type: "类型",
         username: "用户名"
+    },
+    placeholders: {
+        emailExample: "name@example.com",
+        searchProjects: "在此列表中搜索",
+        searchBoard: "在此看板中搜索",
+        managers: "全部负责人",
+        manager: "负责人",
+        coordinators: "全部协调人",
+        coordinator: "协调人",
+        types: "全部类型",
+        type: "类型",
+        createColumnName: "新建列名称",
+        whatNeedsToBeDone: "需要完成什么?",
+        notesAcceptanceCriteria: "备注 / 验收标准",
+        chatAsk: "提出问题…(Shift+Enter 换行)",
+        commandPaletteNav: "搜索项目、任务、列、成员…",
+        commandPaletteAi: "向看板 Copilot 提问…",
+        taskPromptExample: "例如:排查 Safari 上偶发的登录失败,影响 v2 发布",
+        describeWork: "用您自己的话描述这项工作"
+    },
+    options: {
+        sort: {
+            nameAsc: "名称(A → Z)",
+            nameDesc: "名称(Z → A)",
+            newest: "最新优先",
+            oldest: "最旧优先"
+        },
+        taskTypes: {
+            task: "任务",
+            bug: "缺陷"
+        }
+    },
+    counts: {
+        projects: {
+            one: "{count} 个项目",
+            other: "{count} 个项目"
+        },
+        results: {
+            one: "{count} 项结果",
+            other: "{count} 项结果"
+        },
+        targets: {
+            one: "{count} 个目标",
+            other: "{count} 个目标"
+        },
+        subtasksCreated: {
+            one: "已创建 {count} 个子任务。",
+            other: "已创建 {count} 个子任务。"
+        },
+        subtasksRemoved: {
+            one: "已移除 {count} 个子任务。",
+            other: "已移除 {count} 个子任务。"
+        },
+        subtasksRemoveFailed: {
+            one: "无法移除 {count} 个子任务。",
+            other: "无法移除 {count} 个子任务。"
+        },
+        subtasksRemovedPartial: "已移除 {removed} 个,有 {failed} 个无法移除。",
+        createNSubtasks: "创建 {count} 个子任务"
+    },
+    chips: {
+        search: "搜索",
+        manager: "负责人",
+        coordinator: "协调人",
+        type: "类型",
+        ai: "AI",
+        smartMatch: "智能匹配"
     },
     confirm: {
         deleteProject: {
@@ -136,7 +240,18 @@ const zhCN: Dictionary = {
         taskDeleted: "任务已删除",
         likeFailed: "点赞更新失败,请重试。",
         taskSaved: "任务已保存",
-        welcomeBack: "欢迎回来!"
+        welcomeBack: "欢迎回来!",
+        accountCreated: "账号已创建,请登录。",
+        couldntDeleteTask: "无法删除「{name}」。",
+        couldntCopy: "复制失败",
+        couldntGenerateBrief: "无法生成简报",
+        searchFailed: "搜索失败,请重试。",
+        searchFailedTitle: "搜索失败",
+        searching: "搜索中",
+        searchingTag: "搜索中…",
+        resultsFiltered: "已筛选结果。{rationale}",
+        noTasksMatched: "没有匹配的任务。请换一种说法,或清除以查看全部。",
+        boardEmpty: "此看板暂无任务。"
     },
     greeting: "你好,{name}",
     empty: {
@@ -318,7 +433,123 @@ const zhCN: Dictionary = {
         welcomeBannerBody:
             "起草任务、估算工作量、总结看板、回答问题 — 全部基于您的看板数据。",
         welcomeBannerCta: "试试:总结这个看板",
-        welcomeBannerDismiss: "关闭"
+        welcomeBannerDismiss: "关闭",
+        whyThisResult: "为什么是这个结果?",
+        didYouMean: "您是想搜索:",
+        draftSamplePlanFeature: "为「{project}」规划一项功能",
+        draftSampleFallbackProject: "本项目",
+        reviewAndEdit: "创建前请审核并编辑",
+        pickSubtasks: "选择您要创建的子任务",
+        breakdownAxisInfo: "维度:{label}",
+        bulkProgressFormat: "{current} / {total}"
+    },
+    auth: {
+        loginTitle: "登录账号",
+        loginSubtitle: "输入邮箱和密码以继续。",
+        registerTitle: "注册账号",
+        registerSubtitle: "创建账号,开始追踪工作。",
+        switchToRegister: "还没有账号?",
+        switchToLogin: "已有账号?",
+        heroBadge: "新功能:看板 Copilot",
+        heroTitle: "在专注与从容中推进工作。",
+        heroSubtitle:
+            "一款专注的项目看板,把工作转化为持续的进展。拖拽、起草(由 AI 协助),让团队保持心流。",
+        heroFeatureDraft: "用 AI 起草任务和站会简报。",
+        heroFeatureDrag: "拖放式的列与卡片。",
+        heroFeatureColors: "支持浅色、深色及跟随系统的主题。",
+        heroFinePrint: "为交付型团队打造。免费试用,无需信用卡。"
+    },
+    commandPalette: {
+        title: "命令面板",
+        kindLabels: {
+            project: "项目",
+            task: "任务",
+            column: "列",
+            member: "成员"
+        },
+        kindTags: {
+            project: "项目",
+            task: "任务",
+            column: "列",
+            member: "成员"
+        },
+        sublabelColumn: "列",
+        navigateInstructions: "搜索并跳转。在查询前加“/”切换到看板 Copilot。",
+        copilotPromptHint: "输入您的问题,然后按回车键。",
+        sampleAi: [
+            "这个看板有哪些风险?",
+            "总结一下这个看板",
+            "谁未完成的工作最多?"
+        ]
+    },
+    brief: {
+        title: "看板 Copilot 简报",
+        recommendedNextStep: "推荐的下一步",
+        countsPerColumn: "各列任务数",
+        largestUnstarted: "未启动的最大任务",
+        unownedTasks: "无负责人的任务",
+        workload: "工作负载",
+        noUnstarted: "没有未启动的任务,很棒。",
+        allOwned: "所有任务都已分配负责人。",
+        noActivePerMember: "成员暂无进行中的任务。",
+        boardEmpty: "看板为空 — 先创建一项任务吧。",
+        unstartedWaiting: "{count} 项未启动的任务等待认领。",
+        overloaded: "{name} 当前负责 {count} 项进行中任务,可考虑重新分配。",
+        unownedHeadline: "{count} 项任务尚无负责人。",
+        column: "列",
+        tasks: "任务数",
+        basisLabel: "依据:{text}",
+        basisItalic: "_依据:{text}_",
+        openCount: "{count} 项进行中",
+        ptsCount: "{count} 故事点",
+        generated: "生成于{time}",
+        relativeJustNow: "刚刚",
+        relativeOneMinute: "1 分钟前",
+        relativeMinutes: "{count} 分钟前",
+        relativeOneHour: "1 小时前",
+        relativeHours: "{count} 小时前",
+        relativeOneDay: "1 天前",
+        relativeDays: "{count} 天前",
+        strengthLabels: {
+            strong: "强信号",
+            moderate: "中等信号",
+            low: "弱信号 — 请审核",
+            none: "无需操作"
+        },
+        strengthTooltips: {
+            strong: "多个看板信号支持此建议,可放心采纳。",
+            moderate: "有一两个看板信号支持此建议,采纳前请先浏览依据。",
+            low: "信号较弱,采纳前请仔细审核依据。",
+            none: "未检测到失衡,本建议仅供参考。"
+        },
+        markdownCountsHeading: "各列任务数",
+        markdownLargestHeading: "未启动的最大任务",
+        markdownUnownedHeading: "无负责人",
+        markdownWorkloadHeading: "工作负载",
+        markdownStoryPoints: "{count} 故事点",
+        markdownWorkloadEntry: "{count} 项进行中 / {points} 故事点"
+    },
+    mutation: {
+        riskHigh: "高风险",
+        riskMedium: "中等风险",
+        riskLow: "低风险",
+        undoable: "可撤销",
+        copilotProposes: "Copilot 提议:{description}",
+        fields: {
+            coordinator: "协调人",
+            column: "列",
+            epic: "史诗",
+            type: "类型",
+            storyPoints: "故事点",
+            taskName: "任务名称",
+            note: "备注"
+        },
+        diffColumns: {
+            field: "字段",
+            current: "当前值",
+            proposed: "建议值"
+        },
+        columnFieldLabel: "列{field}"
     }
 };
 

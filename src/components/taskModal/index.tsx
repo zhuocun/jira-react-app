@@ -24,9 +24,9 @@ import deleteTaskCallback from "../../utils/optimisticUpdate/deleteTask";
 import AiTaskAssistPanel from "../aiTaskAssistPanel";
 import ErrorBox from "../errorBox";
 
-const TYPE_OPTIONS = [
-    { label: "Task", value: "Task" },
-    { label: "Bug", value: "Bug" }
+const buildTypeOptions = () => [
+    { label: microcopy.options.taskTypes.task, value: "Task" },
+    { label: microcopy.options.taskTypes.bug, value: "Bug" }
 ];
 
 const STORY_POINT_OPTIONS = [1, 2, 3, 5, 8, 13].map((value) => ({
@@ -124,7 +124,10 @@ const TaskModal: React.FC<{
                         onError: () =>
                             message.error(
                                 taskName
-                                    ? `Couldn't delete ${taskName}.`
+                                    ? microcopy.feedback.couldntDeleteTask.replace(
+                                          "{name}",
+                                          taskName
+                                      )
                                     : microcopy.feedback.saveFailed
                             )
                     }
@@ -179,7 +182,9 @@ const TaskModal: React.FC<{
                     color={editingTask.type === "Bug" ? "magenta" : "geekblue"}
                     style={{ fontWeight: 500, marginInlineEnd: 0 }}
                 >
-                    {editingTask.type === "Bug" ? "Bug" : "Task"}
+                    {editingTask.type === "Bug"
+                        ? microcopy.options.taskTypes.bug
+                        : microcopy.options.taskTypes.task}
                 </Tag>
             ) : null}
             <Typography.Text
@@ -211,7 +216,10 @@ const TaskModal: React.FC<{
                     <Button
                         aria-label={
                             editingTask?.taskName
-                                ? `Delete ${editingTask.taskName}`
+                                ? microcopy.a11y.deleteTask.replace(
+                                      "{name}",
+                                      editingTask.taskName
+                                  )
                                 : microcopy.actions.delete
                         }
                         block={!screens.sm}
@@ -352,7 +360,7 @@ const TaskModal: React.FC<{
                     ]}
                 >
                     <Select
-                        options={TYPE_OPTIONS}
+                        options={buildTypeOptions()}
                         placeholder={`Select a ${microcopy.fields.type.toLowerCase()}`}
                     />
                 </Form.Item>
@@ -370,7 +378,9 @@ const TaskModal: React.FC<{
                 </Form.Item>
                 <Form.Item label={microcopy.fields.notes} name="note">
                     <Input.TextArea
-                        placeholder="Notes / acceptance criteria"
+                        placeholder={
+                            microcopy.placeholders.notesAcceptanceCriteria
+                        }
                         rows={4}
                     />
                 </Form.Item>

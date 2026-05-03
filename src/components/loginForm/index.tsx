@@ -68,7 +68,7 @@ const LoginForm: React.FC<{
                     enterKeyHint="next"
                     inputMode="email"
                     onChange={() => onError(null)}
-                    placeholder="name@example.com"
+                    placeholder={microcopy.placeholders.emailExample}
                     size={inputSize}
                     type="email"
                     id="email"

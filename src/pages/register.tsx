@@ -39,14 +39,12 @@ const RegisterPage = () => {
     }
     return (
         <>
-            <AuthTitle>Register for an account</AuthTitle>
-            <AuthSubtitle>
-                Create your account to start tracking work.
-            </AuthSubtitle>
+            <AuthTitle>{microcopy.auth.registerTitle}</AuthTitle>
+            <AuthSubtitle>{microcopy.auth.registerSubtitle}</AuthSubtitle>
             <ErrorBox error={error} ref={errorRef} />
             <RegisterForm onError={setError} />
             <SwitchRow>
-                Already have an account?{" "}
+                {microcopy.auth.switchToLogin}{" "}
                 <NoPaddingButton onClick={handleSwitch} type="link">
                     {microcopy.actions.loginCta}
                 </NoPaddingButton>
