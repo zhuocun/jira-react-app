@@ -93,11 +93,11 @@ const SKELETON_COUNT = 6;
 
 type SortOrder = "name-asc" | "name-desc" | "newest" | "oldest";
 
-const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
-    { label: "Name (A → Z)", value: "name-asc" },
-    { label: "Name (Z → A)", value: "name-desc" },
-    { label: "Newest first", value: "newest" },
-    { label: "Oldest first", value: "oldest" }
+const buildSortOptions = (): { label: string; value: SortOrder }[] => [
+    { label: microcopy.options.sort.nameAsc, value: "name-asc" },
+    { label: microcopy.options.sort.nameDesc, value: "name-desc" },
+    { label: microcopy.options.sort.newest, value: "newest" },
+    { label: microcopy.options.sort.oldest, value: "oldest" }
 ];
 
 const sortProjects = (projects: IProject[], order: SortOrder): IProject[] => {
@@ -211,7 +211,7 @@ const ProjectList: React.FC<Props> = ({
     if (showSkeleton) {
         return (
             <ListSurface aria-busy>
-                <Grid role="list" aria-label="Loading projects">
+                <Grid role="list" aria-label={microcopy.a11y.loadingProjects}>
                     {Array.from({ length: SKELETON_COUNT }, (_, idx) => (
                         <div
                             key={`${SKELETON_KEY_PREFIX}${idx}`}
@@ -254,19 +254,24 @@ const ProjectList: React.FC<Props> = ({
         );
     }
 
+    const projectCountLabel = (
+        sortedProjects.length === 1
+            ? microcopy.counts.projects.one
+            : microcopy.counts.projects.other
+    ).replace("{count}", String(sortedProjects.length));
+
     return (
         <ListSurface>
             <Toolbar>
                 <ResultCount aria-live="polite">
-                    {sortedProjects.length}{" "}
-                    {sortedProjects.length === 1 ? "project" : "projects"}
+                    {projectCountLabel}
                 </ResultCount>
                 <SortRow>
-                    Sort
+                    {microcopy.actions.sort}
                     <Select<SortOrder>
-                        aria-label="Sort projects"
+                        aria-label={microcopy.a11y.sortProjects}
                         onChange={setSortOrder}
-                        options={SORT_OPTIONS}
+                        options={buildSortOptions()}
                         size="small"
                         style={{ minWidth: 152 }}
                         value={sortOrder}
@@ -274,7 +279,7 @@ const ProjectList: React.FC<Props> = ({
                     />
                 </SortRow>
             </Toolbar>
-            <Grid role="list" aria-label="Projects">
+            <Grid role="list" aria-label={microcopy.a11y.projects}>
                 {sortedProjects.map((p) => (
                     <div key={p._id} role="listitem">
                         <ProjectCard

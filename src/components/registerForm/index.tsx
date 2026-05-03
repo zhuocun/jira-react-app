@@ -44,7 +44,7 @@ const RegisterForm: React.FC<{
             // Confirm success before navigating so the user knows the
             // request was received — without this the redirect can read
             // as a navigation glitch on a slow connection.
-            message.success("Account created. Please log in.");
+            message.success(microcopy.feedback.accountCreated);
             navigate("/login", { viewTransition: true });
         } catch {
             // Error state is set by useReactMutation's onError callback.
@@ -71,7 +71,7 @@ const RegisterForm: React.FC<{
                     enterKeyHint="next"
                     inputMode="email"
                     onChange={() => onError(null)}
-                    placeholder="name@example.com"
+                    placeholder={microcopy.placeholders.emailExample}
                     size={inputSize}
                     type="email"
                     id="email"

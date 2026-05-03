@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { Input, Select } from "antd";
 import React, { useMemo } from "react";
 
+import { microcopy } from "../../constants/microcopy";
 import { breakpoints, radius, space } from "../../theme/tokens";
 import FilterChips, { FilterChip } from "../filterChips";
 
@@ -92,22 +93,22 @@ const ProjectSearchPanel: React.FC<Props> = ({
         if (param.projectName) {
             active.push({
                 key: "projectName",
-                label: "Search",
+                label: microcopy.chips.search,
                 value: param.projectName
             });
         }
         if (param.managerId && managerName) {
             active.push({
                 key: "managerId",
-                label: "Manager",
+                label: microcopy.chips.manager,
                 value: managerName
             });
         }
         if (param.semanticIds) {
             active.push({
                 key: "semanticIds",
-                label: "AI",
-                value: "Smart match"
+                label: microcopy.chips.ai,
+                value: microcopy.chips.smartMatch
             });
         }
         return active;
@@ -134,10 +135,10 @@ const ProjectSearchPanel: React.FC<Props> = ({
     return (
         <FilterShell>
             {aiSearchSlot}
-            <FilterRow role="search" aria-label="Filter projects">
+            <FilterRow role="search" aria-label={microcopy.a11y.filterProjects}>
                 <FlexInput>
                     <Input
-                        aria-label="Search projects by name"
+                        aria-label={microcopy.a11y.searchProjectsByName}
                         allowClear
                         enterKeyHint="search"
                         inputMode="search"
@@ -147,7 +148,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                                 projectName: e.target.value
                             })
                         }
-                        placeholder="Search this list"
+                        placeholder={microcopy.placeholders.searchProjects}
                         prefix={
                             <SearchOutlined
                                 aria-hidden
@@ -163,7 +164,7 @@ const ProjectSearchPanel: React.FC<Props> = ({
                 <FlexSelect>
                     <Select
                         allowClear
-                        aria-label="Filter by manager"
+                        aria-label={microcopy.a11y.filterByManager}
                         loading={loading}
                         onChange={(value) =>
                             setParam({
@@ -172,13 +173,16 @@ const ProjectSearchPanel: React.FC<Props> = ({
                             })
                         }
                         options={[
-                            { label: "Managers", value: "" },
+                            {
+                                label: microcopy.placeholders.managers,
+                                value: ""
+                            },
                             ...members.map((user) => ({
                                 label: user.username,
                                 value: user._id
                             }))
                         ]}
-                        placeholder="Manager"
+                        placeholder={microcopy.placeholders.manager}
                         style={{ width: "100%" }}
                         value={loading ? undefined : (managerName ?? undefined)}
                     />

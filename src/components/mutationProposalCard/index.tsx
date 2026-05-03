@@ -52,9 +52,9 @@ const riskColor = (risk: MutationProposal["risk"]) => {
 };
 
 const riskLabel = (risk: MutationProposal["risk"]) => {
-    if (risk === "high") return "High risk";
-    if (risk === "med") return "Medium risk";
-    return "Low risk";
+    if (risk === "high") return microcopy.mutation.riskHigh;
+    if (risk === "med") return microcopy.mutation.riskMedium;
+    return microcopy.mutation.riskLow;
 };
 
 interface DiffRow {
@@ -73,14 +73,26 @@ const formatValue = (value: unknown): React.ReactNode => {
     return JSON.stringify(value);
 };
 
-const fieldLabel: Record<TaskUpdate["field"], string> = {
-    coordinatorId: "Coordinator",
-    columnId: "Column",
-    epic: "Epic",
-    type: "Type",
-    storyPoints: "Story points",
-    taskName: "Task name",
-    note: "Notes"
+const taskFieldLabel = (field: TaskUpdate["field"]): string => {
+    const labels = microcopy.mutation.fields;
+    switch (field) {
+        case "coordinatorId":
+            return labels.coordinator;
+        case "columnId":
+            return labels.column;
+        case "epic":
+            return labels.epic;
+        case "type":
+            return labels.type;
+        case "storyPoints":
+            return labels.storyPoints;
+        case "taskName":
+            return labels.taskName;
+        case "note":
+            return labels.note;
+        default:
+            return field;
+    }
 };
 
 const buildRows = (proposal: MutationProposal): DiffRow[] => {
@@ -88,7 +100,7 @@ const buildRows = (proposal: MutationProposal): DiffRow[] => {
     proposal.diff.task_updates?.forEach((update, index) => {
         rows.push({
             key: `task-${update.task_id}-${update.field}-${index}`,
-            field: `${fieldLabel[update.field] ?? update.field}`,
+            field: taskFieldLabel(update.field),
             from: formatValue(update.from),
             to: formatValue(update.to)
         });
@@ -96,16 +108,23 @@ const buildRows = (proposal: MutationProposal): DiffRow[] => {
     proposal.diff.column_updates?.forEach((update, index) => {
         rows.push({
             key: `column-${update.column_id}-${update.field}-${index}`,
-            field: `Column ${update.field}`,
+            field: microcopy.mutation.columnFieldLabel.replace(
+                "{field}",
+                update.field
+            ),
             from: formatValue(update.from),
             to: formatValue(update.to)
         });
     });
     proposal.diff.bulk_apply?.forEach((bulk, index) => {
+        const targets =
+            bulk.targets.length === 1
+                ? microcopy.counts.targets.one
+                : microcopy.counts.targets.other;
         rows.push({
             key: `bulk-${bulk.operation}-${index}`,
             field: bulk.operation,
-            from: `${bulk.targets.length} target${bulk.targets.length === 1 ? "" : "s"}`,
+            from: targets.replace("{count}", String(bulk.targets.length)),
             to: formatValue(bulk.payload)
         });
     });
@@ -134,7 +153,12 @@ const MutationProposalCard: React.FC<MutationProposalCardProps> = ({
         });
         onReject();
     };
-    const heading = title ?? `Copilot proposes: ${proposal.description}`;
+    const heading =
+        title ??
+        microcopy.mutation.copilotProposes.replace(
+            "{description}",
+            proposal.description
+        );
     return (
         <Wrap role="alertdialog" aria-label={heading}>
             <Heading>
@@ -149,7 +173,7 @@ const MutationProposalCard: React.FC<MutationProposalCardProps> = ({
                         color="default"
                         style={{ fontWeight: fontWeight.medium }}
                     >
-                        Undoable
+                        {microcopy.mutation.undoable}
                     </Tag>
                 )}
             </Heading>
@@ -159,13 +183,13 @@ const MutationProposalCard: React.FC<MutationProposalCardProps> = ({
                         {
                             dataIndex: "field",
                             key: "field",
-                            title: "Field",
+                            title: microcopy.mutation.diffColumns.field,
                             width: 140
                         },
                         {
                             dataIndex: "from",
                             key: "from",
-                            title: "Current",
+                            title: microcopy.mutation.diffColumns.current,
                             render: (value) => (
                                 <span
                                     style={{
@@ -179,7 +203,7 @@ const MutationProposalCard: React.FC<MutationProposalCardProps> = ({
                         {
                             dataIndex: "to",
                             key: "to",
-                            title: "Proposed",
+                            title: microcopy.mutation.diffColumns.proposed,
                             render: (value) => (
                                 <span
                                     style={{
@@ -202,14 +226,14 @@ const MutationProposalCard: React.FC<MutationProposalCardProps> = ({
                 wrap
             >
                 <Button
-                    aria-label="Reject proposal"
+                    aria-label={microcopy.a11y.rejectProposal}
                     disabled={isLoading}
                     onClick={handleReject}
                 >
                     {microcopy.actions.cancel}
                 </Button>
                 <Button
-                    aria-label="Accept proposal"
+                    aria-label={microcopy.a11y.acceptProposal}
                     loading={isLoading}
                     onClick={handleAccept}
                     type="primary"

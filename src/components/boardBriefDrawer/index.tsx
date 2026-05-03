@@ -168,24 +168,23 @@ const fingerprintBoard = (
  */
 const formatRelative = (then: number, now: number): string => {
     const seconds = Math.max(0, Math.round((now - then) / 1000));
-    if (seconds < 30) return "just now";
-    if (seconds < 90) return "1 minute ago";
+    if (seconds < 30) return microcopy.brief.relativeJustNow;
+    if (seconds < 90) return microcopy.brief.relativeOneMinute;
     const minutes = Math.round(seconds / 60);
-    if (minutes < 60) return `${minutes} minutes ago`;
+    if (minutes < 60)
+        return microcopy.brief.relativeMinutes.replace(
+            "{count}",
+            String(minutes)
+        );
     const hours = Math.round(minutes / 60);
-    if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+    if (hours < 24)
+        return hours === 1
+            ? microcopy.brief.relativeOneHour
+            : microcopy.brief.relativeHours.replace("{count}", String(hours));
     const days = Math.round(hours / 24);
-    return `${days} day${days === 1 ? "" : "s"} ago`;
-};
-
-const STRENGTH_LABEL: Record<
-    NonNullable<IBoardBrief["recommendationDetail"]>["strength"],
-    string
-> = {
-    strong: "Strong signal",
-    moderate: "Moderate signal",
-    low: "Low signal — review",
-    none: "No action needed"
+    return days === 1
+        ? microcopy.brief.relativeOneDay
+        : microcopy.brief.relativeDays.replace("{count}", String(days));
 };
 
 const STRENGTH_COLOR: Record<
@@ -198,23 +197,6 @@ const STRENGTH_COLOR: Record<
     none: "default"
 };
 
-/**
- * Plain-language calibration of each strength band (Optimization Plan §3
- * P1-1, P2-1). Without this users see "Strong signal" but don't know what
- * threshold drove the label — borrowed from the AiConfidenceIndicator
- * pattern of pairing a band with a sentence-level explanation.
- */
-const STRENGTH_TOOLTIP: Record<
-    NonNullable<IBoardBrief["recommendationDetail"]>["strength"],
-    string
-> = {
-    strong: "Multiple board signals support this recommendation. Acting on it should be safe.",
-    moderate:
-        "One or two board signals back this recommendation. Skim the basis before acting.",
-    low: "The signal is weak. Review the basis carefully before acting on this.",
-    none: "No imbalance detected. Recommendation is informational only."
-};
-
 interface BriefRecommendationTitleProps {
     detail?: IBoardBrief["recommendationDetail"];
 }
@@ -223,14 +205,14 @@ const BriefRecommendationTitle: React.FC<BriefRecommendationTitleProps> = ({
     detail
 }) => (
     <span style={{ alignItems: "center", display: "inline-flex", gap: 6 }}>
-        <span>{`${microcopy.a11y.aiSuggestion}: Recommended next step`}</span>
+        <span>{`${microcopy.a11y.aiSuggestion}: ${microcopy.brief.recommendedNextStep}`}</span>
         {detail && (
-            <Tooltip title={STRENGTH_TOOLTIP[detail.strength]}>
+            <Tooltip title={microcopy.brief.strengthTooltips[detail.strength]}>
                 <Tag
                     color={STRENGTH_COLOR[detail.strength]}
                     style={{ marginInlineEnd: 0 }}
                 >
-                    {STRENGTH_LABEL[detail.strength]}
+                    {microcopy.brief.strengthLabels[detail.strength]}
                 </Tag>
             </Tooltip>
         )}
@@ -259,7 +241,7 @@ const BriefRecommendationBody: React.FC<BriefRecommendationBodyProps> = ({
                     style={{ fontSize: fontSize.xs, marginBottom: 4 }}
                     type="secondary"
                 >
-                    {`Basis: ${detail.basis}`}
+                    {microcopy.brief.basisLabel.replace("{text}", detail.basis)}
                 </Typography.Paragraph>
             )}
             {detail && detail.sources.length > 0 && (
@@ -299,32 +281,45 @@ const briefToMarkdown = (brief: IBoardBrief): string => {
     if (brief.recommendation) {
         lines.push(`> ${brief.recommendation}`, "");
         if (brief.recommendationDetail?.basis) {
-            lines.push(`_Basis: ${brief.recommendationDetail.basis}_`, "");
+            lines.push(
+                microcopy.brief.basisItalic.replace(
+                    "{text}",
+                    brief.recommendationDetail.basis
+                ),
+                ""
+            );
         }
     }
-    lines.push("## Counts per column", "");
+    lines.push(`## ${microcopy.brief.markdownCountsHeading}`, "");
     for (const entry of brief.counts) {
         lines.push(`- **${entry.columnName}** — ${entry.count}`);
     }
     if (brief.largestUnstarted.length > 0) {
-        lines.push("", "## Largest unstarted", "");
+        lines.push("", `## ${microcopy.brief.markdownLargestHeading}`, "");
         for (const t of brief.largestUnstarted) {
-            lines.push(
-                `- ${t.taskName}${t.storyPoints !== undefined ? ` (${t.storyPoints} pts)` : ""}`
-            );
+            const ptsSuffix =
+                t.storyPoints !== undefined
+                    ? ` (${microcopy.brief.markdownStoryPoints.replace(
+                          "{count}",
+                          String(t.storyPoints)
+                      )})`
+                    : "";
+            lines.push(`- ${t.taskName}${ptsSuffix}`);
         }
     }
     if (brief.unowned.length > 0) {
-        lines.push("", "## Unowned", "");
+        lines.push("", `## ${microcopy.brief.markdownUnownedHeading}`, "");
         for (const t of brief.unowned) {
             lines.push(`- ${t.taskName}`);
         }
     }
     if (brief.workload.length > 0) {
-        lines.push("", "## Workload", "");
+        lines.push("", `## ${microcopy.brief.markdownWorkloadHeading}`, "");
         for (const w of brief.workload) {
             lines.push(
-                `- **${w.username}** — ${w.openTasks} open / ${w.openPoints} pts`
+                `- **${w.username}** — ${microcopy.brief.markdownWorkloadEntry
+                    .replace("{count}", String(w.openTasks))
+                    .replace("{points}", String(w.openPoints))}`
             );
         }
     }
@@ -434,7 +429,10 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
     const cached = cacheKey ? BRIEF_CACHE.get(cacheKey) : undefined;
     const briefData: IBoardBrief | undefined = data ?? cached?.data;
     const generatedAt = cachedAt ?? cached?.generatedAt ?? null;
-    const errorView = aiErrorView(error, "Couldn't generate the brief");
+    const errorView = aiErrorView(
+        error,
+        microcopy.feedback.couldntGenerateBrief
+    );
 
     /** Compute "what changed" headline (B-R3) when we have a baseline. */
     const headline = useMemo(() => {
@@ -442,16 +440,24 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
         const totalTasks = tasks.length;
         const overloaded = briefData.workload.find((w) => w.openTasks >= 5);
         if (overloaded) {
-            return `${overloaded.username} is carrying ${overloaded.openTasks} open tasks — consider reassigning.`;
+            return microcopy.brief.overloaded
+                .replace("{name}", overloaded.username)
+                .replace("{count}", String(overloaded.openTasks));
         }
         if (briefData.unowned.length >= 3) {
-            return `${briefData.unowned.length} tasks have no owner.`;
+            return microcopy.brief.unownedHeadline.replace(
+                "{count}",
+                String(briefData.unowned.length)
+            );
         }
         if (briefData.largestUnstarted.length >= 5) {
-            return `${briefData.largestUnstarted.length} unstarted tasks waiting for pickup.`;
+            return microcopy.brief.unstartedWaiting.replace(
+                "{count}",
+                String(briefData.largestUnstarted.length)
+            );
         }
         if (totalTasks === 0) {
-            return "Board is empty — start by creating a task.";
+            return microcopy.brief.boardEmpty;
         }
         return briefData.headline;
     }, [briefData, tasks.length]);
@@ -468,7 +474,7 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
             await navigator.clipboard.writeText(briefToMarkdown(briefData));
             message.success(microcopy.ai.copiedConfirm);
         } catch {
-            message.error("Couldn't copy");
+            message.error(microcopy.feedback.couldntCopy);
         }
     };
 
@@ -497,9 +503,9 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                             type="text"
                         />
                     </Tooltip>
-                    <Tooltip title="Copy as Markdown">
+                    <Tooltip title={microcopy.actions.copyAsMarkdown}>
                         <Button
-                            aria-label="Copy brief as Markdown"
+                            aria-label={microcopy.a11y.copyBriefAsMarkdown}
                             disabled={!briefData || isLoading}
                             icon={<CopyOutlined />}
                             onClick={handleCopyMarkdown}
@@ -529,7 +535,9 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
             title={
                 <Space align="center" size={space.xs} wrap>
                     <AiSparkleIcon aria-hidden />
-                    <span style={{ fontWeight: 600 }}>Board Copilot brief</span>
+                    <span style={{ fontWeight: 600 }}>
+                        {microcopy.brief.title}
+                    </span>
                     <Tag color="purple" style={{ marginInlineStart: space.xs }}>
                         {microcopy.a11y.aiBadge}
                     </Tag>
@@ -540,7 +548,10 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
         >
             <CopilotRemoteConsentNotice route="board-brief" />
             {isLoading && !briefData && (
-                <div aria-label="Generating brief" aria-busy="true">
+                <div
+                    aria-label={microcopy.a11y.generatingBrief}
+                    aria-busy="true"
+                >
                     <Skeleton active paragraph={{ rows: 2 }} title />
                     <Skeleton
                         active
@@ -570,7 +581,10 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                 />
             )}
             {briefData && (
-                <div aria-label="Board brief content" aria-live="polite">
+                <div
+                    aria-label={microcopy.a11y.boardBriefContent}
+                    aria-live="polite"
+                >
                     <Typography.Title level={3} style={{ marginTop: 0 }}>
                         {headline}
                     </Typography.Title>
@@ -598,19 +612,21 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                             }
                         />
                     )}
-                    <SectionHeading>Counts per column</SectionHeading>
+                    <SectionHeading>
+                        {microcopy.brief.countsPerColumn}
+                    </SectionHeading>
                     <Table
                         columns={[
                             {
                                 dataIndex: "columnName",
                                 key: "columnName",
-                                title: "Column"
+                                title: microcopy.brief.column
                             },
                             {
                                 align: "right",
                                 dataIndex: "count",
                                 key: "count",
-                                title: "Tasks"
+                                title: microcopy.brief.tasks
                             }
                         ]}
                         dataSource={briefData.counts.map((entry) => ({
@@ -622,10 +638,12 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                         style={{ marginBottom: space.md }}
                     />
 
-                    <SectionHeading>Largest unstarted</SectionHeading>
+                    <SectionHeading>
+                        {microcopy.brief.largestUnstarted}
+                    </SectionHeading>
                     {briefData.largestUnstarted.length === 0 ? (
                         <Typography.Text type="secondary">
-                            No unstarted tasks. Nice.
+                            {microcopy.brief.noUnstarted}
                         </Typography.Text>
                     ) : (
                         <List
@@ -640,7 +658,10 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                                         description={
                                             item.storyPoints !== undefined ? (
                                                 <Tag>
-                                                    {item.storyPoints} pts
+                                                    {microcopy.brief.ptsCount.replace(
+                                                        "{count}",
+                                                        String(item.storyPoints)
+                                                    )}
                                                 </Tag>
                                             ) : null
                                         }
@@ -653,10 +674,12 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                         />
                     )}
 
-                    <SectionHeading>Unowned tasks</SectionHeading>
+                    <SectionHeading>
+                        {microcopy.brief.unownedTasks}
+                    </SectionHeading>
                     {briefData.unowned.length === 0 ? (
                         <Typography.Text type="secondary">
-                            All tasks have an owner.
+                            {microcopy.brief.allOwned}
                         </Typography.Text>
                     ) : (
                         <List
@@ -675,10 +698,10 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                         />
                     )}
 
-                    <SectionHeading>Workload</SectionHeading>
+                    <SectionHeading>{microcopy.brief.workload}</SectionHeading>
                     {briefData.workload.length === 0 ? (
                         <Typography.Text type="secondary">
-                            No active tasks per member.
+                            {microcopy.brief.noActivePerMember}
                         </Typography.Text>
                     ) : (
                         <List
@@ -699,13 +722,19 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                                         </WorkloadName>
                                         <span>
                                             <Tag style={{ marginInlineEnd: 0 }}>
-                                                {item.openTasks} open
+                                                {microcopy.brief.openCount.replace(
+                                                    "{count}",
+                                                    String(item.openTasks)
+                                                )}
                                             </Tag>{" "}
                                             <Tag
                                                 color="blue"
                                                 style={{ marginInlineEnd: 0 }}
                                             >
-                                                {item.openPoints} pts
+                                                {microcopy.brief.ptsCount.replace(
+                                                    "{count}",
+                                                    String(item.openPoints)
+                                                )}
                                             </Tag>
                                         </span>
                                         <WorkloadBarWrap>
@@ -730,7 +759,10 @@ const BoardBriefDrawer: React.FC<BoardBriefDrawerProps> = ({
                             }}
                             type="secondary"
                         >
-                            Generated {formatRelative(generatedAt, now)}
+                            {microcopy.brief.generated.replace(
+                                "{time}",
+                                formatRelative(generatedAt, now)
+                            )}
                         </Typography.Text>
                     )}
                 </div>

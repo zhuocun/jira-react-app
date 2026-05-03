@@ -895,7 +895,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
 
             <Space.Compact style={{ width: "100%" }}>
                 <Input.TextArea
-                    aria-label="Message Board Copilot"
+                    aria-label={microcopy.a11y.messageBoardCopilot}
                     autoSize={{ maxRows: 4, minRows: 1 }}
                     disabled={isLoading}
                     maxLength={microcopy.ai.characterCounterMax}
@@ -906,7 +906,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                             handleSend();
                         }
                     }}
-                    placeholder="Ask a question… (Shift+Enter for a new line)"
+                    placeholder={microcopy.placeholders.chatAsk}
                     ref={inputRef}
                     value={input}
                 />
@@ -922,7 +922,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                     </Button>
                 ) : (
                     <Button
-                        aria-label="Send message"
+                        aria-label={microcopy.a11y.sendMessage}
                         disabled={!input.trim()}
                         onClick={handleSend}
                         type="primary"
