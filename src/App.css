@@ -15,7 +15,23 @@
  * This file owns only the static rules — resets, focus, animations,
  * accessibility fallbacks, and AntD glass selectors that consume the
  * runtime CSS vars set by the injected stylesheet.
+ *
+ * `--page-background` composes the runtime palette vars into the full
+ * page-canvas gradient. Defining it once and pointing both `body` and
+ * the sticky `<PageHeader>` at it (each with `background-attachment:
+ * fixed`) makes the two surfaces line up perfectly in viewport space:
+ * the header reads as a continuation of the page when at the top, and
+ * stays opaque so scrolled content is cleanly hidden behind it.
  */
+:root {
+    --page-background:
+        radial-gradient(
+            150% 38rem at 50% -10%,
+            var(--aurora-blob-strong) 0%,
+            transparent 70%
+        ),
+        var(--pulse-bg-page);
+}
 
 /*
  * Pulse-highlight animation used when a citation chip navigates to the
@@ -93,22 +109,12 @@ body {
     -webkit-text-size-adjust: 100%;
     color: var(--pulse-text-base);
     /*
-     * Soft peach wash from the top of the page, fading to warm white
-     * by the time the eye reaches mid-viewport. A single wide radial
-     * blob anchored above the viewport top creates the gentle
-     * top-down warmth seen in modern delivery / commerce dashboards
-     * — the page reads as a calm canvas with ambient brand colour in
-     * the upper margin, never overwhelming the content below.
-     * `background-attachment: fixed` keeps the wash stationary while
-     * the user scrolls so it reads as a backdrop, not a banner.
+     * Soft peach wash from the top of the page, fading to warm white by
+     * the time the eye reaches mid-viewport. The composed gradient lives
+     * in `--page-background` (see :root above) so the sticky header can
+     * mirror it for a seamless chrome-meets-content look.
      */
-    background:
-        radial-gradient(
-            150% 38rem at 50% -10%,
-            var(--aurora-blob-strong) 0%,
-            transparent 70%
-        ),
-        var(--pulse-bg-page);
+    background: var(--page-background);
     background-attachment: fixed;
 }
 

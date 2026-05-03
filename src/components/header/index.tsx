@@ -23,13 +23,16 @@ import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
     align-items: center;
-    /* Transparent chrome for a native-app feel. The header floats over
-     * the page's warm peach wash without a frosted pane, border, or
-     * shadow — content scrolls under the brand mark and account pill
-     * the way it does on a native iOS / iPadOS top bar. The page-level
-     * background gradient handles the visual warmth here.
-     */
-    background: transparent;
+    /* Opaque header that visually mirrors the page background. Both the
+     * body and this header point at the same --page-background gradient
+     * with background-attachment: fixed, so the gradient is positioned in
+     * viewport space and the header reads as a continuous extension of
+     * the page chrome when at the top. Because the surface is fully
+     * opaque (not glass, not translucent), content scrolling underneath
+     * is cleanly hidden behind the chrome — the brand mark and account
+     * pill stay legible no matter how dense the page is. */
+    background: var(--page-background);
+    background-attachment: fixed;
     /*
      * Opt the sticky header out of the route cross-fade. With its own
      * view-transition-name the browser keeps it in place while the body
