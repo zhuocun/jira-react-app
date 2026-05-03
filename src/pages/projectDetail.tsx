@@ -40,9 +40,12 @@ const TopBar = styled.div`
      * between the chrome layers, which is what we want — the strip is
      * decorative, the breadcrumb / tabs are content.
      *
-     * Padding is symmetric (sm vertical, sm/md/lg horizontal) so the
-     * breadcrumb on the left and the tab on the right share a clean
-     * vertical centerline.
+     * Vertical padding tracks the main header's compact rhythm: now
+     * that the main chrome lives in ~54 px (2 + 44 + 8 fade), the old
+     * symmetric 12 / 12 / 24-fade here added another ~80 px of chrome
+     * on top, which read as a heavy stacked band. Trimmed to
+     * space.xs / space.xs / 8-fade so both chrome layers feel cut from
+     * the same cloth.
      */
     background: var(--page-background);
     background-attachment: fixed;
@@ -51,7 +54,7 @@ const TopBar = styled.div`
     gap: ${space.xxs}px;
     justify-content: space-between;
     min-width: 0;
-    padding: ${space.sm}px ${space.sm}px;
+    padding: ${space.xs}px ${space.sm}px;
     padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
     padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
     position: sticky;
@@ -60,22 +63,23 @@ const TopBar = styled.div`
 
     @media (min-width: ${breakpoints.sm}px) {
         gap: ${space.xs}px;
-        padding: ${space.sm}px ${space.md}px;
+        padding: ${space.xs}px ${space.md}px;
         padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
         padding-inline-end: max(${space.md}px, env(safe-area-inset-right));
     }
 
     @media (min-width: ${breakpoints.md}px) {
         gap: ${space.md}px;
-        padding: ${space.sm}px ${space.lg}px;
+        padding: ${space.xs}px ${space.lg}px;
         padding-inline-start: max(${space.lg}px, env(safe-area-inset-left));
         padding-inline-end: max(${space.lg}px, env(safe-area-inset-right));
     }
 
     /*
      * Soft fade strip below TopBar — same recipe as the main header's
-     * ::after. Lets content scrolling up dissolve into the chrome
-     * stack rather than meeting a hard edge below the tabs.
+     * ::after, now matched to the main header's 8 px floor so both
+     * chrome layers end with the same fade weight rather than the old
+     * 24 px strip that read as another full row of header.
      */
     &::after {
         content: "";
@@ -83,7 +87,7 @@ const TopBar = styled.div`
         top: 100%;
         left: 0;
         right: 0;
-        height: 24px;
+        height: 8px;
         background: var(--page-background);
         background-attachment: fixed;
         mask-image: linear-gradient(to bottom, black, transparent);
