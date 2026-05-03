@@ -24,10 +24,12 @@ import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
     /* Icons sit at the bottom edge of the chrome (align-items: flex-end)
-     * with zero padding-bottom, so the header is as short as the safe-area
-     * + content allows and the fade strip below begins immediately under
-     * the icon row — there's no dead space between the icons and the
-     * gradient transition into the page. */
+     * with zero padding-bottom, so the only vertical chrome above each
+     * 44 px touch target is a 4 px breathing line (or the device's
+     * safe-area inset, whichever is larger). The previous 8 px floor +
+     * 28 px fade-strip below stacked roughly 40 px of decoration around
+     * a 44 px icon row, which read as "icons floating in a tall band"
+     * even though the icons were technically anchored to the bottom. */
     align-items: flex-end;
     background: var(--page-background);
     background-attachment: fixed;
@@ -41,8 +43,8 @@ const PageHeader = styled.header`
     display: flex;
     justify-content: space-between;
     gap: ${space.xs}px;
-    padding: ${space.xs}px ${space.sm}px 0;
-    padding-block-start: max(${space.xs}px, env(safe-area-inset-top));
+    padding: ${space.xxs}px ${space.sm}px 0;
+    padding-block-start: max(${space.xxs}px, env(safe-area-inset-top));
     padding-inline-start: max(${space.sm}px, env(safe-area-inset-left));
     padding-inline-end: max(${space.sm}px, env(safe-area-inset-right));
     position: sticky;
@@ -55,14 +57,18 @@ const PageHeader = styled.header`
      * masks itself to transparent at the bottom — content that scrolls
      * up into the chrome appears to dissolve into the header rather
      * than meeting a hard edge. The strip is non-interactive so it
-     * never intercepts clicks on the content beneath it. */
+     * never intercepts clicks on the content beneath it.
+     *
+     * 12 px is the smallest height that still reads as a smooth fade
+     * rather than a hard line; the previous 28 px doubled as visible
+     * "extra header" because it shares the page-bg colour. */
     &::after {
         content: "";
         position: absolute;
         top: 100%;
         left: 0;
         right: 0;
-        height: 28px;
+        height: 12px;
         background: var(--page-background);
         background-attachment: fixed;
         mask-image: linear-gradient(to bottom, black, transparent);
