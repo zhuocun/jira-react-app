@@ -11,7 +11,7 @@ import { useEffect, useRef } from "react";
 import { useLocation } from "react-router";
 
 import { microcopy } from "../../constants/microcopy";
-import { breakpoints, radius, space } from "../../theme/tokens";
+import { blur, breakpoints, radius, space } from "../../theme/tokens";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useColorScheme from "../../utils/hooks/useColorScheme";
@@ -25,16 +25,30 @@ import UserAvatar from "../userAvatar";
 const PageHeader = styled.header`
     /* Icons sit at the bottom edge of the chrome (align-items: flex-end)
      * with zero padding-bottom and a tight 2 px breathing line above.
-     * The earlier max(4px, env(safe-area-inset-top)) floor was elastic —
-     * with viewport-fit=cover set on the document the safe-area inset
-     * can resolve to ~24–30 px even in regular browser tabs (it tracks
-     * the OS chrome height rather than the visible URL bar), and the
-     * floor would lose to it, leaving the icons floating 30 px below
-     * the top of the band. The OS already reserves its own safe area
-     * above this surface, so we do not pay for it twice here. */
+     * The earlier safe-area-inset-top floor was elastic — with
+     * viewport-fit=cover set on the document the safe-area inset can
+     * resolve to ~24–30 px even in regular browser tabs (it tracks the
+     * OS chrome height rather than the visible URL bar), and the floor
+     * would lose to it, leaving the icons floating 30 px below the top
+     * of the band. The OS already reserves its own safe area above
+     * this surface, so we do not pay for it twice here. */
     align-items: flex-end;
-    background: var(--page-background);
-    background-attachment: fixed;
+    /*
+     * Frosted-glass chrome. The translucent surface lets the page
+     * gradient (and any content scrolled under the header) read through,
+     * while backdrop-filter blur de-noises that content so the icons
+     * stay legible. Replaces the previous solid var(--page-background)
+     * + fade-strip pattern, where the chrome was opaque and the strip
+     * had to mimic the page bg to mask scrolled content. Glass does
+     * both jobs in a single declaration. The 1 px hairline border-bottom
+     * gives the chrome a faint edge so the bottom of the band still
+     * reads as a chrome boundary at rest, when there is nothing
+     * scrolled under it yet.
+     */
+    background: var(--glass-surface-strong);
+    backdrop-filter: blur(${blur.md}px) saturate(180%);
+    -webkit-backdrop-filter: blur(${blur.md}px) saturate(180%);
+    border-bottom: 1px solid var(--glass-border);
     /*
      * Opt the sticky header out of the route cross-fade. With its own
      * view-transition-name the browser keeps it in place while the body
@@ -52,29 +66,16 @@ const PageHeader = styled.header`
     top: 0;
     z-index: 10;
 
-    /* Soft gradient fade strip just below the header. The strip mirrors
-     * the page background (same --page-background, same fixed
-     * attachment) so its top edge blends into the chrome above, then
-     * masks itself to transparent at the bottom — content that scrolls
-     * up into the chrome appears to dissolve into the header rather
-     * than meeting a hard edge. The strip is non-interactive so it
-     * never intercepts clicks on the content beneath it.
-     *
-     * 8 px is the floor that still produces a visible fade rather than
-     * a hard line. Anything taller starts reading as "more header"
-     * because it shares the page-bg colour with the chrome above. */
-    &::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        height: 8px;
+    /*
+     * Honor the user's reduced-transparency preference: collapse the
+     * glass surface to the solid page background and drop the blur.
+     * Same recipe App.css uses on the body and on AntD modals/drawers.
+     */
+    @media (prefers-reduced-transparency: reduce) {
         background: var(--page-background);
         background-attachment: fixed;
-        mask-image: linear-gradient(to bottom, black, transparent);
-        -webkit-mask-image: linear-gradient(to bottom, black, transparent);
-        pointer-events: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
     }
 
     @media (min-width: ${breakpoints.sm}px) {
