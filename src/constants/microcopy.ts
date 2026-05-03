@@ -1,277 +1,93 @@
 /**
- * Centralized microcopy. Importing from here keeps button labels, modal
- * titles, and confirmation prompts consistent (Phase 3.1 of the plan):
- * sentence case, action verbs, no banned words ("Submit", "OK", "Login").
+ * Centralized, locale-aware microcopy proxy.
  *
- * Each key is named after the intent, never the surface, so the same string
- * can be reused on any screen.
+ * Importing `microcopy` from here is the single canonical way to read a
+ * user-visible string. Each access (e.g. `microcopy.actions.cancel`) is
+ * forwarded through a Proxy to the currently active dictionary that lives
+ * in `src/i18n/active.ts`, so the same component code renders the right
+ * language without any per-component refactor.
+ *
+ * The English literal (the structural baseline that every other locale
+ * must match) lives in `src/i18n/locales/en.ts` — that file is also the
+ * Proxy's default fallback, the `Dictionary` type derivation point, and
+ * the seed for `i18n/active.ts`. Keeping the literal there breaks an
+ * otherwise-circular import: `microcopy.ts` → `i18n/active.ts` →
+ * `i18n/locales/en.ts` (no edges back).
+ *
+ * The exported `microcopy` symbol is typed as `typeof enSource` so call
+ * sites keep their literal autocomplete (`microcopy.actions.editTask`
+ * still has a known shape) and existing strict tests keep compiling.
  */
-export const microcopy = {
-    actions: {
-        addColumn: "Add column",
-        apply: "Apply",
-        askCopilot: "Ask Copilot",
-        cancel: "Cancel",
-        clear: "Clear",
-        clearAiSearch: "Clear AI search",
-        close: "Close",
-        create: "Create",
-        createProject: "Create project",
-        createTask: "Create task",
-        delete: "Delete",
-        draftWithAi: "Draft with AI",
-        edit: "Edit",
-        editProject: "Edit project",
-        editTask: "Edit task",
-        logIn: "Log in",
-        loggingIn: "Logging in…",
-        logOut: "Log out",
-        registerCta: "Register for an account",
-        loginCta: "Log in to your account",
-        resetFilters: "Reset filters",
-        retry: "Retry",
-        save: "Save",
-        search: "Search",
-        send: "Send",
-        showPassword: "Show password",
-        hidePassword: "Hide password",
-        signUp: "Sign up",
-        signingUp: "Signing up…",
-        stop: "Stop",
-        undo: "Undo"
-    },
-    validation: {
-        emailRequired: "Please enter your email",
-        emailInvalid: "Please enter a valid email address",
-        passwordRequired: "Please enter your password",
-        passwordTooShort: "Password must be at least 8 characters",
-        usernameRequired: "Please enter your username",
-        projectNameRequired: "Please enter the project name",
-        organizationRequired: "Please enter the organization",
-        managerRequired: "Please select a manager",
-        coordinatorRequired: "Please select a coordinator",
-        taskNameRequired: "Please enter the task name",
-        taskTypeRequired: "Please select the task type"
-    },
-    a11y: {
-        capsLockOn: "Caps Lock is on",
-        loadingProject: "Loading project",
-        loadingProjectName: "Loading project name",
-        loadingBoard: "Loading board",
-        accountMenu: "Account menu",
-        boardCopilot: "Board Copilot",
-        aiSuggestion: "AI suggestion",
-        aiBadge: "AI · review before using",
-        useDarkMode: "Switch to dark mode",
-        useLightMode: "Switch to light mode"
-    },
-    fields: {
-        coordinator: "Coordinator",
-        email: "Email",
-        epic: "Epic",
-        manager: "Manager",
-        notes: "Notes",
-        organization: "Organization",
-        password: "Password",
-        projectName: "Project name",
-        storyPoints: "Story points",
-        taskName: "Task name",
-        type: "Type",
-        username: "Username"
-    },
-    confirm: {
-        deleteProject: {
-            title: "Delete this project?",
-            description: "This action cannot be undone.",
-            confirmLabel: "Delete project"
+import { getActiveDictionary } from "../i18n/active";
+import { enSource } from "../i18n/locales/en";
+
+/**
+ * Re-exported so consumers that only need the type (the i18n test
+ * harness, locale dictionaries, future formatters) don't need to know
+ * where the literal physically lives.
+ */
+export { enSource };
+
+/**
+ * Walks the active dictionary along `path` (e.g. `["ai", "confidenceBands"]`)
+ * and returns the resolved sub-tree, or `undefined` if any segment is
+ * missing. Resolved at access time (not bound at module load) so language
+ * switches take effect on the very next read.
+ */
+const resolve = (path: readonly string[]): unknown =>
+    path.reduce<unknown>(
+        (acc, segment) =>
+            acc != null && typeof acc === "object"
+                ? (acc as Record<string, unknown>)[segment]
+                : undefined,
+        getActiveDictionary() as unknown
+    );
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+    value !== null && typeof value === "object" && !Array.isArray(value);
+
+/**
+ * Returns a Proxy that lazily forwards every read to the active dictionary.
+ * Non-object values (strings, numbers, arrays) are returned as-is; nested
+ * objects get a sub-proxy so the same dynamic-resolution applies all the
+ * way down. We also implement the `has`, `ownKeys`, and
+ * `getOwnPropertyDescriptor` traps so `Object.entries(microcopy.X)` —
+ * used by the i18n test harness — works against whichever dictionary is
+ * active at iteration time.
+ */
+const makeProxy = (path: readonly string[]): unknown =>
+    new Proxy(Object.create(null) as object, {
+        get(_target, key) {
+            if (typeof key !== "string") return undefined;
+            const value = resolve([...path, key]);
+            return isPlainObject(value) ? makeProxy([...path, key]) : value;
         },
-        deleteColumn: {
-            title: "Delete this column?",
-            description: "This action cannot be undone.",
-            confirmLabel: "Delete column"
+        has(_target, key) {
+            if (typeof key !== "string") return false;
+            const parent = resolve(path);
+            return isPlainObject(parent) && key in parent;
         },
-        deleteTask: {
-            title: "Delete this task?",
-            description: "This action cannot be undone.",
-            confirmLabel: "Delete task"
+        ownKeys() {
+            const parent = resolve(path);
+            return isPlainObject(parent) ? Reflect.ownKeys(parent) : [];
+        },
+        getOwnPropertyDescriptor(_target, key) {
+            if (typeof key !== "string") return undefined;
+            const parent = resolve(path);
+            if (!isPlainObject(parent) || !(key in parent)) return undefined;
+            const raw = parent[key];
+            // `Object.entries` reads the descriptor's `value` directly, so we
+            // surface a sub-proxy for nested objects to keep dynamic
+            // resolution all the way down. `configurable: true` is required
+            // because the underlying object may change between reads when
+            // the active locale switches.
+            return {
+                value: isPlainObject(raw) ? makeProxy([...path, key]) : raw,
+                writable: false,
+                enumerable: true,
+                configurable: true
+            };
         }
-    },
-    feedback: {
-        loadFailed: "Couldn't load. Please try again.",
-        saveFailed: "Couldn't save. Please try again.",
-        operationFailed: "Operation failed",
-        retryHint: "Check your connection or retry.",
-        noManager: "No manager",
-        noDate: "No date",
-        renderFailed: "This page couldn't render.",
-        renderFailedHint:
-            "Try again, or reload the page if the problem persists.",
-        reloadPage: "Reload page",
-        networkError:
-            "Unable to connect. Check your internet connection and try again.",
-        optimisticReverted: "Couldn't save — your changes were reverted.",
-        projectDeleted: "Project deleted",
-        taskDeleted: "Task deleted",
-        likeFailed: "Couldn't update like. Please try again.",
-        taskSaved: "Task saved",
-        welcomeBack: "Welcome back!"
-    },
-    /**
-     * ICU-style placeholder greeting. Header reads it as
-     * `microcopy.greeting.replace("{name}", username)`. Keeping the token
-     * in a single string (instead of `${microcopy.actions.hi} ${name}`)
-     * lets translators reorder the noun and the verb per locale.
-     */
-    greeting: "Hi, {name}",
-    empty: {
-        projects: {
-            title: "No projects yet",
-            description:
-                "Create your first project to start tracking work, owners, and progress."
-        },
-        board: {
-            title: "Add your first column",
-            description:
-                "Boards organize tasks into columns. Try Backlog, In progress, Done."
-        },
-        members: {
-            title: "No team members",
-            description: "Invite teammates to collaborate on this workspace."
-        },
-        chat: {
-            title: "Ask Board Copilot",
-            description:
-                "Try: 'What's at risk?' or 'Who has the most open tasks?' — answers come from your board data."
-        },
-        filteredColumn: {
-            title: "No tasks match the current filters",
-            cta: "Reset filters"
-        },
-        commandPalette: {
-            loading: "Loading…",
-            empty: "No matches."
-        },
-        notFound: {
-            title: "Page not found",
-            description:
-                "We couldn't find the page you're looking for. It may have moved, or the link might be out of date.",
-            cta: "Back to projects"
-        }
-    },
-    /**
-     * Board Copilot v3 microcopy (PRD §9.6 X-R13). The `ai` namespace
-     * collects every user-visible AI string so a future translator (or a
-     * neutral-tone audit) only needs to look at one block. Keep strings
-     * tool-like — never "I think" or "I understand" (PRD §6.2).
-     */
-    ai: {
-        draftSuggestions: [
-            "Draft a bug fix task",
-            "Plan a new feature",
-            "Create a research spike"
-        ] as readonly string[],
-        chatSuggestions: [
-            "What's at risk on this board?",
-            "Who has the most open tasks?",
-            "Summarize this board"
-        ] as readonly string[],
-        privacyTitle: "What Board Copilot sees",
-        privacyDisclosure:
-            "Board Copilot uses board and project names, columns, task names, types, story points, epics, notes when present, and member usernames, emails, or user IDs where needed.",
-        privacyDataScope: [
-            "Board and project names, plus column titles",
-            "Task names, types, story points, epics, notes when present, and column placement",
-            "Member usernames, emails, and user IDs where needed"
-        ] as readonly string[],
-        privacyExclusions:
-            "Attachments are not included in Board Copilot requests.",
-        localProcessingDisclosure:
-            "This build uses local deterministic Board Copilot rules. No external AI service processes these requests.",
-        remoteProcessingDisclosure:
-            "Requests are processed by the configured AI service.",
-        remoteProcessingDisclosureWithOrigin:
-            "Requests are processed by the configured AI service at {origin}.",
-        privacyLink: "What is shared?",
-        privacyAcknowledge: "Got it",
-        privacySuppress: "Don't remind me",
-        streaming: "Board Copilot is thinking…",
-        stopped: "Stopped",
-        retryLabel: "Try again",
-        regenerateLabel: "Regenerate",
-        undoLabel: "Undo",
-        copiedConfirm: "Copied to clipboard",
-        feedbackThanks: "Thanks for your feedback",
-        regeneratedBadge: "Regenerated response",
-        regeneratedTooltip:
-            "Board Copilot generated a fresh answer to the same question. The earlier response is still above for comparison.",
-        thinkingDefault: "Reading your board data…",
-        confidenceBands: {
-            high: "High",
-            moderate: "Moderate",
-            low: "Low"
-        },
-        appliedSuggestion: "Suggested by Copilot",
-        appliedSuggestionShort: "AI",
-        suggestionPopover:
-            "Board Copilot filled this in. Edit it, or revert to the previous value.",
-        revertToPrevious: "Revert to previous",
-        showAlternatives: "Show alternatives",
-        showRationale: "Why this?",
-        applyAnyway: "Apply anyway",
-        emptyChatLead:
-            "Ask about this board, tasks, or your projects. Answers use read-only data from the app.",
-        emptyBriefLead:
-            "Not enough history for trends. The brief gets smarter as the board grows.",
-        emptyInbox:
-            "No nudges right now. Board Copilot checks for issues every 15 minutes.",
-        emptyHistory:
-            "No AI actions yet. Changes made with Board Copilot will appear here.",
-        rateLimit:
-            "Board Copilot is at capacity. Please try again in {seconds} seconds.",
-        projectDisabled:
-            "Board Copilot is turned off for this project. An admin can enable it in Settings.",
-        chatErrorRecovery:
-            "No answer was found. Try rephrasing, or check the listed sources.",
-        copilotLabel: "Board Copilot",
-        askCopilot: "Ask Board Copilot",
-        findRelatedTasks: "Find related tasks",
-        findRelatedProjects: "Find related projects",
-        findRelatedTasksAria:
-            "Find related tasks with AI and filter the task list",
-        findRelatedProjectsAria:
-            "Find related projects with AI and filter the project list",
-        findRelatedTasksPlaceholder: "Describe tasks to find…",
-        findRelatedProjectsPlaceholder: "Describe projects to find…",
-        findRelatedTasksHelper:
-            "Filters this task list with AI search; it does not open chat.",
-        findRelatedProjectsHelper:
-            "Filters this project list with AI search; it does not open chat.",
-        newConversation: "New conversation",
-        stopResponse: "Stop response",
-        characterCounterMax: 2000,
-        characterCounterShowAfter: 500,
-        breakdownAxes: {
-            by_phase: {
-                label: "By phase",
-                tooltip: "Frontend, backend, testing"
-            },
-            by_surface: {
-                label: "By surface",
-                tooltip: "UI, API, data, infra"
-            },
-            by_risk: {
-                label: "By risk",
-                tooltip: "High risk first, low risk last"
-            },
-            freeform: {
-                label: "Let Copilot decide",
-                tooltip: "Agent picks the best split"
-            }
-        },
-        welcomeBannerTitle: "Board Copilot is ready",
-        welcomeBannerBody:
-            "Draft tasks, estimate work, summarize the board, and answer questions — all from your board data.",
-        welcomeBannerCta: "Try: Summarize this board",
-        welcomeBannerDismiss: "Dismiss"
-    }
-} as const;
+    });
+
+export const microcopy = makeProxy([]) as typeof enSource;

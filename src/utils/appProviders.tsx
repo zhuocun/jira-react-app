@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 
+import { LanguageProvider, useLocale } from "../i18n";
 import { store } from "../store";
 import { buildAntdTheme } from "../theme/antdTheme";
 
@@ -44,6 +45,7 @@ const usePointerCoarse = () => {
 
 const ThemedShell = ({ children }: { children: ReactNode }) => {
     const { scheme } = useColorScheme();
+    const { entry: localeEntry } = useLocale();
     const coarse = usePointerCoarse();
     const themeConfig = useMemo(
         () => buildAntdTheme(scheme, coarse),
@@ -67,7 +69,7 @@ const ThemedShell = ({ children }: { children: ReactNode }) => {
     }, [scheme]);
 
     return (
-        <ConfigProvider theme={themeConfig}>
+        <ConfigProvider theme={themeConfig} locale={localeEntry.antd}>
             <AntdApp
                 component={false}
                 notification={{ placement: "topRight" }}
@@ -97,9 +99,11 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
         <Provider store={store}>
             <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
-                    <ThemedShell>
-                        <AuthProvider>{children}</AuthProvider>
-                    </ThemedShell>
+                    <LanguageProvider>
+                        <ThemedShell>
+                            <AuthProvider>{children}</AuthProvider>
+                        </ThemedShell>
+                    </LanguageProvider>
                 </BrowserRouter>
             </QueryClientProvider>
         </Provider>

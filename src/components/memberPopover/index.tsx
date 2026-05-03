@@ -77,7 +77,7 @@ const MemberPopover: React.FC = () => {
 
     const content = (
         <ContentContainer>
-            <SectionLabel>Team Members</SectionLabel>
+            <SectionLabel>{microcopy.labels.teamMembers}</SectionLabel>
             {list.length === 0 ? (
                 <EmptyState
                     title={microcopy.empty.members.title}
@@ -116,9 +116,12 @@ const MemberPopover: React.FC = () => {
             placement="bottomLeft"
             content={content}
         >
-            <TriggerButton aria-label="View team members" type="button">
+            <TriggerButton
+                aria-label={microcopy.a11y.viewTeamMembers}
+                type="button"
+            >
                 <TeamOutlined aria-hidden />
-                <TriggerLabel>Members</TriggerLabel>
+                <TriggerLabel>{microcopy.labels.members}</TriggerLabel>
                 <CaretDownOutlined
                     aria-hidden
                     style={{ fontSize: 10, opacity: 0.6 }}

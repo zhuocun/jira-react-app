@@ -23,6 +23,7 @@ import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import useAuth from "../../utils/hooks/useAuth";
 import useColorScheme from "../../utils/hooks/useColorScheme";
 import resetRoute from "../../utils/resetRoute";
+import LanguageSwitcher from "../languageSwitcher";
 import MemberPopover from "../memberPopover";
 import { NoPaddingButton } from "../projectList";
 import UserAvatar from "../userAvatar";
@@ -251,10 +252,12 @@ const Header: React.FC = () => {
                 <SettingsRow>
                     <Space size={space.xs}>
                         {scheme === "dark" ? <MoonOutlined /> : <SunOutlined />}
-                        <Typography.Text>Dark mode</Typography.Text>
+                        <Typography.Text>
+                            {microcopy.settings.darkMode}
+                        </Typography.Text>
                     </Space>
                     <Switch
-                        aria-label="Toggle dark mode"
+                        aria-label={microcopy.settings.toggleDarkMode}
                         checked={scheme === "dark"}
                         onChange={(checked) =>
                             setPreference(checked ? "dark" : "light")
@@ -273,11 +276,13 @@ const Header: React.FC = () => {
                               <Space size={space.xs}>
                                   <BulbOutlined />
                                   <Typography.Text>
-                                      Board Copilot
+                                      {microcopy.settings.boardCopilot}
                                   </Typography.Text>
                               </Space>
                               <Switch
-                                  aria-label="Enable Board Copilot features"
+                                  aria-label={
+                                      microcopy.settings.toggleBoardCopilot
+                                  }
                                   checked={aiEnabled}
                                   onChange={setAiEnabled}
                                   size="small"
@@ -287,12 +292,16 @@ const Header: React.FC = () => {
                   }
               ]
             : []),
+        {
+            key: "language",
+            label: <LanguageSwitcher />
+        },
         { type: "divider" as const },
         {
             key: "logout",
             label: (
                 <NoPaddingButton
-                    aria-label="Log out"
+                    aria-label={microcopy.actions.logOut}
                     icon={<LogoutOutlined />}
                     onClick={() => {
                         logout();
@@ -309,7 +318,7 @@ const Header: React.FC = () => {
         <PageHeader>
             <LeftCluster>
                 <BrandLink
-                    aria-label="Go to projects"
+                    aria-label={microcopy.a11y.goToProjects}
                     type="link"
                     onClick={
                         path !== "/projects"
