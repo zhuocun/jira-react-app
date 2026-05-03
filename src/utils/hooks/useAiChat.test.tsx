@@ -230,6 +230,56 @@ describe("useAiChat", () => {
         expect(result.current.error).toBeNull();
     });
 
+    it("appends an assistant tool-call turn so the BE keeps multi-round context", async () => {
+        // The BE shim's _build_chat_messages helper hydrates
+        // AIMessage.tool_calls from `role: "assistant"` messages whose
+        // toolCalls array is non-empty. Without that turn in the thread,
+        // Anthropic 400s and OpenAI silently drops context on the next
+        // request. This test locks in the FE half of that contract.
+        let round = 0;
+        jest.spyOn(chatEngine, "chatAssistantTurn").mockImplementation(() => {
+            round += 1;
+            if (round === 1) {
+                return {
+                    kind: "tool_calls",
+                    toolCalls: [
+                        {
+                            arguments: { projectId: "p1" },
+                            id: "call_1",
+                            name: "listTasks"
+                        }
+                    ]
+                };
+            }
+            return { kind: "text", text: "All caught up." };
+        });
+
+        const { result } = renderHook(() => useAiChat(chatCtx()), {
+            wrapper: wrapper(queryClient)
+        });
+
+        await act(async () => {
+            await result.current.send("Status update");
+        });
+        await waitFor(() => {
+            expect(result.current.isLoading).toBe(false);
+        });
+
+        const roles = result.current.messages.map((m) => m.role);
+        expect(roles).toEqual(["user", "assistant", "tool", "assistant"]);
+        const toolCallTurn = result.current.messages[1];
+        expect(toolCallTurn.content).toBe("");
+        expect(toolCallTurn.toolCalls).toEqual([
+            {
+                arguments: { projectId: "p1" },
+                id: "call_1",
+                name: "listTasks"
+            }
+        ]);
+        const finalAssistant = result.current.messages[3];
+        expect(finalAssistant.content).toBe("All caught up.");
+    });
+
     it("ends with a fallback message after too many tool rounds", async () => {
         jest.spyOn(chatEngine, "chatAssistantTurn").mockImplementation(() => ({
             kind: "tool_calls",

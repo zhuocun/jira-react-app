@@ -664,6 +664,21 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                     </Space>
                 )}
                 {messages.map((m, index) => {
+                    if (
+                        m.role === "assistant" &&
+                        !m.content.trim() &&
+                        (m.toolCalls?.length ?? 0) > 0
+                    ) {
+                        // Hidden tool-call replay turn: useAiChat appends an
+                        // assistant message with `toolCalls` and empty
+                        // `content` before executing the tool calls so the
+                        // remote LLM keeps multi-round context. The user-
+                        // facing transcript still reads {user → tool result
+                        // → final assistant text}; rendering this turn
+                        // would surface the model's internal "I will call
+                        // listTasks" step as a blank bubble.
+                        return null;
+                    }
                     if (m.role === "tool") {
                         // C-R11: render tool calls collapsed by default with a
                         // human-readable summary instead of raw JSON.

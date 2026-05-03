@@ -16,6 +16,21 @@ export interface AiChatMessage {
      * `[]` is meaningful: the engine answered without consulting any tool.
      */
     citations?: CitationRef[];
+    /**
+     * Tool calls the assistant emitted on this turn, replayed on the next
+     * server request so the LLM keeps multi-round context.
+     *
+     * Anthropic / OpenAI both require the assistant message that produced
+     * a tool call to be present immediately before the matching
+     * `ToolMessage` on the next turn — without `toolCalls` the provider
+     * either 400s (Anthropic: "tool_result block references unknown
+     * tool_use id") or silently drops the tool result (OpenAI). Storing
+     * the assistant tool-call turn here lets `remoteChatStep` replay it
+     * verbatim while keeping the visible chat transcript clean (the
+     * drawer hides assistant turns whose `content` is empty and whose
+     * `toolCalls` array is non-empty).
+     */
+    toolCalls?: AiChatToolCall[];
 }
 
 export interface ChatTurnToolCalls {

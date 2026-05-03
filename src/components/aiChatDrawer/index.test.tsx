@@ -211,4 +211,40 @@ describe("AiChatDrawer", () => {
             expect(screen.getByText(/task on the board/i)).toBeInTheDocument();
         });
     });
+
+    it("hides the empty assistant tool-call replay turn from the transcript", async () => {
+        // useAiChat appends a hidden assistant message carrying `toolCalls`
+        // before executing the calls so the BE can hydrate AIMessage
+        // tool_calls on the next request. The drawer must suppress that
+        // turn or users see a blank assistant bubble between their
+        // question and the tool result.
+        mockApi.mockImplementation(async (endpoint: string) => {
+            if (endpoint === "projects") {
+                return [{ _id: "p1", projectName: "Roadmap" }];
+            }
+            return [];
+        });
+        renderDrawer(true);
+        fireEvent.change(screen.getByLabelText("Message Board Copilot"), {
+            target: { value: "List all projects" }
+        });
+        fireEvent.click(screen.getByLabelText("Send message"));
+
+        await waitFor(() => {
+            const details = document.querySelector("details");
+            expect(details).toBeTruthy();
+        });
+
+        // No empty Board Copilot bubble between the user prompt and the
+        // tool result. The Copilot label itself (header / sample prompts)
+        // can appear elsewhere; we assert specifically that there is no
+        // assistant `MessageBubble` containing only whitespace.
+        const messageBubbles = document.querySelectorAll(
+            '[aria-label="Board Copilot"]'
+        );
+        for (const bubble of Array.from(messageBubbles)) {
+            const text = bubble.textContent?.trim() ?? "";
+            expect(text.length).toBeGreaterThan(0);
+        }
+    });
 });
