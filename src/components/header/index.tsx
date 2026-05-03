@@ -51,6 +51,27 @@ const PageHeader = styled.header`
     top: 0;
     z-index: 10;
 
+    /* Soft gradient fade strip just below the header. The strip mirrors
+     * the page background (same --page-background, same fixed
+     * attachment) so its top edge blends into the chrome above, then
+     * masks itself to transparent at the bottom — content that scrolls
+     * up into the chrome appears to dissolve into the header rather
+     * than meeting a hard edge. The strip is non-interactive so it
+     * never intercepts clicks on the content beneath it. */
+    &::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        height: 28px;
+        background: var(--page-background);
+        background-attachment: fixed;
+        mask-image: linear-gradient(to bottom, black, transparent);
+        -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+        pointer-events: none;
+    }
+
     @media (min-width: ${breakpoints.sm}px) {
         padding-inline: ${space.md}px;
         padding-inline-start: max(${space.md}px, env(safe-area-inset-left));
