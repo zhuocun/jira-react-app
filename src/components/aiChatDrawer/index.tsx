@@ -51,7 +51,7 @@ const MessageBubble = styled(Typography.Paragraph)<{ $isUser: boolean }>`
     && {
         background: ${(props) =>
             props.$isUser
-                ? "var(--ant-color-primary-bg, rgba(13, 148, 136, 0.10))"
+                ? "var(--ant-color-primary-bg, rgba(4, 120, 87, 0.10))"
                 : "var(--ant-color-fill-tertiary, rgba(15, 23, 42, 0.04))"};
         border-radius: ${radius.md}px;
         color: var(--ant-color-text, inherit);
@@ -142,7 +142,7 @@ const ToolDetails = styled.details`
     }
 
     summary:focus-visible {
-        outline: 2px solid var(--ant-color-primary, #0d9488);
+        outline: 2px solid var(--ant-color-primary, #047857);
         outline-offset: 2px;
     }
 `;
@@ -583,11 +583,12 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
             size={drawerWidth}
             styles={{
                 body: {
-                    /* Subtle teal wash from the top so the AI chat reads
-                     * as an aurora pane sitting on the glass drawer surface
-                     * applied via .ant-drawer-content in App.css. */
+                    /* Quiet emerald breath at the top of the drawer body
+                     * so the AI surface reads as distinct from a generic
+                     * dialog. The glass drawer surface (App.css) carries
+                     * the rest of the visual weight. */
                     background:
-                        "radial-gradient(60% 30% at 50% 0%, rgba(13, 148, 136, 0.12) 0%, transparent 70%), transparent",
+                        "radial-gradient(60% 30% at 50% 0%, rgba(4, 120, 87, 0.08) 0%, transparent 70%), transparent",
                     display: "flex",
                     flexDirection: "column",
                     paddingBottom: `max(${space.md}px, env(safe-area-inset-bottom))`,
@@ -811,7 +812,7 @@ const AiChatDrawer: React.FC<AiChatDrawerProps> = ({
                                                         }}
                                                         size="small"
                                                         style={{
-                                                            color: "var(--color-copilot-badge, #0d9488)",
+                                                            color: "var(--color-copilot-badge, #047857)",
                                                             fontSize:
                                                                 fontSize.xs,
                                                             height: "auto",

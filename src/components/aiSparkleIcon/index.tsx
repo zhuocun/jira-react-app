@@ -72,15 +72,15 @@ const AiSparkleIcon: React.FC<AiSparkleIconProps> = ({
                     <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop
                             offset="0%"
-                            stopColor="var(--color-copilot-grad-start, #0D9488)"
+                            stopColor="var(--color-copilot-grad-start, #047857)"
                         />
                         <stop
                             offset="60%"
-                            stopColor="var(--color-copilot-grad-mid, #14B8A6)"
+                            stopColor="var(--color-copilot-grad-mid, #059669)"
                         />
                         <stop
                             offset="100%"
-                            stopColor="var(--color-copilot-grad-end, #06B6D4)"
+                            stopColor="var(--color-copilot-grad-end, #10B981)"
                         />
                     </linearGradient>
                 </defs>
@@ -109,15 +109,15 @@ const AiSparkleIcon: React.FC<AiSparkleIconProps> = ({
                 <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop
                         offset="0%"
-                        stopColor="var(--color-copilot-grad-start, #0D9488)"
+                        stopColor="var(--color-copilot-grad-start, #047857)"
                     />
                     <stop
                         offset="60%"
-                        stopColor="var(--color-copilot-grad-mid, #14B8A6)"
+                        stopColor="var(--color-copilot-grad-mid, #059669)"
                     />
                     <stop
                         offset="100%"
-                        stopColor="var(--color-copilot-grad-end, #06B6D4)"
+                        stopColor="var(--color-copilot-grad-end, #10B981)"
                     />
                 </linearGradient>
             </defs>

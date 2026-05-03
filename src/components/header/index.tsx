@@ -23,10 +23,10 @@ import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
     align-items: center;
-    /* Stronger glass treatment: the header floats over the page-level mesh
-     * as a frosted pane. The 180° vertical gradient adds a faint top-shine
-     * that reads as "elevated"; the teal drop shadow ties the surface back
-     * to the brand. */
+    /* Restrained glass treatment: a frosted pane that sits quietly over
+     * the flat warm-white page. Shadow is neutral slate so the header
+     * doesn't telegraph the brand color into the chrome — emerald is
+     * reserved for content (CTA, focus, AI surfaces). */
     backdrop-filter: saturate(180%) blur(${blur.md}px);
     -webkit-backdrop-filter: saturate(180%) blur(${blur.md}px);
     /*
@@ -36,15 +36,9 @@ const PageHeader = styled.header`
      * push transition rather than a full-page swap.
      */
     view-transition-name: pulse-header;
-    background: linear-gradient(
-        180deg,
-        var(--glass-surface-strong) 0%,
-        var(--glass-surface) 100%
-    );
+    background: var(--glass-surface-strong);
     border-bottom: 1px solid var(--glass-border);
-    box-shadow:
-        0 1px 0 rgba(13, 148, 136, 0.1),
-        0 8px 24px -16px rgba(13, 148, 136, 0.22);
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
     display: flex;
     justify-content: space-between;
     gap: ${space.xs}px;

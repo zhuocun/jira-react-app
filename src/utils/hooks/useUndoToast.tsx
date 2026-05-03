@@ -86,7 +86,7 @@ const useUndoToast = (): {
                         style={{
                             background: "transparent",
                             border: 0,
-                            color: "var(--ant-color-primary, #0d9488)",
+                            color: "var(--ant-color-primary, #047857)",
                             cursor: "pointer",
                             font: "inherit",
                             fontWeight: 500,

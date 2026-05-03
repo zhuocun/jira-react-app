@@ -100,7 +100,7 @@ const FilteredEmptyButton = styled.button`
     background: transparent;
     border: 0;
     border-radius: ${radius.sm}px;
-    color: var(--ant-color-primary, #0d9488);
+    color: var(--ant-color-primary, #047857);
     cursor: pointer;
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
@@ -108,7 +108,7 @@ const FilteredEmptyButton = styled.button`
 
     &:hover,
     &:focus-visible {
-        background: var(--ant-color-primary-bg, rgba(13, 148, 136, 0.1));
+        background: var(--ant-color-primary-bg, rgba(4, 120, 87, 0.1));
         outline: none;
     }
 
@@ -138,28 +138,18 @@ const TaskCardOuter = styled.button`
     width: 100%;
 
     &:hover:not(:disabled) {
-        border-color: rgba(13, 148, 136, 0.5);
-        /* Layered shadow: ambient + 1px teal ring + soft drop glow ties
-         * the hover state into the aurora palette without overwhelming a
-         * dense board (kept to subtle 5%/3% gradient over the card bg).
-         * The amber end-stop is the warm corner that mirrors the page
-         * mesh and prevents the hover from reading as a single hue. */
+        /* Restrained hover: a single 1 px emerald ring + soft ambient
+         * drop. No background gradient — the white card stays white,
+         * the brand color only signals intent at the edge. */
+        border-color: rgba(4, 120, 87, 0.4);
         box-shadow:
             ${shadow.md},
-            0 0 0 1px rgba(13, 148, 136, 0.2),
-            0 8px 24px -10px rgba(13, 148, 136, 0.32);
-        background:
-            linear-gradient(
-                135deg,
-                rgba(13, 148, 136, 0.05) 0%,
-                rgba(245, 158, 11, 0.03) 100%
-            ),
-            var(--ant-color-bg-container, #fff);
+            0 0 0 1px rgba(4, 120, 87, 0.16);
         transform: translateY(-1px);
     }
 
     &:focus-visible {
-        border-color: var(--ant-color-primary, #0d9488);
+        border-color: var(--ant-color-primary, #047857);
         outline: none;
         box-shadow: ${shadow.focus}, ${shadow.md};
     }
@@ -216,7 +206,7 @@ const CardFooter = styled.div`
 
 const TaskTypeBadge = styled.span<{ $isBug: boolean }>`
     align-items: center;
-    color: ${(p) => (p.$isBug ? "#DB2777" : "#0D9488")};
+    color: ${(p) => (p.$isBug ? "#DB2777" : "#047857")};
     display: inline-flex;
     font-weight: ${fontWeight.medium};
     gap: ${space.xxs}px;
@@ -296,8 +286,8 @@ const ColumnDot = styled.span<{ statusColor: string }>`
 
 const STATUS_PALETTE = [
     "#94A3B8",
-    "#0D9488",
-    "#06B6D4",
+    "#475569",
+    "#0EA5E9",
     "#10B981",
     "#F59E0B",
     "#EF4444",

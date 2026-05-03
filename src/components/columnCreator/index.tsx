@@ -52,10 +52,10 @@ const AddColumnButton = styled.button`
 
     &:hover:not(:disabled),
     &:focus-visible:not(:disabled) {
-        background: var(--ant-color-primary-bg, rgba(13, 148, 136, 0.08));
-        border-color: var(--ant-color-primary, #0d9488);
+        background: var(--ant-color-primary-bg, rgba(4, 120, 87, 0.08));
+        border-color: var(--ant-color-primary, #047857);
         border-style: solid;
-        color: var(--ant-color-primary, #0d9488);
+        color: var(--ant-color-primary, #047857);
     }
 
     &:disabled {

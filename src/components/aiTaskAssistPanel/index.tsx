@@ -275,16 +275,13 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
         <Card
             size="small"
             style={{
-                background: `
-                    radial-gradient(80% 100% at 0% 0%, rgba(13, 148, 136, 0.18) 0%, transparent 65%),
-                    radial-gradient(80% 100% at 100% 100%, rgba(245, 158, 11, 0.14) 0%, transparent 65%),
-                    var(--glass-surface-strong)
-                `,
+                background:
+                    "linear-gradient(135deg, rgba(4, 120, 87, 0.06) 0%, transparent 70%), var(--glass-surface-strong)",
                 backdropFilter: "blur(20px) saturate(170%)",
                 WebkitBackdropFilter: "blur(20px) saturate(170%)",
                 borderColor: "var(--glass-border-strong)",
                 boxShadow:
-                    "0 8px 28px -12px rgba(13, 148, 136, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.45)",
+                    "0 4px 16px -8px rgba(4, 120, 87, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.55)",
                 marginTop: space.md
             }}
             title={
