@@ -27,22 +27,22 @@ const Page = styled.div`
     min-height: 100vh;
     min-height: 100dvh;
     /* Cinematic aurora wash on the canvas side. The radials sit over the
-     * page-level mesh so the form is framed by violet/pink/cyan even when
+     * page-level mesh so the form is framed by teal/amber/cyan even when
      * the hero rail is hidden below the md breakpoint. */
     background:
         radial-gradient(
             60rem 50rem at 18% 22%,
-            rgba(139, 92, 246, 0.3) 0%,
+            rgba(13, 148, 136, 0.3) 0%,
             transparent 65%
         ),
         radial-gradient(
             45rem 45rem at 82% 78%,
-            rgba(236, 72, 153, 0.22) 0%,
+            rgba(245, 158, 11, 0.22) 0%,
             transparent 65%
         ),
         radial-gradient(
             38rem 38rem at 92% 18%,
-            rgba(6, 182, 212, 0.18) 0%,
+            rgba(6, 182, 212, 0.2) 0%,
             transparent 65%
         ),
         var(--pulse-bg-page);
@@ -73,19 +73,19 @@ const HeroRail = styled.aside`
 
     @media (min-width: ${breakpoints.md}px) {
         align-items: center;
-        /* Deep cinematic mesh: violet → pink → cyan over the cinematic
-         * base. Saturations are bumped (0.55 / 0.42 / 0.32) so the aurora
-         * reads against the very dark base — anything lighter would feel
-         * washed out. */
+        /* Deep cinematic mesh: teal → amber → cyan over the cinematic
+         * base. Saturations are bumped (0.55 / 0.40 / 0.32) so the aurora
+         * reads against the very dark teal base — anything lighter would
+         * feel washed out. */
         background:
             radial-gradient(
                 60rem 50rem at 25% 25%,
-                rgba(139, 92, 246, 0.55) 0%,
+                rgba(13, 148, 136, 0.55) 0%,
                 transparent 70%
             ),
             radial-gradient(
                 45rem 45rem at 78% 70%,
-                rgba(236, 72, 153, 0.42) 0%,
+                rgba(245, 158, 11, 0.4) 0%,
                 transparent 70%
             ),
             radial-gradient(
@@ -144,14 +144,14 @@ const HeroBadge = styled.div`
 `;
 
 const HeroBadgeDot = styled.span`
-    /* Cyan against the violet rail — opposing hue makes the dot pop where
-     * a violet dot would disappear into the cinematic mesh. Double box
-     * shadow stacks a tight inner glow with a softer outer halo. */
-    background: ${aurora.cyan};
+    /* Amber against the teal rail — warm dot on cool background reads
+     * as a beacon and mirrors the warm corner of the page mesh. Double
+     * box shadow stacks a tight inner glow with a softer outer halo. */
+    background: ${aurora.amber};
     border-radius: 50%;
     box-shadow:
-        0 0 12px ${aurora.cyan},
-        0 0 24px rgba(6, 182, 212, 0.45);
+        0 0 12px ${aurora.amber},
+        0 0 24px rgba(245, 158, 11, 0.5);
     display: inline-block;
     height: 6px;
     width: 6px;
@@ -301,7 +301,7 @@ export const AuthSubtitle = styled.p`
 const FormCard = styled(Card)`
     && {
         /* Glass form pane sitting on the cinematic mesh — strong surface
-         * + heavy blur + violet drop shadow makes the form feel like it's
+         * + heavy blur + teal drop shadow makes the form feel like it's
          * lit from within rather than pasted on. */
         background: var(--glass-surface-strong);
         backdrop-filter: blur(${blur.lg}px) saturate(180%);
@@ -309,7 +309,7 @@ const FormCard = styled(Card)`
         border: 1px solid var(--glass-border-strong);
         border-radius: ${radius.lg}px;
         box-shadow:
-            0 24px 48px -12px rgba(139, 92, 246, 0.32),
+            0 24px 48px -12px rgba(13, 148, 136, 0.34),
             var(--glass-shine);
         box-sizing: border-box;
         max-width: 28rem;

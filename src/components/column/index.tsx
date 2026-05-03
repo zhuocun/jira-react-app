@@ -100,7 +100,7 @@ const FilteredEmptyButton = styled.button`
     background: transparent;
     border: 0;
     border-radius: ${radius.sm}px;
-    color: var(--ant-color-primary, #5e6ad2);
+    color: var(--ant-color-primary, #0d9488);
     cursor: pointer;
     font-size: ${fontSize.xs}px;
     font-weight: ${fontWeight.medium};
@@ -108,7 +108,7 @@ const FilteredEmptyButton = styled.button`
 
     &:hover,
     &:focus-visible {
-        background: var(--ant-color-primary-bg, rgba(94, 106, 210, 0.1));
+        background: var(--ant-color-primary-bg, rgba(13, 148, 136, 0.1));
         outline: none;
     }
 
@@ -138,26 +138,28 @@ const TaskCardOuter = styled.button`
     width: 100%;
 
     &:hover:not(:disabled) {
-        border-color: rgba(139, 92, 246, 0.45);
-        /* Layered shadow: ambient + 1px violet ring + soft drop glow ties
+        border-color: rgba(13, 148, 136, 0.5);
+        /* Layered shadow: ambient + 1px teal ring + soft drop glow ties
          * the hover state into the aurora palette without overwhelming a
-         * dense board (kept to subtle 5%/3% gradient over the card bg). */
+         * dense board (kept to subtle 5%/3% gradient over the card bg).
+         * The amber end-stop is the warm corner that mirrors the page
+         * mesh and prevents the hover from reading as a single hue. */
         box-shadow:
             ${shadow.md},
-            0 0 0 1px rgba(139, 92, 246, 0.18),
-            0 8px 24px -10px rgba(139, 92, 246, 0.3);
+            0 0 0 1px rgba(13, 148, 136, 0.2),
+            0 8px 24px -10px rgba(13, 148, 136, 0.32);
         background:
             linear-gradient(
                 135deg,
-                rgba(139, 92, 246, 0.05) 0%,
-                rgba(6, 182, 212, 0.03) 100%
+                rgba(13, 148, 136, 0.05) 0%,
+                rgba(245, 158, 11, 0.03) 100%
             ),
             var(--ant-color-bg-container, #fff);
         transform: translateY(-1px);
     }
 
     &:focus-visible {
-        border-color: var(--ant-color-primary, #8b5cf6);
+        border-color: var(--ant-color-primary, #0d9488);
         outline: none;
         box-shadow: ${shadow.focus}, ${shadow.md};
     }
@@ -214,7 +216,7 @@ const CardFooter = styled.div`
 
 const TaskTypeBadge = styled.span<{ $isBug: boolean }>`
     align-items: center;
-    color: ${(p) => (p.$isBug ? "#DB2777" : "#5E6AD2")};
+    color: ${(p) => (p.$isBug ? "#DB2777" : "#0D9488")};
     display: inline-flex;
     font-weight: ${fontWeight.medium};
     gap: ${space.xxs}px;
@@ -294,8 +296,8 @@ const ColumnDot = styled.span<{ statusColor: string }>`
 
 const STATUS_PALETTE = [
     "#94A3B8",
-    "#5E6AD2",
-    "#7C5CFF",
+    "#0D9488",
+    "#06B6D4",
     "#10B981",
     "#F59E0B",
     "#EF4444",

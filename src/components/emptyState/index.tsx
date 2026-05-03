@@ -50,13 +50,13 @@ const IllustrationFrame = styled.div`
         radial-gradient(circle at 30% 30%, ${accent.bgMedium}, transparent 65%),
         radial-gradient(
             circle at 70% 70%,
-            rgba(94, 106, 210, 0.16),
+            rgba(13, 148, 136, 0.16),
             transparent 60%
         ),
         var(--ant-color-fill-quaternary, rgba(15, 23, 42, 0.04));
     border: 1px solid var(--ant-color-border-secondary, rgba(15, 23, 42, 0.06));
     border-radius: ${radius.pill}px;
-    color: var(--ant-color-primary, #5e6ad2);
+    color: var(--ant-color-primary, #0d9488);
     display: inline-flex;
     height: 88px;
     justify-content: center;

@@ -23,10 +23,10 @@ import UserAvatar from "../userAvatar";
 
 const PageHeader = styled.header`
     align-items: center;
-    /* Stronger glass treatment for the BOLD AURORA-FIRST redesign: the
-     * header floats over the page-level mesh as a frosted pane. The 180°
-     * vertical gradient adds a faint top-shine that reads as "elevated";
-     * the violet drop shadow ties the surface back to the brand. */
+    /* Stronger glass treatment: the header floats over the page-level mesh
+     * as a frosted pane. The 180° vertical gradient adds a faint top-shine
+     * that reads as "elevated"; the teal drop shadow ties the surface back
+     * to the brand. */
     backdrop-filter: saturate(180%) blur(${blur.md}px);
     -webkit-backdrop-filter: saturate(180%) blur(${blur.md}px);
     /*
@@ -43,8 +43,8 @@ const PageHeader = styled.header`
     );
     border-bottom: 1px solid var(--glass-border);
     box-shadow:
-        0 1px 0 rgba(139, 92, 246, 0.08),
-        0 8px 24px -16px rgba(139, 92, 246, 0.2);
+        0 1px 0 rgba(13, 148, 136, 0.1),
+        0 8px 24px -16px rgba(13, 148, 136, 0.22);
     display: flex;
     justify-content: space-between;
     gap: ${space.xs}px;
