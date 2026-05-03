@@ -67,24 +67,33 @@ const Card = styled.article`
     }
 `;
 
+/*
+ * Card body packs the whole project card into a single padded surface —
+ * we no longer ship a separate `<Footer>` with its own border-top and
+ * inset padding (which was responsible for ~30 px of dead vertical
+ * chrome between the header and the manager row). Padding drops from
+ * 24 px to 16 px and the gap between the title block and the meta row
+ * tightens to ${space.sm}, so a sparse card (1-line title + manager +
+ * date) clocks in around 100 px instead of the previous ~190 px.
+ */
 const Body = styled.div`
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
     gap: ${space.sm}px;
-    padding: ${space.lg}px ${space.lg}px ${space.md}px;
+    padding: ${space.md}px;
 `;
 
 /**
  * Header row that anchors the card: a small project monogram avatar
- * inline with the title stack. Replaces the previous 72 px gradient
- * cover so the card reads content-first — title and organisation are
- * the visual centre, the avatar is just a small per-project colour cue.
+ * inline with the title stack. The avatar drops from 44 px to 40 px so
+ * the row sits at a calmer height and stops dictating the card's
+ * minimum vertical rhythm.
  */
 const HeaderRow = styled.div`
     align-items: center;
     display: flex;
-    gap: ${space.md}px;
+    gap: ${space.sm}px;
     min-width: 0;
 `;
 
@@ -138,42 +147,63 @@ const Organization = styled.span`
     text-transform: uppercase;
 `;
 
-const ManagerRow = styled.div`
+/*
+ * MetaRow consolidates manager identity + date + match-strength badge
+ * + action buttons into a single compact row pinned to the bottom of
+ * the body. Previously these split across a `ManagerRow` (with its own
+ * 12 px padding-top) and a `<Footer>` (with a hairline divider plus
+ * 8 px / 24 px insets), which pushed cards to ~190 px even with a
+ * single-word title. `margin-top: auto` keeps the row anchored to the
+ * bottom on cards that have grown tall (e.g. a 2-line title in the
+ * same grid row), while shorter cards collapse cleanly.
+ */
+const MetaRow = styled.div`
     align-items: center;
     color: var(--ant-color-text-secondary, rgba(15, 23, 42, 0.65));
     display: flex;
+    flex-wrap: wrap;
     font-size: ${fontSize.sm}px;
     gap: ${space.xs}px;
+    justify-content: space-between;
     margin-top: auto;
     min-width: 0;
-    padding-top: ${space.sm}px;
     position: relative;
     z-index: 1;
+`;
 
-    > span {
+const Identity = styled.span`
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    flex: 1 1 auto;
+    gap: ${space.xs}px;
+    min-width: 0;
+    overflow: hidden;
+
+    > .name {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 `;
 
-const Footer = styled.footer`
-    align-items: center;
-    border-top: 1px solid
-        var(--ant-color-border-secondary, rgba(15, 23, 42, 0.04));
+const MetaSeparator = styled.span`
+    color: var(--ant-color-text-quaternary, rgba(15, 23, 42, 0.3));
+    flex: 0 0 auto;
+`;
+
+const DateChip = styled.span`
     color: var(--ant-color-text-tertiary, rgba(15, 23, 42, 0.5));
-    display: flex;
+    flex: 0 0 auto;
     font-size: ${fontSize.xs}px;
-    gap: ${space.xs}px;
-    justify-content: space-between;
-    padding: ${space.xs}px ${space.md}px ${space.xs}px ${space.lg}px;
-    position: relative;
-    z-index: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 `;
 
 const ActionsCluster = styled.div`
     align-items: center;
     display: inline-flex;
+    flex: 0 0 auto;
     gap: 2px;
 
     /*
@@ -204,12 +234,15 @@ const formatDate = (raw?: string): string => {
 /**
  * Single project card used inside the project list grid.
  *
- * The card is now content-forward: a small per-project monogram avatar
- * sits inline with the title stack (project name + organisation), the
- * manager row floats below, and secondary actions (favorite, edit,
- * delete) live in the footer. The previous gradient "cover" with a
- * standalone first-character badge has been removed — it was decorative
- * weight that competed with the title for attention.
+ * Layout is two stacked rows inside one padded surface: a header row
+ * with a small per-project monogram avatar inline with the title stack
+ * (organisation + project name), and a meta row that combines the
+ * manager identity, the AI match-strength badge (when an AI search is
+ * active), the formatted date, and the secondary actions (favorite,
+ * edit, delete). The earlier design split manager and footer into two
+ * blocks separated by a hairline divider — that arrangement plus the
+ * 24 px body padding produced ~190 px tall cards even with a one-word
+ * title. The current layout collapses to ~100 px in the same case.
  */
 const ProjectCard: React.FC<ProjectCardProps> = ({
     project,
@@ -280,7 +313,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     <UserAvatar
                         id={project._id}
                         name={project.projectName}
-                        size={44}
+                        size={40}
                         style={{
                             borderRadius: radius.md,
                             flex: "0 0 auto"
@@ -298,78 +331,73 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                         </TitleLink>
                     </TitleStack>
                 </HeaderRow>
-                <ManagerRow>
-                    {manager ? (
-                        <>
-                            <UserAvatar
-                                id={manager._id}
-                                name={manager.username}
-                                size="small"
-                            />
-                            <span>{manager.username}</span>
-                        </>
-                    ) : (
-                        <>
-                            <TeamOutlined aria-hidden />
-                            <span>{microcopy.feedback.noManager}</span>
-                        </>
-                    )}
-                </ManagerRow>
-            </Body>
-            <Footer>
-                <span
-                    style={{
-                        alignItems: "center",
-                        display: "inline-flex",
-                        gap: space.xs
-                    }}
-                >
-                    {strength ? (
-                        <AiMatchStrengthBadge strength={strength} />
-                    ) : null}
-                    {formatDate(project.createdAt)}
-                </span>
-                <ActionsCluster>
-                    <Button
-                        aria-label={
-                            liked
-                                ? `Unlike ${project.projectName}`
-                                : `Like ${project.projectName}`
-                        }
-                        aria-pressed={liked}
-                        icon={
-                            liked ? (
-                                <HeartFilled
-                                    style={{ color: semantic.favorite }}
+                <MetaRow>
+                    <Identity>
+                        {manager ? (
+                            <>
+                                <UserAvatar
+                                    id={manager._id}
+                                    name={manager.username}
+                                    size="small"
                                 />
-                            ) : (
-                                <HeartOutlined />
-                            )
-                        }
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onLike();
-                        }}
-                        size="small"
-                        style={{ position: "relative", zIndex: 2 }}
-                        type="text"
-                    />
-                    <Dropdown
-                        menu={{ items }}
-                        placement="bottomRight"
-                        trigger={["click"]}
-                    >
+                                <span className="name">{manager.username}</span>
+                            </>
+                        ) : (
+                            <>
+                                <TeamOutlined aria-hidden />
+                                <span className="name">
+                                    {microcopy.feedback.noManager}
+                                </span>
+                            </>
+                        )}
+                        <MetaSeparator aria-hidden>·</MetaSeparator>
+                        {strength ? (
+                            <AiMatchStrengthBadge strength={strength} />
+                        ) : null}
+                        <DateChip>{formatDate(project.createdAt)}</DateChip>
+                    </Identity>
+                    <ActionsCluster>
                         <Button
-                            aria-label={`More actions for ${project.projectName}`}
-                            icon={<MoreOutlined />}
-                            onClick={(e) => e.stopPropagation()}
+                            aria-label={
+                                liked
+                                    ? `Unlike ${project.projectName}`
+                                    : `Like ${project.projectName}`
+                            }
+                            aria-pressed={liked}
+                            icon={
+                                liked ? (
+                                    <HeartFilled
+                                        style={{ color: semantic.favorite }}
+                                    />
+                                ) : (
+                                    <HeartOutlined />
+                                )
+                            }
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onLike();
+                            }}
                             size="small"
                             style={{ position: "relative", zIndex: 2 }}
                             type="text"
                         />
-                    </Dropdown>
-                </ActionsCluster>
-            </Footer>
+                        <Dropdown
+                            menu={{ items }}
+                            placement="bottomRight"
+                            trigger={["click"]}
+                        >
+                            <Button
+                                aria-label={`More actions for ${project.projectName}`}
+                                icon={<MoreOutlined />}
+                                onClick={(e) => e.stopPropagation()}
+                                size="small"
+                                style={{ position: "relative", zIndex: 2 }}
+                                type="text"
+                            />
+                        </Dropdown>
+                    </ActionsCluster>
+                </MetaRow>
+            </Body>
         </Card>
     );
 };
@@ -381,7 +409,7 @@ export const ProjectCardSkeleton: React.FC = () => (
                 <Skeleton.Avatar
                     active
                     shape="square"
-                    size={44}
+                    size={40}
                     style={{ borderRadius: radius.md }}
                 />
                 <TitleStack>
@@ -393,15 +421,14 @@ export const ProjectCardSkeleton: React.FC = () => (
                     />
                 </TitleStack>
             </HeaderRow>
-            <ManagerRow>
-                <Skeleton.Avatar active size="small" />
-                <Skeleton.Input active size="small" style={{ width: 96 }} />
-            </ManagerRow>
+            <MetaRow>
+                <Identity>
+                    <Skeleton.Avatar active size="small" />
+                    <Skeleton.Input active size="small" style={{ width: 96 }} />
+                </Identity>
+                <Skeleton.Input active size="small" style={{ width: 56 }} />
+            </MetaRow>
         </Body>
-        <Footer>
-            <Skeleton.Input active size="small" style={{ width: 64 }} />
-            <Skeleton.Input active size="small" style={{ width: 48 }} />
-        </Footer>
     </Card>
 );
 
