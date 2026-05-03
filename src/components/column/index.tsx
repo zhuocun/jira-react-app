@@ -25,9 +25,11 @@ import {
     shadow,
     space
 } from "../../theme/tokens";
+import { getAiSearchStrength } from "../../utils/ai/aiSearchStrength";
 import useReactMutation from "../../utils/hooks/useReactMutation";
 import useTaskModal from "../../utils/hooks/useTaskModal";
 import deleteColumnCallback from "../../utils/optimisticUpdate/deleteColumn";
+import AiMatchStrengthBadge from "../aiMatchStrengthBadge";
 import { Drag, Drop, DropChild } from "../dragAndDrop";
 import { NoPaddingButton } from "../projectList";
 import Row from "../row";
@@ -354,6 +356,10 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
     ) => {
         const coordinator = members.find((m) => m._id === task.coordinatorId);
         const isBug = task.type === "Bug";
+        // Read per-result strength from the AI search cache (P1-2). Returns
+        // null when no semantic filter is active, so the badge stays out of
+        // the way during normal browsing.
+        const strength = getAiSearchStrength("tasks", task._id);
         return (
             <TaskCardOuter
                 aria-label={ariaLabel ?? `Open task ${task.taskName}`}
@@ -386,6 +392,9 @@ const TaskCard = React.forwardRef<HTMLButtonElement, TaskCardProps>(
                         <span>{isBug ? "Bug" : "Task"}</span>
                     </TaskTypeBadge>
                     <CardMeta>
+                        {strength ? (
+                            <AiMatchStrengthBadge strength={strength} />
+                        ) : null}
                         {typeof task.storyPoints === "number" ? (
                             <StoryPointsTag variant="filled">
                                 {task.storyPoints} pts

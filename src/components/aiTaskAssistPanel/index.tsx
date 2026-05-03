@@ -27,6 +27,8 @@ import AiConfidenceIndicator from "../aiConfidenceIndicator";
 import AiSparkleIcon from "../aiSparkleIcon";
 import AiSuggestedBadge from "../aiSuggestedBadge";
 import CopilotPrivacyPopover from "../copilotPrivacyPopover";
+import CopilotRemoteConsentNotice from "../copilotRemoteConsentNotice";
+import EngineModeTag from "../engineModeTag";
 
 // Stable fallbacks: avoid producing a new `[]` reference on every render, which
 // otherwise re-fires the suggestion effect endlessly when the cache is empty.
@@ -285,10 +287,12 @@ const AiTaskAssistPanel: React.FC<AiTaskAssistPanelProps> = ({
                         {microcopy.ai.copilotLabel}
                     </span>
                     <Tag color="purple">{microcopy.a11y.aiBadge}</Tag>
+                    <EngineModeTag />
                     <CopilotPrivacyPopover route="estimate" />
                 </Space>
             }
         >
+            <CopilotRemoteConsentNotice route="estimate" />
             <SectionHeading
                 right={
                     estimateData ? (

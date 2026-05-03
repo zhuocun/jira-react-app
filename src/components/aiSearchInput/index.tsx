@@ -7,6 +7,10 @@ import environment from "../../constants/env";
 import { microcopy } from "../../constants/microcopy";
 import { space as themeSpace } from "../../theme/tokens";
 import {
+    clearAiSearchStrengths,
+    setAiSearchStrengths
+} from "../../utils/ai/aiSearchStrength";
+import {
     AiContextProject,
     AiSearchProjectsContext,
     semanticSearch
@@ -19,6 +23,8 @@ import useAi, {
 } from "../../utils/hooks/useAi";
 import useAiEnabled from "../../utils/hooks/useAiEnabled";
 import AiSparkleIcon from "../aiSparkleIcon";
+import CopilotRemoteConsentNotice from "../copilotRemoteConsentNotice";
+import EngineModeTag from "../engineModeTag";
 
 type TaskSearchProps = {
     kind: "tasks";
@@ -119,8 +125,11 @@ const AiSearchInput: React.FC<Props> = (props) => {
             setMatchRationale(null);
             setMatchSummary(null);
             setExpandedTerms([]);
+            // Filter cleared externally (chip removed, navigation away).
+            // Drop the band cache too so cards stop showing strength chips.
+            clearAiSearchStrengths(props.kind);
         }
-    }, [semanticActive]);
+    }, [props.kind, semanticActive]);
 
     // Abort any in-flight remote search if the component unmounts so the
     // resolved/rejected promise doesn't try to setState on an unmounted tree.
@@ -151,6 +160,10 @@ const AiSearchInput: React.FC<Props> = (props) => {
                 setMatchRationale(null);
                 setMatchSummary(null);
                 setExpandedTerms(result.expandedTerms ?? []);
+                // Clear any stale per-result bands from a previous query so
+                // an incoming empty result doesn't leave old chips on cards
+                // that may still be visible from the underlying list.
+                clearAiSearchStrengths(props.kind);
                 setNoMatchHint(
                     result.rationale?.trim() ||
                         (boardHasItems
@@ -165,6 +178,9 @@ const AiSearchInput: React.FC<Props> = (props) => {
             setMatchRationale(result.rationale?.trim() || null);
             setMatchSummary(summarizeMatches(result.matches));
             setExpandedTerms(result.expandedTerms ?? []);
+            // Stash per-result bands so the card layer can render a small
+            // strength chip on each filtered task/project (P1-2 per-result).
+            setAiSearchStrengths(props.kind, result.matches);
             props.setSemanticIds(result.ids.join(","));
         },
         [boardHasItems, props]
@@ -250,6 +266,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
         setMatchRationale(null);
         setMatchSummary(null);
         setExpandedTerms([]);
+        clearAiSearchStrengths(props.kind);
         searchAi.reset();
         abortRef.current?.abort();
         props.setSemanticIds(undefined);
@@ -278,6 +295,7 @@ const AiSearchInput: React.FC<Props> = (props) => {
 
     return (
         <div style={{ marginBottom: themeSpace.md }}>
+            <CopilotRemoteConsentNotice route="search" />
             <div
                 style={{
                     alignItems: "center",
@@ -336,13 +354,24 @@ const AiSearchInput: React.FC<Props> = (props) => {
                     </Button>
                 ) : null}
             </div>
-            <Typography.Paragraph
-                id={`${announcerId}-helper`}
-                style={{ marginBottom: 0, marginTop: themeSpace.xs }}
-                type="secondary"
+            <div
+                style={{
+                    alignItems: "center",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: themeSpace.xs,
+                    marginTop: themeSpace.xs
+                }}
             >
-                {labels.helper}
-            </Typography.Paragraph>
+                <Typography.Paragraph
+                    id={`${announcerId}-helper`}
+                    style={{ marginBottom: 0 }}
+                    type="secondary"
+                >
+                    {labels.helper}
+                </Typography.Paragraph>
+                <EngineModeTag />
+            </div>
             <span
                 aria-live="assertive"
                 id={announcerId}

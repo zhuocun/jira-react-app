@@ -39,6 +39,15 @@ const LoginForm: React.FC<{
     const handleSubmit = async (input: { email: string; password: string }) => {
         try {
             const res = await mutateAsync(input);
+            // The auth route is contractually required to return a jwt on
+            // a successful login (the server only returns 200 alongside a
+            // token), but the IUser type marks it optional because the
+            // same shape is reused for /users responses where jwt is
+            // absent. Treat a missing token here as an auth handshake bug
+            // and surface it instead of writing `"undefined"` to storage.
+            if (!res.jwt) {
+                throw new Error(microcopy.feedback.loginFailedNoToken);
+            }
             localStorage.setItem("Token", res.jwt);
             message.success(microcopy.feedback.welcomeBack);
             navigate("/projects", { viewTransition: true });
